@@ -1,0 +1,776 @@
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  StatusBar,
+  TouchableOpacity,
+  ScrollView,
+  Image,
+  Modal,
+  TextInput,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { AppColors, useAppColors } from '@/constants/theme';
+import { API_BASE } from '@/constants/api';
+import LatestVideoSection from '@/components/shared/LatestVideoSection';
+
+const BG = AppColors.bg;
+const ORANGE = AppColors.gradientEnd;
+const SERVER_BASE = API_BASE.replace('/api/v1', '');
+function imgUrl(url?: string) {
+  if (!url) return null;
+  if (url.startsWith('http')) return url;
+  return `${SERVER_BASE}${url}`;
+}
+function formatPrice(p: number) {
+  if (!p && p !== 0) return '—';
+  if (p >= 10_000_000) return `PKR ${(p / 10_000_000).toFixed(1)} Crore`;
+  if (p >= 100_000) return `PKR ${(p / 100_000).toFixed(1)} Lac`;
+  return `PKR ${p.toLocaleString()}`;
+}
+
+// ── Glass Inset ──
+function GlassInset() {
+  const aC = useAppColors();
+  if (!aC.isDark) {
+    return (
+      <>
+        <LinearGradient colors={["rgba(3,42,105,0.04)","transparent"]} start={{x:0.5,y:0}} end={{x:0.5,y:0.4}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+        <LinearGradient colors={["transparent","rgba(226,103,27,0.07)"]} start={{x:0.5,y:0.6}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+      </>
+    );
+  }
+  return (
+    <>
+      <LinearGradient colors={["rgba(22,64,136,0.2)","transparent"]} start={{x:0.5,y:0}} end={{x:0.5,y:0.6}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+      <LinearGradient colors={["rgba(13,37,84,0.18)","transparent"]} start={{x:0,y:0.5}} end={{x:0.45,y:0.5}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+      <LinearGradient colors={["transparent","rgba(29,83,175,0.2)"]} start={{x:0.5,y:0.4}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+    </>
+  );
+}
+
+// ── Static fallbacks ──
+const FALLBACK_VARIANTS = ['Any Variant', '1.0 MT', '1.2 CVT', '1.5 CVT', '1.8 CVT', '2.0 MT', 'Standard', 'GL', 'GLi', 'XLi', 'Grande'];
+
+// ── Select Sheet ──
+function SelectSheet({
+  visible,
+  title,
+  options,
+  selected,
+  onSelect,
+  onClose,
+}: {
+  visible: boolean;
+  title: string;
+  options: string[];
+  selected: string;
+  onSelect: (v: string) => void;
+  onClose: () => void;
+}) {
+  const aC = useAppColors();
+  const [q, setQ] = useState('');
+  const filtered = q ? options.filter((o) => o.toLowerCase().includes(q.toLowerCase())) : options;
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <TouchableOpacity style={sh.overlay} activeOpacity={1} onPress={onClose}>
+        <TouchableOpacity activeOpacity={1} style={[sh.sheet, { backgroundColor: aC.bg, borderColor: aC.isDark ? 'rgba(100,160,255,0.4)' : 'rgba(3,42,105,0.12)' }]}>
+          <GlassInset />
+          <View style={[sh.handle, { backgroundColor: aC.isDark ? 'rgba(255,255,255,0.2)' : 'rgba(3,42,105,0.15)' }]} />
+          <View style={[sh.header, { borderBottomColor: aC.isDark ? 'rgba(255,255,255,0.08)' : 'rgba(3,42,105,0.08)' }]}>
+            <Text style={[sh.title, { color: aC.isDark ? '#f9fafc' : '#010a1f' }]}>{title}</Text>
+            <TouchableOpacity onPress={onClose} style={[sh.closeBtn, { backgroundColor: aC.isDark ? 'rgba(255,255,255,0.08)' : 'rgba(3,42,105,0.08)' }]}>
+              <Ionicons name="close" size={16} color={aC.isDark ? "#baacb6" : '#64748b'} />
+            </TouchableOpacity>
+          </View>
+          <View style={[sh.searchRow, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.4)' : 'rgba(3,42,105,0.12)' }]}>
+            <GlassInset />
+            <Ionicons name="search-outline" size={14} color={aC.isDark ? "#baacb6" : '#64748b'} style={{ marginLeft: 12 }} />
+            <TextInput
+              style={[sh.searchInput, { color: aC.isDark ? '#f9fafc' : '#010a1f' }]}
+              value={q}
+              onChangeText={setQ}
+              placeholder={`Search ${title}...`}
+              placeholderTextColor={aC.isDark ? "#6b7280" : "#94a3b8"}
+            />
+          </View>
+          <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 360 }} keyboardShouldPersistTaps="handled">
+            {filtered.map((opt) => (
+              <TouchableOpacity
+                key={opt}
+                style={[sh.option, { borderBottomColor: aC.isDark ? 'rgba(255,255,255,0.06)' : 'rgba(3,42,105,0.06)' }]}
+                onPress={() => {
+                  onSelect(opt);
+                  onClose();
+                }}
+              >
+                <Text style={[sh.optTxt, { color: aC.isDark ? '#baacb6' : '#475569' }, opt === selected && { color: ORANGE, fontFamily: 'Poppins_600SemiBold' }]}>{opt}</Text>
+                {opt === selected && <Ionicons name="checkmark" size={16} color={ORANGE} />}
+              </TouchableOpacity>
+            ))}
+            <View style={{ height: 24 }} />
+          </ScrollView>
+        </TouchableOpacity>
+      </TouchableOpacity>
+    </Modal>
+  );
+}
+const sh = StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
+  sheet: {
+    backgroundColor: BG,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(100,160,255,0.4)',
+    paddingBottom: 32,
+    overflow: 'hidden',
+  },
+  handle: { width: 36, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.2)', alignSelf: 'center', marginTop: 10, marginBottom: 4 },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.08)',
+  },
+  title: { color: '#f9fafc', fontSize: 15, fontFamily: 'Poppins_700Bold' },
+  closeBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center' },
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 14,
+    marginVertical: 10,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(100,160,255,0.4)',
+    backgroundColor: 'rgba(3,12,40,0.6)',
+    overflow: 'hidden',
+  },
+  searchInput: { flex: 1, color: '#f9fafc', fontSize: 12, fontFamily: 'Poppins_400Regular', paddingHorizontal: 10 },
+  option: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 18,
+    paddingVertical: 13,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.06)',
+  },
+  optTxt: { flex: 1, color: '#baacb6', fontSize: 13, fontFamily: 'Poppins_400Regular' },
+});
+
+export default function CompareVehicle() {
+  const router = useRouter();
+  const aC = useAppColors();
+  const { category: initialCategory } = useLocalSearchParams<{ category?: string }>();
+  const [vehicleType, setVehicleType] = useState<'Cars' | 'Bikes'>(initialCategory === 'bike' ? 'Bikes' : 'Cars');
+  const category = vehicleType === 'Cars' ? 'car' : 'bike';
+
+  const [v1Brand, setV1Brand] = useState('All Brands');
+  const [v1Car, setV1Car] = useState('All Models');
+  const [v1Variant, setV1Variant] = useState('Any Variant');
+
+  const [v2Brand, setV2Brand] = useState('All Brands');
+  const [v2Car, setV2Car] = useState('All Models');
+  const [v2Variant, setV2Variant] = useState('Any Variant');
+
+  const [openSheet, setOpenSheet] = useState<string | null>(null);
+
+  const [brands, setBrands] = useState<string[]>(['All Brands']);
+  const [v1Models, setV1Models] = useState<string[]>(['All Models']);
+  const [v2Models, setV2Models] = useState<string[]>(['All Models']);
+  const [variants1, setVariants1] = useState<string[]>(['Any Variant']);
+  const [variants2, setVariants2] = useState<string[]>(['Any Variant']);
+
+  const [trending, setTrending] = useState<any[]>([]);
+  const [trendingLoading, setTrendingLoading] = useState(true);
+
+  const [compareLoading, setCompareLoading] = useState(false);
+  const [compareResult, setCompareResult] = useState<{ a: any; b: any } | null>(null);
+  const [compareError, setCompareError] = useState<string | null>(null);
+
+
+
+  // ── Fetch brands by category ──
+  const loadBrands = useCallback(async (cat: string) => {
+    try {
+      const res = await fetch(`${API_BASE}/vehicles?category=${cat}&limit=100`);
+      if (!res.ok) return;
+      const d = await res.json();
+      const items: any[] = d.items || d || [];
+      const uniq = Array.from(new Set(items.map((v: any) => (v.make || '').trim()).filter(Boolean))) as string[];
+      const formatted = uniq.map((m) => m.charAt(0).toUpperCase() + m.slice(1));
+      setBrands(['All Brands', ...formatted.sort()]);
+    } catch {}
+  }, []);
+
+  // Fetch models for a brand
+  const loadModels = useCallback(async (cat: string, brand: string, setter: (v: string[]) => void) => {
+    try {
+      const q = new URLSearchParams({ category: cat, limit: '100' });
+      if (brand && brand !== 'All Brands') q.set('make', brand);
+      const res = await fetch(`${API_BASE}/vehicles?${q}`);
+      if (!res.ok) { setter(['All Models']); return; }
+      const d = await res.json();
+      const items: any[] = d.items || d || [];
+      const models = Array.from(new Set(items.map((v: any) => (v.model || '').trim()).filter(Boolean))) as string[];
+      setter(['All Models', ...models.sort()]);
+      // also collect variants
+      const vars = new Set<string>(['Any Variant']);
+      items.forEach((v: any) => {
+        if (v.variant) vars.add(v.variant);
+        if (Array.isArray(v.variants)) v.variants.forEach((x: string) => vars.add(x));
+      });
+      const varList = Array.from(vars);
+      // Sirf available variants dikhao — dummy fallback nahi
+      if (setter === setV1Models) setVariants1(varList);
+      else setVariants2(varList);
+    } catch {
+      setter(['All Models']);
+    }
+  }, []);
+
+  // Initial brands + trending
+  useEffect(() => {
+    loadBrands(category);
+  }, [category, loadBrands]);
+
+  useEffect(() => {
+    loadModels(category, v1Brand, setV1Models);
+  }, [category, v1Brand, loadModels]);
+
+  useEffect(() => {
+    loadModels(category, v2Brand, setV2Models);
+  }, [category, v2Brand, loadModels]);
+
+  // Trending vehicles — zyada items taake aur bikes/cars show hon
+  useEffect(() => {
+    (async () => {
+      try {
+        setTrendingLoading(true);
+        const res = await fetch(`${API_BASE}/vehicles?category=${category}&limit=20`);
+        if (res.ok) {
+          const d = await res.json();
+          setTrending(d.items || d || []);
+        }
+      } catch {}
+      finally { setTrendingLoading(false); }
+    })();
+  }, [category]);
+
+  // Reset car/variant when brand changes
+  useEffect(() => { setV1Car('All Models'); setV1Variant('Any Variant'); }, [v1Brand]);
+  useEffect(() => { setV2Car('All Models'); setV2Variant('Any Variant'); }, [v2Brand]);
+  useEffect(() => {
+    // when category changes reset everything
+    setV1Brand('All Brands'); setV2Brand('All Brands');
+    setV1Car('All Models'); setV2Car('All Models');
+    setCompareResult(null);
+  }, [category]);
+
+  // Auto-navigate: jesay hi dono vehicles select hon, compare variant page khul jaye
+  const autoTimer = useRef<any>(null);
+  const lastAutoKey = useRef<string>('');
+  useEffect(() => {
+    if (v1Car === 'All Models' || v2Car === 'All Models') return;
+    if (v1Brand === v2Brand && v1Car === v2Car && v1Variant === v2Variant && v1Brand !== 'All Brands') return;
+    const key = `${category}|${v1Brand}|${v1Car}|${v1Variant}||${v2Brand}|${v2Car}|${v2Variant}`;
+    if (key === lastAutoKey.current) return;
+    lastAutoKey.current = key;
+    if (autoTimer.current) clearTimeout(autoTimer.current);
+    autoTimer.current = setTimeout(() => { handleCompare(); }, 600);
+    return () => { if (autoTimer.current) clearTimeout(autoTimer.current); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [v1Car, v2Car]);
+
+  async function fetchVehicleBySelection(cat: string, brand: string, carName: string, variant: string): Promise<any | null> {
+    const q = new URLSearchParams({ category: cat, limit: '20' });
+    if (brand && brand !== 'All Brands') q.set('make', brand);
+    if (carName && carName !== 'All Models') q.set('model', carName);
+    // variant via search fallback
+    const res = await fetch(`${API_BASE}/vehicles?${q}`);
+    if (!res.ok) return null;
+    const d = await res.json();
+    let items: any[] = d.items || d || [];
+    if (variant && variant !== 'Any Variant') {
+      const vLower = variant.toLowerCase();
+      const filtered = items.filter(
+        (v: any) =>
+          (v.variant && String(v.variant).toLowerCase() === vLower) ||
+          (Array.isArray(v.variants) && v.variants.some((x: string) => String(x).toLowerCase() === vLower)) ||
+          (v.title && String(v.title).toLowerCase().includes(vLower))
+      );
+      if (filtered.length > 0) items = filtered;
+    }
+    return items[0] || null;
+  }
+
+  async function handleCompare() {
+    if (v1Brand === 'All Brands' && v1Car === 'All Models' && v2Brand === 'All Brands' && v2Car === 'All Models') {
+      Alert.alert('Select vehicles', 'Please select at least brand/model for both vehicles to compare.');
+      return;
+    }
+    if (v1Brand === v2Brand && v1Car === v2Car && v1Variant === v2Variant && v1Brand !== 'All Brands') {
+      Alert.alert('Same vehicle', 'Please select two different vehicles to compare.');
+      return;
+    }
+    setCompareLoading(true);
+    setCompareError(null);
+    try {
+      const [a, b] = await Promise.all([
+        fetchVehicleBySelection(category, v1Brand, v1Car, v1Variant),
+        fetchVehicleBySelection(category, v2Brand, v2Car, v2Variant),
+      ]);
+      if (!a || !b) {
+        setCompareError(!a && !b ? 'No vehicles found for both selections.' : !a ? 'No vehicle found for Vehicle 1 selection.' : 'No vehicle found for Vehicle 2 selection.');
+        return;
+      }
+      // Navigate to detailed compare page (HTML wala design)
+      router.push({ pathname: '/compare-result' as any, params: { aId: a.id, bId: b.id } });
+      // keep inline result as fallback if user stays
+      setCompareResult({ a, b });
+    } catch (e: any) {
+      setCompareError('Failed to fetch comparison. Try again.');
+    } finally {
+      setCompareLoading(false);
+    }
+  }
+
+  function fillTrendingPair(idx: number) {
+    // Each 2 items = one VS pair
+    const left = trending[idx * 2];
+    const right = trending[idx * 2 + 1];
+    if (!left || !right) return;
+    setV1Brand(left.make || 'All Brands');
+    setV1Car(left.model || 'All Models');
+    setV1Variant(left.variant || 'Any Variant');
+    setV2Brand(right.make || 'All Brands');
+    setV2Car(right.model || 'All Models');
+    setV2Variant(right.variant || 'Any Variant');
+    // scroll to top compare card ideally
+  }
+
+  const SelectBox = ({ label, icon, value, onPress }: { label: string; icon: any; value: string; onPress: () => void }) => (
+    <View style={styles.selectColumn}>
+      <View style={styles.selectLabelRow}>
+        <MaterialCommunityIcons name={icon} size={15} color="#ff6b00" />
+        <Text style={[styles.selectLabel, { color: aC.isDark ? '#d9ddec' : '#475569' }]}>{label}</Text>
+      </View>
+      <TouchableOpacity style={[styles.selectBox, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderColor: aC.isDark ? '#68728b' : 'rgba(3,42,105,0.12)' }]} onPress={onPress} activeOpacity={0.85}>
+        <Text style={[styles.selectValue, { color: aC.isDark ? '#ffffff' : '#010a1f' }]} numberOfLines={1}>
+          {value}
+        </Text>
+        <Ionicons name="chevron-down" size={16} color={aC.isDark ? "#ffffff" : '#64748b'} />
+      </TouchableOpacity>
+    </View>
+  );
+
+  const VehicleSelection = ({
+    number,
+    prefix,
+    brand,
+    carName,
+    variant,
+  }: {
+    number: string;
+    prefix: 'v1' | 'v2';
+    brand: string;
+    carName: string;
+    variant: string;
+  }) => {
+    const models = prefix === 'v1' ? v1Models : v2Models;
+    const vars = prefix === 'v1' ? variants1 : variants2;
+    return (
+      <View style={styles.vehicleSection}>
+        <Text style={[styles.chooseTitle, { color: aC.isDark ? '#ffffff' : '#010a1f' }]}>Choose Vehicle {number}</Text>
+        <View style={styles.selectRow}>
+          <SelectBox label="Brand" icon="sitemap-outline" value={brand} onPress={() => setOpenSheet(`${prefix}-brand`)} />
+          <SelectBox label={vehicleType === 'Cars' ? 'Car' : 'Bike'} icon="car-outline" value={carName} onPress={() => setOpenSheet(`${prefix}-car`)} />
+          <SelectBox label="Variant" icon="steering" value={variant} onPress={() => setOpenSheet(`${prefix}-variant`)} />
+        </View>
+      </View>
+    );
+  };
+
+  function SpecRow({ label, a, b }: { label: string; a: string; b: string }) {
+    return (
+      <View style={[crStyles.specRow, { borderTopColor: aC.isDark ? 'rgba(255,255,255,0.06)' : 'rgba(3,42,105,0.08)' }]}>
+        <Text style={[crStyles.specLabel, { color: aC.isDark ? '#baacb6' : '#475569' }]}>{label}</Text>
+        <Text style={[crStyles.specVal, { color: aC.isDark ? '#f9fafc' : '#010a1f' }]} numberOfLines={2}>
+          {a}
+        </Text>
+        <Text style={[crStyles.specVal, { color: '#ff6b00' }]} numberOfLines={2}>
+          {b}
+        </Text>
+      </View>
+    );
+  }
+
+  return (
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: aC.bg }]} edges={["top"]}>
+      <StatusBar barStyle={aC.isDark ? "light-content" : "dark-content"} backgroundColor={aC.bg} />
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.container, { backgroundColor: aC.bg }]}>
+        {/* HEADER */}
+        <View style={[styles.header, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderBottomWidth: aC.isDark ? 0 : 1, borderBottomColor: 'rgba(3,42,105,0.08)' }]}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <Ionicons name="chevron-back" size={27} color={aC.isDark ? "#ffffff" : '#010a1f'} />
+          </TouchableOpacity>
+          <Text style={[styles.headerTitle, { color: aC.isDark ? '#ffffff' : '#010a1f' }]}>Compare Vehicle</Text>
+          <View style={{ width: 35 }} />
+        </View>
+
+        <Text style={[styles.mainHeading, { color: aC.isDark ? '#ffffff' : '#010a1f' }]}>Find Your Best Match</Text>
+
+        {/* COMPARE BOX */}
+        <View style={[styles.compareCard, { backgroundColor: aC.isDark ? '#071b46' : '#ffffff', borderColor: aC.isDark ? '#ff6500' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, shadowRadius: 10, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }]}>
+          <GlassInset />
+          <Text style={[styles.vehicleTypeTitle, { color: aC.isDark ? '#ffffff' : '#010a1f' }]}>Select Your Vehicle Type</Text>
+          <View style={styles.vehicleTypeRow}>
+            <TouchableOpacity
+              style={[styles.typeButton, { backgroundColor: aC.isDark ? '#092455' : '#ffffff', borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', borderWidth: 1, shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.06)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 1 }, vehicleType === 'Cars' && (aC.isDark ? styles.activeTypeButton : { borderColor: '#ff6b00', backgroundColor: 'rgba(226,103,27,0.12)' })]}
+              onPress={() => setVehicleType('Cars')}
+            >
+              <MaterialCommunityIcons name="car" size={23} color={vehicleType === 'Cars' ? '#ff6b00' : (aC.isDark ? '#ffffff' : '#64748b')} />
+              <Text style={[styles.typeText, { color: aC.isDark ? '#ffffff' : '#010a1f' }]}>Cars</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.typeButton, { backgroundColor: aC.isDark ? '#092455' : '#ffffff', borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', borderWidth: 1, shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.06)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 1 }, vehicleType === 'Bikes' && (aC.isDark ? styles.activeTypeButton : { borderColor: '#ff6b00', backgroundColor: 'rgba(226,103,27,0.12)' })]}
+              onPress={() => setVehicleType('Bikes')}
+            >
+              <MaterialCommunityIcons name="motorbike" size={23} color={vehicleType === 'Bikes' ? '#ff6b00' : (aC.isDark ? '#ffffff' : '#64748b')} />
+              <Text style={[styles.typeText, { color: aC.isDark ? '#ffffff' : '#010a1f' }]}>Bikes</Text>
+            </TouchableOpacity>
+          </View>
+
+          <VehicleSelection number="1" prefix="v1" brand={v1Brand} carName={v1Car} variant={v1Variant} />
+          <VehicleSelection number="2" prefix="v2" brand={v2Brand} carName={v2Car} variant={v2Variant} />
+
+          {compareError && (
+            <View style={{ backgroundColor: 'rgba(255,80,80,0.12)', borderWidth: 1, borderColor: 'rgba(255,80,80,0.3)', borderRadius: 10, padding: 10, marginTop: 8 }}>
+              <Text style={{ color: '#ff6467', fontSize: 11, fontFamily: 'Poppins_400Regular' }}>{compareError}</Text>
+            </View>
+          )}
+
+          <TouchableOpacity style={styles.compareButton} onPress={handleCompare} activeOpacity={0.88} disabled={compareLoading}>
+            <LinearGradient
+              colors={[AppColors.gradientStart, AppColors.gradientEnd]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={StyleSheet.absoluteFillObject}
+            />
+            {compareLoading ? <ActivityIndicator color="#fff" /> : <Text style={styles.compareButtonText}>Compare your Vehicle</Text>}
+          </TouchableOpacity>
+        </View>
+
+        {/* COMPARISON RESULT */}
+        {compareResult && (
+          <View style={[crStyles.resultCard, { backgroundColor: aC.isDark ? '#071b46' : '#ffffff', borderColor: aC.isDark ? '#ff6500' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }]}>
+            <GlassInset />
+            <Text style={[crStyles.resultTitle, { color: aC.isDark ? '#ffffff' : '#010a1f' }]}>Comparison Result</Text>
+            <View style={crStyles.resultImagesRow}>
+              {[compareResult.a, compareResult.b].map((v: any, idx: number) => {
+                const uri = imgUrl(v.images?.[0]);
+                return (
+                  <View key={idx} style={[crStyles.resultImgCard, { backgroundColor: aC.isDark ? '#0a2458' : '#f8fafc', borderColor: aC.isDark ? 'rgba(100,160,255,0.3)' : 'rgba(3,42,105,0.12)' }]}>
+                    {uri ? (
+                      <Image source={{ uri }} style={crStyles.resultImg} resizeMode="cover" />
+                    ) : (
+                      <View style={[crStyles.resultImg, { alignItems: 'center', justifyContent: 'center', backgroundColor: aC.isDark ? '#0d1e3d' : '#f1f5f9' }]}>
+                        <Ionicons name={category === 'car' ? 'car-outline' : 'bicycle-outline'} size={28} color={aC.isDark ? "#baacb6" : '#94a3b8'} />
+                      </View>
+                    )}
+                    <Text style={[crStyles.resultCarName, { color: aC.isDark ? '#f9fafc' : '#010a1f' }]} numberOfLines={1}>
+                      {v.title || `${v.make} ${v.model}`}
+                    </Text>
+                    <Text style={crStyles.resultCarPrice}>{formatPrice(v.price)}</Text>
+                    <TouchableOpacity
+                      style={[crStyles.viewBtn, { borderColor: aC.isDark ? 'rgba(255,255,255,0.18)' : 'rgba(3,42,105,0.12)' }]}
+                      onPress={() => router.push({ pathname: '/vehicle/[id]', params: { id: v.id } } as any)}
+                    >
+                      <Text style={[crStyles.viewBtnTxt, { color: aC.isDark ? '#fff' : '#032a69' }]}>View Details</Text>
+                    </TouchableOpacity>
+                  </View>
+                );
+              })}
+              <View style={crStyles.vsBadge}>
+                <Text style={crStyles.vsBadgeTxt}>VS</Text>
+              </View>
+            </View>
+
+            {/* Spec table */}
+            <View style={[crStyles.table, { borderColor: aC.isDark ? 'rgba(100,160,255,0.25)' : 'rgba(3,42,105,0.12)', backgroundColor: aC.isDark ? 'transparent' : '#ffffff' }]}>
+              <View style={[crStyles.tableHeader, { backgroundColor: aC.isDark ? 'rgba(255,107,0,0.18)' : 'rgba(3,42,105,0.06)' }]}>
+                <Text style={[crStyles.thLabel, { color: aC.isDark ? '#ff6b00' : '#032a69' }]}>Feature</Text>
+                <Text style={[crStyles.thVal, { color: aC.isDark ? '#f9fafc' : '#010a1f' }]}>Vehicle 1</Text>
+                <Text style={[crStyles.thVal, { color: aC.isDark ? '#f9fafc' : '#010a1f' }]}>Vehicle 2</Text>
+              </View>
+              <SpecRow label="Make" a={compareResult.a.make || '—'} b={compareResult.b.make || '—'} />
+              <SpecRow label="Model" a={compareResult.a.model || '—'} b={compareResult.b.model || '—'} />
+              <SpecRow label="Variant" a={compareResult.a.variant || '—'} b={compareResult.b.variant || '—'} />
+              <SpecRow label="Year" a={String(compareResult.a.year || '—')} b={String(compareResult.b.year || '—')} />
+              <SpecRow label="Price" a={formatPrice(compareResult.a.price)} b={formatPrice(compareResult.b.price)} />
+              <SpecRow label="Mileage" a={compareResult.a.mileage ? `${Number(compareResult.a.mileage).toLocaleString()} km` : '—'} b={compareResult.b.mileage ? `${Number(compareResult.b.mileage).toLocaleString()} km` : '—'} />
+              <SpecRow label="Fuel" a={compareResult.a.fuel_type || '—'} b={compareResult.b.fuel_type || '—'} />
+              <SpecRow label="Transmission" a={compareResult.a.transmission || '—'} b={compareResult.b.transmission || '—'} />
+              <SpecRow label="Engine" a={compareResult.a.engine_cc ? `${compareResult.a.engine_cc} cc` : '—'} b={compareResult.b.engine_cc ? `${compareResult.b.engine_cc} cc` : '—'} />
+              <SpecRow label="Color" a={compareResult.a.color || '—'} b={compareResult.b.color || '—'} />
+              <SpecRow label="City" a={compareResult.a.city || '—'} b={compareResult.b.city || '—'} />
+            </View>
+
+            <TouchableOpacity style={[crStyles.clearBtn, { borderColor: aC.isDark ? 'rgba(255,255,255,0.15)' : 'rgba(3,42,105,0.12)' }]} onPress={() => setCompareResult(null)}>
+              <Text style={[crStyles.clearTxt, { color: aC.isDark ? '#baacb6' : '#475569' }]}>Clear Comparison</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* TRENDING */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 17 }}>
+          <Text style={[styles.sectionTitle, { color: aC.isDark ? '#ffffff' : '#010a1f' }]}>Trending Compare Vehicles</Text>
+          {trendingLoading && <ActivityIndicator color={ORANGE} size="small" />}
+        </View>
+        {trending.length === 0 && !trendingLoading ? (
+          <Text style={{ color: aC.isDark ? '#baacb6' : '#64748b', fontSize: 12, fontFamily: 'Poppins_400Regular', marginTop: 8 }}>No vehicles available yet</Text>
+        ) : (
+          <View style={styles.trendingGrid}>
+            {(() => {
+              const pairs: any[][] = [];
+              for (let i = 0; i < trending.length - 1; i += 2) pairs.push([trending[i], trending[i + 1]]);
+              return pairs.map((pair, pIdx) => (
+                <View key={pIdx} style={styles.pairRow}>
+                  {pair.map((item: any, idx: number) => {
+                    const uri = imgUrl(item.images?.[0]);
+                    return (
+                      <TouchableOpacity
+                        key={item.id || idx}
+                        style={[styles.trendingCard, { backgroundColor: aC.isDark ? '#071b46' : '#ffffff', borderColor: aC.isDark ? '#172e57' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 2 }]}
+                        activeOpacity={0.86}
+                        onPress={() => router.push({ pathname: '/vehicle/[id]', params: { id: item.id } } as any)}
+                      >
+                        <GlassInset />
+                        {uri ? (
+                          <Image source={{ uri }} style={styles.carImage} resizeMode="cover" />
+                        ) : (
+                          <View style={[styles.carImage, { alignItems: 'center', justifyContent: 'center', backgroundColor: aC.isDark ? '#0a1e3a' : '#f1f5f9' }]}>
+                            <Ionicons name={category === 'car' ? 'car-outline' : 'bicycle-outline'} size={24} color={aC.isDark ? "#baacb6" : '#94a3b8'} />
+                          </View>
+                        )}
+                        <Text style={[styles.carName, { color: aC.isDark ? '#ffffff' : '#010a1f' }]} numberOfLines={1}>
+                          {item.title || `${item.make} ${item.model}`}
+                        </Text>
+                        <Text style={[styles.carVariant, { color: aC.isDark ? '#baacb6' : '#475569' }]} numberOfLines={1}>
+                          {item.variant || item.transmission || '—'}
+                        </Text>
+                        <Text style={styles.carPrice}>{formatPrice(item.price)}</Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                  <View style={styles.vsContainer} pointerEvents="none">
+                    <Text style={styles.vsText}>VS</Text>
+                  </View>
+                  <TouchableOpacity style={[styles.pairUseBtn, { backgroundColor: aC.isDark ? 'rgba(255,107,0,0.18)' : '#ffffff', borderColor: aC.isDark ? 'rgba(255,107,0,0.4)' : 'rgba(3,42,105,0.12)' }]} onPress={() => fillTrendingPair(pIdx)}>
+                    <Text style={styles.pairUseTxt}>Use this pair</Text>
+                  </TouchableOpacity>
+                </View>
+              ));
+            })()}
+          </View>
+        )}
+
+        {/* LATEST VIDEO — Home page wala component reuse */}
+        <LatestVideoSection count={2} />
+
+        <View style={{ height: 30 }} />
+      </ScrollView>
+
+      {/* SHEETS */}
+      <SelectSheet visible={openSheet === 'v1-brand'} title="Select Brand" options={brands} selected={v1Brand} onSelect={setV1Brand} onClose={() => setOpenSheet(null)} />
+      <SelectSheet visible={openSheet === 'v2-brand'} title="Select Brand" options={brands} selected={v2Brand} onSelect={setV2Brand} onClose={() => setOpenSheet(null)} />
+      <SelectSheet visible={openSheet === 'v1-car'} title={`Select ${vehicleType === 'Cars' ? 'Car' : 'Bike'} Model`} options={v1Models} selected={v1Car} onSelect={setV1Car} onClose={() => setOpenSheet(null)} />
+      <SelectSheet visible={openSheet === 'v2-car'} title={`Select ${vehicleType === 'Cars' ? 'Car' : 'Bike'} Model`} options={v2Models} selected={v2Car} onSelect={setV2Car} onClose={() => setOpenSheet(null)} />
+      <SelectSheet visible={openSheet === 'v1-variant'} title="Select Variant" options={variants1} selected={v1Variant} onSelect={setV1Variant} onClose={() => setOpenSheet(null)} />
+      <SelectSheet visible={openSheet === 'v2-variant'} title="Select Variant" options={variants2} selected={v2Variant} onSelect={setV2Variant} onClose={() => setOpenSheet(null)} />
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: '#020b22' },
+  container: { paddingHorizontal: 17, paddingBottom: 35 },
+  header: { height: 58, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  backButton: { width: 35, height: 40, justifyContent: 'center' },
+  headerTitle: { color: '#ffffff', fontSize: 21, fontWeight: '500' },
+  mainHeading: { color: '#ffffff', fontSize: 17, fontWeight: '500', marginBottom: 16 },
+  compareCard: {
+    borderWidth: 1,
+    borderColor: '#ff6500',
+    borderRadius: 17,
+    padding: 11,
+    paddingBottom: 17,
+    backgroundColor: '#071b46',
+    overflow: 'hidden',
+  },
+  vehicleTypeTitle: { color: '#ffffff', fontSize: 12, marginBottom: 14 },
+  vehicleTypeRow: { flexDirection: 'row', gap: 9, marginBottom: 15 },
+  typeButton: { flex: 1, height: 67, borderRadius: 16, backgroundColor: '#092455', justifyContent: 'center', alignItems: 'center', gap: 2 },
+  activeTypeButton: { borderWidth: 1, borderColor: '#7fa4df', backgroundColor: '#102e65' },
+  typeText: { color: '#ffffff', fontSize: 13 },
+  vehicleSection: { marginBottom: 13 },
+  chooseTitle: { color: '#ffffff', fontSize: 13, marginBottom: 11 },
+  selectRow: { flexDirection: 'row', gap: 8 },
+  selectColumn: { flex: 1 },
+  selectLabelRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 7, gap: 5 },
+  selectLabel: { color: '#d9ddec', fontSize: 11 },
+  selectBox: {
+    height: 36,
+    borderWidth: 1,
+    borderColor: '#68728b',
+    borderRadius: 7,
+    paddingHorizontal: 9,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  selectValue: { color: '#ffffff', fontSize: 10, flex: 1, marginRight: 4 },
+  compareButton: { height: 46, borderRadius: 30, marginTop: 10, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' },
+  compareButtonText: { color: '#ffffff', fontSize: 15, fontWeight: '500' },
+  sectionTitle: { color: '#ffffff', fontSize: 17, fontWeight: '500', marginTop: 17, marginBottom: 13 },
+  trendingGrid: { gap: 14 },
+  pairRow: { flexDirection: 'row', gap: 28, position: 'relative', alignItems: 'center', marginBottom: 18 },
+  trendingCard: {
+    flex: 1,
+    height: 160,
+    backgroundColor: '#071b46',
+    borderRadius: 7,
+    borderWidth: 1,
+    borderColor: '#172e57',
+    alignItems: 'center',
+    overflow: 'hidden',
+    paddingBottom: 8,
+  },
+  carImage: { width: '100%', height: 85 },
+  carName: { color: '#ffffff', fontSize: 12, marginTop: 6, textAlign: 'center', paddingHorizontal: 6, fontFamily: 'Poppins_600SemiBold' },
+  carVariant: { color: '#baacb6', fontSize: 11, marginTop: 2, textAlign: 'center', paddingHorizontal: 6, fontFamily: 'Poppins_400Regular' },
+  carPrice: { color: '#ff6b00', fontSize: 11, marginTop: 4, fontFamily: 'Poppins_600SemiBold' },
+  vsContainer: {
+    position: 'absolute',
+    left: '50%',
+    marginLeft: -14,
+    top: 50,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#ff6b00',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
+  },
+  vsText: { color: '#ffffff', fontSize: 11, fontWeight: '700' },
+  pairUseBtn: {
+    position: 'absolute',
+    bottom: -2,
+    left: '50%',
+    marginLeft: -44,
+    backgroundColor: 'rgba(255,107,0,0.18)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,107,0,0.4)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  pairUseTxt: { color: '#ff6b00', fontSize: 9, fontFamily: 'Poppins_500Medium' },
+  videoCard: {
+    height: 150,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#507ec5',
+    backgroundColor: '#061b45',
+    marginBottom: 12,
+    padding: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  videoImageContainer: { width: 143, height: 116, borderRadius: 13, overflow: 'hidden', position: 'relative' },
+  videoImage: { width: '100%', height: '100%' },
+  playButton: {
+    position: 'absolute',
+    left: '50%',
+    top: '50%',
+    marginLeft: -18,
+    marginTop: -18,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(10, 53, 107, 0.85)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingLeft: 3,
+  },
+  durationBox: { position: 'absolute', right: 5, bottom: 5, backgroundColor: 'rgba(0,0,0,0.65)', borderRadius: 4, paddingHorizontal: 4, paddingVertical: 2 },
+  durationText: { color: '#ffffff', fontSize: 8 },
+  videoInfo: { flex: 1, paddingLeft: 14, justifyContent: 'center' },
+  videoTitle: { color: '#ffffff', fontSize: 15, fontWeight: '500', marginBottom: 7 },
+  videoSubtitle: { color: '#d5d7df', fontSize: 12, marginBottom: 12 },
+  videoMeta: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  metaItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  metaText: { color: '#b7bbc7', fontSize: 8 },
+});
+
+const crStyles = StyleSheet.create({
+  resultCard: {
+    marginTop: 16,
+    backgroundColor: '#071b46',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#ff6500',
+    padding: 12,
+    overflow: 'hidden',
+  },
+  resultTitle: { color: '#ffffff', fontSize: 14, fontFamily: 'Poppins_600SemiBold', marginBottom: 12 },
+  resultImagesRow: { flexDirection: 'row', gap: 28, position: 'relative' },
+  resultImgCard: { flex: 1, backgroundColor: '#0a2458', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(100,160,255,0.3)', padding: 8, alignItems: 'center' },
+  resultImg: { width: '100%', height: 90, borderRadius: 8, marginBottom: 8 },
+  resultCarName: { color: '#f9fafc', fontSize: 11, fontFamily: 'Poppins_600SemiBold', textAlign: 'center' },
+  resultCarPrice: { color: '#ff6b00', fontSize: 11, fontFamily: 'Poppins_700Bold', marginTop: 2 },
+  viewBtn: { marginTop: 6, backgroundColor: 'transparent', borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)', paddingHorizontal: 12, paddingVertical: 5, borderRadius: 12 },
+  viewBtnTxt: { color: '#fff', fontSize: 10, fontFamily: 'Poppins_600SemiBold' },
+  vsBadge: {
+    position: 'absolute',
+    left: '50%',
+    top: 42,
+    marginLeft: -16,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#ff6b00',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#071b46',
+  },
+  vsBadgeTxt: { color: '#fff', fontSize: 12, fontFamily: 'Poppins_700Bold' },
+  table: { marginTop: 14, borderWidth: 1, borderColor: 'rgba(100,160,255,0.25)', borderRadius: 10, overflow: 'hidden' },
+  tableHeader: { flexDirection: 'row', backgroundColor: 'rgba(255,107,0,0.18)', paddingVertical: 8, paddingHorizontal: 10 },
+  thLabel: { flex: 1, color: '#ff6b00', fontSize: 10, fontFamily: 'Poppins_600SemiBold' },
+  thVal: { flex: 1, color: '#f9fafc', fontSize: 10, fontFamily: 'Poppins_600SemiBold', textAlign: 'center' },
+  specRow: {
+    flexDirection: 'row',
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.06)',
+    alignItems: 'center',
+  },
+  specLabel: { flex: 1, color: '#baacb6', fontSize: 10, fontFamily: 'Poppins_500Medium' },
+  specVal: { flex: 1, fontSize: 10, fontFamily: 'Poppins_500Medium', textAlign: 'center' },
+  clearBtn: { marginTop: 12, height: 38, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center' },
+  clearTxt: { color: '#baacb6', fontSize: 12, fontFamily: 'Poppins_500Medium' },
+});
