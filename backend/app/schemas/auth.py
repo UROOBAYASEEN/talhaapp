@@ -81,3 +81,9 @@ class MessageResponse(BaseModel):
 class GoogleAuthRequest(BaseModel):
     access_token: str
     role: UserRole = UserRole.customer
+
+
+class GoogleCodeRequest(BaseModel):
+    code: str
+    redirect_uri: str
+    role: UserRole = UserRole.customer

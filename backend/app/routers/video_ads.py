@@ -329,6 +329,19 @@ async def my_video_ads(current_user: User = Depends(get_current_user)):
     return [_to_response(a) for a in ads]
 
 
+@router.get("/", response_model=List[VideoAdResponse])
+async def list_public_video_ads(limit: int = Query(20, ge=1, le=50)):
+    """Public — admin-approved (active, non-expired) video ads for home Latest Video."""
+    now = datetime.utcnow()
+    ads = await VideoAd.find({"status": VideoAdStatus.active}).sort("-created_at").limit(limit).to_list()
+    out = []
+    for ad in ads:
+        if ad.expires_at and ad.expires_at < now:
+            continue
+        out.append(_to_response(ad))
+    return out
+
+
 @router.delete("/{video_ad_id}")
 async def delete_video_ad(
     video_ad_id:  str,

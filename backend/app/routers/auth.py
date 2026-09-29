@@ -10,6 +10,7 @@ from app.models.user import User, UserRole
 from app.schemas.auth import (
     ForgotPasswordRequest,
     GoogleAuthRequest,
+    GoogleCodeRequest,
     LoginRequest,
     MessageResponse,
     RefreshTokenRequest,
@@ -187,6 +188,56 @@ async def google_auth(payload: GoogleAuthRequest):
     except urllib.error.HTTPError:
         raise HTTPException(status_code=400, detail="Invalid Google access token")
 
+    return await _login_with_google_user(google_user, payload.role)
+
+
+@router.post("/google/code", response_model=TokenResponse)
+async def google_auth_code(payload: GoogleCodeRequest):
+    """Expo Go proxy flow: exchange authorization code (no PKCE) using server secret."""
+    import urllib.parse
+
+    if not settings.GOOGLE_CLIENT_ID or not settings.GOOGLE_CLIENT_SECRET:
+        raise HTTPException(status_code=500, detail="Google OAuth not configured on server")
+    body = urllib.parse.urlencode({
+        "code":          payload.code,
+        "client_id":     settings.GOOGLE_CLIENT_ID,
+        "client_secret": settings.GOOGLE_CLIENT_SECRET,
+        "redirect_uri":  payload.redirect_uri,
+        "grant_type":    "authorization_code",
+    }).encode()
+    token_req = urllib.request.Request(
+        "https://oauth2.googleapis.com/token",
+        data=body,
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
+    try:
+        with urllib.request.urlopen(token_req) as resp:
+            tok = json.loads(resp.read().decode())
+    except urllib.error.HTTPError as e:
+        try:
+            err_body = e.read().decode()
+        except Exception:
+            err_body = ""
+        print(f"GOOGLE TOKEN EXCHANGE FAILED [{e.code}]: {err_body[:300]}")
+        raise HTTPException(status_code=400, detail=f"Google code exchange failed ({e.code}): {err_body[:200]}")
+    access_token = tok.get("access_token")
+    if not access_token:
+        raise HTTPException(status_code=400, detail="Google code exchange failed")
+
+    info_req = urllib.request.Request(
+        "https://www.googleapis.com/oauth2/v2/userinfo",
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
+    try:
+        with urllib.request.urlopen(info_req) as resp:
+            google_user = json.loads(resp.read().decode())
+    except urllib.error.HTTPError:
+        raise HTTPException(status_code=400, detail="Could not retrieve user info from Google")
+
+    return await _login_with_google_user(google_user, payload.role)
+
+
+async def _login_with_google_user(google_user: dict, role):
     google_id = google_user.get("id")
     email = google_user.get("email")
     name = google_user.get("name", "")
@@ -206,7 +257,7 @@ async def google_auth(payload: GoogleAuthRequest):
             full_name=name,
             email=email,
             google_id=google_id,
-            role=payload.role,
+            role=role,
             is_verified=True,
             is_active=True,
         )

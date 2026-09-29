@@ -147,6 +147,7 @@ async def list_vehicles(
     make:         Optional[str] = None,
     model:        Optional[str] = None,
     year:         Optional[int] = None,
+    variant:      Optional[str] = None,
     color:        Optional[str] = None,
     transmission: Optional[str] = None,
     body_type:    Optional[str] = None,
@@ -162,6 +163,7 @@ async def list_vehicles(
     if make:         query["make"]         = {"$regex": make, "$options": "i"}
     if model:        query["model"]        = {"$regex": model, "$options": "i"}
     if year:         query["year"]         = year
+    if variant:      query["variant"]      = {"$regex": variant, "$options": "i"}
     if color:        query["color"]        = {"$regex": color, "$options": "i"}
     if transmission: query["transmission"] = {"$regex": transmission, "$options": "i"}
     if body_type:    query["body_type"]    = {"$regex": body_type, "$options": "i"}
