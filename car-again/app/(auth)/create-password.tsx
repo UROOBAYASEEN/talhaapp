@@ -1,17 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import AuthHeader from '@/components/auth/AuthHeader';
-import GlassInput from '@/components/auth/GlassInput';
-import LinearButton from '@/components/auth/LinearButton';
-import { useAppColors } from '@/constants/theme';
+import AuthGlowBackground from '@/components/auth/AuthGlowBackground';
+import { PassRule } from '@/components/auth/AuthGlow';
+import { GlassField, GradientButton, ScreenHeader } from '@/components/shared/GlowUI';
 import { API_BASE } from '@/constants/api';
 
 export default function CreatePasswordScreen() {
   const router = useRouter();
-  const C = useAppColors();
   const { phone, otp_code } = useLocalSearchParams<{ phone: string; otp_code: string }>();
 
   const [newPassword,     setNewPassword]     = useState('');
@@ -26,11 +24,7 @@ export default function CreatePasswordScreen() {
     length:  newPassword.length >= 8,
     letters: /[a-zA-Z]/.test(newPassword),
     numbers: /[0-9]/.test(newPassword),
-    special: /[^a-zA-Z0-9]/.test(newPassword),
   };
-  const strengthScore = Object.values(pwValid).filter(Boolean).length;
-  const strengthLabel = strengthScore <= 1 ? 'Weak' : strengthScore === 2 ? 'Fair' : strengthScore === 3 ? 'Good' : 'Strong';
-  const strengthColor = strengthScore <= 1 ? '#e74c3c' : strengthScore === 2 ? '#e2671b' : strengthScore === 3 ? '#f0c040' : '#27ae60';
 
   // ── Per-field validation ───────────────────────────────────────
   function getPasswordError(val: string): string {
@@ -97,169 +91,68 @@ export default function CreatePasswordScreen() {
     }
   }
 
-  return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: C.bg }]}>
-      <AuthHeader />
-      <View style={styles.content}>
-        <Text style={[styles.title, { color: C.textPrimary }]}>Create New Password</Text>
-        <Text style={[styles.subtitle, { color: C.textSecondary }]}>
-          Set a strong password to keep your account secure.
-        </Text>
-
-        <View style={styles.form}>
-
-          {/* ── New Password ── */}
-          <View>
-            <GlassInput
-              accentBorderColor="rgba(100,160,255,0.5)"
-              placeholder="New password"
-              value={newPassword}
-              onChangeText={handleNewPasswordChange}
-              secureTextEntry={!showNew}
-              error={errors.newPassword}
-              rightIcon={
-                <TouchableOpacity onPress={() => setShowNew(!showNew)}>
-                  <Ionicons
-                    name={showNew ? 'eye-off-outline' : 'eye-outline'}
-                    size={18}
-                    color={C.textPlaceholder}
-                  />
-                </TouchableOpacity>
-              }
-            />
-
-            {newPassword.length > 0 && (
-              <View style={styles.rules}>
-                {/* Strength bar */}
-                <View style={styles.strengthRow}>
-                  {[1, 2, 3, 4].map(i => (
-                    <View
-                      key={i}
-                      style={[
-                        styles.strengthSegment,
-                        { backgroundColor: i <= strengthScore ? strengthColor : C.isDark ? 'rgba(255,255,255,0.12)' : 'rgba(3,12,40,0.12)' },
-                      ]}
-                    />
-                  ))}
-                  <Text style={[styles.strengthLabel, { color: strengthColor }]}>{strengthLabel}</Text>
-                </View>
-
-                <Text style={[styles.rulesTitle, { color: C.textSecondary }]}>Password must include:</Text>
-                <RuleItem met={pwValid.length}  label="At least 8 characters"        color={C.textHint} />
-                <RuleItem met={pwValid.letters} label="At least one letter"           color={C.textHint} />
-                <RuleItem met={pwValid.numbers} label="At least one number"           color={C.textHint} />
-                <RuleItem met={pwValid.special} label="Special character (!@#…)  (recommended)" color={C.textHint} />
-              </View>
-            )}
-          </View>
-
-          {/* ── Confirm Password ── */}
-          <View>
-            <GlassInput
-              accentBorderColor="rgba(100,160,255,0.5)"
-              placeholder="Confirm password"
-              value={confirmPassword}
-              onChangeText={handleConfirmChange}
-              secureTextEntry={!showConfirm}
-              error={errors.confirmPassword}
-              rightIcon={
-                <TouchableOpacity onPress={() => setShowConfirm(!showConfirm)}>
-                  <Ionicons
-                    name={showConfirm ? 'eye-off-outline' : 'eye-outline'}
-                    size={18}
-                    color={C.textPlaceholder}
-                  />
-                </TouchableOpacity>
-              }
-            />
-            {/* Match indicator — only show when both fields have content and no error */}
-            {confirmPassword.length > 0 && !errors.confirmPassword && newPassword === confirmPassword && (
-              <View style={styles.matchRow}>
-                <Ionicons name="checkmark-circle" size={14} color="#27ae60" />
-                <Text style={styles.matchText}>Passwords match</Text>
-              </View>
-            )}
-          </View>
-
-        </View>
-      </View>
-      <View style={styles.btnFixed}>
-        <LinearButton title="Reset Password" onPress={handleReset} loading={loading} />
-      </View>
-    </SafeAreaView>
+  const eye = (on: boolean, toggle: () => void) => (
+    <TouchableOpacity onPress={toggle}>
+      <Ionicons name={on ? 'eye-off-outline' : 'eye-outline'} size={18} color="#8F8A96" />
+    </TouchableOpacity>
   );
-}
 
-function RuleItem({ met, label, color }: { met: boolean; label: string; color: string }) {
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6 }}>
-      <Ionicons
-        name={met ? 'checkmark-circle' : 'radio-button-off-outline'}
-        size={16}
-        color={met ? '#27ae60' : color}
-      />
-      <Text style={{ fontSize: 12, color: met ? '#27ae60' : color, fontFamily: 'Poppins_400Regular' }}>
-        {label}
-      </Text>
-    </View>
+    <AuthGlowBackground>
+      <SafeAreaView style={styles.safe}>
+        <ScreenHeader logo />
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+          <Text style={styles.title}>Create New Password</Text>
+          <Text style={styles.subtitle}>Set a new password for your account security.</Text>
+
+          <GlassField
+            placeholder="New password"
+            value={newPassword}
+            onChangeText={handleNewPasswordChange}
+            secureTextEntry={!showNew}
+            right={eye(showNew, () => setShowNew(!showNew))}
+          />
+          {errors.newPassword ? <Text style={styles.err}>{errors.newPassword}</Text> : null}
+          <Text style={styles.rulesTitle}>Password must include:</Text>
+          <PassRule met={pwValid.length}  label="At least 8 characters" />
+          <PassRule met={pwValid.letters} label="Include letters" />
+          <PassRule met={pwValid.numbers} label="Include numbers" />
+
+          <GlassField
+            containerStyle={{ marginTop: 22 }}
+            placeholder="Confirm password"
+            value={confirmPassword}
+            onChangeText={handleConfirmChange}
+            secureTextEntry={!showConfirm}
+            right={eye(showConfirm, () => setShowConfirm(!showConfirm))}
+          />
+          {errors.confirmPassword ? <Text style={styles.err}>{errors.confirmPassword}</Text> : null}
+        </ScrollView>
+        <View style={styles.btnFixed}>
+          <GradientButton title="Reset Password" height={50} fontSize={17} onPress={handleReset} loading={loading} />
+        </View>
+      </SafeAreaView>
+    </AuthGlowBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  safe:    { flex: 1, paddingHorizontal: 20 },
-  content: { flex: 1 },
-  btnFixed: { paddingBottom: 24 },
-
+  safe:     { flex: 1 },
+  content:  { paddingHorizontal: 16, paddingBottom: 20 },
+  btnFixed: { paddingHorizontal: 16, paddingBottom: 20 },
   title: {
-    fontSize: 20,
+    color: '#FFFFFF',
+    fontSize: 22,
     fontFamily: 'Poppins_600SemiBold',
-    marginBottom: 4,
+    marginTop: 8,
   },
   subtitle: {
-    fontSize: 14,
-    fontFamily: 'Poppins_500Medium',
-    marginBottom: 28,
-    lineHeight: 22,
-  },
-
-  form: { gap: 16 },
-
-  rules: { marginTop: 8, paddingLeft: 4, gap: 2 },
-
-  strengthRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginBottom: 8,
-  },
-  strengthSegment: {
-    flex: 1,
-    height: 4,
-    borderRadius: 4,
-  },
-  strengthLabel: {
-    fontSize: 11,
-    fontFamily: 'Poppins_600SemiBold',
-    width: 44,
-    textAlign: 'right',
-  },
-
-  rulesTitle: {
-    fontSize: 12,
-    fontFamily: 'Poppins_500Medium',
-    marginBottom: 2,
-  },
-
-  matchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginTop: 6,
-    paddingLeft: 4,
-  },
-  matchText: {
-    fontSize: 11,
+    color: '#BAACB6',
+    fontSize: 15,
     fontFamily: 'Poppins_400Regular',
-    color: '#27ae60',
+    marginTop: 2,
+    marginBottom: 20,
   },
+  rulesTitle: { color: '#BAACB6', fontSize: 12, fontFamily: 'Poppins_500Medium', marginTop: 10 },
+  err: { color: '#FF6B6D', fontSize: 11, fontFamily: 'Poppins_400Regular', marginTop: 6, marginLeft: 2 },
 });
