@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   SafeAreaView,
   StatusBar,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -15,10 +16,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useAppColors } from '@/constants/theme';
 
 const SETTINGS = [
-  { title: 'Change Password',    icon: 'lock-closed-outline',        route: '/profile/change-password' },
-  { title: 'Help Center',        icon: 'help-circle-outline',        route: '/profile/help'            },
-  { title: 'Terms & Conditions', icon: 'document-text-outline',      route: '/profile/terms'           },
-  { title: 'About Autowizor',    icon: 'information-circle-outline', route: '/profile/about'           },
+  { title: 'Change Password',    asset: require('../../assets/Icons/changePasswordIcon.png'), route: '/profile/change-password' },
+  { title: 'Help Center',        icon: 'help-circle-outline',                                      route: '/profile/help'            },
+  { title: 'Terms & Conditions', asset: require('../../assets/Icons/terms&ConditionIcon.png'),   route: '/profile/terms'           },
+  { title: 'About Autowizor',    asset: require('../../assets/Icons/aboutIcon.png'),              route: '/profile/about'           },
 ];
 
 export default function SettingScreen() {
@@ -44,15 +45,36 @@ export default function SettingScreen() {
         {SETTINGS.map((item, i) => (
           <TouchableOpacity
             key={i}
-            style={[s.option, { backgroundColor: C.glassBg, borderColor: C.isDark ? 'rgba(100,160,255,0.5)' : 'rgba(3,42,105,0.2)' }]}
+            style={[s.option, { backgroundColor: C.isDark ? '#010A1F' : C.glassBg, borderColor: C.isDark ? '#829fd0' : 'rgba(3,42,105,0.2)' }]}
             activeOpacity={0.8}
             onPress={() => item.route && router.push(item.route as any)}
           >
-            <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+            {C.isDark ? (
+              <>
+                <LinearGradient
+                  colors={['#163565', '#061124', '#061124', '#0D2146']}
+                  locations={[0, 0.24, 0.76, 1]}
+                  style={[StyleSheet.absoluteFillObject, { borderRadius: 16 }]}
+                  pointerEvents="none"
+                />
+                <LinearGradient
+                  colors={['#24518F8F', '#16356552', 'transparent', 'transparent', '#16356552', '#24518F8F']}
+                  locations={[0, 0.025, 0.075, 0.925, 0.975, 1]}
+                  start={{ x: 0, y: 0.5 }}
+                  end={{ x: 1, y: 0.5 }}
+                  style={[StyleSheet.absoluteFillObject, { borderRadius: 16 }]}
+                  pointerEvents="none"
+                />
+              </>
+            ) : (
+              <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+            )}
             <View style={s.optionLeft}>
-              <Ionicons name={item.icon as any} size={20} color="#FF8A00" />
+              {'asset' in item && item.asset ? (
+                <Image source={item.asset} style={s.menuIcon} resizeMode="contain" />
+              ) : (
+                <Ionicons name={item.icon as any} size={20} color="#FF8A00" />
+              )}
               <Text style={[s.optionText, { color: C.textPrimary }]}>{item.title}</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color={C.textSecondary} />
@@ -61,7 +83,7 @@ export default function SettingScreen() {
 
         {/* Logout */}
         <TouchableOpacity
-          style={[s.option, { backgroundColor: C.glassBg, borderColor: C.isDark ? 'rgba(100,160,255,0.5)' : 'rgba(3,42,105,0.2)' }]}
+          style={[s.option, { backgroundColor: C.isDark ? '#010A1F' : C.glassBg, borderColor: C.isDark ? '#829fd0' : 'rgba(3,42,105,0.2)' }]}
           activeOpacity={0.8}
           onPress={() =>
             Alert.alert('Logout', 'Are you sure you want to logout?', [
@@ -70,11 +92,28 @@ export default function SettingScreen() {
             ])
           }
         >
-          <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+          {C.isDark ? (
+            <>
+              <LinearGradient
+                colors={['#163565', '#061124', '#061124', '#0D2146']}
+                locations={[0, 0.24, 0.76, 1]}
+                style={[StyleSheet.absoluteFillObject, { borderRadius: 16 }]}
+                pointerEvents="none"
+              />
+              <LinearGradient
+                colors={['#24518F8F', '#16356552', 'transparent', 'transparent', '#16356552', '#24518F8F']}
+                locations={[0, 0.025, 0.075, 0.925, 0.975, 1]}
+                start={{ x: 0, y: 0.5 }}
+                end={{ x: 1, y: 0.5 }}
+                style={[StyleSheet.absoluteFillObject, { borderRadius: 16 }]}
+                pointerEvents="none"
+              />
+            </>
+          ) : (
+            <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+          )}
           <View style={s.optionLeft}>
-            <Ionicons name="log-out-outline" size={20} color="#FF4B4B" />
+            <Image source={require('../../assets/Icons/logoutIcon.png')} style={s.menuIcon} resizeMode="contain" />
             <Text style={s.logoutText}>Logout</Text>
           </View>
         </TouchableOpacity>
@@ -134,6 +173,11 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+  },
+
+  menuIcon: {
+    width: 20,
+    height: 20,
   },
 
   optionText: {

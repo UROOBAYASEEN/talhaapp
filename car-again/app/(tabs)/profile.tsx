@@ -57,6 +57,7 @@ export default function ProfileScreen() {
   const displayName  = user?.full_name || 'User';
   const displayEmail = user?.email    || '';
   const displayPhone = user?.phone    || '';
+  const displayLocation = (user as any)?.city || (user as any)?.location || 'Karachi';
   const initials     = displayName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
 
   const BASE_URL      = API_BASE.replace('/api/v1', '');
@@ -108,15 +109,32 @@ export default function ProfileScreen() {
         }
       >
 
-        {/* ── Profile Card — light: pure white, no shade ── */}
-        <View style={[s.glowWrap, { backgroundColor: C.bg, shadowColor: C.isDark ? "#3a8fff" : 'rgba(3,42,105,0.12)', shadowOpacity: C.isDark ? 0.06 : 0.08, elevation: C.isDark ? 2 : 2 }]}>
-        <View style={[s.profileCard, { borderColor: C.isDark ? 'rgba(100,160,255,0.5)' : 'rgba(3,42,105,0.12)', backgroundColor: C.isDark ? 'rgba(1,6,20,1)' : '#ffffff' }]}>
+        {/* ── Profile Card — Figma top section / Ads vehicle-card treatment ── */}
+        <View style={[s.glowWrap, { backgroundColor: C.bg }] }>
+        <View style={[s.profileCard, {
+          borderColor: C.isDark ? '#82a5d5' : 'rgba(3,42,105,0.12)',
+          backgroundColor: C.isDark ? '#010A1F' : '#ffffff',
+          shadowColor: C.isDark ? '#638ed0' : 'rgba(3,42,105,0.12)',
+          shadowOpacity: C.isDark ? 0.15 : 0.08,
+          shadowRadius: C.isDark ? 5 : 8,
+          elevation: C.isDark ? 2 : 3,
+        }]}>
           {C.isDark && (
             <>
-              <LinearGradient colors={['rgba(22,64,136,0.15)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.25 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-              <LinearGradient colors={['transparent', 'rgba(29,83,175,0.15)']} start={{ x: 0.5, y: 0.75 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-              <LinearGradient colors={['rgba(13,37,84,0.15)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.25, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-              <LinearGradient colors={['transparent', 'rgba(13,37,84,0.15)']} start={{ x: 0.75, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+              <LinearGradient
+                colors={['#16408880', 'transparent', 'transparent', '#16408880']}
+                locations={[0, 0.12, 0.88, 1]}
+                style={StyleSheet.absoluteFillObject}
+                pointerEvents="none"
+              />
+              <LinearGradient
+                colors={['#16408880', 'transparent', 'transparent', '#16408880']}
+                locations={[0, 0.05, 0.95, 1]}
+                start={{ x: 0, y: 0.5 }}
+                end={{ x: 1, y: 0.5 }}
+                style={StyleSheet.absoluteFillObject}
+                pointerEvents="none"
+              />
             </>
           )}
           {displayAvatar ? (
@@ -130,27 +148,47 @@ export default function ProfileScreen() {
           <View style={s.userInfo}>
             <Text style={[s.userName, { color: C.textPrimary }]} numberOfLines={1} ellipsizeMode="tail">{displayName}</Text>
             {displayEmail ? <Text style={[s.userSub, { color: C.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">{displayEmail}</Text> : null}
-            {displayPhone ? <Text style={[s.userSub, { color: C.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">{displayPhone}</Text> : null}
+            {(displayPhone || displayLocation) ? (
+              <Text style={[s.userSub, { color: C.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">
+                {displayPhone}{displayPhone && displayLocation ? ' • ' : ''}{displayLocation}
+              </Text>
+            ) : null}
           </View>
 
-          <TouchableOpacity style={[s.editBtn, { borderColor: C.isDark ? "rgba(255,255,255,0.25)" : "rgba(3,12,40,0.2)", backgroundColor: C.isDark ? "rgba(0,0,0,0.35)" : "rgba(3,12,40,0.07)" }]} onPress={() => router.push('/profile/edit' as any)}>
+          <TouchableOpacity style={[s.editBtn, { borderColor: 'transparent', backgroundColor: C.isDark ? '#151b31' : '#eef1f8' }]} onPress={() => router.push('/profile/edit' as any)}>
             <Text style={[s.editTxt, { color: C.textPrimary }]}>Edit</Text>
           </TouchableOpacity>
         </View>
         </View>
 
-        {/* ── Menu Card — light: pure white, no shade ── */}
-        <View style={[s.glowWrap, { backgroundColor: C.bg, shadowColor: C.isDark ? "#3a8fff" : 'rgba(3,42,105,0.12)', shadowOpacity: C.isDark ? 0.06 : 0.08, elevation: C.isDark ? 2 : 2 }]}>
-        <View style={[s.menuCard, { borderColor: C.isDark ? 'rgba(100,160,255,0.5)' : 'rgba(3,42,105,0.12)', backgroundColor: C.isDark ? 'rgba(1,6,20,1)' : '#ffffff' }]}>
+        {/* ── Menu Card — Figma exact / Ads vehicle-card treatment ── */}
+        <View style={[s.glowWrap, { backgroundColor: C.bg }] }>
+        <View style={[s.menuCard, {
+          borderColor: C.isDark ? '#82a5d5' : 'rgba(3,42,105,0.12)',
+          backgroundColor: C.isDark ? '#010A1F' : '#ffffff',
+          shadowColor: C.isDark ? '#638ed0' : 'rgba(3,42,105,0.12)',
+          shadowOpacity: C.isDark ? 0.15 : 0.08,
+          shadowRadius: C.isDark ? 5 : 8,
+          elevation: C.isDark ? 2 : 3,
+        }]}>
           {C.isDark && (
             <>
-              <LinearGradient colors={['rgba(22,64,136,0.15)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.25 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-              <LinearGradient colors={['transparent', 'rgba(29,83,175,0.15)']} start={{ x: 0.5, y: 0.75 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-              <LinearGradient colors={['rgba(13,37,84,0.15)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.25, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-              <LinearGradient colors={['transparent', 'rgba(13,37,84,0.15)']} start={{ x: 0.75, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+              <LinearGradient
+                colors={['#16408868', 'transparent', 'transparent', '#16408868']}
+                locations={[0, 0.12, 0.88, 1]}
+                style={StyleSheet.absoluteFillObject}
+                pointerEvents="none"
+              />
+              <LinearGradient
+                colors={['#16408880', 'transparent', 'transparent', '#16408880']}
+                locations={[0, 0.05, 0.95, 1]}
+                start={{ x: 0, y: 0.5 }}
+                end={{ x: 1, y: 0.5 }}
+                style={StyleSheet.absoluteFillObject}
+                pointerEvents="none"
+              />
             </>
           )}
-
           {MENU_ITEMS.map((item, i) => (
             <React.Fragment key={item.title}>
               <TouchableOpacity
@@ -177,12 +215,12 @@ export default function ProfileScreen() {
               </TouchableOpacity>
 
               {i < MENU_ITEMS.length - 1 && (
-                <View style={[s.divider, { backgroundColor: C.isDark ? 'rgba(255,255,255,0.13)' : 'rgba(3,12,40,0.1)' }]} />
+                <View style={[s.divider, { backgroundColor: C.isDark ? 'rgba(34,82,160,0.72)' : 'rgba(3,42,105,0.12)' }]} />
               )}
             </React.Fragment>
           ))}
 
-          <View style={[s.divider, { backgroundColor: C.isDark ? 'rgba(255,255,255,0.13)' : 'rgba(3,12,40,0.1)' }]} />
+          <View style={[s.divider, { backgroundColor: C.isDark ? 'rgba(34,82,160,0.72)' : 'rgba(3,42,105,0.12)' }]} />
           {/* Logout */}
           <TouchableOpacity
             style={s.menuRow}
@@ -271,23 +309,19 @@ const s = StyleSheet.create({
   glowWrap: {
     borderRadius: 18,
     backgroundColor: "#010a1f",
-    shadowColor: "#3a8fff",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
   },
 
   profileCard: {
     height: 104,
-    borderRadius: 16,
-    borderWidth: 1.5,
-    backgroundColor: "#010a1f",
+    borderRadius: 18,
+    borderWidth: 1,
+    backgroundColor: "#020d25",
     paddingHorizontal: 19,
     paddingVertical: 20,
     flexDirection: "row",
     alignItems: "center",
     overflow: "hidden",
+    shadowOffset: { width: 0, height: 0 },
   },
 
   avatar: {
@@ -295,7 +329,7 @@ const s = StyleSheet.create({
     height: 60,
     borderRadius: 30,
     borderWidth: 1,
-    borderColor: "#e2671b",
+    borderColor: "rgba(249,250,252,0.95)",
     overflow: "hidden",
   },
   avatarInitials: {
@@ -322,7 +356,7 @@ const s = StyleSheet.create({
     flexShrink: 1,
   },
   userSub: {
-    fontSize: 8,
+    fontSize: 10,
     fontFamily: "Poppins_400Regular",
     flexShrink: 1,
   },
@@ -331,9 +365,9 @@ const s = StyleSheet.create({
     width: 68,
     height: 28,
     borderRadius: 18,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.25)",
-    backgroundColor: "rgba(0,0,0,0.35)",
+    borderWidth: 0,
+    borderColor: "transparent",
+    backgroundColor: "#151b31",
     alignItems: "center",
     justifyContent: "center",
     paddingLeft: 7,
@@ -347,16 +381,17 @@ const s = StyleSheet.create({
   },
 
   menuCard: {
-    borderRadius: 16,
-    borderWidth: 1.5,
-    backgroundColor: "#010a1f",
-    paddingVertical: 20,
-    paddingHorizontal: 1,
+    borderRadius: 18,
+    borderWidth: 1,
+    backgroundColor: "#010B1E",
+    paddingVertical: 0,
+    paddingHorizontal: 0,
     overflow: "hidden",
+    shadowOffset: { width: 0, height: 0 },
   },
 
   menuRow: {
-    height: 44,
+    height: 46,
     paddingHorizontal: 20,
     flexDirection: "row",
     alignItems: "center",
@@ -382,7 +417,7 @@ const s = StyleSheet.create({
 
   divider: {
     height: 1,
-    backgroundColor: 'rgba(255,255,255,0.13)',
-    marginHorizontal: 20,
+    backgroundColor: 'rgba(34,82,160,0.72)',
+    marginHorizontal: 0,
   },
 });

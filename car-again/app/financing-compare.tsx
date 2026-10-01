@@ -8,6 +8,8 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ChevronLeft, Star, Building2 } from 'lucide-react-native';
 import { API_BASE } from '@/constants/api';
 import { useAppColors } from '@/constants/theme';
+import { Ionicons } from '@expo/vector-icons';
+import { PRIMARY_BTN_COLORS, RingGlow, SavedCardEffect } from '@/components/shared/FigmaEffects';
 
 const SERVER = API_BASE.replace('/api/v1', '');
 
@@ -48,16 +50,16 @@ function Row({ label, value, highlight }: { label: string; value: string; highli
   const aC = useAppColors();
   return (
     <View style={r.row}>
-      <Text style={[r.label, { color: aC.isDark ? '#94a3b8' : '#475569' }]}>{label}</Text>
+      <Text style={[r.label, { color: aC.isDark ? '#C9C6D0' : '#475569' }]}>{label}</Text>
       <Text style={[r.value, { color: aC.isDark ? '#fff' : '#010a1f' }, highlight && r.highlight]}>{value}</Text>
     </View>
   );
 }
 const r = StyleSheet.create({
-  row:       { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8 },
+  row:       { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 6 },
   label:     { color: '#94a3b8', fontSize: 13, fontFamily: 'Poppins_400Regular', flex: 1 },
-  value:     { color: '#fff', fontSize: 13, fontFamily: 'Poppins_500Medium', textAlign: 'right' },
-  highlight: { color: ORANGE, fontFamily: 'Poppins_600SemiBold' },
+  value:     { color: '#fff', fontSize: 13, fontFamily: 'Poppins_400Regular', textAlign: 'right' },
+  highlight: { color: ORANGE, fontFamily: 'Poppins_500Medium' },
 });
 
 function BankCard({ bank, price, downPct, tenureYears, onApply, onBankPress }: {
@@ -74,14 +76,11 @@ function BankCard({ bank, price, downPct, tenureYears, onApply, onBankPress }: {
   const isIslamic = bank.bank_type === 'Islamic';
 
   return (
-    <View style={[pc.card, { backgroundColor: aC.isDark ? '#010A1F' : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.5)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, shadowRadius: 10, elevation: aC.isDark ? 0 : 3 }]}>
+    <View style={[pc.card, aC.isDark
+      ? { backgroundColor: '#010A1F', borderColor: '#82a5d5', shadowColor: '#638ed0', shadowOpacity: 0.15, shadowRadius: 5, shadowOffset: { width: 0, height: 0 }, elevation: 2 }
+      : { backgroundColor: '#ffffff', borderColor: 'rgba(3,42,105,0.12)', shadowColor: 'rgba(3,42,105,0.12)', shadowOpacity: 0.08, shadowRadius: 10, elevation: 3 }]}>
       {aC.isDark ? (
-        <>
-          <LinearGradient colors={['rgba(22,64,136,0.35)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.25 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-          <LinearGradient colors={['transparent', 'rgba(29,83,175,0.35)']} start={{ x: 0.5, y: 0.75 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-          <LinearGradient colors={['rgba(13,37,84,0.35)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.25, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-          <LinearGradient colors={['transparent', 'rgba(13,37,84,0.35)']} start={{ x: 0.75, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-        </>
+        <SavedCardEffect />
       ) : (
         <>
           <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
@@ -90,8 +89,8 @@ function BankCard({ bank, price, downPct, tenureYears, onApply, onBankPress }: {
       )}
 
       <View style={pc.header}>
-        <TouchableOpacity style={pc.bankRow} onPress={() => onBankPress(bank)} activeOpacity={0.8}>
-          <View style={[pc.iconWrap, { backgroundColor: aC.isDark ? '#fff' : '#eef2ff', borderWidth: aC.isDark ? 0 : 1, borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)' }]}>
+        <TouchableOpacity style={[pc.bankRow, { flex: 1, marginRight: 8 }]} onPress={() => onBankPress(bank)} activeOpacity={0.8}>
+          <View style={[pc.iconWrap, { backgroundColor: aC.isDark ? '#fff' : '#eef2ff', borderWidth: aC.isDark ? 2 : 1, borderColor: aC.isDark ? '#8FAEE3' : 'rgba(3,42,105,0.12)' }]}>
             {resolveUrl(bank.avatar_url) ? (
               <Image
                 source={{ uri: resolveUrl(bank.avatar_url)! }}
@@ -102,24 +101,23 @@ function BankCard({ bank, price, downPct, tenureYears, onApply, onBankPress }: {
               <Building2 size={20} color={isIslamic ? '#15803d' : '#1d4ed8'} />
             )}
           </View>
-          <View>
-            <Text style={[pc.bankName, { color: aC.isDark ? '#fff' : '#010a1f' }]}>{bank.name}</Text>
-            <Text style={[pc.product, { color: aC.isDark ? '#94a3b8' : '#475569' }]}>{bank.product_name}</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={[pc.bankName, { color: aC.isDark ? '#fff' : '#010a1f' }]} numberOfLines={1}>{bank.name}</Text>
+            <Text style={[pc.product, { color: aC.isDark ? '#94a3b8' : '#475569' }]} numberOfLines={1}>{bank.product_name}</Text>
           </View>
         </TouchableOpacity>
-        <View style={[pc.tagWrap, { backgroundColor: isIslamic ? (aC.isDark ? '#173a2b' : 'rgba(22,101,52,0.12)') : (aC.isDark ? '#172855' : 'rgba(29,78,216,0.10)') }]}>
+        <View style={[pc.tagWrap, { backgroundColor: isIslamic ? (aC.isDark ? '#12302A' : 'rgba(22,101,52,0.12)') : (aC.isDark ? '#172855' : 'rgba(29,78,216,0.10)') }]}>
           <Text style={[pc.tagTxt, { color: isIslamic ? '#4ade80' : '#60a5fa' }]}>{bank.bank_type}</Text>
         </View>
       </View>
 
       <View style={pc.ratingRow}>
-        <Star size={14} color={ORANGE} fill={ORANGE} />
-        <Text style={[pc.ratingVal, { color: aC.isDark ? '#fff' : '#010a1f' }]}>{bank.rating.toFixed(1)}</Text>
-        <Text style={[pc.ratingReviews, { color: aC.isDark ? '#94a3b8' : '#475569' }]}>({bank.reviews_count}+ Reviews)</Text>
+        <Ionicons name="star" size={20} color={ORANGE} />
+        <Text style={[pc.ratingReviews, { color: aC.isDark ? '#BAB6C4' : '#475569' }]}>{bank.rating.toFixed(1)} ({bank.reviews_count}+ Reviews)</Text>
       </View>
 
       <Row label="Vehicle Price"              value={fmt(price)}                highlight />
-      <View style={[pc.divider, { backgroundColor: aC.isDark ? 'rgba(255,255,255,0.08)' : 'rgba(3,42,105,0.08)' }]} />
+      <View style={[pc.divider, { backgroundColor: aC.isDark ? 'rgba(255,255,255,0.35)' : 'rgba(3,42,105,0.08)' }]} />
       <Row label="Processing Fee"             value={fmt(bank.processing_fee)} />
       <Row label="Security Deposit"           value={fmt(bank.security_deposit)} />
       <Row label="Insurance Fee (1st year)"   value={fmt(insuranceFee)} />
@@ -130,27 +128,27 @@ function BankCard({ bank, price, downPct, tenureYears, onApply, onBankPress }: {
       <Row label="Total Cost After Financing" value={fmt(totalCost)} />
 
       <TouchableOpacity style={pc.applyBtn} onPress={() => onApply(bank)} activeOpacity={0.88}>
-        <LinearGradient colors={['#032a69', '#e2671b']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+        <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
         <Text style={pc.applyTxt}>Apply Now</Text>
       </TouchableOpacity>
     </View>
   );
 }
 const pc = StyleSheet.create({
-  card:      { borderRadius: 20, borderWidth: 1, borderColor: 'rgba(100,160,255,0.5)', backgroundColor: '#010A1F', padding: 18, marginBottom: 20, overflow: 'hidden' },
+  card:      { borderRadius: 16, borderWidth: 1, borderColor: 'rgba(100,160,255,0.5)', backgroundColor: '#010A1F', paddingHorizontal: 14, paddingTop: 14, paddingBottom: 14, marginBottom: 18, overflow: 'hidden' },
   header:    { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10 },
   bankRow:   { flexDirection: 'row', alignItems: 'center', gap: 12 },
   iconWrap:  { width: 40, height: 40, borderRadius: 20, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  bankName:  { color: '#fff', fontSize: 15, fontFamily: 'Poppins_600SemiBold' },
+  bankName:  { color: '#fff', fontSize: 16, fontFamily: 'Poppins_500Medium' },
   product:   { color: '#94a3b8', fontSize: 12, fontFamily: 'Poppins_400Regular' },
-  tagWrap:   { borderRadius: 20, paddingHorizontal: 12, paddingVertical: 4 },
-  tagTxt:    { fontSize: 11, fontFamily: 'Poppins_600SemiBold' },
-  ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 10 },
+  tagWrap:   { borderRadius: 14, paddingHorizontal: 12, paddingVertical: 4, flexShrink: 0 },
+  tagTxt:    { fontSize: 11, fontFamily: 'Poppins_400Regular' },
+  ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
   ratingVal: { color: '#fff', fontSize: 13, fontFamily: 'Poppins_600SemiBold' },
   ratingReviews: { color: '#94a3b8', fontSize: 12, fontFamily: 'Poppins_400Regular' },
-  divider:   { height: 1, backgroundColor: 'rgba(255,255,255,0.08)', marginVertical: 6 },
-  applyBtn:  { height: 48, borderRadius: 30, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', marginTop: 14 },
-  applyTxt:  { color: '#fff', fontSize: 15, fontFamily: 'Poppins_700Bold' },
+  divider:   { height: 1, backgroundColor: 'rgba(255,255,255,0.08)', marginTop: 4, marginBottom: 6 },
+  applyBtn:  { height: 44, borderRadius: 22, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', marginTop: 10 },
+  applyTxt:  { color: '#EDEBF0', fontSize: 13, fontFamily: 'Poppins_500Medium' },
 });
 
 export default function FinancingCompareScreen() {
@@ -208,10 +206,9 @@ export default function FinancingCompareScreen() {
     <SafeAreaView style={[s.safe, { backgroundColor: aC.bg }]} edges={['top']}>
       <View style={[s.header, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderBottomWidth: aC.isDark ? 0 : 1, borderBottomColor: 'rgba(3,42,105,0.08)' }]}>
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()} activeOpacity={0.75}>
-          <ChevronLeft size={26} color={aC.isDark ? '#e2e8f0' : '#010a1f'} />
+          <ChevronLeft size={26} color={aC.isDark ? '#C9C6D0' : '#010a1f'} />
         </TouchableOpacity>
-        <Text style={[s.headerTitle, { color: aC.isDark ? '#fff' : '#010a1f' }]}>Finance Purchase</Text>
-        <View style={{ width: 36 }} />
+        <Text style={[s.headerTitle, { color: aC.isDark ? '#F2F1F5' : '#010a1f' }]}>Finance Purchase</Text>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[s.scroll, { backgroundColor: aC.bg }]} style={{ backgroundColor: aC.bg }}>
@@ -223,7 +220,9 @@ export default function FinancingCompareScreen() {
                 key={f}
                 style={[
                   s.chip,
-                  { backgroundColor: aC.isDark ? (active ? '#2a1a10' : '#061B4A') : '#ffffff', borderColor: active ? ORANGE : (aC.isDark ? 'rgba(100,160,255,0.4)' : 'rgba(3,42,105,0.12)'), shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, shadowRadius: 8, elevation: aC.isDark ? 0 : 2 },
+                  aC.isDark
+                    ? (active ? { backgroundColor: '#0A1838', borderColor: '#7E9FD6' } : { backgroundColor: '#0B1D4A', borderColor: 'transparent' })
+                    : { backgroundColor: '#ffffff', borderColor: active ? ORANGE : 'rgba(3,42,105,0.12)', shadowColor: 'rgba(3,42,105,0.08)', shadowOpacity: 0.06, shadowRadius: 8, elevation: 2 },
                 ]}
                 onPress={() => setActiveFilter(f)}
                 activeOpacity={0.8}
@@ -231,10 +230,7 @@ export default function FinancingCompareScreen() {
                 {active && (
                   <>
                     {aC.isDark ? (
-                      <>
-                        <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                        <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                      </>
+                      <RingGlow radius={14} peak={0.5} rings={8} />
                     ) : (
                       <>
                         <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
@@ -243,13 +239,13 @@ export default function FinancingCompareScreen() {
                     )}
                   </>
                 )}
-                <Text style={[s.chipTxt, { color: active ? ORANGE : (aC.isDark ? '#fff' : '#475569') }, active && s.chipTxtActive]}>{f}</Text>
+                <Text style={[s.chipTxt, { color: active ? ORANGE : (aC.isDark ? '#F2F1F5' : '#475569') }, active && s.chipTxtActive]}>{f}</Text>
               </TouchableOpacity>
             );
           })}
         </ScrollView>
 
-        <Text style={[s.subTxt, { color: aC.isDark ? '#94a3b8' : '#475569' }]}>
+        <Text style={[s.subTxt, { color: aC.isDark ? '#E6E4EA' : '#475569' }]}>
           Installment shown for financing Rs {price.toLocaleString('en-PK')} over {tenureYears} years
         </Text>
 
@@ -283,15 +279,15 @@ export default function FinancingCompareScreen() {
 
 const s = StyleSheet.create({
   safe:   { flex: 1, backgroundColor: '#010A1F' },
-  scroll: { paddingHorizontal: 20, paddingBottom: 16 },
-  header:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 6, paddingBottom: 14 },
-  backBtn:     { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { color: '#fff', fontSize: 20, fontFamily: 'Poppins_600SemiBold' },
-  filtersRow:   { gap: 10, paddingBottom: 4, paddingHorizontal: 20, marginBottom: 4 },
-  chip:         { height: 36, paddingHorizontal: 16, borderRadius: 18, borderWidth: 1, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  scroll: { paddingHorizontal: 14, paddingBottom: 16 },
+  header:      { flexDirection: 'row', alignItems: 'center', gap: 16, paddingHorizontal: 14, paddingTop: 6, paddingBottom: 12 },
+  backBtn:     { width: 30, height: 36, alignItems: 'flex-start', justifyContent: 'center' },
+  headerTitle: { color: '#fff', fontSize: 20, fontFamily: 'Poppins_500Medium' },
+  filtersRow:   { gap: 10, paddingBottom: 4, marginBottom: 6 },
+  chip:         { height: 42, paddingHorizontal: 16, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   chipActive:   { borderColor: ORANGE, backgroundColor: '#2a1a10' },
   chipInactive: { borderColor: 'rgba(100,160,255,0.4)', backgroundColor: '#061B4A' },
-  chipTxt:      { color: '#fff', fontSize: 13, fontFamily: 'Poppins_600SemiBold' },
-  chipTxtActive:{ color: ORANGE },
-  subTxt: { color: '#94a3b8', fontSize: 12, fontFamily: 'Poppins_400Regular', marginBottom: 18 },
+  chipTxt:      { color: '#fff', fontSize: 13, fontFamily: 'Poppins_400Regular' },
+  chipTxtActive:{ color: ORANGE, fontFamily: 'Poppins_600SemiBold' },
+  subTxt: { color: '#94a3b8', fontSize: 11.5, fontFamily: 'Poppins_400Regular', marginBottom: 14 },
 });

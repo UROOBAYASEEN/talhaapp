@@ -6,7 +6,8 @@ import {
 import * as Linking from 'expo-linking';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { ChevronLeft, X, BadgeCheck } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { VehicleRowCard } from '@/components/dealer/DealerUI';
 import { AppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
@@ -197,11 +198,11 @@ export default function PromotePaymentScreen() {
         {/* HEADER */}
         <View style={s.header}>
           <TouchableOpacity onPress={() => router.back()} style={s.headerBtn}>
-            <ChevronLeft size={24} color={C.textPrimary} strokeWidth={2}/>
+            <Ionicons name="chevron-back" size={26} color="#C9C6D0" />
           </TouchableOpacity>
           <Text style={s.headerTitle}>Payment Summary</Text>
           <TouchableOpacity onPress={() => router.back()} style={s.headerBtn}>
-            <X size={20} color={C.textPrimary} strokeWidth={2}/>
+            <Ionicons name="close" size={24} color="#C9C6D0" />
           </TouchableOpacity>
         </View>
 
@@ -244,36 +245,16 @@ export default function PromotePaymentScreen() {
           {loading ? (
             <ActivityIndicator color={ORANGE} style={{ marginBottom: 20 }}/>
           ) : (
-            <View style={s.vehicleCard}>
-              <LinearGradient colors={['rgba(22,64,136,0.2)','transparent']} start={{x:0.5,y:0}} end={{x:0.5,y:0.6}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <LinearGradient colors={['transparent','rgba(29,83,175,0.2)']} start={{x:0.5,y:0.4}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-
-              <View style={s.vehicleRow}>
-                {imgUri ? (
-                  <Image source={{ uri: imgUri }} style={s.vehicleImg} resizeMode="cover"/>
-                ) : (
-                  <View style={[s.vehicleImg, s.vehicleImgFb]}/>
-                )}
-                <View style={s.vehicleInfo}>
-                  <Text style={s.vehicleTitle} numberOfLines={2}>{title}</Text>
-                  {!!color && <Text style={s.vehicleColor}>{color}</Text>}
-                  <View style={s.dealerRow}>
-                    <Text style={s.dealerName} numberOfLines={1}>{dealer}</Text>
-                    <BadgeCheck size={15} color="#078DE8" fill="#078DE8" style={{ marginLeft: 4 }}/>
-                  </View>
-                  {extraCount > 0 && (
-                    <Text style={s.extraCount}>+{extraCount} more vehicle{extraCount > 1 ? 's' : ''}</Text>
-                  )}
-                </View>
-              </View>
-
+            <VehicleRowCard v={{ ...vehicle, title, color }} dealer={dealer}>
+              {extraCount > 0 && (
+                <Text style={s.extraCount}>+{extraCount} more vehicle{extraCount > 1 ? 's' : ''}</Text>
+              )}
               <View style={s.divider}/>
-
               <View style={s.planRow}>
-                <Text style={s.planLabel}>{planTitle} × {totalVehicles}</Text>
+                <Text style={s.planLabel}>{totalVehicles > 1 ? `${planTitle} × ${totalVehicles}` : planTitle}</Text>
                 <Text style={s.planPrice}>PKR {planAmount.toLocaleString()}</Text>
               </View>
-            </View>
+            </VehicleRowCard>
           )}
 
           {/* POLLING STATUS */}
@@ -334,6 +315,7 @@ export default function PromotePaymentScreen() {
             <PaymentSection
               price={planAmount}
               description={`${planTitle} — Powered by SafePay`}
+              payLabel="Pay Now"
               loading={submitting}
               onPay={handlePay}
             />
@@ -352,10 +334,10 @@ const s = StyleSheet.create({
   header: {
     flexDirection: 'row', alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16, paddingTop: 28, paddingBottom: 14,
+    paddingHorizontal: 12, paddingTop: 28, paddingBottom: 14,
   },
   headerBtn:   { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { color: C.textPrimary, fontSize: 16, fontFamily: 'Poppins_600SemiBold' },
+  headerTitle: { color: '#FFFFFF', fontSize: 20, fontFamily: 'Poppins_500Medium' },
 
   scrollContent: { paddingHorizontal: 16, paddingBottom: 40, gap: 16 },
 
@@ -372,11 +354,11 @@ const s = StyleSheet.create({
   vehicleColor:{ color: C.textSecondary, fontSize: 12, fontFamily: 'Poppins_400Regular' },
   dealerRow:   { flexDirection: 'row', alignItems: 'center' },
   dealerName:  { color: C.textSecondary, fontSize: 12, fontFamily: 'Poppins_400Regular', flexShrink: 1 },
-  extraCount:  { color: ORANGE, fontSize: 11, fontFamily: 'Poppins_500Medium', marginTop: 2 },
-  divider:     { height: 1, backgroundColor: 'rgba(255,255,255,0.08)', marginVertical: 12 },
+  extraCount:  { color: ORANGE, fontSize: 11, fontFamily: 'Poppins_500Medium', marginTop: 8 },
+  divider:     { height: 1, backgroundColor: 'rgba(255,255,255,0.35)', marginTop: 14, marginBottom: 10 },
   planRow:     { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  planLabel:   { color: C.textSecondary, fontSize: 13, fontFamily: 'Poppins_400Regular' },
-  planPrice:   { color: ORANGE, fontSize: 14, fontFamily: 'Poppins_700Bold' },
+  planLabel:   { color: '#C9BDC4', fontSize: 15, fontFamily: 'Poppins_400Regular', flexShrink: 1 },
+  planPrice:   { color: ORANGE, fontSize: 18, fontFamily: 'Poppins_500Medium' },
 
   pollingBox:  { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, borderRadius: 14, backgroundColor: C.glassBg, borderWidth: 1, borderColor: 'rgba(99,148,214,0.3)' },
   pollingText: { color: C.textSecondary, fontSize: 13, fontFamily: 'Poppins_400Regular', flex: 1, lineHeight: 20 },

@@ -111,7 +111,7 @@ function VehicleCard({
 
   return (
     // .car-card — light: white + orange shade, dark: navy glass
-    <TouchableOpacity style={[vc.carCard, { backgroundColor: aC.isDark ? BG : '#ffffff', borderColor: aC.isDark ? '#ffffff' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? '#1D53AF' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0.5 : 0.08, elevation: aC.isDark ? 8 : 3 }]} activeOpacity={0.88} onPress={onPress}>
+    <TouchableOpacity style={[vc.carCard, { backgroundColor: aC.isDark ? BG : '#ffffff', borderColor: aC.isDark ? '#82a5d5' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? '#1D53AF' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0.5 : 0.08, elevation: aC.isDark ? 8 : 3 }]} activeOpacity={0.88} onPress={onPress}>
       {!aC.isDark && <><LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" /><LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" /></>}
       {/* .car-image */}
       <View style={[vc.carImage, { overflow: 'hidden' }]}>
@@ -417,7 +417,7 @@ export default function BuyNewCarScreen() {
         ══════════════════════════════════════════ */}
         <View style={{ marginTop: 20 }}>
           <View style={styles.padH}>
-            <SH title="Hot Selling Cars" onViewAll={() => router.push({ pathname: '/buy/search-results', params: { condition: 'new', category: 'car', hot: 'true' } } as any)} />
+            <SH title="Hot Selling Cars" onViewAll={() => router.push({ pathname: '/buy/search-results', params: { condition: 'new', category: 'car', hot: 'true', from: 'newCarCash' } } as any)} />
           </View>
           {loading ? (
             <ActivityIndicator color={ORANGE} style={{ paddingVertical: 28 }} />
@@ -451,7 +451,7 @@ export default function BuyNewCarScreen() {
         ══════════════════════════════════════════ */}
         <View style={{ marginTop: 20 }}>
           <View style={styles.padH}>
-            <SH title="Recently Listed" onViewAll={() => router.push({ pathname: '/buy/search-results', params: { condition: 'new' } } as any)} />
+            <SH title="Recently Listed" onViewAll={() => router.push({ pathname: '/buy/search-results', params: { condition: 'new', from: 'newCarCash' } } as any)} />
           </View>
           {recentCars.length === 0 && !loading ? (
             <View style={[styles.emptyBox, { backgroundColor: aC.isDark ? 'rgba(6,27,74,0.6)' : '#ffffff', borderColor: aC.isDark ? 'rgba(255,255,255,0.15)' : 'rgba(3,42,105,0.12)' }]}>
@@ -488,14 +488,15 @@ export default function BuyNewCarScreen() {
             <TouchableOpacity style={[styles.needCard, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderWidth: aC.isDark ? 0 : 1, borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }]} activeOpacity={0.85} onPress={() => router.push({ pathname: '/compare-vehicle', params: { category: 'car' } } as any)}>
               {aC.isDark ? (
                 <LinearGradient
-                  colors={[ORANGE, DARK_NAV, BG]}
-                  start={{ x: 0, y: 1 }} end={{ x: 0, y: 0 }}
+                  colors={['#071B48', '#0A1F4C', '#2B2947', '#80504A']}
+                  locations={[0, 0.52, 0.76, 1]}
+                  start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }}
                   style={styles.needGrad}
                 >
                   <Image source={IMG_COMPARE} style={styles.needImgCompare} resizeMode="contain" />
                   <View style={styles.needTitleRow}>
                     <Text style={styles.needTitle}>{'Compare\nVehicle'}</Text>
-                    <Ionicons name="chevron-forward" size={14} color={WHITE} />
+                    <Ionicons name="chevron-forward" size={24} color={ORANGE} />
                   </View>
                   <Text style={styles.needSub}>Compare vehicle features, prices, and specifications.</Text>
                 </LinearGradient>
@@ -517,16 +518,17 @@ export default function BuyNewCarScreen() {
             <TouchableOpacity style={[styles.needCard, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderWidth: aC.isDark ? 0 : 1, borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }]} activeOpacity={0.85}>
               {aC.isDark ? (
                 <LinearGradient
-                  colors={[ORANGE, DARK_NAV, BG]}
-                  start={{ x: 0, y: 1 }} end={{ x: 0, y: 0 }}
+                  colors={['#071B48', '#0A1F4C', '#2B2947', '#80504A']}
+                  locations={[0, 0.52, 0.76, 1]}
+                  start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }}
                   style={styles.needGrad}
                 >
                   <Image source={IMG_FINANCE} style={styles.needImgFinance} resizeMode="contain" />
                   <View style={styles.needTitleRow}>
-                    <Text style={[styles.needTitle, { fontSize: 12 }]}>{'Smart Finance\nCalculator'}</Text>
-                    <Ionicons name="chevron-forward" size={14} color={WHITE} />
+                    <Text style={styles.needTitle}>{'Smart Finance\nCalculator'}</Text>
+                    <Ionicons name="chevron-forward" size={24} color={ORANGE} />
                   </View>
-                  <Text style={[styles.needSub, { fontSize: 9 }]}>Calculate your monthly payments.</Text>
+                  <Text style={styles.needSub}>Compare financing plans and calculate your monthly payments.</Text>
                 </LinearGradient>
               ) : (
                 <View style={[styles.needGrad, { backgroundColor: '#ffffff' }]}>
@@ -565,7 +567,7 @@ export default function BuyNewCarScreen() {
           setModalVisible(false);
           router.push({
             pathname: '/buy/search-results' as any,
-            params: { search: data.car || '' },
+            params: { search: data.car || '', from: 'newCarCash' },
           });
         }}
       />
@@ -647,22 +649,40 @@ const styles = StyleSheet.create({
   bankLogo:  { position: 'absolute', top: 10, right: 10, width: 64, height: 18 },
   bankCar:   { position: 'absolute', bottom: -8, right: 0, width: 170, height: 125 },
 
-  /* You May Need This */
-  /* You May Need This — Figma: 167×186 each card, gap 16 */
+  /* You May Need This — matched to supplied Figma */
   needRow:       { flexDirection: 'row', gap: 16 },
   needCard:      { width: NEED_W, height: 186, borderRadius: 16, overflow: 'hidden' },
   needGrad:      {
-    flex: 1, paddingHorizontal: 10, paddingVertical: 12,
-    alignItems: 'center', justifyContent: 'flex-end',
+    flex: 1,
+    paddingHorizontal: 10,
+    paddingTop: 10,
+    paddingBottom: 12,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
   },
-  needImgCompare:{ width: 96, height: 69, marginBottom: 8 },
-  needImgFinance:{ width: 120, height: 82, marginBottom: 8 },
+  needImgCompare:{ width: 112, height: 78, marginBottom: 2 },
+  needImgFinance:{ width: 124, height: 78, marginBottom: 2 },
   needTitleRow:  {
-    flexDirection: 'row', alignItems: 'center',
-    justifyContent: 'space-between', width: '100%', marginBottom: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginBottom: 4,
   },
-  needTitle:     { color: WHITE, fontSize: 14, fontFamily: 'Poppins_500Medium', textTransform: 'capitalize', flex: 1, lineHeight: 20 },
-  needSub:       { color: '#c0bdbf', fontSize: 10, fontFamily: 'Poppins_400Regular', lineHeight: 14, width: '100%' },
+  needTitle:     {
+    color: WHITE,
+    fontSize: 14,
+    fontFamily: 'Poppins_500Medium',
+    flex: 1,
+    lineHeight: 20,
+  },
+  needSub:       {
+    color: '#c9bdc1',
+    fontSize: 10,
+    fontFamily: 'Poppins_400Regular',
+    lineHeight: 14,
+    width: '100%',
+  },
 
   /* Browse More Services */
   serviceItem: {

@@ -23,8 +23,69 @@ import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 import FilterBar from '@/components/shared/FilterBar';
 import { useAppColors } from '@/constants/theme';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { SavedCardEffect, savedCardOuter } from '@/components/shared/FigmaEffects';
+import { Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
+
+const IMG_NEED_INSURANCE = require('@/assets/images/compareInsurance.png');
+const IMG_NEED_FINANCE   = require('@/screenshot/smartcalculator.png');
+const IMG_NEED_COMPARE   = require('@/screenshot/comparevehcile.png');
+const NEED_W = (width - 40 - 16) / 2;
+
+// "You May Need This" — shown when coming from Buy New Car in Cash
+function NeedThisSection({ variant = 'newCar' }: { variant?: 'newCar' | 'usedCar' }) {
+  const router = useRouter();
+  const aC = useAppColors();
+  const cards = variant === 'usedCar'
+    ? [
+        { img: IMG_NEED_COMPARE,   title: 'Compare\nVehicle',          sub: 'Compare vehicle features, prices, and specifications.',        route: '/compare-vehicle' },
+        { img: IMG_NEED_INSURANCE, title: 'Compare\nInsurance Plans',  sub: 'Compare coverage, benefits, and prices to find the right plan.', route: '/insurance-search' },
+      ]
+    : [
+        { img: IMG_NEED_INSURANCE, title: 'Compare\nInsurance Plans', sub: 'Compare coverage, benefits, and prices to find the right plan.', route: '/insurance-search' },
+        { img: IMG_NEED_FINANCE,   title: 'Smart Finance\nCalculator',  sub: 'Compare financing plans and calculate your monthly payments.', route: '/auto-financing' },
+      ];
+  return (
+    <View style={{ marginTop: 20 }}>
+      <Text style={[styles.needHeading, { color: aC.isDark ? '#FFFFFF' : '#010a1f' }]}>You May Need This</Text>
+      <View style={styles.needRow}>
+        {cards.map((c) => (
+          <TouchableOpacity
+            key={c.title}
+            activeOpacity={0.85}
+            onPress={() => router.push(c.route as any)}
+            style={[styles.needCard, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderWidth: aC.isDark ? 0 : 1, borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }]}
+          >
+            {aC.isDark ? (
+              <LinearGradient colors={['#071B48', '#0A1F4C', '#2B2947', '#80504A']} locations={[0, 0.52, 0.76, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={styles.needGrad}>
+                <Image source={c.img} style={styles.needImg} resizeMode="contain" />
+                <View style={styles.needTitleRow}>
+                  <Text style={styles.needTitle}>{c.title}</Text>
+                  <Ionicons name="chevron-forward" size={24} color="#e2671b" />
+                </View>
+                <Text style={styles.needSub}>{c.sub}</Text>
+              </LinearGradient>
+            ) : (
+              <View style={[styles.needGrad, { backgroundColor: '#ffffff' }]}>
+                <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+                <LinearGradient colors={['transparent', 'rgba(226,103,27,0.10)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+                <Image source={c.img} style={styles.needImg} resizeMode="contain" />
+                <View style={styles.needTitleRow}>
+                  <Text style={[styles.needTitle, { color: '#010a1f' }]}>{c.title}</Text>
+                  <Ionicons name="chevron-forward" size={14} color="#032a69" />
+                </View>
+                <Text style={[styles.needSub, { color: '#475569' }]}>{c.sub}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
+  );
+}
 
 const VIDEO_IMAGE =
   'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=700&q=80';
@@ -42,6 +103,44 @@ function formatPrice(p: number) {
   return `PKR ${p.toLocaleString()}`;
 }
 
+// ── Dealer Inventory Card (Figma) ────────────────────────────────────────────
+function DealerInventoryCard({ item, onPress }: { item: any; onPress: () => void }) {
+  const aC = useAppColors();
+  const carImg = imgUrl(item.images?.[0]);
+  const dark = aC.isDark;
+  return (
+    <TouchableOpacity
+      activeOpacity={0.88}
+      onPress={onPress}
+      style={[styles.invCard, dark
+        ? { ...savedCardOuter }
+        : { backgroundColor: '#ffffff', borderColor: 'rgba(3,42,105,0.12)', shadowColor: 'rgba(3,42,105,0.12)', shadowOpacity: 0.08, shadowRadius: 10, elevation: 3 }]}
+    >
+      {dark ? <SavedCardEffect /> : (
+        <>
+          <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+          <LinearGradient colors={['transparent', 'rgba(226,103,27,0.08)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+        </>
+      )}
+      {carImg
+        ? <Image source={{ uri: carImg }} style={styles.invImg} resizeMode="cover" />
+        : <View style={[styles.invImg, { alignItems: 'center', justifyContent: 'center', backgroundColor: dark ? '#0d1e3d' : '#f1f5f9' }]}><Ionicons name="car-outline" size={30} color="#929DB1" /></View>}
+      <View style={{ flex: 1, justifyContent: 'center' }}>
+        <Text style={[styles.invTitle, { color: dark ? '#F2F1F5' : '#010a1f' }]} numberOfLines={2}>{item.title || `${item.make} ${item.model}`}</Text>
+        <Text style={[styles.invColor, { color: dark ? '#E6E4EA' : '#475569' }]}>{item.color || '—'}</Text>
+        <View style={styles.invDealerRow}>
+          <Text style={[styles.invDealer, { color: dark ? '#F2F1F5' : '#010a1f' }]} numberOfLines={1}>{item.seller?.dealership_name || item.seller?.full_name || 'Dealer'}</Text>
+          <MaterialCommunityIcons name="check-decagram" size={17} color="#1d8cf8" />
+        </View>
+        <View style={styles.invBadgeRow}>
+          <View style={styles.invBadge}><Text style={styles.invBadgeTxt}>Available</Text></View>
+          <Text style={[styles.invDelivery, { color: dark ? '#BAB6C4' : '#64748b' }]}>Delivery: {item.delivery || 'Imediate'}</Text>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
 // ── Car Card ─────────────────────────────────────────────────────────────────
 function CarCard({ item, onPress, onSave, saved }: {
   item: any; onPress: () => void; onSave: () => void; saved: boolean;
@@ -51,11 +150,21 @@ function CarCard({ item, onPress, onSave, saved }: {
 
   if (aC.isDark) {
     return (
-      <LinearGradient
-        colors={['#0A285B', '#071A3B', '#071B3D']}
-        start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-        style={styles.carCard}
-      >
+      <View style={[styles.carCard, styles.savedVehicleCard]}>
+        <LinearGradient
+          colors={['#16408880', 'transparent', 'transparent', '#16408880']}
+          locations={[0, 0.08, 0.92, 1]}
+          style={StyleSheet.absoluteFillObject}
+          pointerEvents="none"
+        />
+        <LinearGradient
+          colors={['#16408880', 'transparent', 'transparent', '#16408880']}
+          locations={[0, 0.05, 0.95, 1]}
+          start={{ x: 0, y: 0.5 }}
+          end={{ x: 1, y: 0.5 }}
+          style={StyleSheet.absoluteFillObject}
+          pointerEvents="none"
+        />
       <View style={styles.carTop}>
         {/* Image */}
         <View style={styles.carImageWrap}>
@@ -120,7 +229,7 @@ function CarCard({ item, onPress, onSave, saved }: {
           <Text style={styles.buttonText}>Contact Dealer</Text>
         </TouchableOpacity>
       </View>
-    </LinearGradient>
+    </View>
     );
   }
   // Light — white card with subtle blue/orange shade
@@ -221,10 +330,17 @@ export default function SearchResultsScreen() {
     year?: string; color?: string; sellerType?: string;
     brand?: string; dealerId?: string; make?: string;
     condition?: string; min_price?: string; max_price?: string;
-    search?: string; hot?: string; category?: string; featured?: string;
+    search?: string; hot?: string; category?: string; featured?: string; from?: string;
   }>();
 
   const isHot = params.hot === 'true' || params.hot === '1';
+  // Came from "Buy New Car in Cash" → hide filter bar, show "You May Need This"
+  const fromNewCarCash = params.from === 'newCarCash';
+  // Came from Dealer Profile → "View Available Cars" → Dealer Inventory design
+  const isDealerInventory = !!params.dealerId;
+  // Came from Buy Used Car → Figma filter bar / filter modal + "You May Need This"
+  const fromUsedCar = params.from === 'usedCar';
+  const insets = useSafeAreaInsets();
 
   const [vehicles,    setVehicles]    = useState<any[]>([]);
   const [total,       setTotal]       = useState(0);
@@ -355,13 +471,17 @@ export default function SearchResultsScreen() {
         ListHeaderComponent={
           <>
             {/* Header */}
-            <View style={[styles.header, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderBottomWidth: aC.isDark ? 0 : 1, borderBottomColor: 'rgba(3,42,105,0.08)' }]}>
+            <View style={[styles.header, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderBottomWidth: aC.isDark ? 0 : 1, borderBottomColor: 'rgba(3,42,105,0.08)' }, isDealerInventory && styles.invHeader, isDealerInventory && Platform.OS === 'android' && { marginTop: insets.top }]}>
               <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
                 <Ionicons name="chevron-back" size={27} color={aC.isDark ? "#C8D1E5" : "#010a1f"} />
               </TouchableOpacity>
-              <Text style={[styles.logo, { color: aC.isDark ? '#FFFFFF' : '#010a1f' }]}>
-                Auto<Text style={styles.logoOrange}>wizor</Text>
-              </Text>
+              {isDealerInventory ? (
+                <Text style={[styles.invHeaderTitle, { color: aC.isDark ? '#F2F1F5' : '#010a1f' }]}>Dealer Inventory</Text>
+              ) : (
+                <Text style={[styles.logo, { color: aC.isDark ? '#FFFFFF' : '#010a1f' }]}>
+                  Auto<Text style={styles.logoOrange}>wizor</Text>
+                </Text>
+              )}
               <View style={{ width: 35 }} />
             </View>
 
@@ -372,25 +492,35 @@ export default function SearchResultsScreen() {
             </View>
 
             {/* Filter Bar */}
-            <FilterBar onApply={handleFilterApply} activeFilters={activeFilters} />
+            {!fromNewCarCash && !isDealerInventory && <FilterBar onApply={handleFilterApply} activeFilters={activeFilters} figma={fromUsedCar} />}
 
             {/* Search */}
             <View style={styles.searchWrapper}>
               {aC.isDark ? (
-                <LinearGradient
-                  colors={['#092354', '#071A3D', '#0A2653']}
-                  start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-                  style={styles.searchBox}
-                >
+                <View style={[styles.searchBox, { backgroundColor: '#061124', borderColor: '#829fd0', overflow: 'hidden' }]}>
+                  <LinearGradient
+                    colors={['#163565', '#061124', '#061124', '#0D2146']}
+                    locations={[0, 0.24, 0.76, 1]}
+                    style={StyleSheet.absoluteFillObject}
+                    pointerEvents="none"
+                  />
+                  <LinearGradient
+                    colors={['#24518F8F', '#16356552', 'transparent', 'transparent', '#16356552', '#24518F8F']}
+                    locations={[0, 0.025, 0.075, 0.925, 0.975, 1]}
+                    start={{ x: 0, y: 0.5 }}
+                    end={{ x: 1, y: 0.5 }}
+                    style={[StyleSheet.absoluteFillObject, { borderRadius: 32 }]}
+                    pointerEvents="none"
+                  />
                   <Ionicons name="search-outline" size={20} color="#D8E1F2" />
                   <TextInput
                     style={styles.searchInput}
-                    placeholder="Search cars, banks & dealers..."
+                    placeholder={params.category === 'bike' ? "Search bikes, banks & dealers..." : "Search cars, banks & dealers..."}
                     placeholderTextColor="#9EA7BA"
                     value={search}
                     onChangeText={handleSearch}
                   />
-                </LinearGradient>
+                </View>
               ) : (
                 <View style={[styles.searchBox, { backgroundColor: '#ffffff', borderColor: 'rgba(3,42,105,0.12)', shadowColor: 'rgba(3,42,105,0.12)', shadowOpacity: 0.08, elevation: 3, overflow: 'hidden' }]}>
                   <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
@@ -398,7 +528,7 @@ export default function SearchResultsScreen() {
                   <Ionicons name="search-outline" size={20} color="#64748b" />
                   <TextInput
                     style={[styles.searchInput, { color: '#010a1f' }]}
-                    placeholder="Search cars, banks & dealers..."
+                    placeholder={params.category === 'bike' ? "Search bikes, banks & dealers..." : "Search cars, banks & dealers..."}
                     placeholderTextColor="#94a3b8"
                     value={search}
                     onChangeText={handleSearch}
@@ -415,7 +545,7 @@ export default function SearchResultsScreen() {
           !loading ? (
             <View style={styles.emptyBox}>
               <Ionicons name="car-outline" size={52} color="#929DB1" />
-              <Text style={styles.emptyText}>No cars found</Text>
+              <Text style={styles.emptyText}>{params.category === 'bike' ? 'No bikes found' : 'No cars found'}</Text>
               <Text style={styles.emptySubText}>Try a different search</Text>
             </View>
           ) : null
@@ -425,9 +555,9 @@ export default function SearchResultsScreen() {
           <>
             {loadingMore && <ActivityIndicator color="#e2671b" style={{ marginVertical: 12 }} />}
 
-            {!loading && (
+            {!loading && !isDealerInventory && (
               <>
-                <BrowseMoreServices />
+                {fromNewCarCash ? <NeedThisSection /> : fromUsedCar ? <NeedThisSection variant="usedCar" /> : <BrowseMoreServices />}
                 <LatestVideoSection count={2} />
               </>
             )}
@@ -436,7 +566,12 @@ export default function SearchResultsScreen() {
           </>
         }
 
-        renderItem={({ item }) => (
+        renderItem={({ item }) => isDealerInventory ? (
+          <DealerInventoryCard
+            item={item}
+            onPress={() => router.push({ pathname: '/buy/car-detail', params: { id: item.id } } as any)}
+          />
+        ) : (
           <CarCard
             item={item}
             saved={savedIds.has(item.id)}
@@ -453,6 +588,30 @@ const styles = StyleSheet.create({
   safeArea:  { flex: 1, backgroundColor: '#020B20' },
   content:   { paddingHorizontal: 20, paddingBottom: 30 },
 
+  /* Dealer Inventory (Figma) */
+  invHeader:      { height: 56, marginTop: 4 },
+  invHeaderTitle: { flex: 1, textAlign: 'center', fontSize: 20, fontFamily: 'Poppins_500Medium' },
+  invCard:      { flexDirection: 'row', gap: 14, borderRadius: 20, borderWidth: 1, padding: 12, marginBottom: 14, overflow: 'hidden' },
+  invImg:       { width: 130, height: 106, borderRadius: 10 },
+  invTitle:     { fontSize: 14, fontFamily: 'Poppins_500Medium', lineHeight: 20 },
+  invColor:     { fontSize: 12, fontFamily: 'Poppins_400Regular', marginTop: 4 },
+  invDealerRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 4 },
+  invDealer:    { fontSize: 12.5, fontFamily: 'Poppins_400Regular', flexShrink: 1 },
+  invBadgeRow:  { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 },
+  invBadge:     { backgroundColor: 'rgba(0,112,74,0.23)', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 3 },
+  invBadgeTxt:  { color: '#19d273', fontSize: 11, fontFamily: 'Poppins_500Medium' },
+  invDelivery:  { fontSize: 8.5, fontFamily: 'Poppins_400Regular' },
+
+  /* You May Need This (Buy New Car in Cash) */
+  needHeading:  { fontSize: 16, fontFamily: 'Poppins_500Medium', marginBottom: 12 },
+  needRow:      { flexDirection: 'row', gap: 16 },
+  needCard:     { width: NEED_W, height: 186, borderRadius: 16, overflow: 'hidden' },
+  needGrad:     { flex: 1, paddingHorizontal: 10, paddingTop: 10, paddingBottom: 12, alignItems: 'center', justifyContent: 'flex-start' },
+  needImg:      { width: 118, height: 78, marginBottom: 2 },
+  needTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: 4 },
+  needTitle:    { color: '#f9fafc', fontSize: 14, fontFamily: 'Poppins_500Medium', flex: 1, lineHeight: 20 },
+  needSub:      { color: '#c9bdc1', fontSize: 10, fontFamily: 'Poppins_400Regular', lineHeight: 14, width: '100%' },
+
   /* Header */
   header:     { height: 68, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   backButton: { width: 35, height: 35, justifyContent: 'center' },
@@ -467,19 +626,27 @@ const styles = StyleSheet.create({
   /* Search — thora neechy (user request) */
   searchWrapper: { marginBottom: 20, marginTop: 10 },
   searchBox: {
-    height: 47, borderRadius: 25, borderWidth: 1,
-    borderColor: '#6EA7EF', flexDirection: 'row',
+    height: 47, borderRadius: 32, borderWidth: 1,
+    borderColor: '#829fd0', flexDirection: 'row',
     alignItems: 'center', paddingHorizontal: 19,
-    shadowColor: '#1B74FF', shadowOpacity: 0.25,
-    shadowRadius: 8, elevation: 5,
+    backgroundColor: '#061124',
   },
   searchInput: { flex: 1, color: '#f9fafc', fontSize: 12, fontFamily: 'Poppins_400Regular', marginLeft: 12 },
 
   /* Car Card */
   carCard: {
-    borderRadius: 16, borderWidth: 1,
-    borderColor: '#5C8ECF', padding: 11,
+    borderRadius: 20, borderWidth: 1,
+    borderColor: '#82a5d5', padding: 11,
     marginBottom: 20, overflow: 'hidden',
+  },
+  savedVehicleCard: {
+    backgroundColor: '#010A1F',
+    borderColor: '#82a5d5',
+    shadowColor: '#638ed0',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.15,
+    shadowRadius: 5,
+    elevation: 2,
   },
   carTop:      { flexDirection: 'row', minHeight: 124 },
   carImageWrap:{ width: 129, height: 112, borderRadius: 10, overflow: 'hidden', backgroundColor: '#17243B' },

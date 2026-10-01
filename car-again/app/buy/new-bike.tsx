@@ -111,7 +111,7 @@ function VehicleCard({
 
   return (
     // .car-card — light: white + orange shade, dark: navy glass
-    <TouchableOpacity style={[vc.carCard, { backgroundColor: aC.isDark ? BG : '#ffffff', borderColor: aC.isDark ? '#ffffff' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? '#1D53AF' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0.5 : 0.08, elevation: aC.isDark ? 8 : 3 }]} activeOpacity={0.88} onPress={onPress}>
+    <TouchableOpacity style={[vc.carCard, { backgroundColor: aC.isDark ? BG : '#ffffff', borderColor: aC.isDark ? '#82a5d5' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? '#1D53AF' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0.5 : 0.08, elevation: aC.isDark ? 8 : 3 }]} activeOpacity={0.88} onPress={onPress}>
       {!aC.isDark && <><LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" /><LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" /></>}
       {/* .car-image */}
       <View style={[vc.carImage, { overflow: 'hidden' }]}>
@@ -417,7 +417,7 @@ export default function BuyNewBikeScreen() {
         ══════════════════════════════════════════ */}
         <View style={{ marginTop: 20 }}>
           <View style={styles.padH}>
-            <SH title="Hot Selling Bikes" onViewAll={() => router.push({ pathname: '/buy/search-results', params: { condition: 'new', category: 'bike', hot: 'true' } } as any)} />
+            <SH title="Hot Selling Bikes" onViewAll={() => router.push({ pathname: '/buy/search-results', params: { condition: 'new', category: 'bike', hot: 'true', from: 'newCarCash' } } as any)} />
           </View>
           {loading ? (
             <ActivityIndicator color={ORANGE} style={{ paddingVertical: 28 }} />
@@ -451,7 +451,7 @@ export default function BuyNewBikeScreen() {
         ══════════════════════════════════════════ */}
         <View style={{ marginTop: 20 }}>
           <View style={styles.padH}>
-            <SH title="Recently Listed" onViewAll={() => router.push({ pathname: '/buy/search-results', params: { condition: 'new', category: 'bike' } } as any)} />
+            <SH title="Recently Listed" onViewAll={() => router.push({ pathname: '/buy/search-results', params: { condition: 'new', category: 'bike', from: 'newCarCash' } } as any)} />
           </View>
           {recentBikes.length === 0 && !loading ? (
             <View style={[styles.emptyBox, { backgroundColor: aC.isDark ? 'rgba(6,27,74,0.6)' : '#ffffff', borderColor: aC.isDark ? 'rgba(255,255,255,0.15)' : 'rgba(3,42,105,0.12)' }]}>
@@ -566,7 +566,7 @@ export default function BuyNewBikeScreen() {
           setModalVisible(false);
           router.push({
             pathname: '/buy/search-results' as any,
-            params: { search: data.car || '' },
+            params: { search: data.car || '', from: 'newCarCash' },
           });
         }}
       />

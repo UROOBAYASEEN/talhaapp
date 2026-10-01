@@ -126,10 +126,39 @@ export default function BasicDetailsModal({ visible, onClose, brandName, dealerI
       <View style={styles.fieldContainer}>
         <Text style={[styles.label, { color: aC.isDark ? '#baacb6' : '#475569' }]}>{label}</Text>
         <Pressable
-          style={[styles.dropdown, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? 'rgba(255,255,255,0.15)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? '#1D53AF' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0.3 : 0.06, elevation: aC.isDark ? 3 : 2, overflow: 'hidden' }]}
+          style={[styles.dropdown, {
+            backgroundColor: aC.isDark ? '#061124' : '#ffffff',
+            borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.12)',
+            shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)',
+            shadowOpacity: aC.isDark ? 0 : 0.06,
+            elevation: aC.isDark ? 0 : 2,
+            overflow: 'hidden'
+          }]}
           onPress={() => setOpenDropdown(isOpen ? null : field)}
         >
-          {aC.isDark ? null : <><LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" /><LinearGradient colors={['transparent', 'rgba(226,103,27,0.06)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" /></>}
+          {aC.isDark ? (
+            <>
+              <LinearGradient
+                colors={['#163565', '#061124', '#061124', '#0D2146']}
+                locations={[0, 0.24, 0.76, 1]}
+                style={StyleSheet.absoluteFillObject}
+                pointerEvents="none"
+              />
+              <LinearGradient
+                colors={['#24518F8F', '#16356552', 'transparent', 'transparent', '#16356552', '#24518F8F']}
+                locations={[0, 0.025, 0.075, 0.925, 0.975, 1]}
+                start={{ x: 0, y: 0.5 }}
+                end={{ x: 1, y: 0.5 }}
+                style={[StyleSheet.absoluteFillObject, { borderRadius: 32 }]}
+                pointerEvents="none"
+              />
+            </>
+          ) : (
+            <>
+              <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+              <LinearGradient colors={['transparent', 'rgba(226,103,27,0.06)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+            </>
+          )}
           <Text style={[styles.dropdownText, { color: !value ? '#8f8f8f' : (aC.isDark ? '#f9fafc' : '#010a1f') }, !value && styles.placeholder]}>
             {isOther && customValues[field] ? customValues[field] : (value || "Select")}
           </Text>
@@ -330,17 +359,12 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 30,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.15)",
-    backgroundColor: "rgba(3,12,40,0.6)",
+    borderColor: "#829fd0",
+    backgroundColor: "#061124",
     paddingHorizontal: 20,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    shadowColor: "#1D53AF",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 3,
   },
 
   dropdownText: {

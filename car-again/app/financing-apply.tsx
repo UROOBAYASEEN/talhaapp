@@ -8,6 +8,8 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ChevronLeft, Info, Leaf } from 'lucide-react-native';
 import { API_BASE } from '@/constants/api';
 import { useAppColors } from '@/constants/theme';
+import { Ionicons } from '@expo/vector-icons';
+import { PRIMARY_BTN_COLORS, RingGlow, SavedCardEffect, WARM_CARD_COLORS, WARM_CARD_LOCATIONS } from '@/components/shared/FigmaEffects';
 
 const ORANGE = '#e2671b';
 const SERVER = API_BASE.replace('/api/v1', '');
@@ -41,16 +43,17 @@ function StepIndicator({ activeStep }: { activeStep: number }) {
         <View key={step} style={si.item}>
           <View style={[
             si.circle,
-            { backgroundColor: aC.isDark ? '#0e1a3d' : '#ffffff', borderColor: aC.isDark ? '#1e3a8a' : 'rgba(3,42,105,0.12)' },
-            step === activeStep && { backgroundColor: aC.isDark ? '#173066' : 'rgba(226,103,27,0.10)', borderColor: aC.isDark ? '#3b6fe0' : ORANGE },
+            { backgroundColor: aC.isDark ? '#0B2A63' : '#ffffff', borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)' },
+            step === activeStep && { backgroundColor: aC.isDark ? '#010A1F' : 'rgba(226,103,27,0.10)', borderColor: aC.isDark ? '#82a5d5' : ORANGE },
           ]}>
+            {step === activeStep && aC.isDark && <SavedCardEffect band={9} />}
             <Text style={[
               si.num,
-              { color: aC.isDark ? '#cbd5e1' : '#475569' },
+              { color: aC.isDark ? '#F2F1F5' : '#475569' },
               step === activeStep && { color: aC.isDark ? '#fff' : ORANGE },
             ]}>{step}</Text>
           </View>
-          {idx < STEPS.length - 1 && <View style={[si.line, { backgroundColor: aC.isDark ? '#1e3a8a' : 'rgba(3,42,105,0.12)' }]} />}
+          {idx < STEPS.length - 1 && <View style={[si.line, { backgroundColor: aC.isDark ? '#1E3F7C' : 'rgba(3,42,105,0.12)' }]} />}
         </View>
       ))}
     </View>
@@ -59,27 +62,27 @@ function StepIndicator({ activeStep }: { activeStep: number }) {
 const si = StyleSheet.create({
   row:         { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, gap: 0 },
   item:        { flexDirection: 'row', alignItems: 'center' },
-  circle:      { width: 36, height: 36, borderRadius: 18, borderWidth: 1, borderColor: '#1e3a8a', backgroundColor: '#0e1a3d', alignItems: 'center', justifyContent: 'center' },
+  circle:      { width: 36, height: 36, borderRadius: 18, borderWidth: 1, borderColor: '#1e3a8a', backgroundColor: '#0e1a3d', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   circleActive:{ borderColor: '#3b6fe0', backgroundColor: '#173066' },
-  num:         { color: '#cbd5e1', fontSize: 14, fontFamily: 'Poppins_600SemiBold' },
+  num:         { color: '#cbd5e1', fontSize: 14, fontFamily: 'Poppins_500Medium' },
   numActive:   { color: '#fff' },
-  line:        { width: 32, height: 1, backgroundColor: '#1e3a8a', marginHorizontal: 6 },
+  line:        { width: 44, height: 1, backgroundColor: '#1e3a8a' },
 });
 
 function DetailRow({ label, value, isLast }: { label: string; value: string; isLast?: boolean }) {
   const aC = useAppColors();
   return (
-    <View style={[dr.row, !isLast && { borderBottomColor: aC.isDark ? 'rgba(255,255,255,0.08)' : 'rgba(3,42,105,0.08)', borderBottomWidth: 1 }]}>
-      <Text style={[dr.label, { color: aC.isDark ? '#94a3b8' : '#475569' }]}>{label}</Text>
-      <Text style={[dr.value, { color: aC.isDark ? '#fff' : '#010a1f' }]}>{value}</Text>
+    <View style={[dr.row, { borderBottomColor: aC.isDark ? 'rgba(255,255,255,0.12)' : 'rgba(3,42,105,0.08)', borderBottomWidth: 1 }]}>
+      <Text style={[dr.label, { color: aC.isDark ? '#9A97A6' : '#475569' }]}>{label}</Text>
+      <Text style={[dr.value, { color: aC.isDark ? '#F2F1F5' : '#010a1f' }]}>{value}</Text>
     </View>
   );
 }
 const dr = StyleSheet.create({
-  row:   { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 14 },
+  row:   { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12 },
   border:{ borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' },
-  label: { color: '#94a3b8', fontSize: 13, fontFamily: 'Poppins_400Regular', flex: 1 },
-  value: { color: '#fff', fontSize: 13, fontFamily: 'Poppins_600SemiBold', textAlign: 'right' },
+  label: { color: '#94a3b8', fontSize: 12.5, fontFamily: 'Poppins_400Regular', flex: 1 },
+  value: { color: '#fff', fontSize: 12.5, fontFamily: 'Poppins_500Medium', textAlign: 'right' },
 });
 
 function SH({ children }: { children: string }) {
@@ -120,9 +123,9 @@ export default function FinancingApplyScreen() {
 
       <View style={[s.header, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderBottomWidth: aC.isDark ? 0 : 1, borderBottomColor: 'rgba(3,42,105,0.08)' }]}>
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()} activeOpacity={0.75}>
-          <ChevronLeft size={26} color={aC.isDark ? '#e2e8f0' : '#010a1f'} />
+          <ChevronLeft size={26} color={aC.isDark ? '#C9C6D0' : '#010a1f'} />
         </TouchableOpacity>
-        <Text style={[s.headerTitle, { color: aC.isDark ? '#fff' : '#010a1f' }]}>Apply</Text>
+        <Text style={[s.headerTitle, { color: aC.isDark ? '#F2F1F5' : '#010a1f' }]}>Apply</Text>
         <View style={{ width: 36 }} />
       </View>
 
@@ -131,115 +134,115 @@ export default function FinancingApplyScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[s.scroll, { backgroundColor: aC.bg }]} keyboardShouldPersistTaps="handled" style={{ backgroundColor: aC.bg }}>
 
         {/* VEHICLE SUMMARY */}
-        <View style={[s.vehicleRow, { backgroundColor: aC.isDark ? '#010A1F' : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.3)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, shadowRadius: 8, elevation: aC.isDark ? 0 : 2 }]}>
-          <View style={[s.vehicleIcon, { backgroundColor: aC.isDark ? 'rgba(255,255,255,0.1)' : '#eef2ff' }]}><Info size={15} color={aC.isDark ? '#cbd5e1' : '#475569'} /></View>
-          <Text style={[s.vehicleName, { color: aC.isDark ? '#e2e8f0' : '#010a1f' }]}>{vehicleLabel}</Text>
-          <Text style={[s.vehiclePrice, { color: aC.isDark ? '#fff' : '#010a1f' }]}>{fmt(vehiclePrice)}</Text>
+        <View style={[s.vehicleRow, { backgroundColor: 'transparent', borderColor: aC.isDark ? 'rgba(255,255,255,0.25)' : 'rgba(3,42,105,0.12)' }]}>
+          <Ionicons name="information-circle" size={24} color={aC.isDark ? '#C9C6D0' : '#475569'} />
+          <Text style={[s.vehicleName, { color: aC.isDark ? '#F2F1F5' : '#010a1f' }]} numberOfLines={1}>{vehicleLabel}</Text>
+          <Text style={[s.vehiclePrice, { color: aC.isDark ? '#F2F1F5' : '#010a1f' }]}>{fmt(vehiclePrice)}</Text>
         </View>
 
-        {/* BANK PLAN */}
-        <View style={[s.bankCard, { backgroundColor: aC.isDark ? '#010A1F' : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.3)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, shadowRadius: 8, elevation: aC.isDark ? 0 : 2 }]}>
-          <View style={s.bankRow}>
-            <View style={[s.bankIcon, { borderWidth: aC.isDark ? 0 : 1, borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)' }]}>
+        {/* BANK PLAN — border: orange (top) → blue (bottom) */}
+        <LinearGradient
+          colors={aC.isDark ? ['#E2671B', '#8A5A55', '#2E4F8E'] : ['rgba(3,42,105,0.12)', 'rgba(3,42,105,0.12)']}
+          locations={aC.isDark ? [0, 0.5, 1] : undefined}
+          start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }}
+          style={s.bankBorder}
+        >
+        <View style={[s.bankCard, { backgroundColor: aC.isDark ? '#0B1D4A' : '#ffffff' }]}>
+          {aC.isDark && <LinearGradient colors={WARM_CARD_COLORS as any} locations={WARM_CARD_LOCATIONS as any} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
+          <View style={[s.bankRow, { flex: 1, marginRight: 8 }]}>
+            <View style={[s.bankIcon, { borderWidth: 2, borderColor: aC.isDark ? '#8FAEE3' : 'rgba(3,42,105,0.12)' }]}>
               {bankImgUrl ? (
                 <Image source={{ uri: bankImgUrl }} style={s.bankImg} resizeMode="cover" />
               ) : (
                 <Leaf size={18} color={isIslamic ? '#15803d' : '#1d4ed8'} />
               )}
             </View>
-            <View>
-              <Text style={[s.bankName, { color: aC.isDark ? '#fff' : '#010a1f' }]}>{params.bankName || 'Bank'}</Text>
-              <Text style={[s.bankProduct, { color: aC.isDark ? '#94a3b8' : '#475569' }]}>{params.bankProduct || ''}</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={[s.bankName, { color: aC.isDark ? '#F2F1F5' : '#010a1f' }]} numberOfLines={1}>{params.bankName || 'Bank'}</Text>
+              <Text style={[s.bankProduct, { color: aC.isDark ? '#C9C6D0' : '#475569' }]} numberOfLines={1}>{params.bankProduct || ''}</Text>
             </View>
           </View>
-          <View style={[s.tagWrap, { backgroundColor: isIslamic ? (aC.isDark ? '#173a2b' : 'rgba(22,101,52,0.12)') : (aC.isDark ? '#172855' : 'rgba(29,78,216,0.10)') }]}>
+          <View style={[s.tagWrap, { backgroundColor: isIslamic ? (aC.isDark ? '#12302A' : 'rgba(22,101,52,0.12)') : (aC.isDark ? '#172855' : 'rgba(29,78,216,0.10)') }]}>
             <Text style={[s.tagTxt, { color: isIslamic ? '#4ade80' : '#60a5fa' }]}>{params.bankType || 'Conventional'}</Text>
           </View>
         </View>
+        </LinearGradient>
 
         {/* TENURE */}
-        <Text style={[s.sectionTitle, { color: aC.isDark ? '#fff' : '#010a1f' }]}>Tenure (in years)</Text>
+        <Text style={[s.sectionTitle, { color: aC.isDark ? '#F2F1F5' : '#010a1f' }]}>Tenure (in years)</Text>
         <View style={s.optionRow}>
           {TENURE_OPTIONS.map(y => {
             const active = y === tenure;
             return (
-              <TouchableOpacity key={y} style={[s.optCircle, { backgroundColor: aC.isDark ? '#0e1a3d' : '#ffffff', borderColor: aC.isDark ? '#1e3a8a' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }, active && s.optCircleActive]} onPress={() => setTenure(y)} activeOpacity={0.8}>
-                {active && <LinearGradient colors={['#1b3a8f', '#d2621f']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFillObject} />}
-                <Text style={[s.optTxt, { color: aC.isDark ? '#cbd5e1' : '#475569' }, active && s.optTxtActive]}>{y}</Text>
+              <TouchableOpacity key={y} style={[s.optCircle, { backgroundColor: 'transparent', borderColor: aC.isDark ? 'rgba(255,255,255,0.18)' : 'rgba(3,42,105,0.12)' }, active && s.optCircleActive]} onPress={() => setTenure(y)} activeOpacity={0.8}>
+                {active && (
+                  <>
+                    <LinearGradient colors={['#E2671B', '#8A5A55', '#2E4F8E']} locations={[0, 0.5, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} />
+                    <LinearGradient colors={['#0B1D4A', '#0E2152', '#3A2F4A', '#6E4538']} locations={[0, 0.45, 0.75, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={s.optInner} />
+                  </>
+                )}
+                <Text style={[s.optTxt, { color: aC.isDark ? '#9A97A6' : '#475569' }, active && s.optTxtActive]}>{y}</Text>
               </TouchableOpacity>
             );
           })}
         </View>
 
         {/* DOWN PAYMENT */}
-        <Text style={[s.sectionTitle, { color: aC.isDark ? '#fff' : '#010a1f' }]}>Down payment</Text>
+        <Text style={[s.sectionTitle, { color: aC.isDark ? '#F2F1F5' : '#010a1f' }]}>Down payment</Text>
         <View style={s.dpGrid}>
           {DOWN_PAYMENT_OPTIONS.map(pct => {
             const active = pct === downPayment;
             return (
-              <TouchableOpacity key={pct} style={[s.optCircle, { backgroundColor: aC.isDark ? '#0e1a3d' : '#ffffff', borderColor: aC.isDark ? '#1e3a8a' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }, active && s.optCircleActive]} onPress={() => setDownPayment(pct)} activeOpacity={0.8}>
-                {active && <LinearGradient colors={['#1b3a8f', '#d2621f']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFillObject} />}
-                <Text style={[s.optTxtSm, { color: aC.isDark ? '#cbd5e1' : '#475569' }, active && s.optTxtActive]}>{pct}%</Text>
+              <TouchableOpacity key={pct} style={[s.optCircle, { backgroundColor: 'transparent', borderColor: aC.isDark ? 'rgba(255,255,255,0.18)' : 'rgba(3,42,105,0.12)' }, active && s.optCircleActive]} onPress={() => setDownPayment(pct)} activeOpacity={0.8}>
+                {active && (
+                  <>
+                    <LinearGradient colors={['#E2671B', '#8A5A55', '#2E4F8E']} locations={[0, 0.5, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} />
+                    <LinearGradient colors={['#0B1D4A', '#0E2152', '#3A2F4A', '#6E4538']} locations={[0, 0.45, 0.75, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={s.optInner} />
+                  </>
+                )}
+                <Text style={[s.optTxtSm, { color: aC.isDark ? '#9A97A6' : '#475569' }, active && s.optTxtActive]}>{pct}%</Text>
               </TouchableOpacity>
             );
           })}
         </View>
 
         {/* DETAILS */}
-        <SH>Details</SH>
-        <View style={[s.card, { backgroundColor: aC.isDark ? '#010A1F' : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.3)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, shadowRadius: 10, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }]}>
-          {aC.isDark ? (
-            <>
-              <LinearGradient colors={['rgba(22,64,136,0.35)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.25 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <LinearGradient colors={['transparent', 'rgba(29,83,175,0.35)']} start={{ x: 0.5, y: 0.75 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <LinearGradient colors={['rgba(13,37,84,0.35)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.25, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <LinearGradient colors={['transparent', 'rgba(13,37,84,0.35)']} start={{ x: 0.75, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-            </>
-          ) : (
-            <>
-              <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <LinearGradient colors={['transparent', 'rgba(226,103,27,0.06)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-            </>
-          )}
-          <DetailRow label="Monthly payment"             value={fmt(monthly)} />
-          <DetailRow label={`Down payment (${downPayment}%)`} value={fmt(downAmt)} />
-          <DetailRow label="Tenure (in years)"           value={`${tenure} years`} />
-          <DetailRow label="Bank loan"                   value={fmt(loan)} isLast />
-        </View>
+        <Text style={[s.subHeading, { color: aC.isDark ? '#F2F1F5' : '#010a1f' }]}>Details</Text>
+        <DetailRow label="Monthly payment"                  value={fmt(monthly)} />
+        <DetailRow label={`Down payment (${downPayment}%)`} value={fmt(downAmt)} />
+        <DetailRow label="Tenure (in years)"                value={`${tenure} years`} />
+        <DetailRow label="Bank loan"                        value={fmt(loan)} isLast />
 
         {/* INITIAL PAYMENT */}
         <SH>Initial payment</SH>
-        <View style={[s.card, { backgroundColor: aC.isDark ? '#010A1F' : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.3)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, shadowRadius: 10, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }]}>
-          {aC.isDark ? (
-            <>
-              <LinearGradient colors={['rgba(22,64,136,0.35)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.25 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <LinearGradient colors={['transparent', 'rgba(29,83,175,0.35)']} start={{ x: 0.5, y: 0.75 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <LinearGradient colors={['rgba(13,37,84,0.35)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.25, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <LinearGradient colors={['transparent', 'rgba(13,37,84,0.35)']} start={{ x: 0.75, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-            </>
-          ) : (
-            <>
-              <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <LinearGradient colors={['transparent', 'rgba(226,103,27,0.06)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-            </>
-          )}
-          <DetailRow label="Down payment"          value={fmt(downAmt)} />
-          <DetailRow label="Processing fee"         value={fmt(processingFee)} />
-          <DetailRow label="First year insurance"   value={fmt(insurance)} isLast />
-        </View>
+        <DetailRow label="Down payment"         value={fmt(downAmt)} />
+        <DetailRow label="Processing fee"       value={fmt(processingFee)} />
+        <DetailRow label="First year insurance" value={fmt(insurance)} isLast />
 
-        <Text style={[s.disclaimer, { color: aC.isDark ? '#64748b' : '#64748b' }]}>
-          Disclaimer: Prices and calculations may vary depending on KIBOR or other variable rates.
+        {/* YEARLY INSTALLMENT PLAN */}
+        <SH>Yearly installment plan</SH>
+        {Array.from({ length: tenure }).map((_, i) => {
+          const n = i + 1;
+          const suffix = n === 1 ? 'st' : n === 2 ? 'nd' : n === 3 ? 'rd' : 'th';
+          return <DetailRow key={n} label={`${n}${suffix} year`} value={`${fmt(monthly)}/Month`} isLast={n === tenure} />;
+        })}
+
+        <Text style={[s.linksTxt, { color: aC.isDark ? '#E6E4EA' : '#334155' }]}>
+          Please view <Text style={s.link}>Eligibility Criteria</Text>, <Text style={s.link}>Required Documents</Text> for a smooth application process
+        </Text>
+        <Text style={[s.disclaimer, { color: aC.isDark ? '#6E6A7A' : '#64748b' }]}>
+          Disclaimer: Prices and Calculations might have slight variation depending on KIBOR or any other variable rates. Prices can be verified from respective bank(s).
         </Text>
 
         <View style={{ height: 16 }} />
       </ScrollView>
 
       {/* FOOTER */}
-      <View style={[s.footer, { backgroundColor: aC.isDark ? '#010A1F' : '#ffffff', borderTopColor: aC.isDark ? 'rgba(255,255,255,0.08)' : 'rgba(3,42,105,0.08)' }]}>
+      <View style={[s.footer, { backgroundColor: aC.isDark ? '#0A1530' : '#ffffff', borderTopColor: aC.isDark ? 'rgba(126,159,214,0.35)' : 'rgba(3,42,105,0.08)' }]}>
+        {aC.isDark && <LinearGradient colors={['rgba(40,86,168,0.25)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
         <View style={s.footerTop}>
-          <Text style={[s.depositLabel, { color: aC.isDark ? '#94a3b8' : '#475569' }]}>Total initial deposit:</Text>
-          <Text style={[s.depositVal, { color: aC.isDark ? '#fff' : '#010a1f' }]}>{fmt(totalInitial)}</Text>
+          <Text style={[s.depositLabel, { color: aC.isDark ? '#E6E4EA' : '#475569' }]}>Total initial deposit:</Text>
+          <Text style={[s.depositVal, { color: aC.isDark ? '#F2F1F5' : '#010a1f' }]}>{fmt(totalInitial)}</Text>
         </View>
         <TouchableOpacity
           style={s.continueBtn}
@@ -249,7 +252,7 @@ export default function FinancingApplyScreen() {
             params: { ...params, tenureYears: String(tenure), downPct: String(downPayment) },
           })}
         >
-          <LinearGradient colors={['#1b3a8f', '#5a4a7b', '#d2621f']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+          <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
           <Text style={s.continueTxt}>Continue</Text>
         </TouchableOpacity>
       </View>
@@ -260,37 +263,42 @@ export default function FinancingApplyScreen() {
 
 const s = StyleSheet.create({
   safe:   { flex: 1, backgroundColor: '#010A1F' },
-  scroll: { paddingHorizontal: 20, paddingBottom: 16 },
-  header:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 6, paddingBottom: 4 },
-  backBtn:     { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { color: '#fff', fontSize: 19, fontFamily: 'Poppins_600SemiBold' },
-  vehicleRow:  { flexDirection: 'row', alignItems: 'center', borderRadius: 30, borderWidth: 1, borderColor: 'rgba(100,160,255,0.3)', backgroundColor: '#010A1F', paddingHorizontal: 16, paddingVertical: 14, marginBottom: 12, gap: 10, overflow: 'hidden' },
+  scroll: { paddingHorizontal: 14, paddingBottom: 16 },
+  header:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingTop: 6, paddingBottom: 0 },
+  backBtn:     { width: 36, height: 36, alignItems: 'flex-start', justifyContent: 'center' },
+  headerTitle: { color: '#fff', fontSize: 20, fontFamily: 'Poppins_500Medium' },
+  vehicleRow:  { flexDirection: 'row', alignItems: 'center', borderRadius: 16, borderWidth: 1, paddingHorizontal: 14, paddingVertical: 10, marginBottom: 12, gap: 10 },
   vehicleIcon: { width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
-  vehicleName: { flex: 1, color: '#e2e8f0', fontSize: 13, fontFamily: 'Poppins_500Medium' },
-  vehiclePrice:{ color: '#fff', fontSize: 13, fontFamily: 'Poppins_600SemiBold' },
-  bankCard:   { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderRadius: 16, borderWidth: 1, borderColor: 'rgba(100,160,255,0.3)', backgroundColor: '#010A1F', paddingHorizontal: 16, paddingVertical: 14, marginBottom: 20, overflow: 'hidden' },
-  bankRow:    { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  bankIcon:   { width: 40, height: 40, borderRadius: 20, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  bankImg:    { width: 40, height: 40, borderRadius: 20 },
-  bankName:   { color: '#fff', fontSize: 14, fontFamily: 'Poppins_600SemiBold' },
-  bankProduct:{ color: '#94a3b8', fontSize: 11, fontFamily: 'Poppins_400Regular' },
-  tagWrap:    { borderRadius: 20, paddingHorizontal: 12, paddingVertical: 4 },
-  tagTxt:     { fontSize: 11, fontFamily: 'Poppins_600SemiBold' },
-  sectionTitle:   { color: '#fff', fontSize: 14, fontFamily: 'Poppins_600SemiBold', marginBottom: 12 },
-  sectionHeading: { color: '#fff', fontSize: 16, fontFamily: 'Poppins_700Bold', marginTop: 20, marginBottom: 10 },
-  optionRow: { flexDirection: 'row', gap: 12, marginBottom: 20 },
-  dpGrid:    { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 8 },
-  optCircle:      { width: 44, height: 44, borderRadius: 22, borderWidth: 1, borderColor: '#1e3a8a', backgroundColor: '#0e1a3d', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  optCircleActive:{ borderColor: ORANGE },
-  optTxt:         { color: '#cbd5e1', fontSize: 13, fontFamily: 'Poppins_600SemiBold' },
-  optTxtSm:       { color: '#cbd5e1', fontSize: 11, fontFamily: 'Poppins_600SemiBold' },
+  vehicleName: { flex: 1, fontSize: 14, fontFamily: 'Poppins_500Medium' },
+  vehiclePrice:{ fontSize: 14, fontFamily: 'Poppins_600SemiBold' },
+  bankBorder: { borderRadius: 16, padding: 1, marginBottom: 16 },
+  bankCard:   { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderRadius: 15, paddingHorizontal: 16, paddingVertical: 18, overflow: 'hidden' },
+  bankRow:    { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  bankIcon:   { width: 44, height: 44, borderRadius: 22, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  bankImg:    { width: 44, height: 44, borderRadius: 22 },
+  bankName:   { fontSize: 17, fontFamily: 'Poppins_500Medium' },
+  bankProduct:{ fontSize: 13, fontFamily: 'Poppins_400Regular' },
+  tagWrap:    { borderRadius: 14, paddingHorizontal: 12, paddingVertical: 4, flexShrink: 0 },
+  tagTxt:     { fontSize: 11, fontFamily: 'Poppins_400Regular' },
+  sectionTitle:   { fontSize: 16, fontFamily: 'Poppins_400Regular', marginBottom: 12 },
+  subHeading:     { fontSize: 14.5, fontFamily: 'Poppins_600SemiBold', marginTop: 16, marginBottom: 2 },
+  sectionHeading: { color: '#fff', fontSize: 17, fontFamily: 'Poppins_500Medium', marginTop: 22, marginBottom: 2 },
+  optionRow: { flexDirection: 'row', gap: 12, marginBottom: 14 },
+  dpGrid:    { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 4 },
+  optCircle:      { width: 42, height: 42, borderRadius: 21, borderWidth: 1, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  optCircleActive:{ borderWidth: 0 },
+  optInner:       { position: 'absolute', top: 1, left: 1, right: 1, bottom: 1, borderRadius: 20 },
+  optTxt:         { fontSize: 13, fontFamily: 'Poppins_400Regular' },
+  optTxtSm:       { fontSize: 12, fontFamily: 'Poppins_400Regular' },
   optTxtActive:   { color: '#fff' },
   card:       { borderRadius: 16, borderWidth: 1, borderColor: 'rgba(100,160,255,0.3)', backgroundColor: '#010A1F', paddingHorizontal: 16, overflow: 'hidden', marginBottom: 4 },
-  disclaimer: { color: '#64748b', fontSize: 11, fontFamily: 'Poppins_400Regular', lineHeight: 18, marginTop: 16 },
-  footer:       { borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)', backgroundColor: '#010A1F', paddingHorizontal: 20, paddingTop: 14, paddingBottom: 32 },
-  footerTop:    { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  depositLabel: { color: '#94a3b8', fontSize: 13, fontFamily: 'Poppins_400Regular' },
-  depositVal:   { color: '#fff', fontSize: 14, fontFamily: 'Poppins_700Bold' },
-  continueBtn:  { height: 54, borderRadius: 30, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
-  continueTxt:  { color: '#fff', fontSize: 16, fontFamily: 'Poppins_700Bold' },
+  linksTxt:   { fontSize: 12, fontFamily: 'Poppins_400Regular', lineHeight: 18, marginTop: 18 },
+  link:       { color: '#4B8BFF', textDecorationLine: 'underline' },
+  disclaimer: { fontSize: 11.5, fontFamily: 'Poppins_400Regular', lineHeight: 18, marginTop: 10 },
+  footer:       { borderTopWidth: 1, paddingHorizontal: 14, paddingTop: 14, paddingBottom: 30, overflow: 'hidden' },
+  footerTop:    { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8, marginBottom: 12 },
+  depositLabel: { fontSize: 13, fontFamily: 'Poppins_400Regular' },
+  depositVal:   { fontSize: 16, fontFamily: 'Poppins_600SemiBold' },
+  continueBtn:  { height: 50, borderRadius: 26, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
+  continueTxt:  { color: '#EDEBF0', fontSize: 17, fontFamily: 'Poppins_600SemiBold' },
 });

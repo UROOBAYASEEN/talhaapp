@@ -15,7 +15,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Search, ArrowDownUp, ChevronRight, Check } from 'lucide-react-native';
+import { ChevronRight, Check } from 'lucide-react-native';
+import { D, DHeader, FilterPills, GlowCard, SearchBar, StatusPill as DStatusPill } from '@/components/dealer/DealerUI';
 import { AppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
@@ -31,7 +32,7 @@ function resolveUrl(url?: string): string | null {
 const ORANGE = '#e2671b';
 const C = AppColors;
 
-const FILTERS = ['All', 'New', 'Under Review', 'Survey Assigned', 'Approved', 'Reject'];
+const FILTERS = ['All', 'New', 'Under Review', 'Survey Assigned', 'Approved', 'Reject'] as const;
 
 const SORT_OPTIONS = [
   { key: 'name_asc',    label: 'Customer (A → Z)' },
@@ -99,22 +100,15 @@ function applySortKey(list: any[], key: string) {
 }
 
 function StatusPill({ status }: { status: string }) {
-  const sc = STATUS_COLORS[status] || STATUS_COLORS['Under Review'];
-  return (
-    <View style={[cc.pill, { backgroundColor: sc.bg }]}>
-      <Text style={[cc.pillTxt, { color: sc.text }]}>{status}</Text>
-    </View>
-  );
+  // Figma tones: Under Review = warm brown/orange, Approved = green, Reject = red
+  const tone = status === 'Approved' ? 'green' : status === 'Reject' ? 'red' : status === 'New' ? 'blue' : 'orange';
+  return <DStatusPill label={status} tone={tone as any} style={{ paddingHorizontal: 14, paddingVertical: 3 }} />;
 }
 
 function ClaimCard({ item, onView }: { item: any; onView: () => void }) {
   const allPhotos: string[] = item.photos || (item.image ? [item.image] : []);
   return (
-    <View style={cc.card}>
-      <LinearGradient colors={['rgba(22,64,136,0.35)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.25 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-      <LinearGradient colors={['transparent', 'rgba(29,83,175,0.35)']} start={{ x: 0.5, y: 0.75 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-      <LinearGradient colors={['rgba(13,37,84,0.35)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.25, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-      <LinearGradient colors={['transparent', 'rgba(13,37,84,0.35)']} start={{ x: 0.75, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+    <GlowCard style={cc.card} radius={22}>
 
       <View style={cc.topRow}>
         {item.image
@@ -123,7 +117,7 @@ function ClaimCard({ item, onView }: { item: any; onView: () => void }) {
               <Text style={{ color: '#4B5A7A', fontSize: 22 }}>🚗</Text>
             </View>
         }
-        <View style={{ flex: 1, marginLeft: 12 }}>
+        <View style={{ flex: 1, marginLeft: 6 }}>
           <View style={cc.nameRow}>
             <Text style={cc.name}>{item.customer}</Text>
             <StatusPill status={item.status} />
@@ -146,28 +140,26 @@ function ClaimCard({ item, onView }: { item: any; onView: () => void }) {
         <Text style={cc.dateTxt}>Claim date: {item.date}</Text>
         <TouchableOpacity style={cc.viewBtn} onPress={onView}>
           <Text style={cc.viewTxt}>View Details</Text>
-          <ChevronRight size={14} color={ORANGE} />
+          <ChevronRight size={18} color={ORANGE} />
         </TouchableOpacity>
       </View>
-    </View>
+    </GlowCard>
   );
 }
 
 const cc = StyleSheet.create({
-  card:       { borderRadius: 16, overflow: 'hidden', padding: 4, marginBottom: 14, borderWidth: 1, borderColor: 'rgba(100,160,255,0.5)', backgroundColor: 'rgba(1,6,20,1)' },
-  topRow:     { flexDirection: 'row', marginBottom: 12 },
-  carImg:     { width: 100, height: 100, borderRadius: 10, backgroundColor: '#1a2a4a', margin: 8 },
-  nameRow:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 },
-  name:       { fontSize: 13, fontFamily: 'Poppins_600SemiBold', color: C.textPrimary },
-  vehicleTxt: { fontSize: 11, fontFamily: 'Poppins_400Regular', color: '#8f9cb5', lineHeight: 16, marginBottom: 6 },
-  amount:     { fontSize: 13, fontFamily: 'Poppins_600SemiBold', color: ORANGE },
-  pill:       { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 12 },
-  pillTxt:    { fontSize: 10, fontFamily: 'Poppins_600SemiBold' },
-  divider:    { height: 1, backgroundColor: 'rgba(255,255,255,0.08)', marginBottom: 12 },
-  bottomRow:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  dateTxt:    { fontSize: 12, fontFamily: 'Poppins_400Regular', color: '#9fb0cc' },
+  card:       { padding: 6, paddingBottom: 14, marginBottom: 16 },
+  topRow:     { flexDirection: 'row', marginBottom: 2 },
+  carImg:     { width: 118, height: 96, borderRadius: 12, backgroundColor: '#1a2a4a', margin: 8 },
+  nameRow:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8, marginBottom: 4, paddingRight: 6 },
+  name:       { fontSize: 15, fontFamily: 'Poppins_400Regular', color: '#FFFFFF', flexShrink: 1 },
+  vehicleTxt: { fontSize: 13, fontFamily: 'Poppins_400Regular', color: '#FFFFFF', lineHeight: 20, marginBottom: 4 },
+  amount:     { fontSize: 15, fontFamily: 'Poppins_400Regular', color: ORANGE, alignSelf: 'flex-end', paddingRight: 6 },
+  divider:    { height: 1, backgroundColor: 'rgba(255,255,255,0.14)', marginHorizontal: 8, marginBottom: 12 },
+  bottomRow:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 8 },
+  dateTxt:    { fontSize: 14, fontFamily: 'Poppins_500Medium', color: '#FFFFFF' },
   viewBtn:    { flexDirection: 'row', alignItems: 'center' },
-  viewTxt:    { fontSize: 12, fontFamily: 'Poppins_600SemiBold', color: ORANGE, marginRight: 2 },
+  viewTxt:    { fontSize: 14, fontFamily: 'Poppins_500Medium', color: ORANGE, marginRight: 2 },
 });
 
 export default function InsuranceClaimsScreen() {
@@ -176,7 +168,7 @@ export default function InsuranceClaimsScreen() {
   const [claims,       setClaims]     = useState<any[]>([]);
   const [loading,      setLoading]    = useState(true);
   const [refreshing,   setRefreshing] = useState(false);
-  const [activeFilter, setFilter]     = useState('All');
+  const [activeFilter, setFilter]     = useState<typeof FILTERS[number]>('All');
   const [search,       setSearch]     = useState('');
   const [sortKey,      setSortKey]    = useState('');
   const [sortModal,    setSortModal]  = useState(false);
@@ -209,30 +201,14 @@ export default function InsuranceClaimsScreen() {
   return (
     <View style={s.root}>
       <SafeAreaView edges={['top']}>
-        <View style={s.header}>
-          <Text style={s.title}>Claims</Text>
-        </View>
+        <DHeader title="Claims" />
 
         <View style={s.searchRow}>
-          <View style={s.searchBox}>
-            <LinearGradient colors={['rgba(22,64,136,0.5)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <LinearGradient colors={['rgba(13,37,84,0.5)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <LinearGradient colors={['transparent', 'rgba(29,83,175,0.5)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <Search size={16} color="#8f9cb5" />
-            <TextInput style={s.searchInput} placeholder="Search by customer or vehicle..." placeholderTextColor={C.textPlaceholder} value={search} onChangeText={setSearch} />
-          </View>
-          <TouchableOpacity style={s.sortBtn} onPress={() => setSortModal(true)}>
-            <ArrowDownUp size={15} color={ORANGE} />
-            <Text style={[s.sortTxt, { color: sortKey ? ORANGE : '#8f9cb5' }]}>Sort</Text>
-          </TouchableOpacity>
+          <SearchBar placeholder="Search by Claim ID, Customer, Vehicle..." value={search} onChangeText={setSearch} onSort={() => setSortModal(true)} />
         </View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.filterRow} style={{ marginBottom: 8 }}>
-          {FILTERS.map(f => (
-            <TouchableOpacity key={f} style={[s.chip, activeFilter === f && s.chipActive]} onPress={() => setFilter(f)}>
-              <Text style={[s.chipTxt, activeFilter === f && s.chipTxtActive]}>{f}</Text>
-            </TouchableOpacity>
-          ))}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.filterRow} style={{ marginBottom: 8, flexGrow: 0 }}>
+          <FilterPills items={FILTERS} value={activeFilter} onChange={setFilter} style={{ flexWrap: 'nowrap', gap: 10 }} />
         </ScrollView>
 
         <Text style={s.itemCount}>Showing {filtered.length} items</Text>
@@ -282,20 +258,10 @@ export default function InsuranceClaimsScreen() {
 }
 
 const s = StyleSheet.create({
-  root:         { flex: 1, backgroundColor: C.bg },
-  header:       { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 },
-  title:        { fontSize: 18, fontFamily: 'Poppins_600SemiBold', color: C.textPrimary },
-  searchRow:    { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, marginBottom: 12 },
-  searchBox:    { flex: 1, flexDirection: 'row', alignItems: 'center', borderRadius: 30, paddingHorizontal: 14, paddingVertical: 11, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(100,160,255,0.5)', backgroundColor: C.bg, marginRight: 12 },
-  searchInput:  { flex: 1, fontSize: 13, fontFamily: 'Poppins_400Regular', color: C.textPrimary, padding: 0, marginLeft: 8 },
-  sortBtn:      { flexDirection: 'row', alignItems: 'center' },
-  sortTxt:      { fontSize: 13, fontFamily: 'Poppins_600SemiBold', marginLeft: 4 },
-  filterRow:    { paddingHorizontal: 16, paddingRight: 8 },
-  chip:         { paddingHorizontal: 22, paddingVertical: 8, borderRadius: 30, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.12)', backgroundColor: 'rgba(6,27,74,1)', marginRight: 8 },
-  chipActive:   { borderColor: ORANGE },
-  chipTxt:      { fontSize: 12, fontFamily: 'Poppins_500Medium', color: '#c3cee2' },
-  chipTxtActive:{ color: ORANGE },
-  itemCount:    { fontSize: 12, fontFamily: 'Poppins_400Regular', color: C.textSecondary, paddingHorizontal: 16, marginTop: 8, marginBottom: 10 },
+  root:         { flex: 1, backgroundColor: D.bg },
+  searchRow:    { paddingHorizontal: 16, marginBottom: 16 },
+  filterRow:    { paddingHorizontal: 16, paddingRight: 16 },
+  itemCount:    { fontSize: 13, fontFamily: 'Poppins_400Regular', color: '#FFFFFF', paddingHorizontal: 16, marginTop: 8, marginBottom: 10 },
   list:         { paddingHorizontal: 16, paddingBottom: 100 },
   empty:        { alignItems: 'center', paddingTop: 80 },
   emptyTxt:     { fontSize: 14, fontFamily: 'Poppins_500Medium', color: C.textSecondary },

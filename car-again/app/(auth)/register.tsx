@@ -1,156 +1,214 @@
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  Image, ScrollView, StyleSheet, Text, TouchableOpacity, View,
+  Alert, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import AuthHeader from '@/components/auth/AuthHeader';
-import LinearButton from '@/components/auth/LinearButton';
-import { useAppColors } from '@/constants/theme';
+import AuthGlowBackground from '@/components/auth/AuthGlowBackground';
+import { API_BASE } from '@/constants/api';
+import { PassRule, SocialButtons } from '@/components/auth/AuthGlow';
+import { G, Glass, GlassField, GradientButton, OrDivider, ScreenHeader } from '@/components/shared/GlowUI';
 
 const ROLES = [
-  {
-    key: 'customer',
-    label: 'Individual Seller',
-    desc: 'Buy cars, bikes, financing & insurance',
-    icon: require('@/assets/images/role-customer.png'),
-  },
-  {
-    key: 'bank_representative',
-    label: 'Bank Representative',
-    desc: 'Manage auto-loan offering',
-    icon: require('@/assets/images/role-bank.png'),
-  },
-  {
-    key: 'dealership_owner',
-    label: 'Dealership Owner',
-    desc: 'List inventory & manage leads',
-    icon: require('@/assets/images/role-dealership.png'),
-  },
-  {
-    key: 'individual_seller',
-    label: 'Non-Dealer Seller',
-    desc: 'Sell your own used vehicles directly',
-    emoji: '🏷️',
-  },
-  {
-    key: 'insurance_provider',
-    label: 'Insurance Provider',
-    desc: 'Offer vehicle insurance plans',
-    icon: require('@/assets/images/role-insurance.png'),
-  },
-  {
-    key: 'tracker_provider',
-    label: 'Tracker Provider',
-    desc: 'Provide tracking & telematics',
-    icon: require('@/assets/images/role-tracker.png'),
-  },
-];
+  { key: 'customer',            label: 'Customer',                             desc: 'Buy cars, bikes, financing & insurance', icon: require('@/assets/images/role-customer.png') },
+  { key: 'bank_representative', label: 'Bank Representative',                  desc: 'Manage auto-loan offering',              icon: require('@/assets/images/role-bank.png') },
+  { key: 'dealership_owner',    label: 'Dealership Owner',                     desc: 'List inventory & manage leads',          icon: require('@/assets/images/role-dealership.png') },
+  { key: 'individual_seller',   label: 'Seller',                               desc: 'Sell your own used vehicles directly',   emoji: '🏷️' },
+  { key: 'insurance_provider',  label: 'Insurance Provider',                   desc: 'Offer vehicle insurance plans',          icon: require('@/assets/images/role-insurance.png') },
+  { key: 'tracker_provider',    label: 'Tracker Provider',                     desc: 'Provide tracking & telematics',          icon: require('@/assets/images/role-tracker.png') },
+] as const;
+
+// Only Customer and Seller are offered for now; the other roles stay defined for later.
+const VISIBLE_ROLES: string[] = ['customer', 'individual_seller'];
+
+function fmtCnic(v: string) {
+  const d = v.replace(/\D/g, '').slice(0, 13);
+  if (d.length <= 5) return d;
+  if (d.length <= 12) return `${d.slice(0, 5)}-${d.slice(5)}`;
+  return `${d.slice(0, 5)}-${d.slice(5, 12)}-${d.slice(12)}`;
+}
 
 export default function RegisterScreen() {
   const router = useRouter();
-  const C = useAppColors();
-  const [selectedRole, setSelectedRole] = useState('customer');
-  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [form, setForm] = useState({ full_name: '', email: '', phone: '', cnic: '', password: '' });
+  const [showPass, setShowPass] = useState(false);
+  const [role, setRole] = useState<string>('customer');
+  const [agreed, setAgreed] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const borderColor = C.isDark ? 'rgba(255,255,255,0.3)' : 'rgba(3,12,40,0.15)';
+  const pass = {
+    length:  form.password.length >= 8,
+    letters: /[a-zA-Z]/.test(form.password),
+    numbers: /[0-9]/.test(form.password),
+  };
 
-  function handleContinue() {
-    if (!agreedToTerms) {
-      return;
-    }
-    router.push({ pathname: '/(auth)/personal-info', params: { role: selectedRole } });
+  function update(k: keyof typeof form, v: string) {
+    setForm(f => ({ ...f, [k]: k === 'cnic' ? fmtCnic(v) : v }));
+    if (errors[k]) setErrors(e => ({ ...e, [k]: '' }));
   }
 
+  function validate() {
+    const e: Record<string, string> = {};
+    if (form.full_name.trim().length < 3) e.full_name = 'Please enter your full name';
+    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) e.email = 'Enter a valid email';
+    if (!/^(\+92|0)3[0-9]{9}$/.test(form.phone.replace(/[\s-]/g, ''))) e.phone = 'Enter a valid phone number';
+    if (form.cnic && form.cnic.replace(/\D/g, '').length !== 13) e.cnic = 'CNIC must be 13 digits';
+    if (!pass.length || !pass.letters || !pass.numbers) e.password = 'Password does not meet the requirements';
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  }
+
+  async function handleCreate() {
+    if (!validate()) return;
+    if (!agreed) { Alert.alert('Terms', 'Please accept the terms and conditions to continue.'); return; }
+    setLoading(true);
+    try {
+      const phone = form.phone.replace(/[\s-]/g, '');
+      const res = await fetch(`${API_BASE}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          full_name: form.full_name.trim(),
+          email:     form.email.trim() || undefined,
+          phone,
+          cnic:      form.cnic || undefined,
+          password:  form.password,
+          role,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(typeof data.detail === 'string' ? data.detail : 'Registration failed');
+      router.push({
+        pathname: '/(auth)/verify-otp',
+        params: { phone, purpose: 'register', role, dev_otp: data.dev_otp ?? '', sent_to: data.sent_to ?? phone },
+      });
+    } catch (err: any) {
+      Alert.alert('Error', err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const err = (k: string) => (errors[k] ? <Text style={s.err}>{errors[k]}</Text> : null);
+
   return (
-    <SafeAreaView style={[s.safe, { backgroundColor: C.bg }]}>
-      <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
-        <AuthHeader />
-        <Text style={[s.title, { color: C.textPrimary }]}>Create Account</Text>
-        <Text style={[s.subtitle, { color: C.textSecondary }]}>Join Autowizor and simplify your car journey.</Text>
+    <AuthGlowBackground>
+      <SafeAreaView style={{ flex: 1 }}>
+        <ScreenHeader logo />
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+          <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+            <Text style={s.title}>Create Account</Text>
+            <Text style={s.subtitle}>Join Autowizor and simplify your car journey.</Text>
 
-        <Text style={[s.roleLabel, { color: C.textSecondary }]}>Select your role</Text>
-        <View style={s.roleList}>
-          {ROLES.map((r) => {
-            const selected = selectedRole === r.key;
-            return (
-              <TouchableOpacity
-                key={r.key}
-                style={[s.roleItem, { borderColor: selected ? '#e2671b' : borderColor, backgroundColor: C.glassBg }]}
-                onPress={() => setSelectedRole(r.key)}
-                activeOpacity={0.8}
-              >
-                <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+            <View style={s.form}>
+              <View>
+                <GlassField placeholder="Full name" value={form.full_name} onChangeText={v => update('full_name', v)} autoCapitalize="words" />
+                {err('full_name')}
+              </View>
+              <View>
+                <GlassField placeholder="Your email" value={form.email} onChangeText={v => update('email', v)} keyboardType="email-address" autoCapitalize="none" />
+                {err('email')}
+              </View>
+              <View>
+                <GlassField placeholder="Phone number" value={form.phone} onChangeText={v => update('phone', v)} keyboardType="phone-pad" />
+                <Text style={s.hint}>{errors.phone || 'Format: +92 349 9571255'}</Text>
+              </View>
+              <View>
+                <GlassField placeholder="Your CNIC" value={form.cnic} onChangeText={v => update('cnic', v)} keyboardType="number-pad" />
+                <Text style={s.hint}>{errors.cnic || 'Format: 12345-1234567-1'}</Text>
+              </View>
+              <View>
+                <GlassField
+                  placeholder="Your password"
+                  value={form.password}
+                  onChangeText={v => update('password', v)}
+                  secureTextEntry={!showPass}
+                  right={
+                    <TouchableOpacity onPress={() => setShowPass(x => !x)}>
+                      <Ionicons name={showPass ? 'eye-off-outline' : 'eye-outline'} size={18} color="#8F8A96" />
+                    </TouchableOpacity>
+                  }
+                />
+                <Text style={s.rulesTitle}>Password must include:</Text>
+                <PassRule met={pass.length} label="At least 8 characters" />
+                <PassRule met={pass.letters} label="Include letters" />
+                <PassRule met={pass.numbers} label="Include numbers" />
+              </View>
+            </View>
 
-                <View style={[s.roleIconWrap, { backgroundColor: C.roleIconBg }]}>
-                  {'emoji' in r ? (
-                    <Text style={s.roleEmoji}>{r.emoji}</Text>
-                  ) : (
-                    <Image source={r.icon} style={s.roleImg} resizeMode="contain" />
-                  )}
-                </View>
-                <View style={s.roleTextWrap}>
-                  <Text style={[s.roleName, { color: C.textRole }]} numberOfLines={1}>{r.label}</Text>
-                  <Text style={[s.roleDesc, { color: C.textSecondary }]} numberOfLines={1}>{r.desc}</Text>
-                </View>
-                <View style={[s.radio, { borderColor: selected ? '#e2671b' : C.unselectedIndicatorBorder }, selected && s.radioActive]}>
-                  {selected && <Ionicons name="checkmark" size={10} color="#fff" />}
-                </View>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+            <Text style={s.roleTitle}>Select Your Role</Text>
+            <View style={{ gap: 12 }}>
+              {ROLES.filter(r => VISIBLE_ROLES.includes(r.key)).map(r => {
+                const sel = role === r.key;
+                return (
+                  <TouchableOpacity key={r.key} style={s.role} activeOpacity={0.85} onPress={() => setRole(r.key)}>
+                    <Glass radius={25} blur={14} />
+                    <View style={s.roleIcon}>
+                      {'emoji' in r ? <Text style={{ fontSize: 14 }}>{r.emoji}</Text> : <Image source={r.icon} style={{ width: 17, height: 17 }} resizeMode="contain" />}
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={s.roleName} numberOfLines={1}>{r.label}</Text>
+                      <Text style={s.roleDesc} numberOfLines={1}>{r.desc}</Text>
+                    </View>
+                    <View style={[s.radio, sel && s.radioOn]}>
+                      {sel && <Ionicons name="checkmark" size={12} color="#fff" />}
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
 
-        <TouchableOpacity style={s.termsRow} onPress={() => setAgreedToTerms(!agreedToTerms)} activeOpacity={0.8}>
-          <View style={[s.checkbox, { borderColor: agreedToTerms ? '#e2671b' : C.unselectedIndicatorBorder }]}>
-            {agreedToTerms && <Ionicons name="checkmark" size={12} color="#e2671b" />}
-          </View>
-          <Text style={[s.termsText, { color: C.textSecondary }]}>
-            I confirm that I have read and accept the{' '}
-            <Text style={{ color: '#e2671b', fontFamily: 'Poppins_500Medium' }}>terms and conditions</Text>
-            {' '}and privacy policy.
-          </Text>
-        </TouchableOpacity>
+            <TouchableOpacity style={s.terms} activeOpacity={0.8} onPress={() => setAgreed(a => !a)}>
+              <View style={[s.check, agreed && { borderColor: G.orange, backgroundColor: G.orange }]}>
+                {agreed && <Ionicons name="checkmark" size={12} color="#fff" />}
+              </View>
+              <Text style={s.termsTxt}>
+                I confirm that I have read and accept the{' '}
+                <Text style={{ color: G.orange, fontFamily: 'Poppins_600SemiBold' }}>terms and conditions</Text>
+                {' '}and privacy policy.
+              </Text>
+            </TouchableOpacity>
 
-        <LinearButton title="Continue" onPress={handleContinue} disabled={!agreedToTerms} />
+            <GradientButton title="Create Account" height={50} fontSize={17} loading={loading} onPress={handleCreate} />
+            <View style={{ marginVertical: 14 }}><OrDivider /></View>
+            <View style={{ gap: 14 }}>
+              <SocialButtons />
+            </View>
 
-        <TouchableOpacity onPress={() => router.push('/(auth)/login')} style={{ marginTop: 12 }}>
-          <Text style={[s.signinText, { color: C.textSecondary }]}>
-            Already have an account?{' '}
-            <Text style={{ color: '#e2671b', fontFamily: 'Poppins_600SemiBold' }}>Sign In</Text>
-          </Text>
-        </TouchableOpacity>
-
-        <View style={{ height: 32 }} />
-      </ScrollView>
-    </SafeAreaView>
+            <TouchableOpacity onPress={() => router.push('/(auth)/login')} style={{ marginTop: 16 }}>
+              <Text style={s.signin}>
+                Already have an account?{' '}
+                <Text style={{ color: '#FFFFFF' }}>Sign In</Text>
+              </Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </AuthGlowBackground>
   );
 }
 
 const s = StyleSheet.create({
-  safe:    { flex: 1 },
-  scroll:  { paddingHorizontal: 20, paddingBottom: 48 },
-  title:   { fontSize: 20, fontFamily: 'Poppins_600SemiBold', marginBottom: 4 },
-  subtitle:{ fontSize: 14, fontFamily: 'Poppins_400Regular', marginBottom: 16 },
-  roleLabel:{ fontSize: 14, fontFamily: 'Poppins_500Medium', marginBottom: 12 },
-  roleList: { gap: 12, marginBottom: 20 },
+  scroll:     { paddingHorizontal: 16, paddingBottom: 32 },
+  title:      { color: '#FFFFFF', fontSize: 22, fontFamily: 'Poppins_600SemiBold', marginTop: 8 },
+  subtitle:   { color: G.muted, fontSize: 14, fontFamily: 'Poppins_400Regular', marginTop: 2, marginBottom: 14 },
+  form:       { gap: 14 },
+  hint:       { color: '#FF6B6D', fontSize: 10, fontFamily: 'Poppins_400Regular', marginTop: 6, marginLeft: 2 },
+  err:        { color: '#FF6B6D', fontSize: 11, fontFamily: 'Poppins_400Regular', marginTop: 6, marginLeft: 2 },
+  rulesTitle: { color: G.muted, fontSize: 12, fontFamily: 'Poppins_500Medium', marginTop: 10 },
 
-  roleItem: { flexDirection: 'row', alignItems: 'center', minHeight: 48, borderRadius: 32, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 10, gap: 12, overflow: 'hidden' },
-  roleIconWrap: { width: 27, height: 27, borderRadius: 32, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  roleImg:  { width: 15, height: 15 },
-  roleEmoji:{ fontSize: 13 },
-  roleTextWrap: { flex: 1, overflow: 'hidden' },
-  roleName: { fontSize: 12, fontFamily: 'Poppins_500Medium' },
-  roleDesc: { fontSize: 10, fontFamily: 'Poppins_400Regular', marginTop: 1 },
-  radio:    { width: 16, height: 16, borderRadius: 8, borderWidth: 1.33, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  radioActive: { backgroundColor: '#e2671b', borderColor: '#e2671b' },
+  roleTitle: { color: '#FFFFFF', fontSize: 16, fontFamily: 'Poppins_600SemiBold', marginTop: 22, marginBottom: 12 },
+  role:      { height: 50, borderRadius: 25, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, gap: 12 },
+  roleIcon:  { width: 30, height: 30, borderRadius: 15, backgroundColor: '#0A1B45', alignItems: 'center', justifyContent: 'center' },
+  roleName:  { color: '#E6E1E8', fontSize: 13.5, fontFamily: 'Poppins_500Medium' },
+  roleDesc:  { color: G.muted, fontSize: 10.5, fontFamily: 'Poppins_400Regular' },
+  radio:     { width: 18, height: 18, borderRadius: 9, borderWidth: 1.5, borderColor: '#C9C6D0', alignItems: 'center', justifyContent: 'center', marginRight: 4 },
+  radioOn:   { backgroundColor: G.orange, borderColor: '#136AB1' },
 
-  termsRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 20 },
-  checkbox: { width: 18, height: 18, borderRadius: 4, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 },
-  termsText:{ fontSize: 12, fontFamily: 'Poppins_400Regular', flex: 1, lineHeight: 18 },
-  signinText:{ textAlign: 'center', fontSize: 14, fontFamily: 'Poppins_500Medium' },
+  terms:    { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginTop: 18, marginBottom: 18, paddingHorizontal: 2 },
+  check:    { width: 18, height: 18, borderRadius: 9, borderWidth: 1.5, borderColor: '#C9C6D0', alignItems: 'center', justifyContent: 'center', marginTop: 2 },
+  termsTxt: { flex: 1, color: G.muted, fontSize: 12, fontFamily: 'Poppins_400Regular', lineHeight: 18 },
+  signin:   { textAlign: 'center', color: G.muted, fontSize: 14, fontFamily: 'Poppins_400Regular' },
 });

@@ -2,15 +2,12 @@ import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import AuthHeader from '@/components/auth/AuthHeader';
-import GlassInput from '@/components/auth/GlassInput';
-import LinearButton from '@/components/auth/LinearButton';
-import { useAppColors } from '@/constants/theme';
+import AuthGlowBackground from '@/components/auth/AuthGlowBackground';
+import { GlassField, GradientButton, ScreenHeader } from '@/components/shared/GlowUI';
 import { API_BASE } from '@/constants/api';
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
-  const C = useAppColors();
   const [phoneOrEmail, setPhoneOrEmail] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -45,43 +42,46 @@ export default function ForgotPasswordScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: C.bg }]}>
-      <AuthHeader />
-      <View style={styles.content}>
-        <Text style={[styles.title, { color: C.textPrimary }]}>Reset your password</Text>
-        <Text style={[styles.subtitle, { color: C.textSecondary }]}>
-          Enter your mobile number or email and we'll send you a verification code.
-        </Text>
-        <GlassInput
-          accentBorderColor="rgba(100,160,255,0.5)"
-          placeholder="Phone number / Email"
-          value={phoneOrEmail}
-          onChangeText={setPhoneOrEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
-      </View>
-      <View style={styles.btnFixed}>
-        <LinearButton title="Send Code" onPress={handleSend} loading={loading} />
-      </View>
-    </SafeAreaView>
+    <AuthGlowBackground>
+      <SafeAreaView style={styles.safe}>
+        <ScreenHeader logo />
+        <View style={styles.content}>
+          <Text style={styles.title}>Reset your password</Text>
+          <Text style={styles.subtitle}>
+            {"Enter your mobile number or email and we'll send you a verification code."}
+          </Text>
+          <GlassField
+            placeholder="Phone number / Email"
+            value={phoneOrEmail}
+            onChangeText={setPhoneOrEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+        </View>
+        <View style={styles.btnFixed}>
+          <GradientButton title="Send OTP" loadingTitle="Sending OTP..." height={50} fontSize={17} onPress={handleSend} loading={loading} />
+        </View>
+      </SafeAreaView>
+    </AuthGlowBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, paddingHorizontal: 20 },
-  content: { flex: 1, gap: 20 },
-  btnFixed: {
-    paddingBottom: 24,
-    paddingHorizontal: 0,
-  },
+  safe: { flex: 1 },
+  content: { flex: 1, paddingHorizontal: 16 },
+  btnFixed: { paddingHorizontal: 16, paddingBottom: 20 },
   title: {
-    fontSize: 20,
+    color: '#FFFFFF',
+    fontSize: 22,
     fontFamily: 'Poppins_600SemiBold',
+    marginTop: 8,
   },
   subtitle: {
+    color: '#BAACB6',
     fontSize: 14,
-    fontFamily: 'Poppins_500Medium',
+    fontFamily: 'Poppins_400Regular',
     lineHeight: 22,
+    marginTop: 4,
+    marginBottom: 20,
   },
 });

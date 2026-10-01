@@ -11,53 +11,25 @@ import {
   Platform,
   Image,
   FlatList,
-  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
+import { Plus, X } from 'lucide-react-native';
 import {
-  ChevronLeft,
-  Save,
-  Upload,
-  Plus,
-  Circle,
-  CheckCircle2,
-  X,
-} from 'lucide-react-native';
+  AddChip, BottomActions, Chip, D, DField, DHeader, OutlineCard, PlanOption, PromoCard,
+  SaveDraftAction, TermsRow, UploadBox,
+} from '@/components/dealer/DealerUI';
+import { GlassButton, GradientButton } from '@/components/shared/GlowUI';
 import { AppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 import PromoteModal from '@/components/dealer/PromoteModal';
 
-const ORANGE = '#ff6900';
-const BLUE   = 'rgba(100,160,255,0.85)';
+const ORANGE = '#E2671B';
 const C      = AppColors;
 
-function GlassInset() {
-  return (
-    <>
-      <LinearGradient
-        colors={['rgba(22,64,136,0.1)', 'transparent']}
-        start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }}
-        style={StyleSheet.absoluteFillObject} pointerEvents="none"
-      />
-      <LinearGradient
-        colors={['rgba(13,37,84,0.08)', 'transparent']}
-        start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }}
-        style={StyleSheet.absoluteFillObject} pointerEvents="none"
-      />
-      <LinearGradient
-        colors={['transparent', 'rgba(29,83,175,0.1)']}
-        start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }}
-        style={StyleSheet.absoluteFillObject} pointerEvents="none"
-      />
-    </>
-  );
-}
-
-/* ── Input Field ── */
+/* ── Input Field (glass pill) ── */
 function InputField({
   label,
   placeholder,
@@ -72,20 +44,13 @@ function InputField({
   keyboardType?: 'default' | 'numeric';
 }) {
   return (
-    <View style={s.inputWrap}>
-      <Text style={s.label}>{label}</Text>
-      <View style={s.inputBox}>
-        <GlassInset />
-        <TextInput
-          style={s.input}
-          placeholder={placeholder}
-          placeholderTextColor={C.textPlaceholder}
-          value={value}
-          onChangeText={onChangeText}
-          keyboardType={keyboardType}
-        />
-      </View>
-    </View>
+    <DField
+      label={label}
+      placeholder={placeholder}
+      value={value}
+      onChangeText={onChangeText}
+      keyboardType={keyboardType}
+    />
   );
 }
 
@@ -100,46 +65,30 @@ function StatusOption({
   onPress: () => void;
 }) {
   return (
-    <TouchableOpacity
-      style={[s.statusOption, selected && s.statusOptionActive]}
-      onPress={onPress}
-    >
-      <GlassInset />
+    <TouchableOpacity style={[s.statusOption, selected && s.statusOptionActive]} onPress={onPress} activeOpacity={0.85}>
       <View style={[s.statusDot, selected && s.statusDotActive]} />
       <Text style={[s.statusText, selected && s.statusTextActive]}>{title}</Text>
     </TouchableOpacity>
   );
 }
 
-/* ── Promotion Option ── */
-function PromotionOption({
-  title,
-  description,
-  price,
-  selected,
-  onPress,
-}: {
-  title: string;
-  description: string;
-  price: string;
-  selected: boolean;
-  onPress: () => void;
-}) {
+// Inline text box for adding a custom feature / colour (kept outside the screen so it keeps focus)
+function ChipInput({ value, onChange, onDone, onCancel, placeholder }: { value: string; onChange: (t: string) => void; onDone: () => void; onCancel: () => void; placeholder: string }) {
   return (
-    <TouchableOpacity
-      style={[s.promoOption, selected && s.promoOptionActive]}
-      onPress={onPress}
-    >
-      <GlassInset />
-      <View style={s.promoInfo}>
-        <Text style={s.promoTitle}>{title}</Text>
-        <Text style={s.promoDesc}>{description}</Text>
-      </View>
-      <Text style={s.promoPrice}>{price}</Text>
-      <View style={[s.radio, selected && s.radioActive]}>
-        {selected && <View style={s.radioInner} />}
-      </View>
-    </TouchableOpacity>
+    <View style={s.chipInputWrap}>
+      <TextInput
+        style={s.chipInput}
+        placeholder={placeholder}
+        placeholderTextColor={C.textPlaceholder}
+        value={value}
+        onChangeText={onChange}
+        onSubmitEditing={onDone}
+        autoFocus
+        returnKeyType="done"
+      />
+      <TouchableOpacity onPress={onDone}><Plus size={16} color={ORANGE}/></TouchableOpacity>
+      <TouchableOpacity onPress={onCancel}><X size={16} color={C.textSecondary}/></TouchableOpacity>
+    </View>
   );
 }
 
@@ -327,24 +276,23 @@ export default function AddVehicleScreen() {
     Alert.alert('Saved', 'Vehicle saved as draft.');
   }
 
+  const PLANS = [
+    { title: 'Hot Selling listing', desc: 'Recommended for popular cars',     price: 'Rs 6,650' },
+    { title: 'Home page Listing',   desc: 'Balanced exposure for more buyers', price: 'Rs 5,500', fire: true },
+    { title: 'New Listing',         desc: 'Notify Buyers About New Listings',  price: 'Rs 4,450' },
+  ];
+
+  function addColor() {
+    const val = customColor.trim();
+    if (val) { if (!colors.includes(val)) setColors(prev => [...prev, val]); setSelectedColor(val); }
+    setCustomColor(''); setShowColorInput(false);
+  }
+
   return (
     <View style={s.root}>
       <SafeAreaView edges={['top']}>
-
         {/* HEADER */}
-        <View style={s.header}>
-          <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-            <ChevronLeft size={22} color={C.textPrimary} strokeWidth={1.8} />
-          </TouchableOpacity>
-
-          <Text style={s.headerTitle}>Vehicle Details</Text>
-
-          <TouchableOpacity style={s.draftTopBtn} onPress={handleDraft}>
-            <Save size={16} color={ORANGE} />
-            <Text style={s.draftTopText}>Save{'\n'}Draft</Text>
-          </TouchableOpacity>
-        </View>
-
+        <DHeader title="Vehicle Details" center right={<SaveDraftAction onPress={handleDraft} />} />
       </SafeAreaView>
 
       <KeyboardAvoidingView
@@ -354,19 +302,17 @@ export default function AddVehicleScreen() {
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={s.scroll}
+          keyboardShouldPersistTaps="handled"
         >
           {/* AD LIMIT */}
-          <Text style={s.adLimit}>Ad Limit (3/5)</Text>
+          <Text style={s.adLimit}>Ad Limit  (3/5)</Text>
 
           {/* UPLOAD BOX */}
-          <TouchableOpacity style={s.uploadBox} onPress={pickImages} activeOpacity={0.8}>
-            <GlassInset />
-            <Upload size={26} color={ORANGE} />
-            <Text style={s.uploadTitle}>+ Add Vehicle Images</Text>
-            <Text style={s.uploadSub}>
-              {images.length > 0 ? `${images.length} image${images.length > 1 ? 's' : ''} selected` : 'Tap to browse. Max 10 images.'}
-            </Text>
-          </TouchableOpacity>
+          <UploadBox
+            title="+ Add Vehicle Images"
+            sub={images.length > 0 ? `${images.length} image${images.length > 1 ? 's' : ''} selected` : 'Drag & drop or click to browse. Recommended 16:9 ratio.'}
+            onPress={pickImages}
+          />
 
           {/* IMAGES PREVIEW */}
           {images.length > 0 && (
@@ -375,7 +321,7 @@ export default function AddVehicleScreen() {
               keyExtractor={(item, i) => `${i}-${item}`}
               horizontal
               showsHorizontalScrollIndicator={false}
-              style={{ marginBottom: 14 }}
+              style={{ marginTop: 12 }}
               contentContainerStyle={{ gap: 10, paddingHorizontal: 2 }}
               renderItem={({ item }) => (
                 <View style={s.imgThumbWrap}>
@@ -389,36 +335,19 @@ export default function AddVehicleScreen() {
           )}
 
           {/* VEHICLE TYPE */}
-          <View style={s.inputWrap}>
-            <Text style={s.label}>Vehicle Type</Text>
-            <View style={s.typeRow}>
-              <TouchableOpacity
-                style={[s.typeBtn, vehicleType === 'car' && s.typeBtnActive]}
-                onPress={() => setVehicleType('car')}
-                activeOpacity={0.8}
-              >
-                <View style={s.typeBtnInner}>
-                  <Text style={[s.typeBtnTxt, vehicleType === 'car' && s.typeBtnTxtActive]}>🚗  Car</Text>
-                </View>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[s.typeBtn, vehicleType === 'bike' && s.typeBtnActive]}
-                onPress={() => setVehicleType('bike')}
-                activeOpacity={0.8}
-              >
-                <View style={s.typeBtnInner}>
-                  <Text style={[s.typeBtnTxt, vehicleType === 'bike' && s.typeBtnTxtActive]}>🏍️  Bike</Text>
-                </View>
-              </TouchableOpacity>
-            </View>
+          <Text style={s.label}>Vehicle Type</Text>
+          <View style={s.typeRow}>
+            {(['car', 'bike'] as const).map(t => (
+              <Chip key={t} label={t === 'car' ? 'Car' : 'Bike'} selected={vehicleType === t} onPress={() => setVehicleType(t)} />
+            ))}
           </View>
 
           {/* BASIC FIELDS */}
-          <InputField label="Brand"      placeholder="e.g. Honda"        value={brand}     onChangeText={setBrand} />
-          <InputField label="Model"      placeholder="e.g. City"          value={model}     onChangeText={setModel} />
-          <InputField label="Variant"    placeholder="e.g. 1.2 Aspire CVT" value={variant}  onChangeText={setVariant} />
-          <InputField label="Model Year" placeholder="2026"               value={modelYear} onChangeText={setModelYear} keyboardType="numeric" />
-          <InputField label="Body Type"  placeholder="e.g. Sedan"         value={bodyType}  onChangeText={setBodyType} />
+          <InputField label="Brand"      placeholder="e.g. Honda"          value={brand}     onChangeText={setBrand} />
+          <InputField label="Model"      placeholder="e.g. City"           value={model}     onChangeText={setModel} />
+          <InputField label="Variant"    placeholder="e.g. 1.2 Aspire CVT" value={variant}   onChangeText={setVariant} />
+          <InputField label="Model Year" placeholder="2026"                value={modelYear} onChangeText={setModelYear} keyboardType="numeric" />
+          <InputField label="Body Type"  placeholder="e.g. Sedan"          value={bodyType}  onChangeText={setBodyType} />
 
           {/* PRICING */}
           <Text style={s.sectionTitle}>Pricing Details</Text>
@@ -427,46 +356,17 @@ export default function AddVehicleScreen() {
           <InputField label="Booking Amount"         placeholder="1,000,000" value={booking}  onChangeText={setBooking}  keyboardType="numeric" />
 
           {/* FEATURES */}
-          <Text style={s.sectionTitle}>Vehicle Features</Text>
-          <View style={s.featureBox}>
-            <GlassInset />
-            {features.map(f => {
-              const active = selectedFeatures.includes(f);
-              return (
-                <TouchableOpacity
-                  key={f}
-                  style={[s.chip, active && s.chipActive]}
-                  onPress={() => toggleFeature(f)}
-                >
-                  <Text style={[s.chipText, active && s.chipTextActive]}>{f}</Text>
-                </TouchableOpacity>
-              );
-            })}
-            {showFeatureInput ? (
-              <View style={s.chipInputWrap}>
-                <TextInput
-                  style={s.chipInput}
-                  placeholder="Type feature..."
-                  placeholderTextColor={C.textPlaceholder}
-                  value={customFeature}
-                  onChangeText={setCustomFeature}
-                  onSubmitEditing={addCustomFeature}
-                  autoFocus
-                  returnKeyType="done"
-                />
-                <TouchableOpacity onPress={addCustomFeature}>
-                  <Plus size={16} color={ORANGE}/>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => { setShowFeatureInput(false); setCustomFeature(''); }}>
-                  <X size={16} color={C.textSecondary}/>
-                </TouchableOpacity>
-              </View>
-            ) : (
-              <TouchableOpacity style={s.chipPlus} onPress={() => setShowFeatureInput(true)}>
-                <Plus size={18} color={C.textSecondary}/>
-              </TouchableOpacity>
-            )}
-          </View>
+          <OutlineCard style={s.box}>
+            <Text style={s.boxTitle}>Vehicle Features</Text>
+            <View style={s.chipsWrap}>
+              {features.map(f => (
+                <Chip key={f} label={f} selected={selectedFeatures.includes(f)} onPress={() => toggleFeature(f)} />
+              ))}
+              {showFeatureInput
+                ? <ChipInput value={customFeature} onChange={setCustomFeature} onDone={addCustomFeature} onCancel={() => { setShowFeatureInput(false); setCustomFeature(''); }} placeholder="Type feature..." />
+                : <AddChip onPress={() => setShowFeatureInput(true)} />}
+            </View>
+          </OutlineCard>
 
           {/* STATUS */}
           <Text style={s.sectionTitle}>Vehicle Status</Text>
@@ -480,101 +380,40 @@ export default function AddVehicleScreen() {
           ))}
 
           {/* COLORS */}
-          <Text style={s.sectionTitle}>Available Colors</Text>
-          <View style={s.colorBox}>
-            <GlassInset />
-            {colors.map(c => {
-              const active = selectedColor === c;
-              return (
-                <TouchableOpacity
-                  key={c}
-                  style={[s.colorChip, active && s.colorChipActive]}
-                  onPress={() => setSelectedColor(prev => prev === c ? '' : c)}
-                >
-                  <Text style={[s.colorText, active && s.colorTextActive]}>{c}</Text>
-                </TouchableOpacity>
-              );
-            })}
-            {showColorInput ? (
-              <View style={s.chipInputWrap}>
-                <TextInput
-                  style={s.chipInput}
-                  placeholder="e.g. Navy Blue"
-                  placeholderTextColor={C.textPlaceholder}
-                  value={customColor}
-                  onChangeText={setCustomColor}
-                  onSubmitEditing={() => {
-                    const val = customColor.trim();
-                    if (val) { if (!colors.includes(val)) setColors(prev => [...prev, val]); setSelectedColor(val); }
-                    setCustomColor(''); setShowColorInput(false);
-                  }}
-                  autoFocus
-                  returnKeyType="done"
-                />
-                <TouchableOpacity onPress={() => {
-                  const val = customColor.trim();
-                  if (val) { if (!colors.includes(val)) setColors(prev => [...prev, val]); setSelectedColor(val); }
-                  setCustomColor(''); setShowColorInput(false);
-                }}>
-                  <Plus size={16} color={ORANGE}/>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => { setShowColorInput(false); setCustomColor(''); }}>
-                  <X size={16} color={C.textSecondary}/>
-                </TouchableOpacity>
-              </View>
-            ) : (
-              <TouchableOpacity style={s.chipPlus} onPress={() => setShowColorInput(true)}>
-                <Plus size={18} color={C.textSecondary}/>
-              </TouchableOpacity>
-            )}
-          </View>
+          <OutlineCard style={[s.box, { marginTop: 4 }]}>
+            <Text style={s.boxTitle}>Available Colors</Text>
+            <View style={s.chipsWrap}>
+              {colors.map(c => (
+                <Chip key={c} label={c} selected={selectedColor === c} onPress={() => setSelectedColor(prev => prev === c ? '' : c)} />
+              ))}
+              {showColorInput
+                ? <ChipInput value={customColor} onChange={setCustomColor} onDone={addColor} onCancel={() => { setShowColorInput(false); setCustomColor(''); }} placeholder="e.g. Navy Blue" />
+                : <AddChip onPress={() => setShowColorInput(true)} />}
+            </View>
+          </OutlineCard>
 
           {/* PROMOTE */}
-          <Text style={s.sectionTitle}>Promote Vehicle</Text>
+          <Text style={[s.sectionTitle, { marginBottom: 0 }]}>Promote Vehicle</Text>
           <Text style={s.planSub}>Select Placement Plan</Text>
 
-          <View style={s.promoBox}>
-            <GlassInset />
-            {/* orange bottom shade */}
-            <LinearGradient
-              colors={['transparent', 'rgba(255,105,0,0.18)']}
-              start={{ x: 0.5, y: 0.5 }} end={{ x: 0.5, y: 1 }}
-              style={StyleSheet.absoluteFillObject}
-              pointerEvents="none"
-            />
-            {/* orange corner accent */}
-            <View style={s.orangeCorner} />
-
-            <Text style={s.promoBoxTitle}>Promote to Get Your Vehicle{'\n'}Seen Faster</Text>
-            <Text style={s.promoBoxDesc}>Get 5x more visibility by featuring{'\n'}your listing</Text>
-
-            {[
-              { title: 'Hot Selling listing',  desc: 'Recommended for popular cars',      price: 'Rs 6,650' },
-              { title: 'Home page Listing',    desc: 'Balanced exposure for more buyers',  price: 'Rs 5,500' },
-              { title: 'New Listing',          desc: 'Notify Buyers About New Listings',   price: 'Rs 4,450' },
-            ].map(p => (
-              <PromotionOption
+          <PromoCard title="Promote to Get Your  Vehicle Seen Faster" sub="Get 5x more visibility by featuring your listing">
+            {PLANS.map(p => (
+              <PlanOption
                 key={p.title}
                 title={p.title}
-                description={p.desc}
+                sub={p.desc}
                 price={p.price}
+                fire={p.fire}
                 selected={selectedPlan === p.title}
                 onPress={() => setSelectedPlan(p.title)}
               />
             ))}
-          </View>
+          </PromoCard>
 
           {/* TERMS */}
-          <TouchableOpacity style={s.termsRow} onPress={() => setAccepted(v => !v)}>
-            {accepted
-              ? <CheckCircle2 size={18} color={ORANGE} />
-              : <Circle size={18} color={C.textSecondary} />}
-            <Text style={s.termsText}>
-              I confirm that I have read and accept the terms and conditions and privacy policy.
-            </Text>
-          </TouchableOpacity>
+          <TermsRow checked={accepted} onToggle={() => setAccepted(v => !v)} />
 
-          <View style={{ height: 130 }} />
+          <View style={{ height: 170 }} />
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -585,132 +424,46 @@ export default function AddVehicleScreen() {
       />
 
       {/* BOTTOM BUTTONS */}
-      <View style={s.bottomBar}>
-        <GlassInset />
-
-        <TouchableOpacity style={s.publishBtn} activeOpacity={0.85} onPress={handlePublish} disabled={publishing}>
-          {/* base orange gradient */}
-          <LinearGradient
-            colors={['#c44e00', '#ff6900', '#ff9a00']}
-            start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-            style={StyleSheet.absoluteFillObject}
-          />
-          {/* blue overlay across full button */}
-          <LinearGradient
-            colors={['rgba(3,42,105,0.95)', 'rgba(3,42,105,0.65)', 'rgba(3,42,105,0.15)']}
-            start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-            style={StyleSheet.absoluteFillObject}
-            pointerEvents="none"
-          />
-          {/* top shine */}
-          <LinearGradient
-            colors={['rgba(255,255,255,0.12)', 'transparent']}
-            start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }}
-            style={StyleSheet.absoluteFillObject}
-            pointerEvents="none"
-          />
-          {publishing
-            ? <ActivityIndicator color="#fff" size="small"/>
-            : <Text style={s.publishText}>Publish</Text>
-          }
-        </TouchableOpacity>
-
-        <TouchableOpacity style={s.draftBtn} activeOpacity={0.8} onPress={handleDraft}>
-          <GlassInset />
-          <Text style={s.draftText}>Save as Draft</Text>
-        </TouchableOpacity>
-      </View>
+      <BottomActions>
+        <GradientButton title="Publish" height={50} fontSize={17} loading={publishing} onPress={handlePublish} />
+        <GlassButton title="Save as Draft" height={48} fontSize={16} color="#E6E1E8" onPress={handleDraft} />
+      </BottomActions>
     </View>
   );
 }
 
 const s = StyleSheet.create({
-  root:   { flex: 1, backgroundColor: C.bg },
-  scroll: { paddingHorizontal: 18, paddingBottom: 30 },
-
-  /* HEADER */
-  header:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, height: 60 },
-  backBtn:      { width: 36, height: 36, borderRadius: 18, backgroundColor: C.glassBg, borderWidth: 1, borderColor: C.glassBorder, alignItems: 'center', justifyContent: 'center' },
-  headerTitle:  { color: C.textPrimary, fontSize: 15, fontFamily: 'Poppins_600SemiBold' },
-  draftTopBtn:  { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  draftTopText: { color: C.textPrimary, fontSize: 9, fontFamily: 'Poppins_400Regular', textAlign: 'center', lineHeight: 13 },
+  root:   { flex: 1, backgroundColor: D.bg },
+  scroll: { paddingHorizontal: 20, paddingBottom: 30 },
 
   /* AD LIMIT */
-  adLimit: { color: C.textSecondary, fontSize: 9, fontFamily: 'Poppins_600SemiBold', marginTop: 4, marginBottom: 12 },
+  adLimit: { color: D.muted, fontSize: 12, fontFamily: 'Poppins_600SemiBold', marginTop: 4, marginBottom: 14 },
 
-  /* UPLOAD */
-  uploadBox:    { borderWidth: 1, borderStyle: 'dashed', borderColor: C.glassBorder, borderRadius: 14, height: 96, alignItems: 'center', justifyContent: 'center', marginBottom: 10, overflow: 'hidden', backgroundColor: C.glassBg },
-  uploadTitle:  { color: C.textPrimary, fontSize: 12, fontFamily: 'Poppins_500Medium', marginTop: 6 },
-  uploadSub:    { color: C.textSecondary, fontSize: 8, fontFamily: 'Poppins_400Regular', marginTop: 4 },
   imgThumbWrap: { width: 90, height: 70, borderRadius: 10, overflow: 'hidden', position: 'relative' },
   imgThumb:     { width: '100%', height: '100%' },
   imgRemoveBtn: { position: 'absolute', top: 4, right: 4, width: 20, height: 20, borderRadius: 10, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center' },
 
-  /* INPUT */
-  inputWrap: { marginBottom: 14 },
-  label:     { color: C.textSecondary, fontSize: 10, fontFamily: 'Poppins_600SemiBold', marginBottom: 6 },
-  typeRow:        { flexDirection: 'row', gap: 10 },
-  typeBtn:        { flex: 1, height: 46, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(100,160,255,0.3)', backgroundColor: 'rgba(3,12,40,0.4)', alignItems: 'center', justifyContent: 'center' },
-  typeBtnActive:  { borderColor: ORANGE, backgroundColor: 'rgba(255,105,0,0.15)' },
-  typeBtnInner:   { alignItems: 'center', justifyContent: 'center' },
-  typeBtnTxt:     { fontSize: 14, fontFamily: 'Poppins_500Medium', color: '#8f8f8f' },
-  typeBtnTxtActive: { color: '#fff', fontFamily: 'Poppins_600SemiBold' },
-  inputBox:  { borderRadius: 30, borderWidth: 1, borderColor: 'rgba(100,160,255,0.35)', backgroundColor: C.glassBg, overflow: 'hidden' },
-  input:     { height: 44, paddingHorizontal: 18, color: C.textPrimary, fontSize: 13, fontFamily: 'Poppins_400Regular' },
+  label:   { color: D.muted, fontSize: 14, fontFamily: 'Poppins_500Medium', marginTop: 16, marginBottom: 8 },
+  typeRow: { flexDirection: 'row', gap: 10 },
 
   /* SECTION */
-  sectionTitle: { color: C.textPrimary, fontSize: 13, fontFamily: 'Poppins_700Bold', marginTop: 6, marginBottom: 12 },
+  sectionTitle: { color: '#FFFFFF', fontSize: 15, fontFamily: 'Poppins_600SemiBold', marginTop: 22, marginBottom: 12 },
 
-  /* FEATURES */
-  featureBox:    { borderWidth: 1, borderColor: C.glassBorder, borderRadius: 16, padding: 13, flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16, overflow: 'hidden', backgroundColor: C.glassBg },
-  chip:          { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 18, backgroundColor: 'rgba(9,36,92,0.8)', borderWidth: 1, borderColor: C.glassBorder },
-  chipActive:    { borderColor: ORANGE },
-  chipText:      { color: C.textSecondary, fontSize: 10, fontFamily: 'Poppins_500Medium' },
-  chipTextActive:{ color: ORANGE },
-  chipPlus:      { width: 32, height: 32, borderRadius: 16, backgroundColor: C.glassBg, borderWidth: 1, borderColor: C.glassBorder, alignItems: 'center', justifyContent: 'center' },
-  chipInputWrap: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20, borderWidth: 1, borderColor: ORANGE, backgroundColor: C.glassBg },
+  /* FEATURE / COLOR BOXES */
+  box:       { marginTop: 18, paddingTop: 22, paddingBottom: 18 },
+  boxTitle:  { color: '#FFFFFF', fontSize: 14, fontFamily: 'Poppins_600SemiBold', marginBottom: 16 },
+  chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  chipInputWrap: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 10, height: 36, borderRadius: 18, borderWidth: 1, borderColor: ORANGE, backgroundColor: D.navy },
   chipInput:     { color: C.textPrimary, fontSize: 12, fontFamily: 'Poppins_400Regular', minWidth: 100, paddingVertical: 0 },
 
   /* STATUS */
-  statusOption:      { height: 44, borderRadius: 22, borderWidth: 1, borderColor: C.glassBorder, backgroundColor: C.glassBg, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, marginBottom: 10, overflow: 'hidden' },
-  statusOptionActive:{ borderColor: ORANGE },
-  statusDot:         { width: 7, height: 7, borderRadius: 4, backgroundColor: C.textSecondary, marginRight: 10 },
+  statusOption:      { height: 48, borderRadius: 24, borderWidth: 1, borderColor: 'rgba(200,200,215,0.35)', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 22, marginBottom: 12 },
+  statusOptionActive:{ borderColor: ORANGE, backgroundColor: '#2A1A1C' },
+  statusDot:         { width: 8, height: 8, borderRadius: 4, backgroundColor: D.muted, marginRight: 14 },
   statusDotActive:   { backgroundColor: ORANGE },
-  statusText:        { color: C.textSecondary, fontSize: 12, fontFamily: 'Poppins_400Regular' },
+  statusText:        { color: D.muted, fontSize: 16, fontFamily: 'Poppins_400Regular' },
   statusTextActive:  { color: ORANGE },
 
-  /* COLORS */
-  colorBox:  { borderWidth: 1, borderColor: C.glassBorder, borderRadius: 16, padding: 13, flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16, overflow: 'hidden', backgroundColor: C.glassBg },
-  colorChip:       { paddingHorizontal: 13, paddingVertical: 7, borderRadius: 18, backgroundColor: 'rgba(9,36,92,0.8)', borderWidth: 1, borderColor: C.glassBorder },
-  colorChipActive: { borderColor: ORANGE, backgroundColor: 'rgba(226,103,27,0.15)' },
-  colorText:       { color: C.textSecondary, fontSize: 10, fontFamily: 'Poppins_500Medium' },
-  colorTextActive: { color: ORANGE },
-
   /* PROMOTE */
-  planSub:       { color: C.textSecondary, fontSize: 9, fontFamily: 'Poppins_400Regular', marginTop: -6, marginBottom: 10 },
-  promoBox:      { borderWidth: 1, borderColor: BLUE, borderRadius: 16, padding: 14, paddingTop: 32, backgroundColor: C.glassBg, overflow: 'hidden', marginBottom: 16 },
-  orangeCorner:  { position: 'absolute', left: -28, top: -30, width: 85, height: 85, backgroundColor: ORANGE, transform: [{ rotate: '45deg' }] },
-  promoBoxTitle: { color: C.textPrimary, fontSize: 14, fontFamily: 'Poppins_700Bold', lineHeight: 20, marginBottom: 4, textShadowColor: 'rgba(255,105,0,0.6)', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 10 },
-  promoBoxDesc:  { color: C.textSecondary, fontSize: 10, fontFamily: 'Poppins_400Regular', lineHeight: 16, marginBottom: 12 },
-
-  promoOption:      { minHeight: 54, borderRadius: 12, borderWidth: 1, borderColor: C.glassBorder, backgroundColor: 'rgba(9,36,92,0.6)', marginBottom: 8, paddingHorizontal: 12, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', overflow: 'hidden' },
-  promoOptionActive:{ borderColor: ORANGE },
-  promoInfo:        { flex: 1 },
-  promoTitle:       { color: C.textPrimary, fontSize: 11, fontFamily: 'Poppins_600SemiBold', marginBottom: 3 },
-  promoDesc:        { color: C.textSecondary, fontSize: 8, fontFamily: 'Poppins_400Regular' },
-  promoPrice:       { color: ORANGE, fontSize: 10, fontFamily: 'Poppins_700Bold', marginRight: 10 },
-  radio:            { width: 17, height: 17, borderRadius: 9, borderWidth: 2, borderColor: C.glassBorder, alignItems: 'center', justifyContent: 'center' },
-  radioActive:      { borderColor: ORANGE },
-  radioInner:       { width: 8, height: 8, borderRadius: 4, backgroundColor: ORANGE },
-
-  /* TERMS */
-  termsRow:  { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
-  termsText: { flex: 1, color: C.textSecondary, fontSize: 9, fontFamily: 'Poppins_400Regular', lineHeight: 14 },
-
-  /* BOTTOM */
-  bottomBar:   { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 16, paddingBottom: 28, backgroundColor: 'rgba(3,12,40,0.95)', borderTopWidth: 1, borderTopColor: BLUE, overflow: 'hidden', gap: 10 },
-  publishBtn:  { height: 50, borderRadius: 25, overflow: 'hidden', justifyContent: 'center', alignItems: 'center', shadowColor: '#e2671b', shadowOpacity: 0.5, shadowRadius: 12, elevation: 8 },
-  publishText: { color: '#fff', fontSize: 15, fontFamily: 'Poppins_700Bold', letterSpacing: 0.5 },
-  draftBtn:    { height: 50, borderRadius: 25, borderWidth: 1.5, borderColor: BLUE, overflow: 'hidden', justifyContent: 'center', alignItems: 'center', backgroundColor: C.glassBg },
-  draftText:   { color: C.textPrimary, fontSize: 13, fontFamily: 'Poppins_600SemiBold' },
+  planSub: { color: '#FFFFFF', fontSize: 12, fontFamily: 'Poppins_400Regular', marginBottom: 16 },
 });

@@ -5,8 +5,9 @@ export default function InsurancePlanScreen() {
   return (
     <PlanScreen
       role="insurance"
-      promoTitle={'Grow Your\nInsurance\nBusiness'}
-      promoDesc={'Choose the best plan to\nreach more customers and\ngrow your insurance\nportfolio.'}
+      figma
+      promoTitle={'Grow Your\nDealership\nwith AutoWizor'}
+      promoDesc={'Choose the best plan to list\nmore vehicles, get more\nleads and grow your\nbusiness.'}
     />
   );
 }

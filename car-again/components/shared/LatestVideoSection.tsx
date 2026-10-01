@@ -26,12 +26,11 @@ function VideoCard({ item }: { item: any }) {
   const title = item.title || 'Video Ad';
   const isVideo = (item.media_url || '').match(/\.(mp4|mov|webm)$/i);
   return (
-    <TouchableOpacity style={[s.card, { backgroundColor: C.isDark ? C.glassBg : '#ffffff', borderColor: C.isDark ? 'rgba(100,160,255,0.5)' : 'rgba(3,42,105,0.12)', shadowColor: C.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOffset: { width: 0, height: 4 }, shadowOpacity: C.isDark ? 0 : 0.08, shadowRadius: 10, elevation: C.isDark ? 0 : 3 }]} activeOpacity={0.86}>
+    <TouchableOpacity style={[s.card, { backgroundColor: C.isDark ? '#010a1f' : '#ffffff', borderColor: C.isDark ? 'rgba(225,235,255,0.72)' : 'rgba(3,42,105,0.12)', shadowColor: C.isDark ? '#416ab2' : 'rgba(3,42,105,0.12)', shadowOffset: { width: 0, height: 2 }, shadowOpacity: C.isDark ? 0.12 : 0.08, shadowRadius: 6, elevation: C.isDark ? 2 : 3 }]} activeOpacity={0.86}>
       {C.isDark ? (
         <>
-          <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+          <LinearGradient colors={['#16408880', '#0D255480', '#010a1f', '#010a1f', '#0D255480', '#16408880']} locations={[0, 0.05, 0.18, 0.82, 0.95, 1]} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+          <LinearGradient colors={['rgba(22,64,136,0.50)', 'rgba(13,37,84,0.18)', 'transparent', 'transparent', 'rgba(13,37,84,0.18)', 'rgba(22,64,136,0.50)']} locations={[0, 0.05, 0.18, 0.82, 0.95, 1]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
         </>
       ) : (
         <>
@@ -105,6 +104,7 @@ export default function LatestVideoSection({ count = 2 }: Props) {
     <View style={s.wrap}>
       <View style={s.header}>
         <Text style={[s.heading, { color: C.textPrimary }]}>Latest Video</Text>
+        <Text style={s.watchAll}>Watch All</Text>
       </View>
       {list.map((v: any) => (
         <VideoCard key={v.id || v._id || v.title} item={v} />
@@ -114,21 +114,22 @@ export default function LatestVideoSection({ count = 2 }: Props) {
 }
 
 const s = StyleSheet.create({
-  wrap:    { marginTop: 20 },
+  wrap:    { marginTop: 0 },
   header:  { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  heading: { color: WHITE, fontSize: 16, fontFamily: 'Poppins_500Medium', textTransform: 'capitalize' },
+  heading: { color: WHITE, fontSize: 18, fontFamily: 'Poppins_500Medium', textTransform: 'capitalize' },
+  watchAll: { color: ORANGE, fontSize: 12, fontFamily: 'Poppins_500Medium', textAlign: 'right' },
 
   card: {
-    flexDirection: 'row', gap: 14,
+    flexDirection: 'row', gap: 12,
     borderWidth: 1, borderColor: 'rgba(100,160,255,0.5)',
-    borderRadius: 16, padding: 10, marginBottom: 10,
+    borderRadius: 16, padding: 9, marginBottom: 11,
     backgroundColor: 'rgba(3,12,40,0.6)',
     overflow: 'hidden',
   },
-  thumb:    { width: 144, height: 117, borderRadius: 16, overflow: 'hidden', flexShrink: 0 },
-  thumbImg: { width: 144, height: 117 },
+  thumb:    { width: 140, height: 124, borderRadius: 14, overflow: 'hidden', flexShrink: 0 },
+  thumbImg: { width: 140, height: 124 },
   playBtn:  {
-    position: 'absolute', top: 43, left: 56,
+    position: 'absolute', top: 46, left: 54,
     width: 32, height: 32, borderRadius: 17,
     backgroundColor: 'rgba(3,42,105,0.83)',
     alignItems: 'center', justifyContent: 'center',
@@ -148,6 +149,6 @@ const s = StyleSheet.create({
   metaItem: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   metaTxt:  { color: SUBTITLE, fontSize: 8, fontFamily: 'Poppins_400Regular' },
 
-  watchBtn: { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 2 },
+  watchBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 3, marginTop: 2 },
   watchTxt: { color: '#ff383c', fontSize: 9, fontFamily: 'Poppins_600SemiBold' },
 });

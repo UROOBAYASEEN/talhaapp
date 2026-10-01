@@ -13,6 +13,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useAppColors } from "@/constants/theme";
+import { PRIMARY_BTN_COLORS, RingGlow, SearchInputEffect } from "@/components/shared/FigmaEffects";
 
 const BG     = "#010a1f";
 const GLASS  = "rgba(3,12,40,0.6)";
@@ -44,13 +45,15 @@ function GlassInset() {
 }
 
 // ── Dual Range Slider ─────────────────────────────────────────────────────────
-function DualSlider({ min, max, low, high, format, onChangeLow, onChangeHigh }: {
+function DualSlider({ min, max, low, high, format, onChangeLow, onChangeHigh, figma = false }: {
   min: number; max: number; low: number; high: number;
   format: "money" | "year";
   onChangeLow: (v: number) => void;
   onChangeHigh: (v: number) => void;
+  figma?: boolean;
 }) {
   const THUMB   = 24;
+  const [, setMeasured] = useState(0);
   const trackW  = useRef(0);
   const loPos   = useRef(new Animated.Value((low  - min) / (max - min))).current;
   const hiPos   = useRef(new Animated.Value((high - min) / (max - min))).current;
@@ -83,16 +86,16 @@ function DualSlider({ min, max, low, high, format, onChangeLow, onChangeHigh }: 
   const hiPan = useRef(makePan(false)).current;
 
   return (
-    <View style={sl.wrap} onLayout={e => { trackW.current = e.nativeEvent.layout.width; }}>
-      <View style={sl.rail} />
-      <Animated.View style={[sl.fill, {
+    <View style={sl.wrap} onLayout={e => { trackW.current = e.nativeEvent.layout.width; setMeasured(e.nativeEvent.layout.width); }}>
+      <View style={[sl.rail, figma && { height: 5, backgroundColor: "#A7A5AE" }]} />
+      <Animated.View style={[sl.fill, figma && { height: 5, backgroundColor: "#FF6A1A" }, {
         left:  Animated.multiply(loPos, trackW.current - THUMB),
         right: Animated.multiply(Animated.subtract(new Animated.Value(1), hiPos), trackW.current - THUMB),
       }]} />
       {([["lo", loPan, loPos], ["hi", hiPan, hiPos]] as const).map(([k, pan, pos]) => (
         <Animated.View key={k} {...pan.panHandlers}
-          style={[sl.thumb, { left: Animated.multiply(pos, trackW.current - THUMB) }]}>
-          <View style={sl.dot} />
+          style={[sl.thumb, figma && { backgroundColor: "#E6E6EA" }, { left: Animated.multiply(pos, trackW.current - THUMB) }]}>
+          <View style={[sl.dot, figma && { backgroundColor: "#FF6A1A" }]} />
         </Animated.View>
       ))}
     </View>
@@ -212,6 +215,14 @@ interface Props {
   visible: boolean;
   onClose: () => void;
   onApply: (filters: any) => void;
+  /** Figma design (Buy Used Car flow) */
+  figma?: boolean;
+}
+
+// "5800000" → "5.8M"
+function fmtM(v: number) {
+  if (!v) return "0";
+  return `${Number((v / 1_000_000).toFixed(1))}M`;
 }
 
 const CITIES   = ["Islamabad", "Karachi", "Lahore", "Rawalpindi", "Peshawar", "Quetta", "Multan", "Faisalabad"];
@@ -224,7 +235,7 @@ function fmtMoney(v: number) {
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
-export default function FilterModal({ visible, onClose, onApply }: Props) {
+export default function FilterModal({ visible, onClose, onApply, figma = false }: Props) {
   const aC = useAppColors();
   const [locationQ,      setLocationQ]      = useState("");
   const [selCities,      setSelCities]      = useState<string[]>(["Islamabad"]);
@@ -235,6 +246,7 @@ export default function FilterModal({ visible, onClose, onApply }: Props) {
   const [budgetHigh,     setBudgetHigh]     = useState(50_000_000);
   const [yearLow,        setYearLow]        = useState(2000);
   const [yearHigh,       setYearHigh]       = useState(2026);
+  const [addFeatureOpen, setAddFeatureOpen] = useState(false);
 
   const filteredCities = locationQ
     ? CITIES.filter(c => c.toLowerCase().includes(locationQ.toLowerCase()))
@@ -259,6 +271,120 @@ export default function FilterModal({ visible, onClose, onApply }: Props) {
       minYear:   yearLow,
       maxYear:   yearHigh,
     });
+  }
+
+  if (figma) {
+    const citySuggestions = locationQ ? filteredCities.filter(c => !selCities.includes(c)) : [];
+    const moreFeatures = FEATURES.filter(f => !selFeatures.includes(f));
+    return (
+      <Modal visible={visible} animationType="slide" transparent statusBarTranslucent onRequestClose={onClose}>
+        <View style={s.overlay}>
+          <View style={f.sheet}>
+            <View style={f.header}>
+              <Text style={f.title}>Filter</Text>
+              <TouchableOpacity onPress={onClose} activeOpacity={0.8} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                <Ionicons name="close" size={26} color="#C9C6D0" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={f.scroll} keyboardShouldPersistTaps="handled">
+              {/* Location */}
+              <Text style={f.sTitle}>Location</Text>
+              <View style={f.searchBar}>
+                <SearchInputEffect />
+                <Ionicons name="search-outline" size={20} color="#D8E1F2" />
+                <TextInput style={f.searchInput} placeholder="Location" placeholderTextColor="#9EA7BA" value={locationQ} onChangeText={setLocationQ} />
+              </View>
+              <View style={f.chips}>
+                {selCities.map(c => (
+                  <TouchableOpacity key={c} style={f.chip} onPress={() => toggleCity(c)} activeOpacity={0.8}>
+                    <Text style={f.chipTxt}>{c}</Text>
+                  </TouchableOpacity>
+                ))}
+                {citySuggestions.map(c => (
+                  <TouchableOpacity key={c} style={[f.chip, f.chipDim]} onPress={() => { toggleCity(c); setLocationQ(""); }} activeOpacity={0.8}>
+                    <Text style={[f.chipTxt, { color: "#BAB6C4" }]}>{c}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              {/* Model */}
+              <Text style={f.sTitle}>Model</Text>
+              <View style={f.chips}>
+                {modelChips.map(m => (
+                  <TouchableOpacity key={m} style={f.chip} onPress={() => setModelChips(p => p.filter(x => x !== m))} activeOpacity={0.8}>
+                    <Text style={f.chipTxt}>{m}</Text>
+                  </TouchableOpacity>
+                ))}
+                <TouchableOpacity style={f.plus} onPress={() => setYearPickerOpen(true)} activeOpacity={0.8}>
+                  <Ionicons name="add" size={20} color="#F2F1F5" />
+                </TouchableOpacity>
+              </View>
+
+              {/* Features */}
+              <Text style={f.sTitle}>Features</Text>
+              <View style={f.chips}>
+                {selFeatures.map(ft => (
+                  <TouchableOpacity key={ft} style={f.chip} onPress={() => toggleFeature(ft)} activeOpacity={0.8}>
+                    <Text style={f.chipTxt}>{ft}</Text>
+                  </TouchableOpacity>
+                ))}
+                {addFeatureOpen && moreFeatures.map(ft => (
+                  <TouchableOpacity key={ft} style={[f.chip, f.chipDim]} onPress={() => toggleFeature(ft)} activeOpacity={0.8}>
+                    <Text style={[f.chipTxt, { color: "#BAB6C4" }]}>{ft}</Text>
+                  </TouchableOpacity>
+                ))}
+                <TouchableOpacity style={f.plus} onPress={() => setAddFeatureOpen(o => !o)} activeOpacity={0.8}>
+                  <Ionicons name={addFeatureOpen ? "remove" : "add"} size={20} color="#F2F1F5" />
+                </TouchableOpacity>
+              </View>
+
+              {/* Budget */}
+              <Text style={f.sTitle}>Select Your Budget Range (PKR)</Text>
+              <View style={f.rangeRow}>
+                <Text style={f.minMax}>Min</Text>
+                <View style={f.box}><Text style={f.boxTxt}>{fmtM(budgetLow)}</Text></View>
+                <View style={{ flex: 1 }} />
+                <Text style={f.minMax}>Max</Text>
+                <View style={f.box}><Text style={f.boxTxt}>{fmtM(budgetHigh)}</Text></View>
+              </View>
+              <DualSlider figma min={0} max={50_000_000} low={budgetLow} high={budgetHigh}
+                format="money" onChangeLow={setBudgetLow} onChangeHigh={setBudgetHigh} />
+
+              {/* Year range */}
+              <Text style={f.sTitle}>Model year range</Text>
+              <View style={f.rangeRow}>
+                <Text style={f.minMax}>Min</Text>
+                <View style={f.box}><Text style={f.boxTxt}>{yearLow}</Text></View>
+                <View style={{ flex: 1 }} />
+                <Text style={f.minMax}>Max</Text>
+                <View style={f.box}><Text style={f.boxTxt}>{yearHigh}</Text></View>
+              </View>
+              <DualSlider figma min={1970} max={2026} low={yearLow} high={yearHigh}
+                format="year" onChangeLow={setYearLow} onChangeHigh={setYearHigh} />
+            </ScrollView>
+
+            <View style={f.actions}>
+              <TouchableOpacity onPress={handleApply} activeOpacity={0.86} style={f.applyBtn}>
+                <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+                <Text style={f.applyTxt}>Apply</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleReset} activeOpacity={0.86} style={f.resetBtn}>
+                <RingGlow radius={26} peak={0.5} rings={12} />
+                <Text style={f.resetTxt}>Reset</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+
+        <YearPickerSheet
+          visible={yearPickerOpen}
+          selected={modelChips}
+          onSelect={y => { if (!modelChips.includes(y)) setModelChips(p => [...p, y]); }}
+          onClose={() => setYearPickerOpen(false)}
+        />
+      </Modal>
+    );
   }
 
   return (
@@ -418,4 +544,29 @@ const s = StyleSheet.create({
   btnGrad:  { height: 46, alignItems: "center", justifyContent: "center" },
   resetBtn: { height: 46, borderRadius: 30, borderWidth: 1, borderColor: BORDER, backgroundColor: GLASS, alignItems: "center", justifyContent: "center", overflow: "hidden" },
   btnTxt:   { color: WHITE, fontSize: 13, fontFamily: "Poppins_600SemiBold" },
+});
+
+// ── Figma (Buy Used Car) filter styles ──
+const f = StyleSheet.create({
+  sheet:      { backgroundColor: "#010A1F", borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: "94%", overflow: "hidden", borderWidth: 1, borderColor: "rgba(126,159,214,0.35)" },
+  header:     { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 18, paddingTop: 20, paddingBottom: 4 },
+  title:      { color: "#F2F1F5", fontSize: 20, fontFamily: "Poppins_600SemiBold" },
+  scroll:     { paddingHorizontal: 18, paddingBottom: 8 },
+  sTitle:     { color: "#F2F1F5", fontSize: 15, fontFamily: "Poppins_600SemiBold", marginTop: 16, marginBottom: 10 },
+  searchBar:  { flexDirection: "row", alignItems: "center", gap: 12, height: 50, borderRadius: 32, borderWidth: 1, borderColor: "#829fd0", backgroundColor: "rgba(3,12,40,0.6)", paddingHorizontal: 18, overflow: "hidden", marginBottom: 12 },
+  searchInput:{ flex: 1, color: "#F2F1F5", fontSize: 14, fontFamily: "Poppins_400Regular" },
+  chips:      { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 10 },
+  chip:       { height: 32, paddingHorizontal: 14, borderRadius: 16, backgroundColor: "#0B2A63", alignItems: "center", justifyContent: "center" },
+  chipDim:    { backgroundColor: "rgba(11,42,99,0.45)" },
+  chipTxt:    { color: "#F2F1F5", fontSize: 13, fontFamily: "Poppins_400Regular" },
+  plus:       { width: 34, height: 34, borderRadius: 17, backgroundColor: "#0B2A63", alignItems: "center", justifyContent: "center" },
+  rangeRow:   { flexDirection: "row", alignItems: "center", gap: 10, marginTop: 4 },
+  minMax:     { color: "#E6E4EA", fontSize: 12, fontFamily: "Poppins_400Regular" },
+  box:        { width: 92, height: 40, borderWidth: 1, borderColor: "rgba(255,255,255,0.35)", borderRadius: 6, justifyContent: "center", paddingHorizontal: 10 },
+  boxTxt:     { color: "#F2F1F5", fontSize: 13, fontFamily: "Poppins_600SemiBold" },
+  actions:    { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 28, gap: 12 },
+  applyBtn:   { height: 52, borderRadius: 26, overflow: "hidden", alignItems: "center", justifyContent: "center" },
+  applyTxt:   { color: "#EDEBF0", fontSize: 17, fontFamily: "Poppins_500Medium" },
+  resetBtn:   { height: 52, borderRadius: 26, borderWidth: 1, borderColor: "#7E9FD6", backgroundColor: "#07142F", overflow: "hidden", alignItems: "center", justifyContent: "center" },
+  resetTxt:   { color: "#C9C6D0", fontSize: 17, fontFamily: "Poppins_500Medium" },
 });

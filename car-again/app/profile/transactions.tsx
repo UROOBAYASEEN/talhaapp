@@ -98,15 +98,53 @@ export default function TransactionsScreen() {
             key={f}
             style={[
               s.chip,
-              { borderWidth: 1, overflow: 'hidden' },
               filter === f
-                ? { backgroundColor: ORANGE, borderColor: ORANGE }
-                : { backgroundColor: C.isDark ? NAVY : '#ffffff', borderColor: C.isDark ? 'rgba(100,160,255,0.3)' : 'rgba(3,42,105,0.12)', shadowColor: C.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: C.isDark ? 0 : 0.06, elevation: C.isDark ? 0 : 2 },
+                ? {
+                    borderWidth: 1.35,
+                    borderColor: C.isDark ? '#6F89AF' : ORANGE,
+                    backgroundColor: C.isDark ? '#15386A' : 'rgba(226,103,27,0.10)',
+                    overflow: 'hidden',
+                  }
+                : {
+                    borderWidth: 0,
+                    backgroundColor: C.isDark ? NAVY : '#ffffff',
+                    borderColor: 'transparent',
+                    overflow: 'hidden',
+                  },
             ]}
             onPress={() => setFilter(f)}
             activeOpacity={0.8}
           >
-            {!C.isDark && filter !== f && <LinearGradient colors={['rgba(3,42,105,0.03)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
+            {C.isDark ? (
+              filter === f ? (
+                <>
+                  <LinearGradient
+                    colors={['#173B70', '#102A52', '#102A52', '#173B70']}
+                    locations={[0, 0.18, 0.82, 1]}
+                    style={[StyleSheet.absoluteFillObject, { borderRadius: 32 }]}
+                    pointerEvents="none"
+                  />
+                  <LinearGradient
+                    colors={['transparent', '#08162DCC', '#08162DCC', 'transparent']}
+                    locations={[0, 0.23, 0.77, 1]}
+                    start={{ x: 0, y: 0.5 }}
+                    end={{ x: 1, y: 0.5 }}
+                    style={[StyleSheet.absoluteFillObject, { borderRadius: 29, marginHorizontal: 3, marginVertical: 3 }]}
+                    pointerEvents="none"
+                  />
+                </>
+              ) : null
+            ) : (
+              filter !== f ? (
+                <LinearGradient
+                  colors={['rgba(3,42,105,0.03)', 'transparent']}
+                  start={{ x: 0.5, y: 0 }}
+                  end={{ x: 0.5, y: 0.5 }}
+                  style={StyleSheet.absoluteFillObject}
+                  pointerEvents="none"
+                />
+              ) : null
+            )}
             <Text style={[s.chipTxt, filter === f ? s.chipTxtOn : { fontFamily: 'Poppins_500Medium', color: C.isDark ? WHITE : '#032a69', fontSize: 10 }]}>
               {f}
             </Text>
@@ -129,12 +167,23 @@ export default function TransactionsScreen() {
           </View>
         }
         renderItem={({ item }) => (
-          <TouchableOpacity style={[s.card, { backgroundColor: C.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: C.isDark ? 'rgba(100,160,255,0.5)' : 'rgba(3,42,105,0.12)', shadowColor: C.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: C.isDark ? 0 : 0.08, shadowRadius: 10, elevation: C.isDark ? 0 : 3, overflow: 'hidden' }]} activeOpacity={0.85}>
+          <TouchableOpacity style={[s.card, { backgroundColor: C.isDark ? '#010A1F' : '#ffffff', borderColor: C.isDark ? '#829fd0' : 'rgba(3,42,105,0.12)', shadowColor: C.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: C.isDark ? 0 : 0.08, shadowRadius: 10, elevation: C.isDark ? 0 : 3, overflow: 'hidden' }]} activeOpacity={0.85}>
             {C.isDark ? (
               <>
-                <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+                <LinearGradient
+                  colors={['#163565', '#061124', '#061124', '#0D2146']}
+                  locations={[0, 0.24, 0.76, 1]}
+                  style={[StyleSheet.absoluteFillObject, { borderRadius: 14 }]}
+                  pointerEvents="none"
+                />
+                <LinearGradient
+                  colors={['#24518F8F', '#16356552', 'transparent', 'transparent', '#16356552', '#24518F8F']}
+                  locations={[0, 0.025, 0.075, 0.925, 0.975, 1]}
+                  start={{ x: 0, y: 0.5 }}
+                  end={{ x: 1, y: 0.5 }}
+                  style={[StyleSheet.absoluteFillObject, { borderRadius: 14 }]}
+                  pointerEvents="none"
+                />
               </>
             ) : (
               <>
@@ -212,7 +261,7 @@ const s = StyleSheet.create({
   chipOn:  { backgroundColor: ORANGE },
   chipOff: { backgroundColor: NAVY   },
   chipTxt: { fontSize: 10 },
-  chipTxtOn:  { fontFamily: 'Poppins_700Bold',   color: WHITE },
+  chipTxtOn:  { fontFamily: 'Poppins_700Bold',   color: ORANGE },
   chipTxtOff: { fontFamily: 'Poppins_500Medium', color: WHITE },
 
   // List

@@ -12,6 +12,7 @@ import { API_BASE } from "@/constants/api";
 import { useAuth } from "@/contexts/AuthContext";
 import AskariBank from "@/components/shared/AskariBank";
 import LatestVideoSection from "@/components/shared/LatestVideoSection";
+import { PRIMARY_BTN_COLORS, RingGlow, SavedCardEffect, WARM_CARD_COLORS, WARM_CARD_LOCATIONS } from "@/components/shared/FigmaEffects";
 
 const { width } = Dimensions.get("window");
 const BG     = AppColors.bg;
@@ -55,15 +56,27 @@ function GlassInset() {
 
 // ── Static data ──────────────────────────────────────────────────────────────
 const CATEGORIES = [
-  { title: "Exotic cars",    icon: "car-sports-outline", search: "exotic" },
-  { title: "Old cars",       icon: "car-outline",         search: "" },
-  { title: "Chinese\ncars",  icon: "car-side",            search: "chinese" },
-  { title: "Cheap cars",     icon: "tag-outline",         search: "cheap" },
-  { title: "Electric\ncars", icon: "ev-station",          search: "electric" },
-  { title: "SUV",            icon: "truck-outline",       search: "suv" },
-  { title: "Sedan",          icon: "car-outline",         search: "sedan" },
-  { title: "Petrol cars",    icon: "gas-station-outline", search: "petrol" },
+  { title: "Exotic cars",       icon: "car-sports-outline", search: "exotic",   img: require("@/assets/Icons/exoticCar.png") },
+  { title: "Old cars",          icon: "car-outline",         search: "",         img: require("@/assets/Icons/oldCars.png") },
+  { title: "Chinese\ncars",     icon: "car-side",            search: "chinese",  img: require("@/assets/Icons/chineseCars.png") },
+  { title: "Cheap cars",        icon: "tag-outline",         search: "cheap",    img: require("@/assets/Icons/cheapCars.png") },
+  { title: "Electronic\ncars",  icon: "ev-station",          search: "electric", img: require("@/assets/Icons/electronicCars.png") },
+  { title: "Cheap cars",        icon: "truck-outline",       search: "suv",      img: require("@/assets/Icons/cheapCars1.png") },
+  { title: "Cheap cars",        icon: "car-outline",         search: "sedan",    img: require("@/assets/Icons/cheapCars2.png") },
+  { title: "Petrol cars",       icon: "gas-station-outline", search: "petrol",   img: require("@/assets/Icons/petrolCars.png") },
 ];
+
+// Figma "You May Need This" images
+const IMG_NEED_COMPARE = require("@/screenshot/comparevehcile.png");
+const IMG_NEED_FINANCE = require("@/screenshot/smartcalculator.png");
+const NEED_W = (width - 30 - 14) / 2;
+
+// "5800000" → "5.8M"
+function toMillions(v: string) {
+  const n = Number(String(v).replace(/[^0-9]/g, ""));
+  if (!n) return "";
+  return `${Number((n / 1_000_000).toFixed(1))}M`;
+}
 
 const CITIES    = ["All Cities","Karachi","Lahore","Islamabad","Rawalpindi","Peshawar","Quetta","Faisalabad","Multan","Hyderabad","Sialkot","Gujranwala"];
 const YEARS     = ["Any Year", ...Array.from({ length: 27 }, (_, i) => String(2026 - i))];
@@ -81,7 +94,8 @@ const PRICE_MIN = 0;
 const PRICE_MAX = 50_000_000;
 
 function RangeSlider({ onChangMin, onChangeMax }: { onChangMin: (v: string) => void; onChangeMax: (v: string) => void }) {
-  const THUMB = 16;
+  const THUMB = 26;
+  const [, setTrackW] = useState(0); // re-render once the track is measured
   const trackRef  = useRef<View>(null);
   const trackWidth= useRef(0);
   const minPos    = useRef(new Animated.Value(0)).current;
@@ -130,27 +144,28 @@ function RangeSlider({ onChangMin, onChangeMax }: { onChangMin: (v: string) => v
 
   return (
     <View style={{ marginTop: 10, marginBottom: 4 }}>
-      {/* Price labels */}
+      {/* Price labels — shown in the Min / Max boxes instead (Figma)
       <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 6 }}>
         <Text style={{ color: ORANGE, fontSize: 10, fontFamily: "Poppins_600SemiBold" }}>{priceLabel(minVal)}</Text>
         <Text style={{ color: ORANGE, fontSize: 10, fontFamily: "Poppins_600SemiBold" }}>{priceLabel(maxVal)}</Text>
       </View>
+      */}
 
       {/* Track */}
       <View
         ref={trackRef}
-        onLayout={e => { trackWidth.current = e.nativeEvent.layout.width; }}
+        onLayout={e => { trackWidth.current = e.nativeEvent.layout.width; setTrackW(e.nativeEvent.layout.width); }}
         style={{ height: THUMB, justifyContent: "center" }}
       >
         {/* Background track */}
-        <View style={{ height: 4, backgroundColor: "rgba(255,255,255,0.15)", borderRadius: 3, marginHorizontal: THUMB / 2 }} />
+        <View style={{ height: 6, backgroundColor: "#A7A5AE", borderRadius: 3 }} />
 
         {/* Active fill */}
         <Animated.View style={{
-          position: "absolute", height: 4, borderRadius: 3,
-          backgroundColor: ORANGE,
-          left:  Animated.multiply(minPos, trackWidth.current - THUMB),
-          right: Animated.multiply(Animated.subtract(new Animated.Value(1), maxPos), trackWidth.current - THUMB),
+          position: "absolute", height: 6, borderRadius: 3,
+          backgroundColor: "#FF6A1A",
+          left:  Animated.add(Animated.multiply(minPos, trackWidth.current - THUMB), THUMB / 2),
+          right: Animated.add(Animated.multiply(Animated.subtract(new Animated.Value(1), maxPos), trackWidth.current - THUMB), THUMB / 2),
         }} />
 
         {/* Min thumb */}
@@ -160,9 +175,11 @@ function RangeSlider({ onChangMin, onChangeMax }: { onChangMin: (v: string) => v
             position: "absolute",
             left: Animated.multiply(minPos, trackWidth.current - THUMB),
             width: THUMB, height: THUMB, borderRadius: THUMB / 2,
-            backgroundColor: "#f1f1f1", borderWidth: 3, borderColor: ORANGE,
+            backgroundColor: "#E6E6EA", alignItems: "center", justifyContent: "center",
           }}
-        />
+        >
+          <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: "#FF6A1A" }} />
+        </Animated.View>
 
         {/* Max thumb */}
         <Animated.View
@@ -171,9 +188,11 @@ function RangeSlider({ onChangMin, onChangeMax }: { onChangMin: (v: string) => v
             position: "absolute",
             left: Animated.multiply(maxPos, trackWidth.current - THUMB),
             width: THUMB, height: THUMB, borderRadius: THUMB / 2,
-            backgroundColor: "#f1f1f1", borderWidth: 3, borderColor: ORANGE,
+            backgroundColor: "#E6E6EA", alignItems: "center", justifyContent: "center",
           }}
-        />
+        >
+          <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: "#FF6A1A" }} />
+        </Animated.View>
       </View>
     </View>
   );
@@ -237,7 +256,7 @@ function SectionHeader({ title, onViewAll }: { title: string; onViewAll?: () => 
       <Text style={styles.sectionTitle}>{title}</Text>
       {onViewAll && (
         <TouchableOpacity onPress={onViewAll}>
-          <Text style={styles.viewAll}>View all <Text style={{ fontSize: 16 }}>›</Text></Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><Text style={styles.viewAll}>View all</Text><Ionicons name="chevron-forward" size={16} color={ORANGE} /></View>
         </TouchableOpacity>
       )}
     </View>
@@ -249,8 +268,8 @@ function CarCard({ car, onPress, onSave, saved }: { car: any; onPress: () => voi
   const aC = useAppColors();
   const uri = imgUrl(car.images?.[0]);
   return (
-    <View style={[styles.carCard, { backgroundColor: aC.isDark ? CARD : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }]}>
-      <GlassInset />
+    <View style={[styles.carCard, { backgroundColor: aC.isDark ? '#010A1F' : '#ffffff', borderColor: aC.isDark ? '#82a5d5' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? '#638ed0' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0.15 : 0.08, shadowRadius: aC.isDark ? 5 : 10, shadowOffset: { width: 0, height: 0 }, elevation: aC.isDark ? 2 : 3 }]}>
+      {aC.isDark ? <SavedCardEffect /> : <GlassInset />}
       {uri
         ? <Image source={{ uri }} style={styles.carImage} resizeMode="cover" />
         : <View style={[styles.carImage, { backgroundColor: aC.isDark ? "#0d1e3d" : "#f1f5f9", alignItems: "center", justifyContent: "center" }]}>
@@ -262,15 +281,18 @@ function CarCard({ car, onPress, onSave, saved }: { car: any; onPress: () => voi
           <Text style={[styles.carName, { color: aC.isDark ? WHITE : '#010a1f' }]} numberOfLines={1}>{car.title || `${car.make} ${car.model}`}</Text>
           <Text style={styles.carPrice}>{formatPrice(car.price)}</Text>
         </View>
-        <Text style={[styles.carDetails, { color: aC.isDark ? 'rgba(255,255,255,0.75)' : '#475569' }]} numberOfLines={1}>{car.variant || car.transmission || "—"}</Text>
-        <Text style={[styles.carLocation, { color: aC.isDark ? MUTED : '#64748b' }]}>{car.city || "Pakistan"} • {car.year} • {car.transmission || "CVT"}</Text>
+        <Text style={[styles.carDetails, { color: aC.isDark ? '#BAB6C4' : '#475569' }]} numberOfLines={1}>{car.variant || car.transmission || "—"}</Text>
+        <View style={styles.carLocRow}>
+          <Ionicons name="location-outline" size={16} color={aC.isDark ? '#BAB6C4' : '#64748b'} />
+          <Text style={[styles.carLocation, { color: aC.isDark ? '#BAB6C4' : '#64748b' }]} numberOfLines={1}>{car.city || "Pakistan"} • {car.year} • {car.transmission || "CVT"}</Text>
+        </View>
         <View style={styles.carButtonRow}>
           <TouchableOpacity style={styles.viewButton} onPress={onPress} activeOpacity={0.85}>
-            <LinearGradient colors={[NAVY, ORANGE]} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFillObject} />
+            <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFillObject} />
             <Text style={styles.viewButtonText}>View</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.heartButton} onPress={onSave}>
-            <Ionicons name={saved ? "heart" : "heart-outline"} size={18} color={saved ? "#ff4d6d" : ORANGE} />
+          <TouchableOpacity style={[styles.heartButton, { backgroundColor: aC.isDark ? '#0B1D45' : '#f1f5f9' }]} onPress={onSave}>
+            <Ionicons name={saved ? "heart" : "heart-outline"} size={20} color={ORANGE} />
           </TouchableOpacity>
         </View>
       </View>
@@ -285,6 +307,8 @@ export default function BuyUsedCarScreen() {
   const aC = useAppColors();
 
   const [tab,        setTab]        = useState<"Category"|"Brand"|"Model"|"Cities">("Category");
+  const [minFocused, setMinFocused] = useState(false);
+  const [maxFocused, setMaxFocused] = useState(false);
   const [recent,     setRecent]     = useState<any[]>([]);
   const [hotSelling, setHotSelling] = useState<any[]>([]);
   const [brands,     setBrands]     = useState<any[]>([]);
@@ -348,17 +372,17 @@ export default function BuyUsedCarScreen() {
   }
 
   function goDetail(id: string) {
-    router.push({ pathname: "/buy/car-detail", params: { id } } as any);
+    router.push({ pathname: "/buy/car-detail", params: { id, from: "usedCar" } } as any);
   }
 
   function goSearch(extra?: Record<string, string>) {
-    const params: any = { condition: "used", category: "car", seller_type: "individual" };
+    const params: any = { condition: "used", category: "car", seller_type: "individual", from: "usedCar" };
     if (extra) Object.assign(params, extra);
     router.push({ pathname: "/buy/search-results" as any, params });
   }
 
   function handleSearch() {
-    const params: any = { condition: "used", category: "car", seller_type: "individual" };
+    const params: any = { condition: "used", category: "car", seller_type: "individual", from: "usedCar" };
     if (city && city !== "All Cities")               params.city       = city;
     if (brand && brand !== "All Brands")             params.search     = brand;
     if (carName)                                      params.search     = carName;
@@ -380,18 +404,17 @@ export default function BuyUsedCarScreen() {
     sellerType: { label: "Seller Type",  value: sellerType, options: SELLER_TYPES,  setter: setSellerType },
   };
 
-  function DropdownField({ fkey, icon, fullWidth = false }: { fkey: keyof typeof fields; icon: string; fullWidth?: boolean }) {
+  function DropdownField({ fkey, icon, fullWidth = false, label }: { fkey: keyof typeof fields; icon: string; fullWidth?: boolean; label?: string }) {
     const f = fields[fkey];
     return (
-      <View style={[styles.dropdownWrapper, fullWidth && { width: "100%" }]}>
+      <View style={[styles.dropdownWrapper, fullWidth ? { width: "100%" } : { flex: 1, width: undefined }]}>
         <View style={styles.fieldLabelRow}>
-          <MaterialCommunityIcons name={icon as any} size={11} color={ORANGE} />
-          <Text style={[styles.fieldLabel, { color: aC.isDark ? MUTED : '#475569' }]}>{f.label}</Text>
+          <MaterialCommunityIcons name={icon as any} size={17} color={ORANGE} />
+          <Text style={[styles.fieldLabel, { color: aC.isDark ? '#C9C6D0' : '#475569' }]}>{label || f.label}</Text>
         </View>
-        <TouchableOpacity style={[styles.dropdown, { backgroundColor: aC.isDark ? CARD : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.06)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]} onPress={() => setOpenSheet(fkey)}>
-          <GlassInset />
-          <Text style={[styles.dropdownText, { color: aC.isDark ? WHITE : '#010a1f' }]} numberOfLines={1}>{f.value}</Text>
-          <Ionicons name="chevron-down" size={13} color={aC.isDark ? MUTED : '#64748b'} />
+        <TouchableOpacity style={[styles.dropdown, { backgroundColor: 'transparent', borderColor: aC.isDark ? 'rgba(255,255,255,0.35)' : 'rgba(3,42,105,0.12)' }]} onPress={() => setOpenSheet(fkey)}>
+          <Text style={[styles.dropdownText, { color: aC.isDark ? '#F2F1F5' : '#010a1f' }]} numberOfLines={1}>{f.value}</Text>
+          <Ionicons name="chevron-down" size={16} color={aC.isDark ? '#F2F1F5' : '#64748b'} />
         </TouchableOpacity>
       </View>
     );
@@ -447,12 +470,12 @@ export default function BuyUsedCarScreen() {
     return (
       <View style={styles.categoryGrid}>
         {CATEGORIES.map((item, index) => (
-          <TouchableOpacity key={index} style={[styles.categoryCard, { backgroundColor: aC.isDark ? CARD : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]} onPress={() => goSearch({ search: item.search || item.title })} activeOpacity={0.82}>
-            <GlassInset />
-            <View style={styles.categoryIcon}>
-              <MaterialCommunityIcons name={item.icon as any} size={26} color={ORANGE} />
+          <TouchableOpacity key={index} style={[styles.categoryCard, styles.categoryCardFigma, { backgroundColor: aC.isDark ? '#081634' : '#ffffff', borderColor: aC.isDark ? '#6E8FC9' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]} onPress={() => goSearch({ search: item.search || item.title })} activeOpacity={0.82}>
+            {aC.isDark ? <RingGlow radius={12} peak={0.45} rings={8} /> : <GlassInset />}
+            <View style={styles.categoryImgWrap}>
+              <Image source={item.img} style={styles.categoryImg} resizeMode="contain" />
             </View>
-            <Text style={styles.categoryText}>{item.title}</Text>
+            <Text style={[styles.categoryText, styles.categoryTextFigma, { color: aC.isDark ? '#C9C6D0' : '#475569' }]}>{item.title}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -486,8 +509,8 @@ export default function BuyUsedCarScreen() {
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabsScroll}>
           {(["Category","Brand","Model","Cities"] as const).map(item => (
-            <TouchableOpacity key={item} onPress={() => setTab(item)} style={[styles.tab, { backgroundColor: aC.isDark ? "rgba(16,40,88,0.9)" : '#ffffff', borderColor: aC.isDark ? "transparent" : 'rgba(3,42,105,0.12)', borderWidth: 1, shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }, tab === item && { borderColor: ORANGE, backgroundColor: aC.isDark ? "rgba(226,103,27,0.12)" : 'rgba(226,103,27,0.12)' }]}>
-              <Text style={[styles.tabText, { color: aC.isDark ? MUTED : '#475569' }, tab === item && { color: ORANGE }]}>{item}</Text>
+            <TouchableOpacity key={item} onPress={() => setTab(item)} style={[styles.tab, styles.tabFigma, { backgroundColor: aC.isDark ? "#0B1D4A" : '#ffffff', borderColor: aC.isDark ? "transparent" : 'rgba(3,42,105,0.12)', borderWidth: 1, shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }, tab === item && { borderColor: aC.isDark ? '#7E9FD6' : ORANGE, backgroundColor: aC.isDark ? "#0E2456" : 'rgba(226,103,27,0.12)' }]}>
+              <Text style={[styles.tabText, styles.tabTextFigma, { color: aC.isDark ? '#F2F1F5' : '#475569' }, tab === item && { color: ORANGE, fontFamily: 'Poppins_700Bold' }]}>{item}</Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
@@ -495,99 +518,99 @@ export default function BuyUsedCarScreen() {
         <TabContent />
 
         {/* DOTS */}
-        <View style={styles.dots}>
-          <View style={styles.dotActive} />
-          <View style={styles.dot} />
-          <View style={styles.dot} />
+        <View style={[styles.dots, { gap: 10, marginVertical: 10 }]}>
+          <View style={[styles.dotFigma, { backgroundColor: aC.isDark ? '#12306A' : ORANGE }]} />
+          <View style={[styles.dotFigma, { backgroundColor: aC.isDark ? '#E6E4EA' : 'rgba(3,42,105,0.2)' }]} />
+          <View style={[styles.dotFigma, { backgroundColor: aC.isDark ? '#E6E4EA' : 'rgba(3,42,105,0.2)' }]} />
         </View>
 
         {/* BANK BANNER */}
         <AskariBank />
 
-        {/* SEARCH BOX */}
+        {/* SEARCH BOX — border: orange (top) → blue (bottom), navy → brown background */}
         <View style={{ height: 12 }} />
-        <View style={[styles.searchBox, { backgroundColor: aC.isDark ? CARD : '#ffffff', borderColor: aC.isDark ? ORANGE : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }]}>
-          <GlassInset />
-          {aC.isDark ? (
-            <LinearGradient colors={["transparent","rgba(226,103,27,0.2)"]} start={{x:0.5,y:0.5}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-          ) : (
-            <LinearGradient colors={["transparent","rgba(226,103,27,0.08)"]} start={{x:0.5,y:0.6}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-          )}
+        <LinearGradient
+          colors={aC.isDark ? ['#E2671B', '#8A5A55', '#2E4F8E'] : ['rgba(3,42,105,0.12)', 'rgba(3,42,105,0.12)']}
+          locations={aC.isDark ? [0, 0.5, 1] : undefined}
+          start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }}
+          style={styles.searchBorder}
+        >
+        <View style={[styles.searchBox, styles.searchBoxFigma, { backgroundColor: aC.isDark ? '#0B1D4A' : '#ffffff' }]}>
+          {aC.isDark
+            ? <LinearGradient colors={WARM_CARD_COLORS as any} locations={WARM_CARD_LOCATIONS as any} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+            : <GlassInset />}
 
-          <Text style={[styles.searchTitle, { color: aC.isDark ? WHITE : '#010a1f' }]}>Find Your Perfect Car</Text>
+          <Text style={[styles.searchTitle, styles.searchTitleFigma, { color: aC.isDark ? '#F2F1F5' : '#010a1f' }]}>Find Your Perfect Car</Text>
 
-          <View style={styles.formRow}>
+          <View style={styles.formRow3}>
             <DropdownField fkey="city"  icon="map-marker" />
-            <DropdownField fkey="brand" icon="sitemap-outline" />
+            <DropdownField fkey="brand" icon="cube-outline" />
+            <DropdownField fkey="year"  icon="calendar-clock-outline" />
           </View>
 
-          <View style={styles.formRow}>
-            <DropdownField fkey="year"  icon="calendar-outline" />
-            <View style={styles.dropdownWrapper}>
+          <View style={styles.formRow3}>
+            <View style={styles.dropdownWrapper3}>
               <View style={styles.fieldLabelRow}>
-                <MaterialCommunityIcons name="car-outline" size={11} color={ORANGE} />
-                <Text style={styles.fieldLabel}>Car Name</Text>
+                <MaterialCommunityIcons name="car-outline" size={17} color={ORANGE} />
+                <Text style={[styles.fieldLabel, { color: aC.isDark ? '#C9C6D0' : '#475569' }]}>Car</Text>
               </View>
-              <View style={styles.dropdown}>
-                <GlassInset />
+              <View style={[styles.dropdown, { backgroundColor: 'transparent', borderColor: aC.isDark ? 'rgba(255,255,255,0.35)' : 'rgba(3,42,105,0.12)' }]}>
                 <TextInput
-                  style={[styles.dropdownText, { flex: 1, paddingVertical: 0 }]}
+                  style={[styles.dropdownText, { flex: 1, paddingVertical: 0, color: aC.isDark ? '#F2F1F5' : '#010a1f' }]}
                   value={carName}
                   onChangeText={setCarName}
-                  placeholder="e.g. Honda City"
-                  placeholderTextColor={MUTED}
+                  placeholder="Honda City"
+                  placeholderTextColor={aC.isDark ? '#BAB6C4' : '#94a3b8'}
                 />
+                <Ionicons name="chevron-down" size={16} color={aC.isDark ? '#F2F1F5' : '#64748b'} />
               </View>
             </View>
+            <DropdownField fkey="variant" icon="steering" />
+            <DropdownField fkey="color"   icon="palette" />
           </View>
 
-          <View style={styles.formRow}>
-            <DropdownField fkey="variant" icon="car-info" />
-            <DropdownField fkey="color"   icon="palette-outline" />
-          </View>
-
-          <DropdownField fkey="sellerType" icon="store-outline" fullWidth />
+          <DropdownField fkey="sellerType" icon="car-arrow-right" fullWidth label="Non Dealers" />
 
           {/* PRICE RANGE */}
-          <Text style={styles.rangeLabel}>Select Your Budget Range (PKR)</Text>
-          <View style={styles.priceInputs}>
-            <View style={{ flex: 1, marginRight: 8 }}>
-              <Text style={[styles.minMax, { color: aC.isDark ? MUTED : '#475569' }]}>Min Price</Text>
-              <View style={[styles.priceInput, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.12)' }]}>
-                <GlassInset />
-                <TextInput
-                  style={[styles.priceText, { flex: 1, paddingVertical: 0, color: aC.isDark ? WHITE : '#010a1f' }]}
-                  value={minPrice}
-                  onChangeText={setMinPrice}
-                  placeholder="e.g. 500000"
-                  placeholderTextColor={MUTED}
-                  keyboardType="numeric"
-                />
-              </View>
+          <Text style={[styles.rangeLabel, styles.rangeLabelFigma, { color: aC.isDark ? '#C9C6D0' : '#475569' }]}>Select Your Budget Range (PKR)</Text>
+          <View style={styles.priceRowFigma}>
+            <Text style={[styles.minMaxFigma, { color: aC.isDark ? '#C9C6D0' : '#475569' }]}>Min</Text>
+            <View style={[styles.priceBoxFigma, { borderColor: aC.isDark ? 'rgba(255,255,255,0.35)' : 'rgba(3,42,105,0.12)' }]}>
+              <TextInput
+                style={[styles.priceTextFigma, { color: aC.isDark ? '#F2F1F5' : '#010a1f' }]}
+                value={minFocused ? minPrice : toMillions(minPrice)}
+                onFocus={() => setMinFocused(true)}
+                onBlur={() => setMinFocused(false)}
+                onChangeText={setMinPrice}
+                placeholder="5.8M"
+                placeholderTextColor={aC.isDark ? '#BAB6C4' : '#94a3b8'}
+                keyboardType="numeric"
+              />
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.minMax, { color: aC.isDark ? MUTED : '#475569' }]}>Max Price</Text>
-              <View style={[styles.priceInput, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.12)' }]}>
-                <GlassInset />
-                <TextInput
-                  style={[styles.priceText, { flex: 1, paddingVertical: 0, color: aC.isDark ? WHITE : '#010a1f' }]}
-                  value={maxPrice}
-                  onChangeText={setMaxPrice}
-                  placeholder="e.g. 5000000"
-                  placeholderTextColor={MUTED}
-                  keyboardType="numeric"
-                />
-              </View>
+            <View style={{ flex: 1 }} />
+            <Text style={[styles.minMaxFigma, { color: aC.isDark ? '#C9C6D0' : '#475569' }]}>Max</Text>
+            <View style={[styles.priceBoxFigma, { borderColor: aC.isDark ? 'rgba(255,255,255,0.35)' : 'rgba(3,42,105,0.12)' }]}>
+              <TextInput
+                style={[styles.priceTextFigma, { color: aC.isDark ? '#F2F1F5' : '#010a1f' }]}
+                value={maxFocused ? maxPrice : toMillions(maxPrice)}
+                onFocus={() => setMaxFocused(true)}
+                onBlur={() => setMaxFocused(false)}
+                onChangeText={setMaxPrice}
+                placeholder="5.8M"
+                placeholderTextColor={aC.isDark ? '#BAB6C4' : '#94a3b8'}
+                keyboardType="numeric"
+              />
             </View>
           </View>
 
           <RangeSlider onChangMin={setMinPrice} onChangeMax={setMaxPrice} />
 
-          <TouchableOpacity style={styles.searchButton} onPress={handleSearch} activeOpacity={0.88}>
-            <LinearGradient colors={[NAVY, ORANGE]} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFillObject} />
-            <Text style={styles.searchButtonText}>Search</Text>
+          <TouchableOpacity style={[styles.searchButton, styles.searchButtonFigma]} onPress={handleSearch} activeOpacity={0.88}>
+            <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFillObject} />
+            <Text style={[styles.searchButtonText, styles.searchButtonTextFigma]}>Search</Text>
           </TouchableOpacity>
         </View>
+        </LinearGradient>
 
         {/* RECENTLY LISTED */}
         <SectionHeader title="Recently Listed" onViewAll={() => goSearch()} />
@@ -623,26 +646,21 @@ export default function BuyUsedCarScreen() {
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>You May Need This</Text>
         </View>
-        <View style={styles.toolsRow}>
+        <View style={styles.needRow}>
           {[
-            { icon: "car-multiple", title: "Compare\nVehicle",         desc: "Compare vehicle features,\nprices, and specifications.", route: "/compare-vehicle" },
-            { icon: "calculator",   title: "Smart Finance\nCalculator", desc: "Compare financing plans\nand calculate your monthly\npayments.",                route: "/auto-financing" },
+            { img: IMG_NEED_COMPARE, title: "Compare\nVehicle",          desc: "Compare vehicle features, prices, and specifications.",   route: "/compare-vehicle" },
+            { img: IMG_NEED_FINANCE, title: "Smart Finance\nCalculator",  desc: "Compare financing plans and calculate your monthly payments.", route: "/auto-financing" },
           ].map((t, i) => (
-            <TouchableOpacity key={i} style={[styles.toolCard, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderWidth: aC.isDark ? 0 : 1, borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }]} onPress={() => router.push(t.route as any)} activeOpacity={0.85}>
-              {aC.isDark ? (
-                <LinearGradient colors={[ORANGE, "#0d2040", BG]} start={{x:0,y:1}} end={{x:0,y:0}} style={StyleSheet.absoluteFillObject} />
-              ) : (
-                <>
-                  <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{x:0.5,y:0}} end={{x:0.5,y:0.4}} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                  <LinearGradient colors={['transparent', 'rgba(226,103,27,0.08)']} start={{x:0.5,y:0.6}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                </>
-              )}
-              <View style={[styles.toolImageCircle, { backgroundColor: aC.isDark ? 'transparent' : '#eef2ff' }]}>
-                <MaterialCommunityIcons name={t.icon as any} size={45} color={ORANGE} />
+            <TouchableOpacity key={i} style={[styles.needCard, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderWidth: aC.isDark ? 0 : 1, borderColor: 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }]} onPress={() => router.push(t.route as any)} activeOpacity={0.85}>
+              {aC.isDark
+                ? <LinearGradient colors={['#071B48', '#0A1F4C', '#2B2947', '#80504A']} locations={[0, 0.52, 0.76, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} />
+                : <GlassInset />}
+              <Image source={t.img} style={styles.needImg} resizeMode="contain" />
+              <View style={styles.needTitleRow}>
+                <Text style={[styles.needTitle, { color: aC.isDark ? '#F2F1F5' : '#010a1f' }]}>{t.title}</Text>
+                <Ionicons name="chevron-forward" size={22} color={ORANGE} />
               </View>
-              <Text style={[styles.toolTitle, { color: aC.isDark ? WHITE : '#010a1f' }]}>{t.title}</Text>
-              <Text style={[styles.toolDescription, { color: aC.isDark ? 'rgba(255,255,255,0.65)' : '#475569' }]}>{t.desc}</Text>
-              <Text style={styles.toolArrow}>›</Text>
+              <Text style={[styles.needSub, { color: aC.isDark ? '#C9BDC1' : '#475569' }]}>{t.desc}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -652,21 +670,22 @@ export default function BuyUsedCarScreen() {
           <Text style={styles.sectionTitle}>Browse More Services</Text>
         </View>
         {SERVICES.map((service, index) => (
-          <TouchableOpacity style={[styles.serviceCard, { backgroundColor: aC.isDark ? CARD : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]} key={index} onPress={() => router.push(service.route as any)} activeOpacity={0.85}>
-            <GlassInset />
-            <MaterialCommunityIcons name={service.icon as any} size={22} color={ORANGE} />
-            <View style={styles.serviceText}>
-              <Text style={[styles.serviceTitle, { color: aC.isDark ? WHITE : '#010a1f' }]}>{service.title}</Text>
-              <Text style={[styles.serviceSubtitle, { color: aC.isDark ? MUTED : '#475569' }]}>{service.subtitle}</Text>
+          <TouchableOpacity style={[styles.serviceCard, styles.serviceCardFigma, { backgroundColor: aC.isDark ? '#0B1D4A' : '#ffffff', borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]} key={index} onPress={() => router.push(service.route as any)} activeOpacity={0.85}>
+            {!aC.isDark && <GlassInset />}
+            <MaterialCommunityIcons name={service.icon as any} size={28} color={ORANGE} />
+            <View style={[styles.serviceText, { marginLeft: 16 }]}>
+              <Text style={[styles.serviceTitle, styles.serviceTitleFigma, { color: aC.isDark ? '#F2F1F5' : '#010a1f' }]}>{service.title}</Text>
+              <Text style={[styles.serviceSubtitle, styles.serviceSubtitleFigma, { color: aC.isDark ? '#BAB6C4' : '#475569' }]}>{service.subtitle}</Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color={ORANGE} />
+            <Ionicons name="chevron-forward" size={24} color={ORANGE} />
           </TouchableOpacity>
         ))}
 
-        {/* LATEST VIDEO */}
+        {/* LATEST VIDEO — heading comes from LatestVideoSection itself (was showing twice)
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Latest Video</Text>
         </View>
+        */}
         <LatestVideoSection count={2} />
 
         <View style={{ height: 80 }} />
@@ -695,7 +714,7 @@ const styles = StyleSheet.create({
   header:     { height: 48, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   logo:       { flex: 1, height: 22, marginHorizontal: 12 },
 
-  findText:     { color: WHITE, fontSize: 13, fontFamily: "Poppins_500Medium", marginTop: 12, marginBottom: 10 },
+  findText:     { color: WHITE, fontSize: 17, fontFamily: "Poppins_500Medium", marginTop: 14, marginBottom: 14 },
   tabsScroll:   { marginBottom: 8 },
   tab:          { backgroundColor: "rgba(16,40,88,0.9)", paddingHorizontal: 17, height: 28, borderRadius: 14, justifyContent: "center", marginRight: 9, borderWidth: 1, borderColor: "transparent" },
   activeTab:    { borderColor: ORANGE, backgroundColor: "rgba(226,103,27,0.12)" },
@@ -707,6 +726,42 @@ const styles = StyleSheet.create({
   categoryIcon: { height: 28, justifyContent: "center" },
   categoryText: { color: MUTED, fontSize: 8.5, fontFamily: "Poppins_400Regular", textAlign: "center", lineHeight: 11 },
 
+  /* Figma — Find Your Car By */
+  tabFigma:          { height: 30, borderRadius: 15, paddingHorizontal: 16, marginRight: 12 },
+  tabTextFigma:      { fontSize: 13, fontFamily: "Poppins_500Medium" },
+  categoryCardFigma: { height: 76, borderRadius: 12, marginBottom: 8, paddingHorizontal: 2 },
+  categoryImgWrap:   { height: 32, width: "100%", alignItems: "center", justifyContent: "center", marginBottom: 4 },
+  categoryImg:       { width: 58, height: 32 },
+  categoryTextFigma: { fontSize: 10.5, lineHeight: 12.5 },
+  dotFigma:          { width: 9, height: 9, borderRadius: 5 },
+
+  /* Figma — Find Your Perfect Car */
+  searchBorder:          { borderRadius: 18, padding: 1, marginBottom: 18 },
+  searchBoxFigma:        { borderWidth: 0, borderRadius: 17, padding: 12, paddingTop: 16, marginBottom: 0 },
+  searchTitleFigma:      { fontSize: 16, fontFamily: "Poppins_500Medium", marginBottom: 14 },
+  formRow3:              { flexDirection: "row", justifyContent: "space-between", gap: 8, marginBottom: 10 },
+  dropdownWrapper3:      { flex: 1 },
+  rangeLabelFigma:       { fontSize: 11.5, marginTop: 10, marginBottom: 6 },
+  priceRowFigma:         { flexDirection: "row", alignItems: "center", gap: 8 },
+  minMaxFigma:           { fontSize: 11.5, fontFamily: "Poppins_400Regular" },
+  priceBoxFigma:         { width: 76, height: 32, borderWidth: 1, borderRadius: 6, justifyContent: "center", paddingHorizontal: 8 },
+  priceTextFigma:        { fontSize: 12, fontFamily: "Poppins_600SemiBold", paddingVertical: 0 },
+  searchButtonFigma:     { height: 44, borderRadius: 22, marginTop: 14 },
+  searchButtonTextFigma: { fontSize: 17, fontFamily: "Poppins_600SemiBold", color: "#EDEBF0" },
+
+  /* Figma — You May Need This */
+  needRow:      { flexDirection: "row", gap: 14, marginBottom: 18 },
+  needCard:     { width: NEED_W, minHeight: 176, borderRadius: 16, overflow: "hidden", paddingHorizontal: 10, paddingTop: 10, paddingBottom: 12, alignItems: "center" },
+  needImg:      { width: 112, height: 76, marginBottom: 4 },
+  needTitleRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", width: "100%", marginBottom: 4 },
+  needTitle:    { flex: 1, fontSize: 14, fontFamily: "Poppins_500Medium", lineHeight: 20 },
+  needSub:      { width: "100%", fontSize: 10, fontFamily: "Poppins_400Regular", lineHeight: 14 },
+
+  /* Figma — Browse More Services */
+  serviceCardFigma:     { minHeight: 60, borderRadius: 16, borderWidth: 0, paddingHorizontal: 16, paddingVertical: 12, marginBottom: 10 },
+  serviceTitleFigma:    { fontSize: 12.5, fontFamily: "Poppins_500Medium" },
+  serviceSubtitleFigma: { fontSize: 10, lineHeight: 14 },
+
   dots:      { flexDirection: "row", justifyContent: "center", alignItems: "center", marginVertical: 6, gap: 5 },
   dot:       { width: 6, height: 6, borderRadius: 3, backgroundColor: "rgba(255,255,255,0.2)" },
   dotActive: { width: 16, height: 6, borderRadius: 3, backgroundColor: ORANGE },
@@ -716,10 +771,10 @@ const styles = StyleSheet.create({
 
   formRow:        { flexDirection: "row", justifyContent: "space-between", marginBottom: 8 },
   dropdownWrapper:{ width: "48%" },
-  fieldLabelRow:  { flexDirection: "row", alignItems: "center", marginBottom: 3, gap: 4 },
-  fieldLabel:     { color: MUTED, fontSize: 9, fontFamily: "Poppins_400Regular" },
-  dropdown:       { height: 32, borderRadius: 8, borderWidth: 1, borderColor: BORDER, backgroundColor: CARD, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 9, overflow: "hidden" },
-  dropdownText:   { color: WHITE, fontSize: 10, fontFamily: "Poppins_400Regular", flex: 1 },
+  fieldLabelRow:  { flexDirection: "row", alignItems: "center", marginBottom: 6, gap: 6 },
+  fieldLabel:     { color: MUTED, fontSize: 11.5, fontFamily: "Poppins_400Regular" },
+  dropdown:       { height: 34, borderRadius: 8, borderWidth: 1, borderColor: BORDER, backgroundColor: CARD, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 9, overflow: "hidden" },
+  dropdownText:   { color: WHITE, fontSize: 11.5, fontFamily: "Poppins_500Medium", flex: 1 },
 
   rangeLabel:  { color: MUTED, fontSize: 9, fontFamily: "Poppins_400Regular", marginTop: 6, marginBottom: 6 },
   priceInputs: { flexDirection: "row", justifyContent: "space-between" },
@@ -735,23 +790,24 @@ const styles = StyleSheet.create({
   searchButtonText: { color: WHITE, fontSize: 13, fontFamily: "Poppins_700Bold" },
 
   sectionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10, marginTop: 4 },
-  sectionTitle:  { color: WHITE, fontSize: 13, fontFamily: "Poppins_600SemiBold" },
-  viewAll:       { color: ORANGE, fontSize: 10, fontFamily: "Poppins_500Medium" },
+  sectionTitle:  { color: WHITE, fontSize: 16, fontFamily: "Poppins_500Medium" },
+  viewAll:       { color: ORANGE, fontSize: 13, fontFamily: "Poppins_500Medium" },
 
   horizontalList: { paddingBottom: 14 },
 
-  carCard:      { width: 185, backgroundColor: CARD, borderRadius: 12, overflow: "hidden", borderWidth: 1, borderColor: BORDER, marginRight: 10 },
-  carImage:     { width: "100%", height: 120 },
-  carInfo:      { padding: 8 },
+  carCard:      { width: 224, backgroundColor: CARD, borderRadius: 16, overflow: "hidden", borderWidth: 1, borderColor: BORDER, marginRight: 14 },
+  carImage:     { width: "100%", height: 148 },
+  carInfo:      { paddingHorizontal: 10, paddingTop: 10, paddingBottom: 10 },
   carNameRow:   { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  carName:      { color: WHITE, fontSize: 10, fontFamily: "Poppins_600SemiBold", flex: 1 },
-  carPrice:     { color: ORANGE, fontSize: 10, fontFamily: "Poppins_700Bold" },
-  carDetails:   { color: "rgba(255,255,255,0.75)", fontSize: 9, fontFamily: "Poppins_400Regular", marginTop: 4 },
-  carLocation:  { color: MUTED, fontSize: 8, fontFamily: "Poppins_400Regular", marginTop: 3 },
-  carButtonRow: { flexDirection: "row", alignItems: "center", marginTop: 7, gap: 6 },
-  viewButton:   { flex: 1, height: 28, borderRadius: 14, overflow: "hidden", alignItems: "center", justifyContent: "center" },
-  viewButtonText: { color: WHITE, fontSize: 10, fontFamily: "Poppins_600SemiBold" },
-  heartButton:  { width: 30, height: 28, alignItems: "center", justifyContent: "center" },
+  carName:      { color: WHITE, fontSize: 12.5, fontFamily: "Poppins_500Medium", flex: 1 },
+  carPrice:     { color: ORANGE, fontSize: 14, fontFamily: "Poppins_500Medium" },
+  carDetails:   { color: "rgba(255,255,255,0.75)", fontSize: 11.5, fontFamily: "Poppins_400Regular", marginTop: 4 },
+  carLocRow:    { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 3 },
+  carLocation:  { color: MUTED, fontSize: 11.5, fontFamily: "Poppins_400Regular", flexShrink: 1 },
+  carButtonRow: { flexDirection: "row", alignItems: "center", marginTop: 10, gap: 8 },
+  viewButton:   { flex: 1, height: 30, borderRadius: 15, overflow: "hidden", alignItems: "center", justifyContent: "center" },
+  viewButtonText: { color: "#EDEBF0", fontSize: 12.5, fontFamily: "Poppins_500Medium" },
+  heartButton:  { width: 32, height: 32, borderRadius: 16, alignItems: "center", justifyContent: "center" },
 
   toolsRow:        { flexDirection: "row", justifyContent: "space-between", marginBottom: 16, gap: 10 },
   toolCard:        { flex: 1, minHeight: 140, borderRadius: 12, overflow: "hidden", padding: 10, position: "relative" },

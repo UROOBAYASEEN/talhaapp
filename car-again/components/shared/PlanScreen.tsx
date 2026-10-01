@@ -10,6 +10,8 @@ import { AppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'expo-router';
+import { D, DHeader, DICON, DIcon, SegTabs, WarmCard } from '@/components/dealer/DealerUI';
+import { Image } from 'react-native';
 
 const ORANGE = AppColors.gradientEnd;
 const NAVY   = AppColors.gradientStart;
@@ -51,13 +53,45 @@ function Feature({ text, color }: { text: string; color: string }) {
 }
 
 /* ── Plan Card ── */
-function PlanCard({ plan, billing, isCurrent, onChoose }: {
-  plan: Plan; billing: 'monthly' | 'yearly'; isCurrent: boolean; onChoose: () => void;
+function PlanCard({ plan, billing, isCurrent, onChoose, figma }: {
+  plan: Plan; billing: 'monthly' | 'yearly'; isCurrent: boolean; onChoose: () => void; figma?: boolean;
 }) {
   const price    = billing === 'monthly' ? plan.monthly_price : (plan.yearly_price ?? plan.monthly_price);
   const priceStr = fmt(price);
   const perLabel = priceStr === 'Custom' ? '' : billing === 'monthly' ? '/ month' : '/ year';
   const PlanIcon = ICON_MAP[plan.name.toLowerCase()] ?? Send;
+
+  // Figma (dealer panel): outlined card, light icon circle, grey-lilac text, orange check circles
+  if (figma) {
+    return (
+      <View style={[fc.card, isCurrent && { borderColor: D.orange }]}>
+        {isCurrent && <View style={fc.current}><Text style={fc.currentTxt}>CURRENT PLAN</Text></View>}
+        <Text style={fc.name}>{plan.name}</Text>
+        <Text style={fc.desc}>{plan.description || plan.tagline}</Text>
+        <View style={fc.iconCircle}>
+          {plan.name.toLowerCase() === 'basic'
+            ? <Image source={DICON.basicPlan} style={{ width: 36, height: 36 }} resizeMode="contain" />
+            : <PlanIcon size={32} color={D.orange} fill={D.orange} strokeWidth={1} />}
+        </View>
+        <Text style={fc.price}>{priceStr}</Text>
+        {perLabel ? <Text style={fc.per}>{perLabel}</Text> : null}
+        <View style={{ marginTop: 14, gap: 14 }}>
+          {plan.features.map((f, i) => (
+            <View key={i} style={fc.feat}>
+              <View style={fc.check}><Check size={14} color="#fff" strokeWidth={3} /></View>
+              <Text style={fc.featTxt}>{f}</Text>
+            </View>
+          ))}
+        </View>
+        <TouchableOpacity style={[fc.btn, isCurrent && { borderWidth: 1, borderColor: D.orange }]} disabled={isCurrent} activeOpacity={0.85} onPress={onChoose}>
+          {!isCurrent && <LinearGradient colors={['#0B3585', '#7E4F5C', '#E8702A']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />}
+          <Text style={[fc.btnTxt, isCurrent && { color: D.orange }]}>
+            {isCurrent ? 'Current Plan' : priceStr === 'Custom' ? 'Contact Us' : `Choose ${plan.name}`}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <View style={[pc.card, isCurrent && { borderColor: plan.color }]}>
@@ -113,9 +147,11 @@ type Props = {
   role:       string;
   promoTitle: string;
   promoDesc:  string;
+  /** Figma dealer-panel look (only the dealer Plan tab sets this) */
+  figma?:     boolean;
 };
 
-export default function PlanScreen({ role, promoTitle, promoDesc }: Props) {
+export default function PlanScreen({ role, promoTitle, promoDesc, figma }: Props) {
   const { token } = useAuth();
   const router    = useRouter();
   const [billing,     setBilling]     = useState<'monthly' | 'yearly'>('monthly');
@@ -152,6 +188,27 @@ export default function PlanScreen({ role, promoTitle, promoDesc }: Props) {
     <SafeAreaView style={s.safeArea} edges={['top']}>
       <View style={s.container}>
 
+        {figma ? (
+          <>
+            <DHeader
+              title="Subscription Plans"
+              titleStyle={{ fontSize: 18 }}
+              right={
+                <TouchableOpacity onPress={() => router.push('/dealer-panel/compare-plans' as any)} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <DIcon src={DICON.comparePlans} size={20} />
+                  <Text style={{ color: '#FFFFFF', fontSize: 12, fontFamily: 'Poppins_400Regular' }} numberOfLines={1}>Compare Plans</Text>
+                </TouchableOpacity>
+              }
+            />
+            <View style={{ marginHorizontal: 16 }}>
+              <SegTabs
+                items={['Monthly', 'Yearly(save 20%)'] as const}
+                value={billing === 'monthly' ? 'Monthly' : 'Yearly(save 20%)'}
+                onChange={v => setBilling(v === 'Monthly' ? 'monthly' : 'yearly')}
+              />
+            </View>
+          </>
+        ) : (<>
         {/* HEADER */}
         <View style={s.header}>
           <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
@@ -176,10 +233,35 @@ export default function PlanScreen({ role, promoTitle, promoDesc }: Props) {
         </View>
 
         <View style={s.separator} />
+        </>)}
 
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scrollContent}>
 
           {/* PROMO CARD */}
+          {figma ? (
+            <WarmCard style={fc.promo}>
+              <View style={s.promoLeft}>
+                <DIcon src={DICON.subscription} size={34} />
+                <Text style={fc.promoTitle}>{promoTitle}</Text>
+                <Text style={fc.promoDesc}>{promoDesc}</Text>
+              </View>
+              <View style={s.promoRight}>
+                {[
+                  { icon: DICON.increaseVisiblity, t: 'Increase Visibility', d: 'Your ads reach thousands\nof serious buyers' },
+                  { icon: DICON.generateMoreLeads, t: 'Generate More Leads', d: 'Get more enquiries and\nreservation requests' },
+                  { icon: DICON.generateMoreLeads, t: 'Build Trust & Credibility', d: 'Verified dealerships get\nmore trust and sales' },
+                ].map(it => (
+                  <View key={it.t} style={[s.promoItem, { minHeight: 50 }]}>
+                    <View style={[s.promoIcon, { width: 30 }]}><DIcon src={it.icon} size={20} /></View>
+                    <View style={s.promoTextContainer}>
+                      <Text style={fc.promoItemTitle}>{it.t}</Text>
+                      <Text style={fc.promoItemText}>{it.d}</Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            </WarmCard>
+          ) : (
           <View style={s.promoCard}>
             <LinearGradient colors={['rgba(22,64,136,0.25)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
             <LinearGradient colors={['transparent', 'rgba(226,103,27,0.15)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
@@ -212,6 +294,7 @@ export default function PlanScreen({ role, promoTitle, promoDesc }: Props) {
               </View>
             </View>
           </View>
+          )}
 
           {subStatus?.active && (
             <View style={[s.promoCard, { borderColor: '#00d084', backgroundColor: 'rgba(0,208,132,0.08)' }]}>
@@ -231,6 +314,7 @@ export default function PlanScreen({ role, promoTitle, promoDesc }: Props) {
                 key={plan.id}
                 plan={plan}
                 billing={billing}
+                figma={figma}
                 isCurrent={currentPlan === plan.id}
                 onChoose={async () => {
                   if (subStatus?.active) {
@@ -311,6 +395,28 @@ const s = StyleSheet.create({
 
   helpBox: { alignItems: 'center', padding: 16 },
   helpTxt: { fontSize: 13, fontFamily: 'Poppins_400Regular', color: C.textSecondary, textAlign: 'center' },
+});
+
+const fc = StyleSheet.create({
+  promo:          { flexDirection: 'row', paddingHorizontal: 18, paddingVertical: 20, marginBottom: 20, borderRadius: 26 },
+  promoTitle:     { color: '#FFFFFF', fontSize: 14, lineHeight: 20, fontFamily: 'Poppins_600SemiBold', marginTop: 8 },
+  promoDesc:      { color: '#E6E1E8', fontSize: 10.5, lineHeight: 15, marginTop: 6, fontFamily: 'Poppins_400Regular' },
+  promoItemTitle: { color: '#FFFFFF', fontSize: 11.5, fontFamily: 'Poppins_600SemiBold', marginBottom: 2 },
+  promoItemText:  { color: '#E6E1E8', fontSize: 10.5, lineHeight: 14, fontFamily: 'Poppins_400Regular' },
+
+  card:       { borderRadius: 30, borderWidth: 1, borderColor: 'rgba(230,225,232,0.3)', paddingHorizontal: 22, paddingTop: 24, paddingBottom: 24, marginBottom: 18 },
+  current:    { alignSelf: 'flex-start', backgroundColor: D.orange, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 2, marginBottom: 8 },
+  currentTxt: { color: '#3A1A0A', fontSize: 10, fontFamily: 'Poppins_700Bold' },
+  name:       { color: '#C9BDC4', fontSize: 24, fontFamily: 'Poppins_600SemiBold' },
+  desc:       { color: '#C9BDC4', fontSize: 15, fontFamily: 'Poppins_400Regular', marginTop: 8 },
+  iconCircle: { width: 72, height: 72, borderRadius: 36, backgroundColor: '#E3EEFF', alignItems: 'center', justifyContent: 'center', marginTop: 16 },
+  price:      { color: '#C9BDC4', fontSize: 34, fontFamily: 'Poppins_600SemiBold', marginTop: 12 },
+  per:        { color: '#C9BDC4', fontSize: 15, fontFamily: 'Poppins_400Regular' },
+  feat:       { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  check:      { width: 22, height: 22, borderRadius: 11, backgroundColor: D.orange, alignItems: 'center', justifyContent: 'center' },
+  featTxt:    { flex: 1, color: '#C9BDC4', fontSize: 15, fontFamily: 'Poppins_400Regular' },
+  btn:        { height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginTop: 22, overflow: 'hidden' },
+  btnTxt:     { color: '#fff', fontSize: 15, fontFamily: 'Poppins_600SemiBold' },
 });
 
 const pc = StyleSheet.create({

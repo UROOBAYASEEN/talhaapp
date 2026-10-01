@@ -4,21 +4,20 @@ import {
   ActivityIndicator, RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import {
-  ChevronLeft, CheckCheck, Car, FileText,
+  CheckCheck, Car, FileText,
   Banknote, AlertTriangle, Bell,
 } from 'lucide-react-native';
 import { AppColors } from '@/constants/theme';
+import { D, DHeader, FilterPills, GlowCard } from '@/components/dealer/DealerUI';
 import { useAuth } from '@/contexts/AuthContext';
 import { API_BASE } from '@/constants/api';
 
 const ORANGE = AppColors.gradientEnd;
-const NAVY   = AppColors.gradientStart;
 const C      = AppColors;
 
-const FILTERS = ['All', 'New', 'Unread', 'System'];
+const FILTERS = ['All', 'New', 'Unread', 'System'] as const;
 
 interface Notif {
   id: string;
@@ -53,39 +52,14 @@ function timeAgo(iso: string): string {
 function AlertCard({ item, onRead }: { item: Notif; onRead: (id: string) => void }) {
   const Icon = getIcon(item.type);
   return (
-    <TouchableOpacity
-      activeOpacity={0.8}
-      onPress={() => !item.is_read && onRead(item.id)}
-      style={[s.card, !item.is_read && s.cardUnread]}
-    >
-      <LinearGradient
-        colors={['rgba(22,64,136,0.2)', 'transparent']}
-        start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }}
-        style={StyleSheet.absoluteFillObject} pointerEvents="none"
-      />
-      <LinearGradient
-        colors={['rgba(13,37,84,0.18)', 'transparent']}
-        start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }}
-        style={StyleSheet.absoluteFillObject} pointerEvents="none"
-      />
-      <LinearGradient
-        colors={['transparent', 'rgba(29,83,175,0.2)']}
-        start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }}
-        style={StyleSheet.absoluteFillObject} pointerEvents="none"
-      />
-
+    <GlowCard onPress={() => !item.is_read && onRead(item.id)} style={s.card}>
       {/* Unread dot */}
       {!item.is_read && <View style={s.unreadDot}/>}
 
       <View style={s.cardInner}>
-        {/* Icon circle */}
+        {/* Icon (orange, Figma) */}
         <View style={s.iconWrap}>
-          <LinearGradient
-            colors={[NAVY, ORANGE]}
-            start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-            style={StyleSheet.absoluteFillObject}
-          />
-          <Icon size={18} color="#fff"/>
+          <Icon size={26} color={ORANGE} fill={ORANGE} strokeWidth={1.5}/>
         </View>
 
         {/* Text */}
@@ -94,17 +68,17 @@ function AlertCard({ item, onRead }: { item: Notif; onRead: (id: string) => void
             <Text style={s.alertTitle} numberOfLines={1}>{item.title}</Text>
             <Text style={s.timeText}>{timeAgo(item.created_at)}</Text>
           </View>
-          <Text style={s.alertBody} numberOfLines={2}>{item.body}</Text>
+          <Text style={s.alertBody} numberOfLines={3}>{item.body}</Text>
         </View>
       </View>
-    </TouchableOpacity>
+    </GlowCard>
   );
 }
 
 export default function SystemAlertsScreen() {
   const router = useRouter();
   const { token } = useAuth();
-  const [filter,     setFilter]     = useState('All');
+  const [filter,     setFilter]     = useState<typeof FILTERS[number]>('All');
   const [notifs,     setNotifs]     = useState<Notif[]>([]);
   const [unread,     setUnread]     = useState(0);
   const [loading,    setLoading]    = useState(true);
@@ -169,52 +143,23 @@ export default function SystemAlertsScreen() {
       <View style={s.container}>
 
         {/* HEADER */}
-        <View style={s.header}>
-          <TouchableOpacity onPress={() => router.back()} style={s.iconBtn}>
-            <ChevronLeft size={24} color={ORANGE} strokeWidth={2}/>
-          </TouchableOpacity>
-          <View style={s.headerCenter}>
-            <Text style={s.headerTitle}>System Alerts</Text>
-            {unread > 0 && (
-              <View style={s.badge}>
-                <Text style={s.badgeTxt}>{unread}</Text>
-              </View>
-            )}
-          </View>
-          <TouchableOpacity
-            onPress={markAllRead}
-            disabled={marking || unread === 0}
-            style={[s.markBtn, (marking || unread === 0) && { opacity: 0.4 }]}
-          >
-            <LinearGradient
-              colors={['rgba(226,103,27,0.15)', 'rgba(226,103,27,0.05)']}
-              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-              style={StyleSheet.absoluteFillObject}
-            />
-            <CheckCheck size={13} color={ORANGE}/>
-            <Text style={s.markTxt}>Read all</Text>
-          </TouchableOpacity>
-        </View>
+        <DHeader
+          title="System Alerts"
+          titleStyle={{ fontSize: 19 }}
+          right={
+            <TouchableOpacity
+              onPress={markAllRead}
+              disabled={marking || unread === 0}
+              style={[s.markBtn, (marking || unread === 0) && { opacity: 0.5 }]}
+            >
+              <CheckCheck size={16} color={ORANGE}/>
+              <Text style={s.markTxt}>Mark all as read</Text>
+            </TouchableOpacity>
+          }
+        />
 
         {/* FILTER TABS */}
-        <View style={s.filterRow}>
-          {FILTERS.map(f => (
-            <TouchableOpacity
-              key={f}
-              onPress={() => setFilter(f)}
-              style={[s.filterTab, filter === f && s.filterTabActive]}
-            >
-              {filter === f && (
-                <LinearGradient
-                  colors={['rgba(226,103,27,0.15)', 'rgba(226,103,27,0.05)']}
-                  start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-                  style={StyleSheet.absoluteFillObject}
-                />
-              )}
-              <Text style={[s.filterTxt, filter === f && s.filterTxtActive]}>{f}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+        <FilterPills items={FILTERS} value={filter as typeof FILTERS[number]} onChange={setFilter} style={s.filterRow} />
 
         {/* LIST */}
         {loading ? (
@@ -251,58 +196,28 @@ export default function SystemAlertsScreen() {
 }
 
 const s = StyleSheet.create({
-  safeArea:  { flex: 1, backgroundColor: C.bg },
-  container: { flex: 1, backgroundColor: C.bg },
+  safeArea:  { flex: 1, backgroundColor: D.bg },
+  container: { flex: 1, backgroundColor: D.bg },
 
-  header:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, height: 60 },
-  iconBtn:      { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  headerCenter: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  headerTitle:  { color: C.textPrimary, fontSize: 17, fontFamily: 'Poppins_600SemiBold' },
-  badge:        { backgroundColor: ORANGE, borderRadius: 10, paddingHorizontal: 7, paddingVertical: 2 },
-  badgeTxt:     { color: '#fff', fontSize: 11, fontFamily: 'Poppins_700Bold' },
+  markBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, height: 36, borderRadius: 12, borderWidth: 1, borderColor: ORANGE },
+  markTxt: { color: ORANGE, fontSize: 12, fontFamily: 'Poppins_500Medium' },
 
-  markBtn:  {
-    flexDirection: 'row', alignItems: 'center', gap: 5,
-    paddingHorizontal: 12, paddingVertical: 7, borderRadius: 20,
-    borderWidth: 1, borderColor: 'rgba(226,103,27,0.4)', overflow: 'hidden',
-  },
-  markTxt: { color: ORANGE, fontSize: 11, fontFamily: 'Poppins_500Medium' },
+  filterRow: { paddingHorizontal: 16, paddingBottom: 18, paddingTop: 8 },
 
-  filterRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingBottom: 12 },
-  filterTab: {
-    paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20,
-    borderWidth: 1, borderColor: C.glassBorder,
-    backgroundColor: C.glassBg, overflow: 'hidden',
-  },
-  filterTabActive: { borderColor: ORANGE },
-  filterTxt:       { color: C.textSecondary, fontSize: 12, fontFamily: 'Poppins_500Medium' },
-  filterTxtActive: { color: ORANGE },
+  list: { paddingHorizontal: 34, paddingBottom: 40, gap: 16 },
 
-  list: { paddingHorizontal: 16, paddingBottom: 40, gap: 10 },
-
-  card: {
-    borderRadius: 16, borderWidth: 1, borderColor: C.glassBorder,
-    backgroundColor: C.glassBg, overflow: 'hidden', padding: 14,
-  },
-  cardUnread: { borderColor: 'rgba(226,103,27,0.35)' },
-  unreadDot:  {
-    position: 'absolute', top: 12, right: 12,
-    width: 8, height: 8, borderRadius: 4, backgroundColor: ORANGE,
-  },
+  card:      { padding: 16, paddingTop: 12 },
+  unreadDot: { position: 'absolute', top: 10, right: 10, width: 8, height: 8, borderRadius: 4, backgroundColor: ORANGE },
 
   cardInner: { flexDirection: 'row', gap: 12 },
-  iconWrap:  {
-    width: 44, height: 44, borderRadius: 22,
-    alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
-    flexShrink: 0,
-  },
+  iconWrap:  { width: 32, alignItems: 'center', paddingTop: 4 },
   textWrap:  { flex: 1 },
   titleRow:  { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 },
-  alertTitle:{ color: C.textPrimary, fontSize: 14, fontFamily: 'Poppins_600SemiBold', flex: 1 },
-  timeText:  { color: 'rgba(255,255,255,0.35)', fontSize: 11, fontFamily: 'Poppins_400Regular', flexShrink: 0 },
-  alertBody: { color: C.textSecondary, fontSize: 12, fontFamily: 'Poppins_400Regular', lineHeight: 18, marginTop: 3 },
+  alertTitle:{ color: '#FFFFFF', fontSize: 16, fontFamily: 'Poppins_500Medium', flex: 1 },
+  timeText:  { color: D.muted, fontSize: 12, fontFamily: 'Poppins_400Regular', flexShrink: 0, paddingTop: 2 },
+  alertBody: { color: D.muted, fontSize: 14, fontFamily: 'Poppins_400Regular', lineHeight: 21, marginTop: 2 },
 
   center:   { flex: 1, alignItems: 'center', justifyContent: 'center' },
   empty:    { alignItems: 'center', paddingTop: 80, gap: 12 },
-  emptyTxt: { color: C.textSecondary, fontSize: 14, fontFamily: 'Poppins_500Medium' },
+  emptyTxt: { color: D.muted, fontSize: 14, fontFamily: 'Poppins_500Medium' },
 });

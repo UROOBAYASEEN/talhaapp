@@ -1,4 +1,3 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useRef } from 'react';
 import {
@@ -11,14 +10,15 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import LinearButton from '@/components/auth/LinearButton';
-import { useAppColors } from '@/constants/theme';
+import AuthGlowBackground from '@/components/auth/AuthGlowBackground';
+import { GradientButton } from '@/components/shared/GlowUI';
 
-const { width: W, height: H } = Dimensions.get('window');
+const { width: W } = Dimensions.get('window');
+// assets/images/onboarding-phone.png is 500×590
+const PHONE_W = Math.min(W * 0.9, 360);
 
 export default function Splash2Screen() {
   const router = useRouter();
-  const C = useAppColors();
 
   const carAnim  = useRef(new Animated.Value(0)).current;
   const textAnim = useRef(new Animated.Value(0)).current;
@@ -26,16 +26,16 @@ export default function Splash2Screen() {
 
   useEffect(() => {
     Animated.sequence([
-      Animated.timing(carAnim, {
-        toValue: 1,
-        duration: 700,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: true,
-      }),
       Animated.timing(textAnim, {
         toValue: 1,
         duration: 500,
         easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      }),
+      Animated.timing(carAnim, {
+        toValue: 1,
+        duration: 700,
+        easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
       }),
       Animated.timing(btnAnim, {
@@ -50,138 +50,88 @@ export default function Splash2Screen() {
   const carY = carAnim.interpolate({ inputRange: [0, 1], outputRange: [60, 0] });
 
   return (
-    <View style={[styles.root, { backgroundColor: C.bg }]}>
-
-      {/* Soft radial glow — top-right */}
-      <LinearGradient
-        colors={['rgba(5,55,160,0.18)', 'transparent']}
-        start={{ x: 1, y: 0 }}
-        end={{ x: 0.1, y: 0.7 }}
-        style={styles.glowTopRight}
-      />
-
-      {/* Soft radial glow — bottom-left */}
-      <LinearGradient
-        colors={['rgba(5,55,160,0.14)', 'transparent']}
-        start={{ x: 0, y: 1 }}
-        end={{ x: 0.9, y: 0.3 }}
-        style={styles.glowBottomLeft}
-      />
-
+    <AuthGlowBackground>
       <SafeAreaView style={styles.safe}>
 
-        {C.isDark ? (
-          <Image
-            source={require('@/assets/images/autowizor-logo-text.png')}
-            style={styles.logoText}
-            resizeMode="contain"
-          />
-        ) : (
-          <Text style={styles.logoTextLight}>
-            <Text style={{ color: '#032a69' }}>Auto</Text>
-            <Text style={{ color: '#e2671b' }}>wizor</Text>
-          </Text>
-        )}
+        <Image
+          source={require('@/assets/images/autowizor-logo-text.png')}
+          style={styles.logoText}
+          resizeMode="contain"
+        />
 
         <Animated.View style={[styles.textBlock, { opacity: textAnim }]}>
-          <Text style={[styles.headline, { color: C.textPrimary }]}>
+          <Text style={styles.headline}>
             {'Everything You need\nin '}
             <Text style={{ color: '#e2671b' }}>one Place</Text>
           </Text>
-          <Text style={[styles.subtext, { color: C.textPrimary }]}>
-            From Buying your Dream Car to managing finances, Insurance & Tracking.
+          <Text style={styles.subtext}>
+            From Buying your Dream vehicle to managing finances, Insurance & Tracking.
           </Text>
         </Animated.View>
 
-        <Animated.View style={[styles.carWrap, { opacity: carAnim, transform: [{ translateY: carY }] }]}>
+        <Animated.View style={[styles.phoneWrap, { opacity: carAnim, transform: [{ translateY: carY }] }]}>
           <Image
-            source={require('@/assets/images/auth-car-bg.png')}
-            style={styles.carImage}
+            source={require('@/assets/images/onboarding-phone.png')}
+            style={styles.phone}
             resizeMode="contain"
           />
         </Animated.View>
 
         <Animated.View style={[styles.btnWrap, { opacity: btnAnim }]}>
-          <LinearButton
-            title="Get Started"
+          <GradientButton
+            title="Continue"
+            height={52}
+            fontSize={18}
             onPress={() => router.replace('/(auth)/onboarding')}
           />
         </Animated.View>
 
       </SafeAreaView>
-    </View>
+    </AuthGlowBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1 },
-
-  glowTopRight: {
-    position: 'absolute',
-    right: -80,
-    top: -60,
-    width: 360,
-    height: 360,
-    borderRadius: 180,
-  },
-  glowBottomLeft: {
-    position: 'absolute',
-    left: -80,
-    bottom: 40,
-    width: 340,
-    height: 340,
-    borderRadius: 170,
-  },
-
   safe: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
   },
-
   logoText: {
-    width: 112,
-    height: 21,
+    width: 104,
+    height: 20,
     alignSelf: 'center',
-    marginTop: 16,
+    marginTop: 14,
   },
-  logoTextLight: {
-    fontSize: 20,
-    fontFamily: 'Poppins_700Bold',
-    letterSpacing: 0.5,
-    textAlign: 'center',
-    alignSelf: 'center',
-    marginTop: 16,
-  },
-
   textBlock: {
-    marginTop: 48,
-    gap: 10,
+    marginTop: 44,
+    gap: 12,
     alignItems: 'center',
   },
   headline: {
-    fontSize: 20,
+    color: '#FFFFFF',
+    fontSize: 24,
     fontFamily: 'Poppins_700Bold',
     lineHeight: 36,
     textAlign: 'center',
   },
   subtext: {
-    fontSize: 12,
+    color: '#D0C8CF',
+    fontSize: 14,
     fontFamily: 'Poppins_400Regular',
-    lineHeight: 20,
+    lineHeight: 22,
     textAlign: 'center',
   },
-
-  carWrap: {
+  phoneWrap: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  carImage: {
-    width: W * 0.82,
-    height: W * 1.2,
+  phone: {
+    width: PHONE_W,
+    height: PHONE_W * (590 / 500),
+    maxHeight: '100%',
   },
-
   btnWrap: {
-    paddingBottom: 24,
+    paddingBottom: 20,
   },
 });

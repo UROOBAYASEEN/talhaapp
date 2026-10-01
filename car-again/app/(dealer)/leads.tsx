@@ -16,10 +16,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import {
-  ChevronLeft,
-  Search,
-  Clock,
-  ChevronRight,
   Users,
   Phone,
   MapPin,
@@ -27,15 +23,16 @@ import {
   Calendar,
   Hash,
 } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { D, DHeader, FilterPills, GlowCard, SearchBar } from '@/components/dealer/DealerUI';
 import { AppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 
-const ORANGE = '#ff6900';
-const BLUE   = 'rgba(100,160,255,0.5)';
+const ORANGE = '#E2671B';
 const C      = AppColors;
 
-const AVATAR_COLORS = ['#1a7a4a', '#7b2fa0', '#1a5fb4', '#c0392b', '#0e7490', '#b45309'];
+const AVATAR_COLORS = ['#138A5E', '#8B3FD9', '#2E63E0', '#C0392B', '#0E7490', '#B45309'];
 
 function getAvatarColor(name: string) {
   let hash = 0;
@@ -82,18 +79,18 @@ function LeadCard({ lead, onPress }: { lead: any; onPress: () => void }) {
   const isConfirmed = status.toLowerCase() === 'confirmed' || status.toLowerCase() === 'new';
 
   return (
-    <TouchableOpacity style={lc.card} activeOpacity={0.85} onPress={onPress}>
-      <GlassInset />
-
+    <GlowCard style={lc.card} onPress={onPress} radius={22}>
       {/* TOP ROW — avatar + name + status */}
       <View style={lc.topRow}>
-        <View style={[lc.avatar, { backgroundColor: avatarColor }]}>
-          <Text style={lc.avatarTxt}>{initials}</Text>
+        <View style={[lc.avatarRing]}>
+          <View style={[lc.avatar, { backgroundColor: avatarColor }]}>
+            <Text style={lc.avatarTxt}>{initials}</Text>
+          </View>
         </View>
 
         <View style={{ flex: 1 }}>
-          <Text style={lc.name}>{name}</Text>
-          <Text style={lc.locationPhone}>{location} • {phone}</Text>
+          <Text style={lc.name} numberOfLines={1}>{name}</Text>
+          <Text style={lc.locationPhone} numberOfLines={1}>{location} • {phone}</Text>
         </View>
 
         <View style={lc.confirmedBadge}>
@@ -105,56 +102,56 @@ function LeadCard({ lead, onPress }: { lead: any; onPress: () => void }) {
 
       {/* VEHICLE CARD */}
       <TouchableOpacity style={lc.vehicleCard} activeOpacity={0.8} onPress={onPress}>
-        <GlassInset />
         <Image
           source={{ uri: lead.vehicle_image || 'https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?auto=format&fit=crop&w=300&q=80' }}
           style={lc.vehicleImg}
           resizeMode="cover"
         />
-        <View style={{ flex: 1, marginLeft: 10 }}>
+        <View style={{ flex: 1, marginLeft: 14 }}>
           <Text style={lc.vehicleName} numberOfLines={2}>{vehicle}</Text>
           <View style={lc.colorRow}>
             <View style={[lc.colorDot, { backgroundColor: colorDot }]} />
             <Text style={lc.colorName}>{color}</Text>
           </View>
         </View>
-        <ChevronRight size={18} color={C.textSecondary} />
+        <Ionicons name="chevron-forward" size={24} color="#FFFFFF" />
       </TouchableOpacity>
 
       {/* BOTTOM ROW — time + res ID */}
       <View style={lc.bottomRow}>
         <View style={lc.timeRow}>
-          <Clock size={12} color={ORANGE} />
-          <Text style={lc.timeText}>{dateStr}  {timeStr}</Text>
+          <Ionicons name="time-outline" size={18} color={ORANGE} />
+          <Text style={lc.timeText}>{dateStr}{isToday ? '    ' : ', '}{timeStr}</Text>
         </View>
         <Text style={lc.resId}>{resId}</Text>
       </View>
-    </TouchableOpacity>
+    </GlowCard>
   );
 }
 
 const lc = StyleSheet.create({
-  card:          { borderRadius: 16, overflow: 'hidden', backgroundColor: 'rgba(1,6,20,1)', borderWidth: 1, borderColor: 'rgba(100,160,255,0.5)', padding: 13, marginBottom: 12, gap: 10 },
+  card:          { padding: 16, marginBottom: 16, gap: 12 },
 
-  topRow:        { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  avatar:        { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  avatarTxt:     { fontSize: 15, fontFamily: 'Poppins_700Bold', color: '#fff' },
-  name:          { fontSize: 14, fontFamily: 'Poppins_700Bold', color: C.textPrimary },
-  locationPhone: { fontSize: 10, fontFamily: 'Poppins_400Regular', color: C.textSecondary, marginTop: 1 },
-  confirmedBadge:{ backgroundColor: 'rgba(0,200,100,0.15)', borderWidth: 1, borderColor: 'rgba(0,200,100,0.35)', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
-  confirmedTxt:  { color: '#00d084', fontSize: 9, fontFamily: 'Poppins_600SemiBold' },
+  topRow:        { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  avatarRing:    { width: 56, height: 56, borderRadius: 28, borderWidth: 2, borderColor: '#0B2358', alignItems: 'center', justifyContent: 'center' },
+  avatar:        { width: 50, height: 50, borderRadius: 25, alignItems: 'center', justifyContent: 'center' },
+  avatarTxt:     { fontSize: 15, fontFamily: 'Poppins_600SemiBold', color: '#fff' },
+  name:          { fontSize: 18, fontFamily: 'Poppins_600SemiBold', color: '#FFFFFF' },
+  locationPhone: { fontSize: 13, fontFamily: 'Poppins_400Regular', color: '#FFFFFF', marginTop: 1 },
+  confirmedBadge:{ alignSelf: 'flex-start', backgroundColor: '#0B2A22', borderWidth: 1, borderColor: 'rgba(46,204,113,0.45)', borderRadius: 14, paddingHorizontal: 12, paddingVertical: 3 },
+  confirmedTxt:  { color: '#2ECC71', fontSize: 11, fontFamily: 'Poppins_600SemiBold', letterSpacing: 0.5 },
 
-  vehicleCard:   { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(3,12,40,0.5)', borderRadius: 12, borderWidth: 1, borderColor: C.glassBorder, padding: 8, overflow: 'hidden' },
-  vehicleImg:    { width: 72, height: 50, borderRadius: 8 },
-  vehicleName:   { color: C.textPrimary, fontSize: 12, fontFamily: 'Poppins_600SemiBold', lineHeight: 18 },
-  colorRow:      { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 4 },
-  colorDot:      { width: 8, height: 8, borderRadius: 4 },
-  colorName:     { color: C.textSecondary, fontSize: 10, fontFamily: 'Poppins_400Regular' },
+  vehicleCard:   { flexDirection: 'row', alignItems: 'center', backgroundColor: D.navy, borderRadius: 14, padding: 14, paddingRight: 16 },
+  vehicleImg:    { width: 104, height: 58, borderRadius: 4 },
+  vehicleName:   { color: '#FFFFFF', fontSize: 15, fontFamily: 'Poppins_600SemiBold', lineHeight: 21 },
+  colorRow:      { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 },
+  colorDot:      { width: 12, height: 12, borderRadius: 6 },
+  colorName:     { color: D.muted, fontSize: 13, fontFamily: 'Poppins_400Regular' },
 
   bottomRow:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  timeRow:       { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  timeText:      { color: C.textSecondary, fontSize: 10, fontFamily: 'Poppins_400Regular' },
-  resId:         { color: ORANGE, fontSize: 10, fontFamily: 'Poppins_600SemiBold' },
+  timeRow:       { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  timeText:      { color: '#FFFFFF', fontSize: 13, fontFamily: 'Poppins_400Regular' },
+  resId:         { color: ORANGE, fontSize: 13, fontFamily: 'Poppins_400Regular' },
 });
 
 /* ── User Profile Modal ── */
@@ -349,48 +346,25 @@ export default function LeadsScreen() {
       <SafeAreaView edges={['top']}>
 
         {/* HEADER */}
-        <View style={s.header}>
-          <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-            <ChevronLeft size={22} color={C.textPrimary} strokeWidth={1.8} />
-          </TouchableOpacity>
-          <Text style={s.title}>Customer Enquiries</Text>
-        </View>
+        <DHeader title="Customer Enquiries" />
 
         {/* SEARCH */}
         <View style={s.searchWrap}>
-          <GlassInset />
-          <Search size={16} color={C.textSecondary} strokeWidth={1.5} />
-          <TextInput
-            style={s.searchInput}
-            placeholder="Search reservation by CNIC or ID"
-            placeholderTextColor={C.textPlaceholder}
-            value={search}
-            onChangeText={setSearch}
-          />
+          <SearchBar placeholder="Search reservation by CNIC or ID" value={search} onChangeText={setSearch} />
         </View>
 
         {/* REQUESTS LABEL */}
         <Text style={s.requestsLabel}>Requests</Text>
 
         {/* TABS */}
-        <View style={s.tabsRow}>
-          {TABS.map(tab => (
-            <TouchableOpacity
-              key={tab.key}
-              style={[s.tab, activeTab === tab.key && s.tabActive]}
-              onPress={() => setActiveTab(tab.key)}
-            >
-              <Text style={[s.tabText, activeTab === tab.key && s.tabTextActive]}>
-                {tab.label}
-              </Text>
-              {tab.badge ? (
-                <View style={s.tabBadge}>
-                  <Text style={s.tabBadgeTxt}>{tab.badge}</Text>
-                </View>
-              ) : null}
-            </TouchableOpacity>
-          ))}
-        </View>
+        <FilterPills
+          small
+          items={TABS.map(t => t.key)}
+          value={activeTab}
+          onChange={setActiveTab}
+          badges={Object.fromEntries(TABS.filter(t => t.badge).map(t => [t.key, t.badge]))}
+          style={s.tabsRow}
+        />
 
       </SafeAreaView>
 
@@ -456,26 +430,14 @@ export default function LeadsScreen() {
 }
 
 const s = StyleSheet.create({
-  root:  { flex: 1, backgroundColor: C.bg },
-
-  /* HEADER */
-  header:    { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 14 },
-  backBtn:   { width: 36, height: 36, borderRadius: 18, backgroundColor: C.glassBg, borderWidth: 1, borderColor: C.glassBorder, alignItems: 'center', justifyContent: 'center' },
-  title:     { fontSize: 18, fontFamily: 'Poppins_700Bold', color: C.textPrimary },
+  root:  { flex: 1, backgroundColor: D.bg },
 
   /* SEARCH */
-  searchWrap:  { flexDirection: 'row', alignItems: 'center', gap: 10, marginHorizontal: 16, marginBottom: 16, borderRadius: 30, borderWidth: 1, borderColor: BLUE, backgroundColor: C.glassBg, paddingHorizontal: 16, paddingVertical: 12, overflow: 'hidden' },
-  searchInput: { flex: 1, fontSize: 12, fontFamily: 'Poppins_400Regular', color: C.textPrimary, paddingVertical: 0 },
+  searchWrap:  { marginHorizontal: 16, marginBottom: 16 },
 
   /* LABELS + TABS */
-  requestsLabel: { color: C.textPrimary, fontSize: 13, fontFamily: 'Poppins_600SemiBold', paddingHorizontal: 16, marginBottom: 10 },
-  tabsRow:       { flexDirection: 'row', paddingHorizontal: 16, gap: 8, marginBottom: 14 },
-  tab:           { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: C.glassBg, borderWidth: 1, borderColor: C.glassBorder },
-  tabActive:     { borderColor: ORANGE, backgroundColor: 'rgba(255,105,0,0.1)' },
-  tabText:       { color: C.textSecondary, fontSize: 12, fontFamily: 'Poppins_500Medium' },
-  tabTextActive: { color: ORANGE, fontFamily: 'Poppins_600SemiBold' },
-  tabBadge:      { backgroundColor: ORANGE, borderRadius: 10, minWidth: 18, height: 18, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
-  tabBadgeTxt:   { color: '#fff', fontSize: 9, fontFamily: 'Poppins_700Bold' },
+  requestsLabel: { color: D.muted, fontSize: 16, fontFamily: 'Poppins_400Regular', paddingHorizontal: 16, marginBottom: 12 },
+  tabsRow:       { paddingHorizontal: 16, marginBottom: 18, marginTop: 4 },
 
   /* LIST */
   list:     { paddingHorizontal: 16, paddingBottom: 110 },

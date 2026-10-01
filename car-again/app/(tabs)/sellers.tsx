@@ -13,48 +13,54 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { API_BASE } from '@/constants/api';
 import { useAppColors } from '@/constants/theme';
 
-const BG       = '#010a1f';
-const WHITE    = '#f9fafc';
+const BG = '#010a1f';
+const WHITE = '#f9fafc';
 const SUBTITLE = '#baacb6';
 const UNSELECT = '#d2d2d2';
-const ORANGE   = '#e2671b';
-const NAVY     = '#032a69';
+const ORANGE = '#e2671b';
+const NAVY = '#032a69';
 const DARK_NAV = '#061b4a';
-const BORDER   = 'rgba(255,255,255,0.2)';
+const BORDER = 'rgba(255,255,255,0.2)';
 
 
-const IMG_COMPARE   = 'https://www.figma.com/api/mcp/asset/24747b0a-c872-49e3-93a5-5837b0393536.png';
-const IMG_INSURANCE = 'https://www.figma.com/api/mcp/asset/6cd6ddbb-7d65-4df6-8bde-1aaefdda8b39.png';
+const IMG_COMPARE = require('@/assets/images/compareVehicle.png');
+const IMG_INSURANCE = require('@/assets/images/compareInsurance.png');
 
 const IMG_LOGO = require('@/assets/images/autowizor-logo-text.png');
+const FALLBACK_CAR = require('@/assets/images/car1.png');
+const ADD_MORE_ADS = require('@/assets/images/addmoreAds.png');
+const SPEED_ICON = require('@/assets/Icons/speedIcon.png');
+const PETROL_ICON = require('@/assets/Icons/petrolIcon.png');
 
 function formatPrice(p: number) {
   if (p >= 10000000) return `PKR ${(p / 10000000).toFixed(2)} Crore`;
-  if (p >= 100000)   return `PKR ${(p / 100000).toFixed(2)} Lacs`;
+  if (p >= 100000) return `PKR ${(p / 100000).toFixed(2)} Lacs`;
   return `PKR ${p.toLocaleString()}`;
 }
 
 export default function AdsScreen() {
   const router = useRouter();
   const aC = useAppColors();
-  const [vehicles,    setVehicles]    = useState<any[]>([]);
-  const [total,       setTotal]       = useState(0);
-  const [loading,     setLoading]     = useState(true);
-  const [refreshing,  setRefreshing]  = useState(false);
-  const [search,      setSearch]      = useState('');
+  const [vehicles, setVehicles] = useState<any[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [search, setSearch] = useState('');
   const [activeFilters, setActiveFilters] = useState<any>({});
+  const [openFilter, setOpenFilter] = useState<'Price' | 'Location' | 'Model' | null>(null);
+  const [selectedFilter, setSelectedFilter] = useState('All');
 
-  const [page,        setPage]        = useState(1);
-  const [hasNext,     setHasNext]     = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasNext, setHasNext] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
 
   const fetchVehicles = useCallback(async (p = 1, replace = true, filters = activeFilters, q_search = search) => {
     try {
       const q = new URLSearchParams({ page: String(p), limit: '10' });
-      if (q_search)              q.set('search',    q_search);
-      if (filters.cities?.length) q.set('city',     filters.cities[0]);
-      if (filters.models?.length) q.set('search',   filters.models[0]);
-      if (filters.minBudget > 0)  q.set('min_price', String(filters.minBudget));
+      if (q_search) q.set('search', q_search);
+      if (filters.cities?.length) q.set('city', filters.cities[0]);
+      if (filters.models?.length) q.set('search', filters.models[0]);
+      if (filters.minBudget > 0) q.set('min_price', String(filters.minBudget));
       if (filters.maxBudget < 50_000_000) q.set('max_price', String(filters.maxBudget));
       if (filters.minYear && filters.minYear > 1990) q.set('year', String(filters.minYear));
       const res = await fetch(`${API_BASE}/vehicles?${q}`);
@@ -83,95 +89,93 @@ export default function AdsScreen() {
     fetchVehicles(page + 1, false);
   }
 
-  const VehicleCard = ({ item }: { item: any }) => (
-    <View style={[styles.card, { backgroundColor: aC.isDark ? aC.glassBg : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.5)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOffset: { width: 0, height: 4 }, shadowOpacity: aC.isDark ? 0 : 0.08, shadowRadius: 10, elevation: aC.isDark ? 0 : 3 }]}>
-      {aC.isDark ? (
-        <>
-          <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-        </>
-      ) : (
-        <>
-          <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <LinearGradient colors={['transparent', 'rgba(226,103,27,0.08)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-        </>
-      )}
-      <View style={styles.cardTop}>
-        {/* Image */}
-        <View style={styles.cardImgBox}>
-          {item.images?.[0]
-            ? <Image source={{ uri: item.images[0] }} style={StyleSheet.absoluteFillObject} resizeMode="cover" />
-            : <View style={styles.cardImgPh}>
-                <Ionicons name="car-outline" size={32} color={SUBTITLE} />
-              </View>
-          }
-        </View>
+  const VehicleCard = ({ item }: { item: any }) => {
+    const mileage = item.mileage ?? item.mileage_km ?? item.km_driven ?? item.distance_km ?? item.kilometers;
+    const mileageNumber = Number(String(mileage ?? '').replace(/[^\d.]/g, ''));
+    const mileageLabel = mileage != null && String(mileage).trim() ? `${Number.isFinite(mileageNumber) ? mileageNumber.toLocaleString() : String(mileage)}Km` : '210,000Km';
+    return (
+      <View style={[styles.card, { backgroundColor: aC.isDark ? '#010A1F' : '#ffffff', borderColor: aC.isDark ? '#82a5d5' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? '#638ed0' : 'rgba(3,42,105,0.12)', shadowOffset: { width: 0, height: 0 }, shadowOpacity: aC.isDark ? 0.15 : 0.08, shadowRadius: 5, elevation: aC.isDark ? 2 : 3 }]}>
+        {aC.isDark ? (
+          <>
+            <LinearGradient colors={['#16408880', 'transparent', 'transparent', '#16408880']} locations={[0, 0.12, 0.88, 1]} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+            <LinearGradient colors={['#16408880', 'transparent', 'transparent', '#16408880']} locations={[0, 0.05, 0.95, 1]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+          </>
+        ) : (
+          <>
+            <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+            <LinearGradient colors={['transparent', 'rgba(226,103,27,0.08)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+          </>
+        )}
+        <View style={styles.cardTop}>
+          {/* Image */}
+          <View style={styles.cardImgBox}>
+            <Image source={FALLBACK_CAR} style={styles.cardCarImage} resizeMode="contain" />
+          </View>
 
-        {/* Info */}
-        <View style={styles.cardInfo}>
-          <Text style={[styles.cardTitle, { color: aC.textPrimary }]} numberOfLines={2}>{item.title}</Text>
-          <Text style={styles.cardPrice}>{formatPrice(item.price)}</Text>
+          {/* Info */}
+          <View style={styles.cardInfo}>
+            <Text style={[styles.cardTitle, { color: aC.textPrimary }]} numberOfLines={2}>{item.title}</Text>
+            <Text style={styles.cardPrice}>{formatPrice(item.price)}</Text>
 
-          {/* Year + KM */}
-          <View style={styles.metaRow}>
-            <View style={styles.metaItem}>
-              <Ionicons name="calendar-outline" size={13} color={aC.textSecondary} />
-              <Text style={[styles.metaTxt, { color: aC.textSecondary }]}>{item.year}</Text>
-            </View>
-            {item.mileage ? (
+            {/* Year + KM */}
+            <View style={styles.metaRow}>
               <View style={styles.metaItem}>
-                <Ionicons name="speedometer-outline" size={13} color={aC.textSecondary} />
-                <Text style={[styles.metaTxt, { color: aC.textSecondary }]}>{item.mileage.toLocaleString()}Km</Text>
+                <Ionicons name="calendar" size={14} color={ORANGE} />
+                <Text style={[styles.metaTxt, { color: aC.textSecondary }]}>{item.year}</Text>
               </View>
-            ) : null}
-          </View>
+              <View style={styles.metaItem}>
+                <Image source={SPEED_ICON} style={styles.metaIcon} resizeMode="contain" />
+                <Text style={[styles.metaTxt, { color: aC.textSecondary }]} numberOfLines={1}>{mileageLabel}</Text>
+              </View>
+            </View>
 
-          {/* Fuel + City */}
-          <View style={styles.metaRow}>
-            <View style={styles.metaItem}>
-              <Ionicons name="water-outline" size={13} color={aC.textSecondary} />
-              <Text style={[styles.metaTxt, { color: aC.textSecondary }]}>{item.fuel_type || 'Petrol'}</Text>
+            {/* Fuel + City */}
+            <View style={styles.metaRow}>
+              <View style={styles.metaItem}>
+                <Image source={PETROL_ICON} style={styles.metaIcon} resizeMode="contain" />
+                <Text style={[styles.metaTxt, { color: aC.textSecondary }]}>{item.fuel_type || 'Petrol'}</Text>
+              </View>
+              <View style={styles.metaItem}>
+                <Ionicons name="location-outline" size={15} color={ORANGE} />
+                <Text style={[styles.metaTxt, { color: aC.textSecondary }]}>{item.city || 'Pakistan'}</Text>
+              </View>
             </View>
-            <View style={styles.metaItem}>
-              <Ionicons name="location-outline" size={13} color={aC.textSecondary} />
-              <Text style={[styles.metaTxt, { color: aC.textSecondary }]}>{item.city || 'Pakistan'}</Text>
-            </View>
-          </View>
 
-          {/* Available badge */}
-          <View style={styles.statusRow}>
-            <View style={styles.availBadge}>
-              <Ionicons name="checkmark-circle" size={10} color="#34c759" />
-              <Text style={styles.availTxt}>Available</Text>
+            {/* Available badge */}
+            <View style={styles.statusRow}>
+              <View style={styles.availBadge}>
+                <Ionicons name="checkmark-circle" size={13} color="#28c76f" />
+                <Text style={styles.availTxt}>Available</Text>
+              </View>
+              <Text numberOfLines={1} style={[styles.deliveryTxt, { color: aC.textSecondary }]}>Delivery: Immediate</Text>
             </View>
-            <Text style={[styles.deliveryTxt, { color: aC.textSecondary }]}>Delivery: Immediate</Text>
           </View>
         </View>
-      </View>
 
-      {/* Buttons */}
-      <View style={styles.cardBtns}>
-        <TouchableOpacity
-          style={styles.viewBtn}
-          activeOpacity={0.85}
-          onPress={() => router.push({ pathname: '/vehicle/[id]', params: { id: item.id } })}
-        >
-          <LinearGradient
-            colors={[NAVY, ORANGE]}
-            start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-            style={styles.viewGrad}
+        {/* Buttons */}
+        <View style={styles.cardBtns}>
+          <TouchableOpacity
+            style={styles.viewBtn}
+            activeOpacity={0.85}
+            onPress={() => router.push({ pathname: '/vehicle/[id]', params: { id: item.id } })}
           >
-            <Text style={styles.viewTxt}>View Details</Text>
-          </LinearGradient>
-        </TouchableOpacity>
+            <LinearGradient
+              colors={[NAVY, ORANGE]}
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+              style={styles.viewGrad}
+            >
+              <Text style={styles.viewTxt}>View Details</Text>
+            </LinearGradient>
+          </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.contactBtn, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderColor: aC.isDark ? 'rgba(255,255,255,0.2)' : 'rgba(3,42,105,0.14)' }]} activeOpacity={0.85}>
-          <Text style={[styles.contactTxt, { color: aC.isDark ? '#f9fafc' : '#032a69' }]}>Contact Seller</Text>
-        </TouchableOpacity>
+          <TouchableOpacity style={[styles.contactBtn, { backgroundColor: aC.isDark ? '#081b3c' : '#ffffff', borderColor: aC.isDark ? '#83a8db' : 'rgba(3,42,105,0.14)' }]} activeOpacity={0.85}>
+            {aC.isDark && <LinearGradient colors={['rgba(40,86,158,0.72)', 'rgba(0,0,0,0.22)', 'rgba(21,54,110,0.32)']} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
+            <Text style={[styles.contactTxt, { color: aC.isDark ? '#f9fafc' : '#032a69' }]}>Contact Seller</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: aC.bg }]}>
@@ -179,7 +183,7 @@ export default function AdsScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back-outline" size={22} color={aC.textPrimary} />
+          <Ionicons name="chevron-back" size={25} color={aC.isDark ? '#baacb6' : aC.textPrimary} />
         </TouchableOpacity>
         <View style={styles.logoWrap} pointerEvents="none">
           {aC.isDark ? (
@@ -192,8 +196,8 @@ export default function AdsScreen() {
           )}
         </View>
         <View style={styles.heartWrap}>
-          <Ionicons name="heart" size={20} color={ORANGE} style={{ marginTop: 16 }} />
-          <Text style={[styles.heartCount, { marginTop: 16 }]}>3</Text>
+          <Ionicons name="heart" size={25} color={ORANGE} />
+          <Text style={styles.heartCount}>3</Text>
         </View>
       </View>
 
@@ -217,12 +221,11 @@ export default function AdsScreen() {
 
 
             {/* Search */}
-            <View style={[styles.searchBox, { backgroundColor: aC.isDark ? aC.glassBg : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.5)' : 'rgba(3,42,105,0.14)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, shadowRadius: 8, elevation: aC.isDark ? 0 : 2 }]}>
+            <View style={[styles.searchBox, { backgroundColor: aC.isDark ? '#0a1b3a' : '#ffffff', borderColor: aC.isDark ? '#82a5d5' : 'rgba(3,42,105,0.14)', shadowColor: aC.isDark ? '#7ba8ed' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0.18 : 0.06, shadowRadius: 4, elevation: aC.isDark ? 2 : 2 }]}>
               {aC.isDark ? (
                 <>
-                  <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                  <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                  <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+                  <LinearGradient colors={['rgba(53,105,186,0.42)', 'rgba(14,34,75,0.16)', 'rgba(0,0,0,0.16)', 'rgba(14,34,75,0.16)', 'rgba(53,105,186,0.34)']} locations={[0, 0.14, 0.5, 0.86, 1]} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+                  <LinearGradient colors={['rgba(52,104,184,0.22)', 'rgba(0,0,0,0.12)', 'rgba(0,0,0,0.12)', 'rgba(52,104,184,0.22)']} locations={[0, 0.12, 0.88, 1]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
                 </>
               ) : (
                 <>
@@ -240,6 +243,62 @@ export default function AdsScreen() {
                 returnKeyType="search"
               />
             </View>
+
+            {/* Ads filters */}
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll} contentContainerStyle={styles.filterContent}>
+              {(['All', 'Price', 'Location', 'Model'] as const).map(label => {
+                const selected = selectedFilter === label;
+                return (
+                  <TouchableOpacity
+                    key={label}
+                    activeOpacity={0.85}
+                    style={[styles.filterChip, selected ? styles.filterChipActive : styles.filterChipInactive]}
+                    onPress={() => {
+                      if (label === 'All') {
+                        setOpenFilter(null);
+                        setSelectedFilter('All');
+                        handleFilterApply({});
+                      } else {
+                        // Highlight the tapped menu right away, then show its options
+                        setSelectedFilter(label);
+                        setOpenFilter(openFilter === label ? null : label);
+                      }
+                    }}
+                  >
+                    {aC.isDark && <LinearGradient colors={['#214779', '#071733', '#0a1d40']} style={[StyleSheet.absoluteFillObject, { opacity: selected ? 1 : 0 }]} pointerEvents="none" />}
+                    <Text style={[styles.filterTxt, selected && styles.filterTxtActive]}>{label}</Text>
+                    <Ionicons name="chevron-down" size={17} color={aC.isDark ? WHITE : '#032a69'} />
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+            {openFilter && (
+              <View style={[styles.filterOptions, { backgroundColor: aC.isDark ? '#071a3b' : '#ffffff' }]}>
+                {(openFilter === 'Price'
+                  ? ['Any Price', 'Under 10 Lacs', '10–30 Lacs', '30–50 Lacs', '50 Lacs and above']
+                  : openFilter === 'Location'
+                    ? ['All Locations', 'Karachi', 'Lahore', 'Islamabad', 'Rawalpindi']
+                    : ['All Models', 'Civic', 'City', 'Corolla', 'Alto', 'Cultus']
+                ).map((option, index) => (
+                  <TouchableOpacity key={option} style={styles.filterOption} onPress={() => {
+                    const next = { ...activeFilters };
+                    if (openFilter === 'Price') {
+                      const ranges = [[0, 50_000_000], [0, 999_999], [1_000_000, 3_000_000], [3_000_000, 5_000_000], [5_000_000, 50_000_000]];
+                      [next.minBudget, next.maxBudget] = ranges[index];
+                    } else if (openFilter === 'Location') {
+                      next.cities = index === 0 ? [] : [option];
+                    } else {
+                      next.models = index === 0 ? [] : [option];
+                    }
+                    setSelectedFilter(index === 0 ? 'All' : openFilter);
+                    setOpenFilter(null);
+                    handleFilterApply(next);
+                  }}>
+                    <Text style={[styles.filterOptionText, { color: aC.textPrimary }]}>{option}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
 
 
             {loading && <ActivityIndicator color={ORANGE} style={{ marginVertical: 24 }} />}
@@ -259,7 +318,7 @@ export default function AdsScreen() {
                     start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
                     style={styles.needGrad}
                   >
-                    <Image source={{ uri: IMG_COMPARE }} style={styles.needImg} resizeMode="contain" />
+                    <Image source={IMG_COMPARE} style={styles.needImg} resizeMode="contain" />
                     <View style={styles.needTitleRow}>
                       <Text style={[styles.needTitle, { color: aC.isDark ? WHITE : '#032a69' }]}>{'Compare\nVehicle'}</Text>
                       <Ionicons name="chevron-forward" size={14} color={aC.isDark ? WHITE : '#032a69'} />
@@ -274,7 +333,7 @@ export default function AdsScreen() {
                     start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
                     style={styles.needGrad}
                   >
-                    <Image source={{ uri: IMG_INSURANCE }} style={styles.needImg} resizeMode="contain" />
+                    <Image source={IMG_INSURANCE} style={styles.needImg} resizeMode="contain" />
                     <View style={styles.needTitleRow}>
                       <Text style={[styles.needTitle, { color: aC.isDark ? WHITE : '#032a69' }]}>{'Compare\nInsurance'}</Text>
                       <Ionicons name="chevron-forward" size={14} color={aC.isDark ? WHITE : '#032a69'} />
@@ -299,12 +358,28 @@ export default function AdsScreen() {
         }
         renderItem={({ item }) => <VehicleCard item={item} />}
       />
+      <TouchableOpacity
+        style={styles.addMoreAdsButton}
+        activeOpacity={0.85}
+        accessibilityRole="button"
+        accessibilityLabel="Add new ad"
+        onPress={() => router.push('/vehicle/create')}
+      >
+        <Image source={ADD_MORE_ADS} style={styles.addMoreAdsImage} resizeMode="contain" />
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: BG },
+  addMoreAdsButton: {
+    position: 'absolute', right: 16, bottom: 88,
+    width: 60, height: 60, borderRadius: 30,
+    alignItems: 'center', justifyContent: 'center',
+    zIndex: 10, elevation: 8,
+  },
+  addMoreAdsImage: { width: 60, height: 60 },
 
   header: {
     flexDirection: 'row', alignItems: 'center',
@@ -321,82 +396,84 @@ const styles = StyleSheet.create({
   },
   logo: { width: 112, height: 21 },
   logoTextLight: { fontSize: 20, fontFamily: 'Poppins_700Bold', letterSpacing: 0.5, textAlign: 'center' },
-  heartWrap: { flexDirection: 'row', alignItems: 'center', gap: 3 },
-  heartCount:{ color: ORANGE, fontSize: 8, fontFamily: 'Poppins_500Medium' },
+  heartWrap: { width: 28, height: 29, alignItems: 'center', justifyContent: 'center' },
+  heartCount: { position: 'absolute', right: 0, bottom: 0, color: WHITE, fontSize: 9, fontFamily: 'Poppins_600SemiBold' },
 
   list: { paddingHorizontal: 20, paddingBottom: 110 },
 
-  titleBox:  { marginBottom: 12, marginTop: 4, paddingHorizontal: 20 },
-  pageTitle: { color: WHITE,    fontSize: 18, fontFamily: 'Poppins_500Medium' },
+  titleBox: { marginBottom: 12, marginTop: 4, paddingHorizontal: 0 },
+  pageTitle: { color: WHITE, fontSize: 18, fontFamily: 'Poppins_500Medium' },
   resultSub: { color: SUBTITLE, fontSize: 14, fontFamily: 'Poppins_500Medium' },
 
   searchBox: {
-    flexDirection: 'row', alignItems: 'center', gap: 12,
+    flexDirection: 'row', alignItems: 'center', gap: 14,
     borderWidth: 1, borderColor: 'rgba(100,160,255,0.5)',
-    borderRadius: 32, paddingHorizontal: 16, paddingVertical: 8,
+    borderRadius: 32, paddingHorizontal: 20, height: 50,
     marginBottom: 12, backgroundColor: 'rgba(3,12,40,0.6)',
     overflow: 'hidden',
   },
   searchInput: { flex: 1, color: WHITE, fontSize: 12, fontFamily: 'Poppins_400Regular' },
 
-  filterScroll:  { flexGrow: 0, marginBottom: 14 },
-  filterContent: { gap: 10 },
+  filterScroll: { flexGrow: 0, marginBottom: 14, marginHorizontal: -20 },
+  filterContent: { gap: 12, paddingHorizontal: 20 },
   filterChipActive: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
-    paddingHorizontal: 14, paddingVertical: 8,
-    borderRadius: 16, borderWidth: 1, borderColor: BORDER,
+    borderWidth: 1, borderColor: '#7298cf', backgroundColor: '#0b2048', overflow: 'hidden',
   },
   filterChipInactive: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
-    paddingHorizontal: 14, paddingVertical: 8,
-    borderRadius: 16, backgroundColor: DARK_NAV,
+    // same border width as the active chip (transparent) so toggling doesn't change the layout
+    borderWidth: 1, borderColor: 'transparent', backgroundColor: '#061b4a', overflow: 'hidden',
   },
-  filterChip:    {},
-  filterTxt:     { color: WHITE,  fontSize: 13, fontFamily: 'Poppins_500Medium' },
-  filterTxtActive:{ color: ORANGE, fontFamily: 'Poppins_700Bold' },
+  filterChip: { height: 48, paddingHorizontal: 17, borderRadius: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, overflow: 'hidden' },
+  filterTxt: { color: WHITE, fontSize: 13, fontFamily: 'Poppins_500Medium' },
+  filterTxtActive: { color: ORANGE, fontFamily: 'Poppins_700Bold' },
+  filterOptions: { borderWidth: 1, borderColor: '#7298cf', borderRadius: 14, marginBottom: 14, overflow: 'hidden' },
+  filterOption: { paddingHorizontal: 16, paddingVertical: 10 },
+  filterOptionText: { fontSize: 13, fontFamily: 'Poppins_500Medium' },
 
   /* Vehicle card */
   card: {
-    borderWidth: 1, borderColor: 'rgba(100,160,255,0.5)',
-    backgroundColor: 'rgba(3,12,40,0.6)',
-    borderRadius: 16, overflow: 'hidden', marginBottom: 16,
+    borderWidth: 1, borderColor: '#82a5d5',
+    backgroundColor: '#020d25',
+    borderRadius: 16, overflow: 'hidden', marginBottom: 12,
   },
-  cardTop:   { flexDirection: 'row', gap: 10 },
-  cardImgBox:{
-    width: 120, alignSelf: 'stretch', flexShrink: 0,
-    margin: 10, borderRadius: 12, overflow: 'hidden',
+  cardTop: { flexDirection: 'row', gap: 12 },
+  cardImgBox: {
+    width: 122, height: 108, flexShrink: 0,
+    marginLeft: 10, marginTop: 10, borderRadius: 13, overflow: 'hidden', backgroundColor: '#07152d',
   },
+  cardCarImage: { width: '100%', height: '100%' },
   cardImgPh: { flex: 1, backgroundColor: 'rgba(255,255,255,0.05)', alignItems: 'center', justifyContent: 'center' },
-  cardInfo:  { flex: 1, gap: 4, paddingVertical: 10, paddingRight: 10 },
-  cardTitle: { color: WHITE,  fontSize: 12, fontFamily: 'Poppins_500Medium', lineHeight: 17 },
-  cardPrice: { color: ORANGE, fontSize: 11, fontFamily: 'Poppins_700Bold' },
+  cardInfo: { flex: 1, gap: 5, paddingTop: 9, paddingRight: 10 },
+  cardTitle: { color: WHITE, fontSize: 13, fontFamily: 'Poppins_500Medium', lineHeight: 19 },
+  cardPrice: { color: ORANGE, fontSize: 12, fontFamily: 'Poppins_700Bold', marginBottom: 4 },
 
-  metaRow:  { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
-  metaItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  metaTxt:  { color: UNSELECT, fontSize: 10, fontFamily: 'Poppins_400Regular' },
+  metaRow: { flexDirection: 'row', gap: 4 },
+  metaItem: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  metaIcon: { width: 15, height: 15 },
+  metaTxt: { color: UNSELECT, fontSize: 11, fontFamily: 'Poppins_400Regular', flexShrink: 1 },
 
-  statusRow:  { flexDirection: 'row', alignItems: 'center', gap: 4, flexWrap: 'wrap' },
+  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 4, flexWrap: 'nowrap' },
   availBadge: {
     flexDirection: 'row', alignItems: 'center', gap: 3,
-    backgroundColor: 'rgba(52,199,89,0.1)',
-    paddingHorizontal: 8, paddingVertical: 2, borderRadius: 18,
+    backgroundColor: 'rgba(0,65,57,0.42)',
+    paddingHorizontal: 7, paddingVertical: 3, borderRadius: 18, flexShrink: 0,
   },
-  availTxt:    { color: '#34c759', fontSize: 9, fontFamily: 'Poppins_500Medium' },
-  deliveryTxt: { color: SUBTITLE,  fontSize: 8, fontFamily: 'Poppins_400Regular' },
+  availTxt: { color: '#28c76f', fontSize: 9, fontFamily: 'Poppins_500Medium' },
+  deliveryTxt: { color: SUBTITLE, fontSize: 8, fontFamily: 'Poppins_400Regular', flexShrink: 1 },
 
-  cardBtns:   { flexDirection: 'row', gap: 10, padding: 10, paddingTop: 6 },
-  viewBtn:    { flex: 1, borderRadius: 16, overflow: 'hidden' },
-  viewGrad:   { height: 32, alignItems: 'center', justifyContent: 'center' },
-  viewTxt:    { color: WHITE, fontSize: 11, fontFamily: 'Poppins_500Medium' },
+  cardBtns: { flexDirection: 'row', gap: 11, paddingHorizontal: 10, paddingBottom: 11, paddingTop: 12 },
+  viewBtn: { flex: 1, borderRadius: 24, overflow: 'hidden' },
+  viewGrad: { height: 31, alignItems: 'center', justifyContent: 'center' },
+  viewTxt: { color: WHITE, fontSize: 12, fontFamily: 'Poppins_500Medium' },
   contactBtn: {
-    flex: 1, height: 32, borderRadius: 16,
+    flex: 1, height: 31, borderRadius: 24, overflow: 'hidden',
     borderWidth: 1, borderColor: BORDER,
     alignItems: 'center', justifyContent: 'center',
     shadowColor: 'rgba(29,83,175,1)',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5, shadowRadius: 10, elevation: 5,
+    shadowOpacity: 0.12, shadowRadius: 4, elevation: 2,
   },
-  contactTxt: { color: WHITE, fontSize: 11, fontFamily: 'Poppins_500Medium' },
+  contactTxt: { color: WHITE, fontSize: 12, fontFamily: 'Poppins_500Medium' },
 
   sectionTitle: {
     color: WHITE, fontSize: 16,
@@ -412,9 +489,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center',
     justifyContent: 'space-between', marginBottom: 4,
   },
-  needTitle: { color: WHITE,    fontSize: 16, fontFamily: 'Poppins_500Medium', textTransform: 'capitalize' },
-  needImg:   { width: 96, height: 70, marginBottom: 8 },
-  needSub:   { color: UNSELECT, fontSize: 10, fontFamily: 'Poppins_400Regular', lineHeight: 14 },
+  needTitle: { color: WHITE, fontSize: 16, fontFamily: 'Poppins_500Medium', textTransform: 'capitalize' },
+  needImg: { width: 96, height: 70, marginBottom: 8, alignSelf: 'center' },
+  needSub: { color: UNSELECT, fontSize: 10, fontFamily: 'Poppins_400Regular', lineHeight: 14 },
 
   videoCard: {
     flexDirection: 'row', gap: 14,
@@ -437,14 +514,14 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.62)',
     paddingHorizontal: 6, paddingVertical: 1, borderRadius: 17,
   },
-  durationTxt:  { color: WHITE, fontSize: 8, fontFamily: 'Poppins_400Regular' },
-  videoInfo:    { flex: 1, justifyContent: 'center', gap: 6 },
-  videoTitle:   { color: WHITE,    fontSize: 14, fontFamily: 'Poppins_500Medium' },
-  videoSub:     { color: SUBTITLE, fontSize: 12, fontFamily: 'Poppins_400Regular' },
+  durationTxt: { color: WHITE, fontSize: 8, fontFamily: 'Poppins_400Regular' },
+  videoInfo: { flex: 1, justifyContent: 'center', gap: 6 },
+  videoTitle: { color: WHITE, fontSize: 14, fontFamily: 'Poppins_500Medium' },
+  videoSub: { color: SUBTITLE, fontSize: 12, fontFamily: 'Poppins_400Regular' },
   videoDivider: { height: 0.5, backgroundColor: BORDER },
-  videoMeta:    { flexDirection: 'row', gap: 8 },
+  videoMeta: { flexDirection: 'row', gap: 8 },
   videoMetaTxt: { color: SUBTITLE, fontSize: 8, fontFamily: 'Poppins_400Regular' },
 
-  empty:    { alignItems: 'center', paddingVertical: 60, gap: 12 },
+  empty: { alignItems: 'center', paddingVertical: 60, gap: 12 },
   emptyTxt: { color: SUBTITLE, fontSize: 15, fontFamily: 'Poppins_500Medium' },
 });

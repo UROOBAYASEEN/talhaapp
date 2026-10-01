@@ -7,11 +7,18 @@
  */
 import { LinearGradient } from 'expo-linear-gradient';
 import { Tabs, useRouter } from 'expo-router';
+import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAppColors } from '@/constants/theme';
+
+// Figma bottom bar (exact colours sampled from the design):
+// bar #071C49 · active circle navy → orange with orange ring · white outline icons,
+// active icon orange · white labels.
+const BAR_BG = '#071C49';
 
 function TabIcon({
   name,
@@ -22,26 +29,33 @@ function TabIcon({
   label: string;
   focused: boolean;
 }) {
-  const C = useAppColors();
-  const inactiveColor = C.isDark ? '#f9fafc' : '#032a69';
-  const labelColor = C.isDark ? '#f9fafc' : '#032a69';
   if (focused) {
     return (
       <LinearGradient
-        colors={['#032a69', 'rgba(3,42,105,0.36)', '#e2671b']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        style={styles.iconActive}
+        // Ring: orange on top fading to blue at the bottom (Figma)
+        colors={['#E2671B', '#9E5536', '#4A3D4F', '#2A4A8F']}
+        locations={[0, 0.3, 0.62, 1]}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        style={styles.activeRing}
       >
-        <Ionicons name={name} size={16} color="#f9fafc" />
-        <Text style={[styles.label, { color: '#f9fafc' }]}>{label}</Text>
+        <LinearGradient
+          colors={['#072B64', '#072356', '#0C2454', '#3C3448', '#634040', '#A55531', '#CD612C']}
+          locations={[0, 0.3, 0.4, 0.6, 0.72, 0.86, 1]}
+          start={{ x: 0.5, y: 0 }}
+          end={{ x: 0.5, y: 1 }}
+          style={styles.iconActive}
+        >
+          <Ionicons name={name} size={17} color="#E2671B" />
+          <Text style={styles.label}>{label}</Text>
+        </LinearGradient>
       </LinearGradient>
     );
   }
   return (
     <View style={styles.iconInactive}>
-      <Ionicons name={name} size={16} color={inactiveColor} />
-      <Text style={[styles.label, { color: labelColor }]}>{label}</Text>
+      <Ionicons name={name} size={17} color="#FFFFFF" />
+      <Text style={styles.label}>{label}</Text>
     </View>
   );
 }
@@ -49,8 +63,7 @@ function TabIcon({
 // Sell tab — straight line — minus sign for Sell
 function SellTabButton({ style }: { style?: any }) {
   const router = useRouter();
-  const C = useAppColors();
-  const color = C.isDark ? '#f9fafc' : '#032a69';
+  const color = '#FFFFFF';
   return (
     <TouchableOpacity
       style={[styles.sellBtnWrap, style]}
@@ -58,10 +71,37 @@ function SellTabButton({ style }: { style?: any }) {
       activeOpacity={0.8}
     >
       <View style={styles.iconInactive}>
-        <Ionicons name="remove-outline" size={16} color={color} />
+        <Ionicons name="remove-circle-outline" size={17} color={color} />
         <Text style={[styles.label, { color }]}>Sell</Text>
       </View>
     </TouchableOpacity>
+  );
+}
+
+// Custom bar (Figma): rounded pill, 6 equal-width tabs, every tab centred vertically and
+// horizontally. Sits just above the device's back/home buttons.
+const BAR_H = 60;
+function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+  const insets = useSafeAreaInsets();
+  return (
+    <View style={[styles.bar, { bottom: insets.bottom + 4 }]}>
+      {state.routes.map((route, index) => {
+        const { options } = descriptors[route.key];
+        if (route.name === 'sell') {
+          return <SellTabButton key={route.key} style={styles.barItem} />;
+        }
+        const focused = state.index === index;
+        const onPress = () => {
+          const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
+          if (!focused && !event.defaultPrevented) navigation.navigate(route.name, route.params);
+        };
+        return (
+          <TouchableOpacity key={route.key} style={styles.barItem} activeOpacity={0.8} onPress={onPress}>
+            {options.tabBarIcon?.({ focused, color: focused ? '#e2671b' : '#FFFFFF', size: 17 })}
+          </TouchableOpacity>
+        );
+      })}
+    </View>
   );
 }
 
@@ -81,12 +121,12 @@ export default function TabLayout() {
 
   return (
     <Tabs
+      tabBar={props => <CustomTabBar {...props} />}
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false,
-        tabBarStyle: [styles.tabBar, { backgroundColor: C.isDark ? '#032a69' : '#ffffff', borderColor: C.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', borderWidth: C.isDark ? 0 : 1, shadowColor: C.isDark ? '#000' : 'rgba(3,42,105,0.18)', shadowOpacity: C.isDark ? 0.35 : 0.12, elevation: 10 }],
         tabBarActiveTintColor: '#e2671b',
-        tabBarInactiveTintColor: C.isDark ? '#f9fafc' : '#032a69',
+        tabBarInactiveTintColor: '#FFFFFF',
         sceneStyle: { backgroundColor: C.bg },
       }}
     >
@@ -94,7 +134,7 @@ export default function TabLayout() {
         name="index"
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon name={focused ? 'home' : 'home-outline'} label="Home" focused={focused} />
+            <TabIcon name="home-outline" label="Home" focused={focused} />
           ),
         }}
       />
@@ -102,7 +142,7 @@ export default function TabLayout() {
         name="chat"
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon name={focused ? 'chatbubble' : 'chatbubble-outline'} label="Chat" focused={focused} />
+            <TabIcon name="chatbubble-ellipses-outline" label="Chat" focused={focused} />
           ),
         }}
       />
@@ -110,7 +150,7 @@ export default function TabLayout() {
         name="explore"
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon name="add-outline" label="Buy" focused={focused} />
+            <TabIcon name="add-circle-outline" label="Buy" focused={focused} />
           ),
         }}
       />
@@ -125,7 +165,7 @@ export default function TabLayout() {
         name="sellers"
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon name={focused ? 'megaphone' : 'megaphone-outline'} label="Ads" focused={focused} />
+            <TabIcon name="megaphone-outline" label="My Ads" focused={focused} />
           ),
         }}
       />
@@ -133,7 +173,7 @@ export default function TabLayout() {
         name="profile"
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon name={focused ? 'person-circle' : 'person-circle-outline'} label="Profile" focused={focused} />
+            <TabIcon name="person-outline" label="Profile" focused={focused} />
           ),
         }}
       />
@@ -142,47 +182,56 @@ export default function TabLayout() {
 }
 
 const styles = StyleSheet.create({
-  tabBar: {
+  bar: {
     position: 'absolute',
-    backgroundColor: '#061b4a',
-    borderTopWidth: 0,
-    borderRadius: 32,
-    height: 63,
-    bottom: 10,
     left: 10,
     right: 10,
+    height: BAR_H,
+    borderRadius: BAR_H / 2,
+    backgroundColor: BAR_BG,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 6,
     elevation: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.35,
     shadowRadius: 10,
   },
-  iconActive: {
-    width: 47,
-    height: 47,
-    borderRadius: 32,
-    borderWidth: 1,
-    borderColor: '#e2671b',
+  barItem: {
+    flex: 1,
+    height: BAR_H,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 2,
+  },
+  activeRing: {
+    width: 47,
+    height: 47,
+    borderRadius: 23.5,
+    padding: 1.8,
+  },
+  iconActive: {
+    flex: 1,
+    borderRadius: 23.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 3,
   },
   iconInactive: {
     width: 47,
     height: 47,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 2,
+    gap: 3,
   },
   label: {
-    fontSize: 8,
+    fontSize: 8.5,
     fontFamily: 'Poppins_500Medium',
-    color: '#f9fafc',
+    color: '#FFFFFF',
   },
   sellBtnWrap: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    transform: [{ translateY: -6 }],
   },
 });

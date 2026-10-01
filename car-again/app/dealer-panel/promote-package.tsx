@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  SafeAreaView, ScrollView, Alert,
+  ScrollView, Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { X, Flame, ChevronRight, Zap } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { PlanOption } from '@/components/dealer/DealerUI';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { SavedCardEffect, savedCardOuter } from '@/components/shared/FigmaEffects';
+import { GlassButton } from '@/components/shared/GlowUI';
 import { AppColors } from '@/constants/theme';
 
 const ORANGE = AppColors.gradientEnd;
-const NAVY   = AppColors.gradientStart;
 const C      = AppColors;
 
 const OPTIONS = [
@@ -65,6 +68,13 @@ export default function PromotePackageScreen() {
     } as any);
   }
 
+  // Figma wording (plan_title sent to payment stays the same)
+  const LABEL: Record<string, { t: string; sub: string }> = {
+    hot:  { t: 'Hot Selling listing', sub: 'Recommended for popular cars' },
+    home: { t: 'Home page Listing',   sub: 'Balanced exposure for more buyers' },
+    new:  { t: 'New Listing',         sub: 'Notify Buyers About New Listings' },
+  };
+
   return (
     <SafeAreaView style={s.safeArea}>
       <ScrollView
@@ -72,22 +82,17 @@ export default function PromotePackageScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* CARD */}
-        <View style={s.card}>
-          <LinearGradient
-            colors={['#0b1642', '#0d1a4a', '#0a1338']}
-            start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }}
-            style={StyleSheet.absoluteFillObject}
-          />
-
+        <View style={[savedCardOuter, s.card]}>
+          <SavedCardEffect band={26} color="#2A4F9A80" />
           {/* CLOSE */}
           <TouchableOpacity style={s.closeBtn} onPress={() => router.back()} activeOpacity={0.7}>
-            <X size={26} color={ORANGE} strokeWidth={2.5}/>
+            <Ionicons name="close" size={30} color={ORANGE} />
           </TouchableOpacity>
 
           {/* HEADER */}
           <View style={s.header}>
             <View style={s.fireBox}>
-              <Flame size={30} color={ORANGE} fill={ORANGE}/>
+              <Ionicons name="flame-outline" size={30} color={ORANGE} />
             </View>
             <Text style={s.headerTitle}>
               Promote to Get Your Vehicle Seen Faster
@@ -96,60 +101,33 @@ export default function PromotePackageScreen() {
 
           {/* OPTIONS */}
           <View style={s.optionsCol}>
-            {OPTIONS.map(opt => {
-              const isSelected = selected === opt.id;
-              return (
-                <TouchableOpacity
-                  key={opt.id}
-                  onPress={() => setSelected(opt.id)}
-                  activeOpacity={0.85}
-                  style={[s.optCard, isSelected && s.optCardSelected]}
-                >
-                  {/* Top row — title + radio */}
-                  <View style={s.optTop}>
-                    <View style={s.optTitleRow}>
-                      {opt.icon && (
-                        <Flame size={20} color={ORANGE} fill={ORANGE} style={{ marginRight: 8 }}/>
-                      )}
-                      <Text style={s.optTitle}>{opt.title}</Text>
-                    </View>
-                    <View style={[s.radioOuter, isSelected && s.radioOuterSelected]}>
-                      {isSelected && <View style={s.radioInner}/>}
-                    </View>
-                  </View>
-
-                  {/* Bottom row — subtitle + price */}
-                  <View style={s.optBottom}>
-                    <Text style={s.optSubtitle}>{opt.subtitle}</Text>
-                    <View style={s.priceRow}>
-                      <Text style={s.price}>{opt.price}</Text>
-                      <ChevronRight size={18} color={ORANGE}/>
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
+            {OPTIONS.map(opt => (
+              <PlanOption
+                key={opt.id}
+                title={LABEL[opt.id]?.t || opt.title}
+                sub={LABEL[opt.id]?.sub || opt.subtitle}
+                price={`Rs ${opt.amount.toLocaleString()}`}
+                fire={opt.id === 'home'}
+                selected={selected === opt.id}
+                onPress={() => setSelected(opt.id)}
+              />
+            ))}
           </View>
 
           {/* PROMOTE NOW */}
-          <TouchableOpacity
-            style={s.promoteBtn}
-            onPress={handlePromote}
-            activeOpacity={0.85}
-          >
+          <TouchableOpacity style={s.promoteBtn} onPress={handlePromote} activeOpacity={0.85}>
             <LinearGradient
-              colors={[NAVY, ORANGE]}
+              colors={['#0B3585', '#7E4F5C', '#E8702A']}
+              locations={[0, 0.5, 1]}
               start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
               style={StyleSheet.absoluteFillObject}
             />
-            <Zap size={20} color="#fff" fill="#fff"/>
+            <Ionicons name="flash-outline" size={24} color="#fff" />
             <Text style={s.promoteTxt}>Promote Now</Text>
           </TouchableOpacity>
 
           {/* CANCEL */}
-          <TouchableOpacity style={s.cancelBtn} onPress={() => router.back()} activeOpacity={0.8}>
-            <Text style={s.cancelTxt}>Cancel</Text>
-          </TouchableOpacity>
+          <GlassButton title="Cancel" height={50} fontSize={16} color="#E6E1E8" style={{ marginTop: 12, marginHorizontal: 20 }} onPress={() => router.back()} />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -158,70 +136,31 @@ export default function PromotePackageScreen() {
 
 const s = StyleSheet.create({
   safeArea:      { flex: 1, backgroundColor: C.bg },
-  scrollContent: { flexGrow: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 14, backgroundColor: C.bg },
+  scrollContent: { flexGrow: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 14, backgroundColor: C.bg },
 
-  /* CARD */
+  /* CARD — blurred slate panel */
   card: {
     width: '100%',
-    borderRadius: 28,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
-    overflow: 'hidden',
-    padding: 18,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 20,
-    elevation: 12,
+    borderRadius: 24,
+    backgroundColor: '#232B3F',
+    borderColor: 'rgba(90,120,190,0.8)',
+    paddingHorizontal: 10,
+    paddingTop: 18,
+    paddingBottom: 22,
   },
 
-  /* CLOSE */
-  closeBtn: { position: 'absolute', top: 14, right: 14, width: 32, height: 32, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
+  closeBtn: { position: 'absolute', top: 14, right: 16, width: 36, height: 36, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
 
-  /* HEADER */
-  header:     { flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginBottom: 16, paddingRight: 28, marginTop: 6 },
-  fireBox:    { width: 50, height: 50, borderRadius: 14, backgroundColor: 'transparent', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  headerTitle:{ flex: 1, color: '#fff', fontSize: 17, fontFamily: 'Poppins_700Bold', lineHeight: 25, paddingTop: 2 },
+  header:     { flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 18, paddingRight: 40, paddingLeft: 16, marginTop: 34 },
+  fireBox:    { width: 52, height: 52, borderRadius: 14, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' },
+  headerTitle:{ flex: 1, color: '#fff', fontSize: 18, fontFamily: 'Poppins_600SemiBold', lineHeight: 28 },
 
-  /* OPTIONS */
-  optionsCol: { gap: 10 },
-  optCard: {
-    borderRadius: 16, padding: 14,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)',
-    backgroundColor: 'rgba(255,255,255,0.05)',
-  },
-  optCardSelected: {
-    backgroundColor: '#12206b',
-    borderColor: '#2a3a8f',
-  },
+  optionsCol: { gap: 12 },
 
-  optTop:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
-  optTitleRow: { flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 10 },
-  optTitle:    { color: '#fff', fontSize: 16, fontFamily: 'Poppins_700Bold', flexShrink: 1 },
-
-  radioOuter:         { width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: 'rgba(255,255,255,0.3)', alignItems: 'center', justifyContent: 'center' },
-  radioOuterSelected: { borderColor: '#fff' },
-  radioInner:         { width: 11, height: 11, borderRadius: 6, backgroundColor: '#fff' },
-
-  optBottom:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
-  optSubtitle:{ color: 'rgba(255,255,255,0.6)', fontSize: 12, fontFamily: 'Poppins_400Regular', flex: 1, flexShrink: 1 },
-  priceRow:   { flexDirection: 'row', alignItems: 'center', gap: 2, flexShrink: 0 },
-  price:      { color: ORANGE, fontSize: 13, fontFamily: 'Poppins_700Bold' },
-
-  /* PROMOTE */
   promoteBtn: {
-    height: 50, borderRadius: 40, overflow: 'hidden',
+    height: 52, borderRadius: 26, overflow: 'hidden',
     flexDirection: 'row', alignItems: 'center',
-    justifyContent: 'center', gap: 10, marginTop: 18,
+    justifyContent: 'center', gap: 12, marginTop: 26, marginHorizontal: 20,
   },
-  promoteTxt: { color: '#fff', fontSize: 16, fontFamily: 'Poppins_700Bold' },
-
-  /* CANCEL */
-  cancelBtn: {
-    height: 46, borderRadius: 40, marginTop: 10,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)',
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  cancelTxt: { color: '#fff', fontSize: 16, fontFamily: 'Poppins_600SemiBold' },
+  promoteTxt: { color: '#fff', fontSize: 18, fontFamily: 'Poppins_600SemiBold' },
 });

@@ -28,18 +28,18 @@ function makeStyles(aC: ReturnType<typeof useAppColors>) {
     logo: { width: 120, height: 36 },
     headerRight: { flexDirection: 'row', alignItems: 'center', gap: 12 },
     content: { paddingHorizontal: 20, gap: 20 },
-    searchBar: { height: 48, flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 1, borderColor: aC.isDark ? 'rgba(100,160,255,0.5)' : 'rgba(3,42,105,0.12)', borderRadius: 32, backgroundColor: aC.isDark ? aC.glassBg : '#ffffff', paddingHorizontal: 20, overflow: 'hidden', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 },
+    searchBar: { height: 48, flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 32, borderWidth: 1, borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.12)', backgroundColor: aC.glassBg, paddingHorizontal: 20, overflow: 'hidden' },
     searchInput: { flex: 1, fontSize: 12, fontFamily: 'Poppins_400Regular', color: aC.isDark ? aC.textPrimary : '#010a1f', padding: 0 },
     filterRow: { gap: 12, paddingVertical: 4 },
-    filterChip: { height: 40, borderRadius: 16, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20, overflow: 'hidden', borderWidth: 1, borderColor: aC.isDark ? 'rgba(100,160,255,0.5)' : 'rgba(3,42,105,0.12)', backgroundColor: aC.isDark ? aC.glassBg : '#ffffff', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.06)', shadowOpacity: aC.isDark ? 0 : 0.05, elevation: aC.isDark ? 0 : 1 },
-    filterChipActive: { borderColor: '#e2671b', backgroundColor: aC.isDark ? 'rgba(50,100,200,0.15)' : 'rgba(226,103,27,0.10)' },
+    filterChip: { height: 40, borderRadius: 16, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20, overflow: 'hidden', borderWidth: 0, backgroundColor: aC.isDark ? '#08245C' : '#ffffff' },
+    filterChipActive: { borderWidth: 1.35, borderColor: aC.isDark ? '#6F89AF' : '#e2671b', backgroundColor: aC.isDark ? '#15386A' : 'rgba(226,103,27,0.10)', overflow: 'hidden' },
     filterChipInactive: {},
     filterTxt: { fontSize: 13, fontFamily: 'Poppins_700Bold' },
     filterTxtActive:   { color: '#e2671b' },
     filterTxtInactive: { color: aC.isDark ? aC.textPrimary : '#010a1f', fontFamily: 'Poppins_500Medium' },
     cardList: { gap: 14 },
-    outerCard: { borderRadius: 20, padding: 1.2, backgroundColor: aC.isDark ? '#477bc4' : '#ffffff', borderWidth: aC.isDark ? 0 : 1, borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? '#4285d4' : 'rgba(3,42,105,0.12)', shadowOffset: { width: 0, height: 4 }, shadowOpacity: aC.isDark ? 0.35 : 0.08, shadowRadius: 10, elevation: 8, overflow: 'hidden' },
-    card: { borderRadius: 18, padding: 14, paddingBottom: 14, overflow: 'hidden', backgroundColor: aC.isDark ? 'transparent' : '#ffffff' },
+    outerCard: { borderRadius: 20, backgroundColor: aC.isDark ? '#010A1F' : '#ffffff', borderWidth: 1, borderColor: aC.isDark ? '#82a5d5' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? '#638ed0' : 'rgba(3,42,105,0.12)', shadowOffset: { width: 0, height: 0 }, shadowOpacity: aC.isDark ? 0.15 : 0.08, shadowRadius: aC.isDark ? 5 : 10, elevation: aC.isDark ? 2 : 8, overflow: 'hidden' },
+    card: { borderRadius: 18, padding: 14, paddingBottom: 14, overflow: 'hidden', backgroundColor: aC.isDark ? '#010A1F' : '#ffffff' },
     cardTop: { flexDirection: 'row', gap: 12 },
     cardImg: { width: 120, height: 120, borderRadius: 14 },
     cardInfo: { flex: 1, gap: 4 },
@@ -75,15 +75,25 @@ function VehicleCard({ item, onViewDetails, onContact, onUnsave, aC, s }: {
   return (
     <View style={s.outerCard}>
       <View
-        style={[s.card, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff' }]}
+        style={[s.card, { backgroundColor: aC.isDark ? '#010A1F' : '#ffffff' }]}
       >
         {aC.isDark ? (
           <>
-            <LinearGradient colors={['#07152e', '#020916', '#061a3d']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFillObject} />
-            <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          </>
+              <LinearGradient
+                colors={['#16408880', 'transparent', 'transparent', '#16408880']}
+                locations={[0, 0.08, 0.92, 1]}
+                style={StyleSheet.absoluteFillObject}
+                pointerEvents="none"
+              />
+              <LinearGradient
+                colors={['#16408880', 'transparent', 'transparent', '#16408880']}
+                locations={[0, 0.05, 0.95, 1]}
+                start={{ x: 0, y: 0.5 }}
+                end={{ x: 1, y: 0.5 }}
+                style={StyleSheet.absoluteFillObject}
+                pointerEvents="none"
+              />
+            </>
         ) : (
           <>
             <LinearGradient colors={['rgba(3,42,105,0.03)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
@@ -186,10 +196,21 @@ export default function MyFavoritesScreen() {
           <View style={s.searchBar}>
             {aC.isDark ? (
               <>
-                <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-              </>
+              <LinearGradient
+                colors={['#163565', '#061124', '#061124', '#0D2146']}
+                locations={[0, 0.24, 0.76, 1]}
+                style={StyleSheet.absoluteFillObject}
+                pointerEvents="none"
+              />
+              <LinearGradient
+                colors={['#24518F8F', '#16356552', 'transparent', 'transparent', '#16356552', '#24518F8F']}
+                locations={[0, 0.025, 0.075, 0.925, 0.975, 1]}
+                start={{ x: 0, y: 0.5 }}
+                end={{ x: 1, y: 0.5 }}
+                style={[StyleSheet.absoluteFillObject, { borderRadius: 32 }]}
+                pointerEvents="none"
+              />
+            </>
             ) : (
               <>
                 <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
@@ -211,11 +232,24 @@ export default function MyFavoritesScreen() {
               return (
                 <TouchableOpacity key={f} style={[s.filterChip, active ? s.filterChipActive : s.filterChipInactive]} onPress={() => setFilter(f)} activeOpacity={0.8}>
                   {aC.isDark ? (
-                    <>
-                      <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                      <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                      <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                    </>
+                    active ? (
+                      <>
+                        <LinearGradient
+                          colors={['#173B70', '#102A52', '#102A52', '#173B70']}
+                          locations={[0, 0.18, 0.82, 1]}
+                          style={[StyleSheet.absoluteFillObject, { borderRadius: 16 }]}
+                          pointerEvents="none"
+                        />
+                        <LinearGradient
+                          colors={['transparent', '#08162DCC', '#08162DCC', 'transparent']}
+                          locations={[0, 0.23, 0.77, 1]}
+                          start={{ x: 0, y: 0.5 }}
+                          end={{ x: 1, y: 0.5 }}
+                          style={[StyleSheet.absoluteFillObject, { borderRadius: 13, marginHorizontal: 3, marginVertical: 3 }]}
+                          pointerEvents="none"
+                        />
+                      </>
+                    ) : null
                   ) : (
                     <>
                       <LinearGradient colors={['rgba(3,42,105,0.03)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />

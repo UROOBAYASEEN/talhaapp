@@ -10,6 +10,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAppColors } from '@/constants/theme';
+import { PRIMARY_BTN_COLORS, SearchInputEffect } from '@/components/shared/FigmaEffects';
 
 const CITIES   = ['Lahore', 'Karachi', 'Islamabad', 'Rawalpindi', 'Faisalabad', 'Multan', 'Peshawar', 'Quetta'];
 const CENTERS  = ['DHA Phase 5 Center', 'Gulberg Center', 'Model Town Center', 'Saddar Center'];
@@ -21,7 +22,8 @@ function Dropdown({ value, options, onSelect, loading }: {
   const [open, setOpen] = useState(false);
   return (
     <View style={{ zIndex: open ? 99 : 1 }}>
-      <TouchableOpacity style={[s.dropdown, { backgroundColor: aC.isDark ? '#0A234E' : '#ffffff', borderColor: aC.isDark ? '#5688D4' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? '#2264C5' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0.35 : 0.06, elevation: aC.isDark ? 5 : 2 }]} onPress={() => setOpen(!open)} disabled={loading}>
+      <TouchableOpacity style={[s.dropdown, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.12)', shadowOpacity: 0, elevation: aC.isDark ? 0 : 2 }]} onPress={() => setOpen(!open)} disabled={loading}>
+        {aC.isDark && <SearchInputEffect />}
         {loading
           ? <ActivityIndicator size="small" color="#e2671b" />
           : <Text style={[s.inputText, { color: !value ? '#B7BDCC' : (aC.isDark ? '#F0F2F7' : '#010a1f') }]} numberOfLines={1}>
@@ -127,40 +129,44 @@ export default function TrackerBookingScreen() {
         {/* HEADER */}
         <View style={[s.header, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderBottomWidth: aC.isDark ? 0 : 1, borderBottomColor: 'rgba(3,42,105,0.08)' }]}>
           <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-            <Ionicons name="chevron-back" size={26} color={aC.isDark ? "#BFC5D3" : "#010a1f"} />
+            <Ionicons name="chevron-back" size={26} color={aC.isDark ? "#C9C6D0" : "#010a1f"} />
           </TouchableOpacity>
           <Text style={[s.title, { color: aC.isDark ? '#F5F6FA' : '#010a1f' }]}>Book Installation</Text>
           <View style={{ width: 35 }} />
         </View>
 
         {/* Vehicle — free type */}
-        <Text style={[s.label, { color: aC.isDark ? '#BDBFC9' : '#475569' }]}>Select Vehicle</Text>
-        <View style={[s.normalInput, { backgroundColor: aC.isDark ? '#0A234E' : '#ffffff', borderColor: aC.isDark ? '#5688D4' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? '#2264C5' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0.3 : 0.06, elevation: aC.isDark ? 4 : 2 }, errors.vehicle && s.inputError]}>
+        <Text style={[s.label, { color: aC.isDark ? '#C9C6D0' : '#475569' }]}>Select Vehicle</Text>
+        <View style={[s.normalInput, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.12)', shadowOpacity: 0, elevation: aC.isDark ? 0 : 2 }, errors.vehicle && s.inputError]}>
+            {aC.isDark && <SearchInputEffect />}
           <TextInput
             value={vehicle}
             onChangeText={v => { setVehicle(v); setErrors(p => ({ ...p, vehicle: '' })); }}
             style={[s.textInput, { color: aC.isDark ? '#F0F2F7' : '#010a1f' }]}
-            placeholder="Enter vehicle (e.g. Toyota Corolla · LEA-1234)"
-            placeholderTextColor="#B7BDCC"
+            placeholder="Toyota Corolla · LEA-1234"
+            placeholderTextColor={aC.isDark ? '#E6E4EA' : '#94a3b8'}
           />
+          <Ionicons name="chevron-down" size={20} color={aC.isDark ? '#E6E4EA' : '#64748b'} />
         </View>
         {errors.vehicle && <Text style={s.errText}>{errors.vehicle}</Text>}
 
         {/* City */}
-        <Text style={[s.label, { color: aC.isDark ? '#BDBFC9' : '#475569' }]}>Installation City</Text>
+        <Text style={[s.label, { color: aC.isDark ? '#C9C6D0' : '#475569' }]}>Installation City</Text>
         <Dropdown value={city} options={CITIES} onSelect={v => { setCity(v); setErrors(p => ({ ...p, city: '' })); }} />
         {errors.city && <Text style={s.errText}>{errors.city}</Text>}
 
         {/* Center — free type */}
-        <Text style={[s.label, { color: aC.isDark ? '#BDBFC9' : '#475569' }]}>Preferred Installation Center</Text>
-        <View style={[s.normalInput, { backgroundColor: aC.isDark ? '#0A234E' : '#ffffff', borderColor: aC.isDark ? '#5688D4' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? '#2264C5' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0.3 : 0.06, elevation: aC.isDark ? 4 : 2 }, errors.center && s.inputError]}>
+        <Text style={[s.label, { color: aC.isDark ? '#C9C6D0' : '#475569' }]}>Preferred Installation Center</Text>
+        <View style={[s.normalInput, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.12)', shadowOpacity: 0, elevation: aC.isDark ? 0 : 2 }, errors.center && s.inputError]}>
+            {aC.isDark && <SearchInputEffect />}
           <TextInput
             value={center}
             onChangeText={v => { setCenter(v); setErrors(p => ({ ...p, center: '' })); }}
             style={[s.textInput, { color: aC.isDark ? '#F0F2F7' : '#010a1f' }]}
-            placeholder="Enter installation center"
-            placeholderTextColor="#B7BDCC"
+            placeholder="DHA Phase 5 Center"
+            placeholderTextColor={aC.isDark ? '#E6E4EA' : '#94a3b8'}
           />
+          <Ionicons name="chevron-down" size={20} color={aC.isDark ? '#E6E4EA' : '#64748b'} />
         </View>
         {errors.center && <Text style={s.errText}>{errors.center}</Text>}
 
@@ -168,7 +174,8 @@ export default function TrackerBookingScreen() {
         <View style={s.row}>
           <View style={s.half}>
             <Text style={[s.smallLabel, { color: aC.isDark ? '#F0F1F5' : '#010a1f' }]}>Preferred Date:</Text>
-            <View style={[s.inputWithIcon, { backgroundColor: aC.isDark ? '#0A234E' : '#ffffff', borderColor: aC.isDark ? '#5688D4' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? '#2264C5' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0.3 : 0.06, elevation: aC.isDark ? 4 : 2 }, errors.date && s.inputError]}>
+            <View style={[s.inputWithIcon, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.12)', shadowOpacity: 0, elevation: aC.isDark ? 0 : 2 }, errors.date && s.inputError]}>
+            {aC.isDark && <SearchInputEffect />}
               <TextInput
                 value={date}
                 onChangeText={v => { setDate(v); setErrors(p => ({ ...p, date: '' })); }}
@@ -183,7 +190,8 @@ export default function TrackerBookingScreen() {
 
           <View style={s.half}>
             <Text style={[s.smallLabel, { color: aC.isDark ? '#F0F1F5' : '#010a1f' }]}>Preferred Time:</Text>
-            <View style={[s.inputWithIcon, { backgroundColor: aC.isDark ? '#0A234E' : '#ffffff', borderColor: aC.isDark ? '#5688D4' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? '#2264C5' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0.3 : 0.06, elevation: aC.isDark ? 4 : 2 }, errors.time && s.inputError]}>
+            <View style={[s.inputWithIcon, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.12)', shadowOpacity: 0, elevation: aC.isDark ? 0 : 2 }, errors.time && s.inputError]}>
+            {aC.isDark && <SearchInputEffect />}
               <TextInput
                 value={time}
                 onChangeText={v => { setTime(v); setErrors(p => ({ ...p, time: '' })); }}
@@ -197,8 +205,9 @@ export default function TrackerBookingScreen() {
         </View>
 
         {/* Full Name — prefilled from profile, editable */}
-        <Text style={[s.label, { color: aC.isDark ? '#BDBFC9' : '#475569' }]}>Full Name</Text>
-        <View style={[s.normalInput, { backgroundColor: aC.isDark ? '#0A234E' : '#ffffff', borderColor: aC.isDark ? '#5688D4' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? '#2264C5' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0.3 : 0.06, elevation: aC.isDark ? 4 : 2 }, errors.fullName && s.inputError]}>
+        <Text style={[s.label, { color: aC.isDark ? '#C9C6D0' : '#475569' }]}>Full Name</Text>
+        <View style={[s.normalInput, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.12)', shadowOpacity: 0, elevation: aC.isDark ? 0 : 2 }, errors.fullName && s.inputError]}>
+            {aC.isDark && <SearchInputEffect />}
           <TextInput
             value={fullName}
             onChangeText={v => { setFullName(v); setErrors(p => ({ ...p, fullName: '' })); }}
@@ -210,8 +219,9 @@ export default function TrackerBookingScreen() {
         {errors.fullName && <Text style={s.errText}>{errors.fullName}</Text>}
 
         {/* Phone — prefilled from profile, editable */}
-        <Text style={[s.label, { color: aC.isDark ? '#BDBFC9' : '#475569' }]}>Phone Number</Text>
-        <View style={[s.normalInput, { backgroundColor: aC.isDark ? '#0A234E' : '#ffffff', borderColor: aC.isDark ? '#5688D4' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? '#2264C5' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0.3 : 0.06, elevation: aC.isDark ? 4 : 2 }, errors.phone && s.inputError]}>
+        <Text style={[s.label, { color: aC.isDark ? '#C9C6D0' : '#475569' }]}>Phone Number</Text>
+        <View style={[s.normalInput, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.12)', shadowOpacity: 0, elevation: aC.isDark ? 0 : 2 }, errors.phone && s.inputError]}>
+            {aC.isDark && <SearchInputEffect />}
           <TextInput
             value={phone}
             onChangeText={v => { setPhone(v); setErrors(p => ({ ...p, phone: '' })); }}
@@ -224,8 +234,9 @@ export default function TrackerBookingScreen() {
         {errors.phone && <Text style={s.errText}>{errors.phone}</Text>}
 
         {/* Address */}
-        <Text style={[s.label, { color: aC.isDark ? '#BDBFC9' : '#475569' }]}>Installation Address</Text>
-        <View style={[s.normalInput, { backgroundColor: aC.isDark ? '#0A234E' : '#ffffff', borderColor: aC.isDark ? '#5688D4' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? '#2264C5' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0.3 : 0.06, elevation: aC.isDark ? 4 : 2 }, errors.address && s.inputError]}>
+        <Text style={[s.label, { color: aC.isDark ? '#C9C6D0' : '#475569' }]}>Installation Address</Text>
+        <View style={[s.normalInput, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.12)', shadowOpacity: 0, elevation: aC.isDark ? 0 : 2 }, errors.address && s.inputError]}>
+            {aC.isDark && <SearchInputEffect />}
           <TextInput
             value={address}
             onChangeText={v => { setAddress(v); setErrors(p => ({ ...p, address: '' })); }}
@@ -235,6 +246,8 @@ export default function TrackerBookingScreen() {
           />
         </View>
         {errors.address && <Text style={s.errText}>{errors.address}</Text>}
+
+        <View style={{ flex: 1, minHeight: 50 }} />
 
         {/* Continue Button */}
         <TouchableOpacity style={s.continueBtn} activeOpacity={0.85} onPress={() => {
@@ -257,14 +270,15 @@ export default function TrackerBookingScreen() {
           });
         }}>
           <LinearGradient
-            colors={['#073B83', '#463A61', '#ED6B13']}
+            colors={PRIMARY_BTN_COLORS as any}
+            locations={[0, 0.5, 1]}
             start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
             style={StyleSheet.absoluteFillObject}
           />
           <Text style={s.continueTxt}>Continue</Text>
         </TouchableOpacity>
 
-        <View style={{ height: 40 }} />
+        <View style={{ height: 10 }} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -272,50 +286,42 @@ export default function TrackerBookingScreen() {
 
 const s = StyleSheet.create({
   safe:   { flex: 1, backgroundColor: '#020B20' },
-  scroll: { flexGrow: 1, paddingHorizontal: 20, paddingBottom: 40 },
+  scroll: { flexGrow: 1, paddingHorizontal: 14, paddingBottom: 30 },
 
-  header:  { height: 66, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  header:  { height: 60, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   backBtn: { width: 35, height: 40, justifyContent: 'center', alignItems: 'flex-start' },
-  title:   { color: '#F5F6FA', fontSize: 19, fontFamily: 'Poppins_500Medium' },
+  title:   { fontSize: 20, fontFamily: 'Poppins_500Medium' },
 
-  label:      { color: '#BDBFC9', fontSize: 13, fontFamily: 'Poppins_400Regular', marginTop: 6, marginBottom: 8 },
-  smallLabel: { color: '#F0F1F5', fontSize: 11, fontFamily: 'Poppins_500Medium', marginBottom: 8 },
+  label:      { fontSize: 13.5, fontFamily: 'Poppins_400Regular', marginTop: 8, marginBottom: 8 },
+  smallLabel: { fontSize: 11.5, fontFamily: 'Poppins_500Medium', marginTop: 8, marginBottom: 8 },
 
   dropdown: {
-    height: 49, borderRadius: 26, borderWidth: 1, borderColor: '#5688D4',
-    backgroundColor: '#0A234E', flexDirection: 'row', alignItems: 'center',
-    justifyContent: 'space-between', paddingHorizontal: 18, marginBottom: 4,
-    shadowColor: '#2264C5', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.35, shadowRadius: 10, elevation: 5,
+    height: 46, borderRadius: 32, borderWidth: 1, borderColor: '#829fd0',
+    flexDirection: 'row', alignItems: 'center',
+    justifyContent: 'space-between', paddingHorizontal: 18, marginBottom: 4, overflow: 'hidden',
   },
-  inputText:     { color: '#F0F2F7', fontSize: 13, fontFamily: 'Poppins_400Regular', flex: 1 },
+  inputText:     { fontSize: 13.5, fontFamily: 'Poppins_400Regular', flex: 1 },
   dropList:      { backgroundColor: '#071834', borderRadius: 14, borderWidth: 1, borderColor: '#5688D4', overflow: 'hidden', marginBottom: 10 },
   dropItem:      { paddingHorizontal: 18, paddingVertical: 13, borderBottomWidth: 1, borderBottomColor: 'rgba(86,136,212,0.2)' },
   dropItemActive:{ backgroundColor: 'rgba(226,103,27,0.1)' },
   dropItemTxt:   { color: '#F0F2F7', fontSize: 13, fontFamily: 'Poppins_400Regular' },
 
-  row:  { flexDirection: 'row', justifyContent: 'space-between', marginTop: 2, marginBottom: 4 },
+  row:  { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
   half: { width: '48%' },
 
   inputWithIcon: {
-    height: 48, borderRadius: 25, borderWidth: 1, borderColor: '#5688D4',
-    backgroundColor: '#0A234E', flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 16,
-    shadowColor: '#2264C5', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.3, shadowRadius: 9, elevation: 4,
+    height: 46, borderRadius: 32, borderWidth: 1, borderColor: '#829fd0',
+    flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, overflow: 'hidden',
   },
   normalInput: {
-    height: 49, borderRadius: 26, borderWidth: 1, borderColor: '#5688D4',
-    backgroundColor: '#0A234E', paddingHorizontal: 17, justifyContent: 'center', marginBottom: 4,
-    shadowColor: '#2264C5', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.3, shadowRadius: 9, elevation: 4,
+    height: 46, borderRadius: 32, borderWidth: 1, borderColor: '#829fd0',
+    paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', marginBottom: 4, overflow: 'hidden',
   },
-  textInput: { flex: 1, color: '#F0F2F7', fontSize: 13, fontFamily: 'Poppins_400Regular', paddingVertical: 0 },
+  textInput: { flex: 1, color: '#F0F2F7', fontSize: 13.5, fontFamily: 'Poppins_400Regular', paddingVertical: 0 },
 
   errText:    { color: '#f87171', fontSize: 10, fontFamily: 'Poppins_400Regular', marginTop: 3, marginLeft: 4, marginBottom: 4 },
   inputError: { borderColor: 'rgba(248,113,113,0.6)' },
 
-  continueBtn: {
-    height: 49, borderRadius: 26, overflow: 'hidden', alignItems: 'center',
-    justifyContent: 'center', marginTop: 24,
-    shadowColor: '#e2671b', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 5,
-  },
-  continueTxt: { color: '#FFFFFF', fontSize: 15, fontFamily: 'Poppins_700Bold' },
+  continueBtn: { height: 48, borderRadius: 24, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', marginTop: 24 },
+  continueTxt: { color: '#EDEBF0', fontSize: 16, fontFamily: 'Poppins_600SemiBold' },
 });

@@ -14,6 +14,8 @@ import {
   Play, Pause, BarChart2, Megaphone, X, Volume2, VolumeX,
 } from 'lucide-react-native';
 import { AppColors } from '@/constants/theme';
+import { DHeader } from '@/components/dealer/DealerUI';
+import { BannerCard, VideoCard } from '@/components/dealer/AdCards';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -162,146 +164,6 @@ function statusColor(status: string) {
   return '#9ca3af';
 }
 
-/* ── Banner Card ── */
-function BannerCard({ banner, onDelete, onDetail }: { banner: any; onDelete: () => void; onDetail: () => void }) {
-  const left   = daysLeft(banner.expires_at);
-  const sColor = statusColor(banner.status);
-
-  return (
-    <View style={bc.card}>
-      {/* Image area — full tap to view detail */}
-      <TouchableOpacity style={bc.thumb} onPress={onDetail} activeOpacity={0.85}>
-        {banner.banner_image_url ? (
-          <Image source={{ uri: banner.banner_image_url }} style={StyleSheet.absoluteFillObject} resizeMode="cover" />
-        ) : (
-          <LinearGradient colors={['#374151','#1f2937','#000']} start={{x:0,y:0}} end={{x:1,y:1}} style={StyleSheet.absoluteFillObject}/>
-        )}
-
-        {/* Status badge */}
-        {banner.status === 'active' && (
-          <View style={bc.activeBadge}>
-            <Text style={bc.activeTxt}>ACTIVE</Text>
-          </View>
-        )}
-        {banner.status === 'pending' && (
-          <View style={[bc.activeBadge, { backgroundColor: '#f59e0b' }]}>
-            <Text style={bc.activeTxt}>PENDING</Text>
-          </View>
-        )}
-
-        <TouchableOpacity style={bc.deleteCircle} onPress={onDelete}>
-          <Trash2 size={11} color="#ff4050"/>
-        </TouchableOpacity>
-
-        {/* Caption */}
-        <View style={bc.caption}>
-          <Text style={bc.captionTitle} numberOfLines={1}>{banner.title}</Text>
-          <Text style={bc.captionSub}>{banner.display_location || banner.campaign_name || 'Banner Ad'}</Text>
-        </View>
-      </TouchableOpacity>
-
-      {/* Footer */}
-      <View style={bc.footer}>
-        <TouchableOpacity onPress={onDetail}>
-          <Text style={bc.detailsLink}>Details ›</Text>
-        </TouchableOpacity>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-          <View style={[bc.statusDot, { backgroundColor: sColor }]} />
-          <Text style={[bc.durationText, { color: sColor }]}>
-            {banner.status === 'active' ? `${left}d left` : banner.status}
-          </Text>
-        </View>
-      </View>
-    </View>
-  );
-}
-
-const bc = StyleSheet.create({
-  card:         { flex: 1, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
-  thumb:        { height: 190, position: 'relative', alignItems: 'center', justifyContent: 'center' },
-  activeBadge:  { position: 'absolute', top: 8, left: 8, backgroundColor: '#00d084', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20 },
-  activeTxt:    { color: '#fff', fontSize: 8, fontFamily: 'Poppins_700Bold' },
-  deleteCircle: { position: 'absolute', top: 8, right: 8, width: 24, height: 24, borderRadius: 12, backgroundColor: 'rgba(0,0,0,0.5)', borderWidth: 1, borderColor: 'rgba(255,68,68,0.4)', alignItems: 'center', justifyContent: 'center' },
-  caption:      { position: 'absolute', bottom: 8, left: 8, right: 8 },
-  captionTitle: { color: '#fff', fontSize: 9, fontFamily: 'Poppins_700Bold', lineHeight: 13 },
-  captionSub:   { color: 'rgba(255,255,255,0.5)', fontSize: 7, fontFamily: 'Poppins_400Regular', marginTop: 1 },
-  footer:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 10, paddingVertical: 8, backgroundColor: C.glassBg },
-  detailsLink:  { color: ORANGE, fontSize: 11, fontFamily: 'Poppins_600SemiBold' },
-  statusDot:    { width: 6, height: 6, borderRadius: 3 },
-  durationText: { fontSize: 9, fontFamily: 'Poppins_500Medium', textTransform: 'capitalize' },
-});
-
-/* ── Video Card ── */
-function VideoCard({ video, onDelete, onPlay, onDetail }: { video: any; onDelete: () => void; onPlay: () => void; onDetail: () => void }) {
-  const left   = daysLeft(video.expires_at);
-  const sColor = statusColor(video.status);
-
-  return (
-    <View style={vc.card}>
-      {/* Thumbnail — full tap to play */}
-      <TouchableOpacity style={vc.thumb} onPress={onPlay} activeOpacity={0.85}>
-        {video.media_url ? (
-          <Image source={{ uri: video.media_url }} style={StyleSheet.absoluteFillObject} resizeMode="cover" />
-        ) : (
-          <LinearGradient colors={['#374151','#1f2937','#000']} start={{x:0,y:0}} end={{x:1,y:1}} style={StyleSheet.absoluteFillObject}/>
-        )}
-
-        {/* Status badge */}
-        {video.status === 'active' && (
-          <View style={vc.promotedBadge}>
-            <Text style={vc.promotedText}>ACTIVE</Text>
-          </View>
-        )}
-
-        <TouchableOpacity style={vc.deleteCircle} onPress={onDelete}>
-          <Trash2 size={11} color="#ff4050"/>
-        </TouchableOpacity>
-
-        {/* Play button */}
-        <View style={vc.playBtn}>
-          <LinearGradient colors={[NAVY, ORANGE]} start={{x:0,y:0}} end={{x:1,y:1}} style={StyleSheet.absoluteFillObject}/>
-          <Play size={14} color="#fff" fill="#fff" style={{ marginLeft: 2 }}/>
-        </View>
-
-        {/* Caption */}
-        <View style={vc.caption}>
-          <Text style={vc.captionTitle} numberOfLines={1}>{video.title}</Text>
-          <Text style={vc.captionSub}>{video.display_location}</Text>
-        </View>
-      </TouchableOpacity>
-
-      {/* Footer */}
-      <View style={vc.footer}>
-        <TouchableOpacity onPress={onDetail}>
-          <Text style={vc.detailsLink}>Details ›</Text>
-        </TouchableOpacity>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-          <View style={[vc.dot, { backgroundColor: sColor }]} />
-          <Text style={[vc.durationText, { color: sColor }]}>
-            {video.status === 'active' ? `${left}d left` : video.status}
-          </Text>
-        </View>
-      </View>
-    </View>
-  );
-}
-
-const vc = StyleSheet.create({
-  card:          { flex: 1, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
-  thumb:         { height: 190, position: 'relative', alignItems: 'center', justifyContent: 'center' },
-  promotedBadge: { position: 'absolute', top: 8, left: 8, backgroundColor: '#00d084', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20 },
-  promotedText:  { color: '#fff', fontSize: 8, fontFamily: 'Poppins_700Bold' },
-  deleteCircle:  { position: 'absolute', top: 8, right: 8, width: 24, height: 24, borderRadius: 12, backgroundColor: 'rgba(0,0,0,0.5)', borderWidth: 1, borderColor: 'rgba(255,68,68,0.4)', alignItems: 'center', justifyContent: 'center' },
-  playBtn:       { width: 44, height: 44, borderRadius: 22, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
-  caption:       { position: 'absolute', bottom: 8, left: 8, right: 8 },
-  captionTitle:  { color: '#fff', fontSize: 9, fontFamily: 'Poppins_700Bold', lineHeight: 13 },
-  captionSub:    { color: 'rgba(255,255,255,0.5)', fontSize: 7, fontFamily: 'Poppins_400Regular', marginTop: 1 },
-  footer:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 10, paddingVertical: 8, backgroundColor: C.glassBg },
-  detailsLink:   { color: ORANGE, fontSize: 11, fontFamily: 'Poppins_600SemiBold' },
-  dot:           { width: 6, height: 6, borderRadius: 3 },
-  durationText:  { fontSize: 9, fontFamily: 'Poppins_500Medium', textTransform: 'capitalize' },
-});
-
 /* ── Empty State ── */
 function EmptyState({ label, onAdd, route }: { label: string; onAdd: () => void; route: string }) {
   return (
@@ -392,18 +254,17 @@ export default function AdvertisementScreen() {
       <View style={s.container}>
 
         {/* HEADER */}
-        <View style={s.header}>
-          <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
-            <ChevronLeft size={24} color={ORANGE} strokeWidth={2}/>
-          </TouchableOpacity>
-          <Text style={s.headerTitle}>Active Advertisements</Text>
-          <TouchableOpacity
-            style={s.analyticsBtn}
-            onPress={() => router.push('/dealer-panel/advertisement-analytics' as any)}
-          >
-            <BarChart2 size={20} color={ORANGE}/>
-          </TouchableOpacity>
-        </View>
+        <DHeader
+          title="Active Advertisements"
+          right={
+            <TouchableOpacity
+              style={s.analyticsBtn}
+              onPress={() => router.push('/dealer-panel/advertisement-analytics' as any)}
+            >
+              <BarChart2 size={22} color={ORANGE}/>
+            </TouchableOpacity>
+          }
+        />
 
         {loading ? (
           <View style={s.center}>
@@ -429,7 +290,7 @@ export default function AdvertisementScreen() {
                 style={s.addBtn}
                 onPress={() => router.push('/dealer-panel/special-offer' as any)}
               >
-                <Plus size={16} color={ORANGE}/>
+                <Plus size={20} color={ORANGE}/>
               </TouchableOpacity>
             </View>
 
@@ -440,43 +301,26 @@ export default function AdvertisementScreen() {
                 route="/dealer-panel/special-offer"
               />
             ) : (
-              <>
-                {/* First 2 in a row */}
-                <View style={s.videoGrid}>
-                  {banners.slice(0, 2).map(b => (
-                    <BannerCard
-                      key={b.id}
-                      banner={b}
-                      onDelete={() => deleteBanner(b.id)}
-                      onDetail={() => router.push(`/dealer-panel/ad-detail?id=${b.id}&type=banner` as any)}
-                    />
-                  ))}
-                </View>
-                {/* Rest scroll horizontally */}
-                {banners.length > 2 && (
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingHorizontal: 2, marginTop: 12 }}>
-                    {banners.slice(2).map(b => (
-                      <View key={b.id} style={{ width: 160 }}>
-                        <BannerCard
-                          banner={b}
-                          onDelete={() => deleteBanner(b.id)}
-                          onDetail={() => router.push(`/dealer-panel/ad-detail?id=${b.id}&type=banner` as any)}
-                        />
-                      </View>
-                    ))}
-                  </ScrollView>
-                )}
-              </>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 16, paddingRight: 16 }} style={{ marginHorizontal: -16, paddingLeft: 16, marginBottom: 26 }}>
+                {banners.map(b => (
+                  <BannerCard
+                    key={b.id}
+                    banner={b}
+                    onDelete={() => deleteBanner(b.id)}
+                    onDetail={() => router.push(`/dealer-panel/ad-detail?id=${b.id}&type=banner` as any)}
+                  />
+                ))}
+              </ScrollView>
             )}
 
             {/* ── VIDEO ADS ── */}
             <View style={[s.sectionHeader, { marginTop: 8 }]}>
-              <Text style={s.sectionTitle}>Video Ads</Text>
+              <Text style={s.sectionTitle}>Discover More</Text>
               <TouchableOpacity
                 style={s.addBtn}
                 onPress={() => router.push('/dealer-panel/video-ads' as any)}
               >
-                <Plus size={16} color={ORANGE}/>
+                <Plus size={20} color={ORANGE}/>
               </TouchableOpacity>
             </View>
 
@@ -507,7 +351,7 @@ export default function AdvertisementScreen() {
                 {videos.length > 2 && (
                   <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingHorizontal: 2, marginTop: 12 }}>
                     {videos.slice(2).map(v => (
-                      <View key={v.id} style={{ width: 160 }}>
+                      <View key={v.id}>
                         <VideoCard
                           video={v}
                           onDelete={() => deleteVideo(v.id)}
@@ -547,16 +391,13 @@ const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.bg },
   center:    { flex: 1, alignItems: 'center', justifyContent: 'center' },
 
-  header:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, height: 60 },
-  backBtn:      { width: 36, height: 36, justifyContent: 'center', alignItems: 'flex-start' },
-  headerTitle:  { color: C.textPrimary, fontSize: 17, fontFamily: 'Poppins_600SemiBold' },
   analyticsBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
 
-  scrollContent: { paddingHorizontal: 18, paddingTop: 4, paddingBottom: 20 },
+  scrollContent: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 20 },
 
   sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 },
-  sectionTitle:  { color: C.textPrimary, fontSize: 18, fontFamily: 'Poppins_700Bold' },
-  addBtn:        { width: 32, height: 32, borderRadius: 8, borderWidth: 1, borderColor: ORANGE, alignItems: 'center', justifyContent: 'center' },
+  sectionTitle:  { color: '#FFFFFF', fontSize: 18, fontFamily: 'Poppins_500Medium' },
+  addBtn:        { width: 28, height: 28, borderRadius: 4, borderWidth: 2, borderColor: ORANGE, alignItems: 'center', justifyContent: 'center' },
 
-  videoGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 16 },
+  videoGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 16, marginBottom: 16 },
 });

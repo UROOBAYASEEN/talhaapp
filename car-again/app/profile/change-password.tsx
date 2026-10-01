@@ -104,25 +104,61 @@ export default function ChangePasswordScreen() {
         <View style={{ width: 28 }} />
       </View>
 
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: T.bg }}>
-        <ScrollView contentContainerStyle={s.scroll} style={{ backgroundColor: T.bg }} showsVerticalScrollIndicator={false}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 10 : 0}
+        style={{ flex: 1, backgroundColor: T.bg }}
+      >
+        <ScrollView
+          contentContainerStyle={s.scroll}
+          style={{ backgroundColor: T.bg }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="always"
+          keyboardDismissMode="none"
+          automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
+        >
 
           {/* Banner */}
-          <LinearGradient colors={['#032a69', '#061b4a']} style={s.banner}>
+          <View style={s.banner}>
+            <LinearGradient
+              colors={['#16408880', 'transparent', 'transparent', '#16408880']}
+              locations={[0, 0.08, 0.92, 1]}
+              style={StyleSheet.absoluteFillObject}
+              pointerEvents="none"
+            />
+            <LinearGradient
+              colors={['#16408880', 'transparent', 'transparent', '#16408880']}
+              locations={[0, 0.05, 0.95, 1]}
+              start={{ x: 0, y: 0.5 }}
+              end={{ x: 1, y: 0.5 }}
+              style={StyleSheet.absoluteFillObject}
+              pointerEvents="none"
+            />
             <View style={s.bannerIcon}>
               <Ionicons name="lock-closed" size={30} color={ORANGE} />
             </View>
             <Text style={s.bannerTitle}>Secure Your Account</Text>
             <Text style={s.bannerSub}>Choose a strong password to keep your account safe</Text>
-          </LinearGradient>
+          </View>
 
           {/* Current Password */}
           <View style={s.fieldGroup}>
               <Text style={[s.label, { color: T.textSecondary }]}>Current Password</Text>
             <View style={[s.inputWrap, errors.old ? s.inputError : null]}>
-              <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-              <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-              <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+              <LinearGradient
+                colors={['#163565', '#061124', '#061124', '#0D2146']}
+                locations={[0, 0.24, 0.76, 1]}
+                style={StyleSheet.absoluteFillObject}
+                pointerEvents="none"
+              />
+              <LinearGradient
+                colors={['#24518F8F', '#16356552', 'transparent', 'transparent', '#16356552', '#24518F8F']}
+                locations={[0, 0.025, 0.075, 0.925, 0.975, 1]}
+                start={{ x: 0, y: 0.5 }}
+                end={{ x: 1, y: 0.5 }}
+                style={[StyleSheet.absoluteFillObject, { borderRadius: 32 }]}
+                pointerEvents="none"
+              />
               <TextInput style={[s.input, { color: T.textPrimary }]} placeholder="Enter current password" placeholderTextColor="rgba(186,172,182,0.4)" value={form.old} onChangeText={v => { setForm(p => ({ ...p, old: v })); clearIfValid('old', v); }} secureTextEntry={!show.old} autoCapitalize="none" />
               <TouchableOpacity onPress={() => setShow(p => ({ ...p, old: !p.old }))} style={s.eye}>
                 <Ionicons name={show.old ? 'eye-off-outline' : 'eye-outline'} size={20} color={SUB} />
@@ -135,9 +171,20 @@ export default function ChangePasswordScreen() {
           <View style={s.fieldGroup}>
             <Text style={[s.label, { color: T.textSecondary }]}>New Password</Text>
             <View style={[s.inputWrap, errors.newPw ? s.inputError : null]}>
-              <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-              <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-              <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+              <LinearGradient
+                colors={['#163565', '#061124', '#061124', '#0D2146']}
+                locations={[0, 0.24, 0.76, 1]}
+                style={StyleSheet.absoluteFillObject}
+                pointerEvents="none"
+              />
+              <LinearGradient
+                colors={['#24518F8F', '#16356552', 'transparent', 'transparent', '#16356552', '#24518F8F']}
+                locations={[0, 0.025, 0.075, 0.925, 0.975, 1]}
+                start={{ x: 0, y: 0.5 }}
+                end={{ x: 1, y: 0.5 }}
+                style={[StyleSheet.absoluteFillObject, { borderRadius: 32 }]}
+                pointerEvents="none"
+              />
               <TextInput style={[s.input, { color: T.textPrimary }]} placeholder="Enter new password" placeholderTextColor="rgba(186,172,182,0.4)" value={form.newPw} onChangeText={v => { setForm(p => ({ ...p, newPw: v })); clearIfValid('newPw', v); }} secureTextEntry={!show.newPw} autoCapitalize="none" />
               <TouchableOpacity onPress={() => setShow(p => ({ ...p, newPw: !p.newPw }))} style={s.eye}>
                 <Ionicons name={show.newPw ? 'eye-off-outline' : 'eye-outline'} size={20} color={SUB} />
@@ -172,9 +219,20 @@ export default function ChangePasswordScreen() {
           <View style={s.fieldGroup}>
             <Text style={[s.label, { color: T.textSecondary }]}>Confirm New Password</Text>
             <View style={[s.inputWrap, errors.confirm ? s.inputError : null]}>
-              <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-              <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-              <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+              <LinearGradient
+                colors={['#163565', '#061124', '#061124', '#0D2146']}
+                locations={[0, 0.24, 0.76, 1]}
+                style={StyleSheet.absoluteFillObject}
+                pointerEvents="none"
+              />
+              <LinearGradient
+                colors={['#24518F8F', '#16356552', 'transparent', 'transparent', '#16356552', '#24518F8F']}
+                locations={[0, 0.025, 0.075, 0.925, 0.975, 1]}
+                start={{ x: 0, y: 0.5 }}
+                end={{ x: 1, y: 0.5 }}
+                style={[StyleSheet.absoluteFillObject, { borderRadius: 32 }]}
+                pointerEvents="none"
+              />
               <TextInput style={[s.input, { color: T.textPrimary }]} placeholder="Re-enter new password" placeholderTextColor="rgba(186,172,182,0.4)" value={form.confirm} onChangeText={v => { setForm(p => ({ ...p, confirm: v })); clearIfValid('confirm', v); }} secureTextEntry={!show.confirm} autoCapitalize="none" />
               <TouchableOpacity onPress={() => setShow(p => ({ ...p, confirm: !p.confirm }))} style={s.eye}>
                 <Ionicons name={show.confirm ? 'eye-off-outline' : 'eye-outline'} size={20} color={SUB} />
@@ -237,12 +295,21 @@ const s = StyleSheet.create({
   backBtn:     { width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { fontSize: 20, fontFamily: 'Poppins_500Medium', color: WHITE },
 
-  scroll: { paddingHorizontal: 20, paddingTop: 4, gap: 20 },
+  scroll: { flexGrow: 1, paddingHorizontal: 20, paddingTop: 4, paddingBottom: 320, gap: 20 },
 
   // Banner
   banner: {
-    borderRadius: 16, padding: 24,
+    borderRadius: 20, padding: 24,
     alignItems: 'center', gap: 10,
+    backgroundColor: '#010A1F',
+    borderWidth: 1,
+    borderColor: '#82a5d5',
+    shadowColor: '#638ed0',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.15,
+    shadowRadius: 5,
+    elevation: 2,
+    overflow: 'hidden',
   },
   bannerIcon: {
     width: 64, height: 64, borderRadius: 32,
@@ -259,8 +326,8 @@ const s = StyleSheet.create({
   inputWrap: {
     height: 52, flexDirection: 'row', alignItems: 'center',
     borderRadius: 32, borderWidth: 1,
-    borderColor: 'rgba(100,160,255,0.5)',
-    backgroundColor: 'rgba(3,12,40,0.6)',
+    borderColor: '#829fd0',
+    backgroundColor: '#061124',
     paddingHorizontal: 18,
     overflow: 'hidden',
   },

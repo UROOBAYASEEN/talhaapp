@@ -10,6 +10,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { AppColors } from "@/constants/theme";
 import { API_BASE } from "@/constants/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { D, DHeader, OutlineCard, StatusPill, WarmCard } from "@/components/dealer/DealerUI";
+import { SavedCardEffect, savedCardOuter } from "@/components/shared/FigmaEffects";
+import { GlassButton, GradientButton } from "@/components/shared/GlowUI";
 
 const ORANGE = "#e2671b";
 const C      = AppColors;
@@ -42,11 +45,10 @@ function Timeline({ steps }: { steps: { title: string; date?: string; completed:
 /* ── Info Card ── */
 function InfoCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <View style={s.infoCard}>
-      <LinearGradient colors={["rgba(22,64,136,0.2)","transparent"]} start={{x:0.5,y:0}} end={{x:0.5,y:0.5}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+    <OutlineCard style={s.infoCard}>
       <Text style={s.infoCardTitle}>{title}</Text>
       {children}
-    </View>
+    </OutlineCard>
   );
 }
 
@@ -55,7 +57,7 @@ function InfoRow({ icon, label, value, last = false, colorDot = false }: any) {
   return (
     <View style={[s.infoRow, !last && s.infoRowBorder]}>
       <View style={s.infoLabelWrap}>
-        {icon && <Ionicons name={icon} size={16} color={ORANGE} style={{ marginRight: 8 }} />}
+        {icon && <Ionicons name={icon} size={20} color={ORANGE} style={{ marginRight: 12 }} />}
         <Text style={s.infoLabel}>{label}</Text>
       </View>
       <View style={{ flexDirection: "row", alignItems: "center", maxWidth: "55%" }}>
@@ -141,62 +143,65 @@ function DocumentsModal({ visible, onClose, buyerId, token }: {
       .finally(() => setLoading(false));
   }, [visible, buyerId]);
 
-  return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' }}>
-        <View style={{ backgroundColor: '#060f2e', borderTopLeftRadius: 24, borderTopRightRadius: 24, borderWidth: 1, borderColor: 'rgba(100,160,255,0.2)', maxHeight: '85%' }}>
-          <LinearGradient colors={['rgba(22,64,136,0.3)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+  const [open, setOpen] = useState<string | null>(null);
 
-          {/* Handle */}
-          <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.2)', alignSelf: 'center', marginTop: 12 }} />
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', paddingHorizontal: 16 }}>
+        <View style={[savedCardOuter, { borderRadius: 24, maxHeight: '85%', borderColor: 'rgba(60,100,180,0.8)' }]}>
+          <SavedCardEffect band={24} />
 
           {/* Header */}
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 16 }}>
-            <Text style={{ color: AppColors.textPrimary, fontSize: 17, fontFamily: 'Poppins_700Bold' }}>Customer Documents</Text>
-            <TouchableOpacity style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center' }} onPress={onClose}>
-              <Ionicons name="close" size={18} color={AppColors.textSecondary} />
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 18, paddingTop: 22, paddingBottom: 12 }}>
+            <Text style={{ color: '#FFFFFF', fontSize: 20, fontFamily: 'Poppins_600SemiBold' }}>Customer Documents</Text>
+            <TouchableOpacity onPress={onClose} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+              <Ionicons name="close" size={30} color={ORANGE} />
             </TouchableOpacity>
           </View>
 
-          <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 36, gap: 16 }} showsVerticalScrollIndicator={false}>
+          <ScrollView contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: 26, gap: 16 }} showsVerticalScrollIndicator={false}>
             {loading ? (
               <ActivityIndicator color={ORANGE} style={{ marginTop: 40, marginBottom: 40 }} />
             ) : docs.length === 0 ? (
-              <View style={{ alignItems: 'center', paddingVertical: 48, gap: 10 }}>
+              <View style={{ alignItems: 'center', paddingVertical: 40, gap: 10 }}>
                 <Ionicons name="document-outline" size={48} color="rgba(255,255,255,0.15)" />
                 <Text style={{ color: AppColors.textSecondary, fontSize: 14, fontFamily: 'Poppins_500Medium' }}>No documents uploaded</Text>
                 <Text style={{ color: AppColors.textSecondary, fontSize: 12, fontFamily: 'Poppins_400Regular', textAlign: 'center', opacity: 0.6 }}>Customer has not submitted any documents yet</Text>
               </View>
             ) : (
-              docs.map((doc, i) => (
-                <View key={doc.id || i} style={{ borderRadius: 14, borderWidth: 1, borderColor: 'rgba(100,160,255,0.2)', backgroundColor: 'rgba(3,12,40,0.6)', overflow: 'hidden' }}>
-                  {/* Doc header */}
-                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                      <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: 'rgba(226,103,27,0.12)', alignItems: 'center', justifyContent: 'center' }}>
-                        <Ionicons name="document-text-outline" size={18} color={ORANGE} />
+              docs.map((doc, i) => {
+                const key = String(doc.id || i);
+                const isOpen = open === key;
+                return (
+                  <View key={key}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+                      <View style={{ width: 50, height: 50, borderRadius: 12, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' }}>
+                        <Ionicons name="document-text-outline" size={26} color={ORANGE} />
                       </View>
-                      <View>
-                        <Text style={{ color: AppColors.textPrimary, fontSize: 13, fontFamily: 'Poppins_600SemiBold' }}>{doc.desc}</Text>
-                        <Text style={{ color: AppColors.textSecondary, fontSize: 10, fontFamily: 'Poppins_400Regular', marginTop: 1 }}>{doc.uploaded_at || '—'}</Text>
+                      <Text style={{ flex: 1, color: '#FFFFFF', fontSize: 16, fontFamily: 'Poppins_400Regular' }} numberOfLines={2}>{doc.desc || 'Document'}</Text>
+                      <TouchableOpacity
+                        onPress={() => setOpen(isOpen ? null : key)}
+                        style={{ height: 36, paddingHorizontal: 22, borderRadius: 10, backgroundColor: '#1B2336', borderWidth: 1, borderColor: 'rgba(200,210,230,0.45)', alignItems: 'center', justifyContent: 'center' }}
+                      >
+                        <Text style={{ color: ORANGE, fontSize: 15, fontFamily: 'Poppins_500Medium' }}>{isOpen ? 'Hide' : 'View'}</Text>
+                      </TouchableOpacity>
+                    </View>
+                    {isOpen && (
+                      <View style={{ marginTop: 12 }}>
+                        {doc.file_url
+                          ? <DocImage url={doc.file_url} />
+                          : <View style={{ height: 120, backgroundColor: '#061B4A', borderRadius: 10, alignItems: 'center', justifyContent: 'center' }}>
+                              <Ionicons name="image-outline" size={32} color="#4B5A7A" />
+                              <Text style={{ color: '#4B5A7A', fontSize: 11, marginTop: 6, fontFamily: 'Poppins_400Regular' }}>No image</Text>
+                            </View>}
+                        <Text style={{ color: doc.status === 'verified' ? '#27ae60' : ORANGE, fontSize: 11, fontFamily: 'Poppins_500Medium', marginTop: 6, textTransform: 'capitalize' }}>
+                          {doc.status}{doc.uploaded_at ? ` • ${doc.uploaded_at}` : ''}
+                        </Text>
                       </View>
-                    </View>
-                    <View style={{ backgroundColor: doc.status === 'verified' ? 'rgba(39,174,96,0.12)' : 'rgba(226,103,27,0.12)', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderColor: doc.status === 'verified' ? 'rgba(39,174,96,0.3)' : 'rgba(226,103,27,0.3)' }}>
-                      <Text style={{ color: doc.status === 'verified' ? '#27ae60' : ORANGE, fontSize: 9, fontFamily: 'Poppins_600SemiBold', textTransform: 'capitalize' }}>{doc.status}</Text>
-                    </View>
+                    )}
                   </View>
-                  {/* Doc image */}
-                  <View style={{ padding: 12 }}>
-                    {doc.file_url
-                      ? <DocImage url={doc.file_url} />
-                      : <View style={{ height: 120, backgroundColor: '#061B4A', borderRadius: 10, alignItems: 'center', justifyContent: 'center' }}>
-                          <Ionicons name="image-outline" size={32} color="#4B5A7A" />
-                          <Text style={{ color: '#4B5A7A', fontSize: 11, marginTop: 6, fontFamily: 'Poppins_400Regular' }}>No image</Text>
-                        </View>
-                    }
-                  </View>
-                </View>
-              ))
+                );
+              })
             )}
           </ScrollView>
         </View>
@@ -249,40 +254,34 @@ export default function ReservationDetailScreen() {
     <SafeAreaView style={s.safe} edges={["top"]}>
 
       {/* HEADER */}
-      <View style={s.header}>
-        <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
-          <Ionicons name="chevron-back" size={24} color={C.textSecondary} />
-        </TouchableOpacity>
-        <Text style={s.headerTitle}>Reservation Details</Text>
-        <TouchableOpacity style={s.printBtn}>
-          <Ionicons name="print-outline" size={22} color={ORANGE} />
-        </TouchableOpacity>
-      </View>
+      <DHeader
+        title="Reservation Details"
+        right={
+          <TouchableOpacity style={s.printBtn}>
+            <Ionicons name="print-outline" size={28} color={ORANGE} />
+          </TouchableOpacity>
+        }
+      />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
 
         {/* RESERVATION SUMMARY CARD */}
-        <View style={s.summaryCard}>
-          <LinearGradient colors={["rgba(226,103,27,0.08)","transparent"]} start={{x:0.5,y:0}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+        <WarmCard style={s.summaryCard}>
           <View style={s.summaryTop}>
             <View>
               <Text style={s.smallLabel}>RESERVATION ID</Text>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 4 }}>
                 <Text style={s.resId}>{reservationId}</Text>
-                <Ionicons name="copy-outline" size={16} color="#7F899E" />
+                <Ionicons name="copy-outline" size={18} color="#E6E1E8" />
               </View>
             </View>
             <View style={{ alignItems: "flex-end" }}>
               <Text style={s.smallLabel}>STATUS</Text>
-              <View style={[s.statusBadge, { backgroundColor: isConfirmed ? "#064E38" : "rgba(226,103,27,0.15)" }]}>
-                <Text style={[s.statusTxt, { color: isConfirmed ? "#5BE5A5" : ORANGE }]}>{status}</Text>
-              </View>
+              <StatusPill label={status} tone={isConfirmed ? 'green' : 'orange'} style={{ marginTop: 4 }} />
             </View>
           </View>
 
-          <View style={s.summaryDivider} />
-
-          <View style={{ flexDirection: "row" }}>
+          <View style={{ flexDirection: "row", marginTop: 18 }}>
             <View style={{ flex: 1 }}>
               <Text style={s.smallLabel}>Reservation Date</Text>
               <Text style={s.dateVal}>{reservedDate}</Text>
@@ -292,7 +291,7 @@ export default function ReservationDetailScreen() {
               <Text style={s.dateVal}>{expectedVisit}</Text>
             </View>
           </View>
-        </View>
+        </WarmCard>
 
         {/* TIMELINE */}
         <Text style={s.sectionTitle}>Reservation Timeline</Text>
@@ -305,10 +304,7 @@ export default function ReservationDetailScreen() {
           <InfoRow icon="call-outline"     label="Mobile Number"  value={phone} />
           <InfoRow icon="mail-outline"     label="Email Address"  value={email} />
           <InfoRow icon="location-outline" label="City"           value={city} last />
-          <TouchableOpacity style={s.docsBtn} onPress={() => setShowDocs(true)}>
-            <Ionicons name="document-text-outline" size={16} color="#fff" style={{ marginRight: 6 }} />
-            <Text style={s.docsBtnTxt}>View Customer Documents</Text>
-          </TouchableOpacity>
+          <GradientButton title="View Customer Documents" height={50} fontSize={17} style={{ marginTop: 16 }} onPress={() => setShowDocs(true)} />
         </InfoCard>
 
         {/* VEHICLE INFO */}
@@ -323,15 +319,14 @@ export default function ReservationDetailScreen() {
 
         {/* PRICE BREAKDOWN */}
         <View style={s.priceCard}>
-          <LinearGradient colors={["rgba(22,64,136,0.2)","transparent"]} start={{x:0.5,y:0}} end={{x:0.5,y:0.5}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
           <Text style={s.priceCardTitle}>Price Breakdown</Text>
           <PriceRow label="Vehicle Price (On Road)"    value={vehiclePrice} />
-          <PriceRow label="Reservation Amount Paid"   value={`- ${reservedAmount}`} color="#ff4050" />
+          <PriceRow label="Reservation Amount Paid"   value={`- ${reservedAmount}`} color="#E0363A" />
           <View style={s.priceDivider} />
           <Text style={s.totalPrice}>{vehiclePrice}</Text>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-            <Text style={[s.priceLabel, { color: ORANGE, fontSize: 13, fontFamily: "Poppins_600SemiBold" }]}>Remaining Amount</Text>
-            <Text style={[s.priceValue, { color: ORANGE, fontSize: 16, fontFamily: "Poppins_700Bold" }]}>
+            <Text style={[s.priceLabel, { color: ORANGE, fontSize: 16, fontFamily: "Poppins_500Medium" }]}>Remaining Amount</Text>
+            <Text style={[s.priceValue, { color: ORANGE, fontSize: 18, fontFamily: "Poppins_700Bold" }]}>
               PKR {(() => {
                 const total = parseInt((vehiclePrice || "").replace(/\D/g, "")) || 1450000;
                 const paid  = parseInt((reservedAmount || "").replace(/\D/g, "")) || 10000;
@@ -342,7 +337,7 @@ export default function ReservationDetailScreen() {
         </View>
 
         {/* DEALER NOTES */}
-        <View style={s.notesCard}>
+        <WarmCard style={s.notesCard} colors={['#5A3526', '#3A2A35', '#101C45', '#0A1A45']} locations={[0, 0.3, 0.75, 1]}>
           <Text style={s.notesTitleHeader}>Internal Dealer Notes</Text>
           <View style={s.notesInner}>
             <Note text="Customer requested their preferred color." />
@@ -350,12 +345,10 @@ export default function ReservationDetailScreen() {
             <Note text="Reservation confirmed by phone." />
             <Note text="Customer will visit dealership on scheduled date." />
           </View>
-        </View>
+        </WarmCard>
 
         {/* CANCEL */}
-        <TouchableOpacity style={s.cancelBtn}>
-          <Text style={s.cancelTxt}>Cancel Reservation</Text>
-        </TouchableOpacity>
+        <GlassButton title="Cancel Reservation" height={48} fontSize={16} color="#E6E1E8" style={{ marginTop: 20, marginHorizontal: 34 }} onPress={() => {}} />
 
         <View style={{ height: 40 }} />
       </ScrollView>
@@ -371,62 +364,51 @@ export default function ReservationDetailScreen() {
 }
 
 const s = StyleSheet.create({
-  safe:   { flex: 1, backgroundColor: C.bg },
+  safe:   { flex: 1, backgroundColor: D.bg },
   scroll: { paddingHorizontal: 16, paddingBottom: 20 },
 
-  header:      { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, height: 60 },
-  backBtn:     { width: 36, height: 36, alignItems: "center", justifyContent: "center" },
-  headerTitle: { color: C.textPrimary, fontSize: 17, fontFamily: "Poppins_600SemiBold" },
   printBtn:    { width: 36, height: 36, alignItems: "center", justifyContent: "center" },
 
-  summaryCard:   { marginTop: 8, padding: 16, borderRadius: 16, borderWidth: 1.3, borderColor: "rgba(226,103,27,0.45)", backgroundColor: C.glassBg, overflow: "hidden" },
+  summaryCard:   { marginTop: 8, paddingHorizontal: 18, paddingVertical: 18, borderRadius: 20 },
   summaryTop:    { flexDirection: "row", justifyContent: "space-between" },
-  smallLabel:    { color: "#B7B4C9", fontSize: 9, letterSpacing: 0.5, marginBottom: 4, fontFamily: "Poppins_400Regular" },
-  resId:         { color: C.textPrimary, fontSize: 16, fontFamily: "Poppins_700Bold" },
-  statusBadge:   { borderRadius: 12, paddingHorizontal: 12, paddingVertical: 4, marginTop: 4 },
-  statusTxt:     { fontSize: 10, fontFamily: "Poppins_700Bold" },
-  summaryDivider:{ height: 1, backgroundColor: "rgba(255,255,255,0.07)", marginVertical: 14 },
-  dateVal:       { color: C.textPrimary, fontSize: 12, fontFamily: "Poppins_500Medium", marginTop: 2, lineHeight: 18 },
+  smallLabel:    { color: "#E6E1E8", fontSize: 12, letterSpacing: 0.8, marginBottom: 2, fontFamily: "Poppins_400Regular" },
+  resId:         { color: "#FFFFFF", fontSize: 20, fontFamily: "Poppins_700Bold" },
+  dateVal:       { color: "#FFFFFF", fontSize: 14, fontFamily: "Poppins_500Medium", marginTop: 2, lineHeight: 20 },
 
-  sectionTitle:  { color: C.textPrimary, fontSize: 15, fontFamily: "Poppins_700Bold", marginTop: 28, marginBottom: 16, paddingHorizontal: 4 },
+  sectionTitle:  { color: "#FFFFFF", fontSize: 17, fontFamily: "Poppins_600SemiBold", marginTop: 28, marginBottom: 16, paddingHorizontal: 12 },
 
-  timeline:      { paddingHorizontal: 4, marginBottom: 8 },
-  timelineItem:  { minHeight: 52, flexDirection: "row", position: "relative" },
-  timelineCircle:{ width: 22, height: 22, borderRadius: 11, backgroundColor: "rgba(255,255,255,0.08)", borderWidth: 2, borderColor: "rgba(255,255,255,0.2)", alignItems: "center", justifyContent: "center", zIndex: 2, flexShrink: 0 },
+  timeline:      { paddingHorizontal: 12, marginBottom: 8 },
+  timelineItem:  { minHeight: 54, flexDirection: "row", position: "relative" },
+  timelineCircle:{ width: 26, height: 26, borderRadius: 13, backgroundColor: "#FFFFFF", borderWidth: 3, borderColor: "#B9B4C4", alignItems: "center", justifyContent: "center", zIndex: 2, flexShrink: 0 },
   timelineCircleDone:{ backgroundColor: ORANGE, borderColor: ORANGE },
-  timelineLine:  { position: "absolute", width: 2, left: 10, top: 22, bottom: 0, backgroundColor: "rgba(255,255,255,0.1)" },
+  timelineLine:  { position: "absolute", width: 2, left: 12, top: 26, bottom: 0, backgroundColor: "#B9B4C4" },
   timelineLineDone:  { backgroundColor: ORANGE },
-  timelineContent:   { marginLeft: 14, marginTop: -2, flex: 1, paddingBottom: 14 },
-  timelineTitle:     { color: C.textPrimary, fontSize: 13, fontFamily: "Poppins_600SemiBold", marginBottom: 3 },
-  timelineDate:      { color: C.textSecondary, fontSize: 10, fontFamily: "Poppins_400Regular" },
+  timelineContent:   { marginLeft: 16, marginTop: 0, flex: 1, paddingBottom: 12 },
+  timelineTitle:     { color: "#FFFFFF", fontSize: 15, fontFamily: "Poppins_500Medium" },
+  timelineDate:      { color: D.muted, fontSize: 12, fontFamily: "Poppins_400Regular" },
 
-  infoCard:      { marginTop: 12, borderWidth: 1, borderColor: "rgba(100,160,255,0.2)", borderRadius: 14, paddingHorizontal: 14, paddingTop: 16, paddingBottom: 12, backgroundColor: "#010A1F", overflow: "hidden" },
-  infoCardTitle: { color: C.textPrimary, fontSize: 15, fontFamily: "Poppins_700Bold", marginBottom: 10 },
-  infoRow:       { minHeight: 42, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  infoRowBorder: { borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.05)" },
+  infoCard:      { marginTop: 14, paddingTop: 20, paddingBottom: 16, borderRadius: 18 },
+  infoCardTitle: { color: "#FFFFFF", fontSize: 17, fontFamily: "Poppins_600SemiBold", marginBottom: 8 },
+  infoRow:       { minHeight: 48, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  infoRowBorder: { borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.12)" },
   infoLabelWrap: { flexDirection: "row", alignItems: "center", flex: 1 },
-  infoLabel:     { color: C.textSecondary, fontSize: 11, fontFamily: "Poppins_400Regular" },
-  infoValue:     { color: C.textSecondary, fontSize: 11, fontFamily: "Poppins_400Regular", textAlign: "right" },
-  colorDot:      { width: 10, height: 10, borderRadius: 5, backgroundColor: "#F3F3F3", marginRight: 6 },
-  docsBtn:       { height: 42, borderRadius: 22, marginTop: 12, backgroundColor: "#0C3C82", alignItems: "center", justifyContent: "center" },
-  docsBtnTxt:    { color: C.textPrimary, fontSize: 13, fontFamily: "Poppins_600SemiBold" },
-  vehicleImg:    { width: "100%", height: 190, borderRadius: 10, marginBottom: 10 },
+  infoLabel:     { color: "#FFFFFF", fontSize: 14, fontFamily: "Poppins_400Regular" },
+  infoValue:     { color: D.muted, fontSize: 14, fontFamily: "Poppins_400Regular", textAlign: "right" },
+  colorDot:      { width: 16, height: 16, borderRadius: 8, backgroundColor: "#F3F3F3", marginRight: 8 },
+  vehicleImg:    { width: "100%", height: 190, borderRadius: 12, marginBottom: 8, marginTop: 4 },
 
-  priceCard:      { marginTop: 14, borderWidth: 1, borderColor: "rgba(100,160,255,0.3)", borderRadius: 14, padding: 14, backgroundColor: "#010A1F", overflow: "hidden" },
-  priceCardTitle: { color: C.textSecondary, fontSize: 15, fontFamily: "Poppins_700Bold", marginBottom: 14 },
-  priceRow:       { flexDirection: "row", justifyContent: "space-between", marginBottom: 12 },
-  priceLabel:     { color: C.textSecondary, fontSize: 12, fontFamily: "Poppins_400Regular" },
-  priceValue:     { color: C.textPrimary, fontSize: 12, fontFamily: "Poppins_600SemiBold" },
-  priceDivider:   { height: 1, backgroundColor: "rgba(255,255,255,0.1)", marginBottom: 10 },
-  totalPrice:     { color: C.textPrimary, fontSize: 13, fontFamily: "Poppins_700Bold", marginBottom: 16 },
+  priceCard:      { marginTop: 16, borderWidth: 1, borderColor: "rgba(230,225,232,0.6)", borderRadius: 18, padding: 18 },
+  priceCardTitle: { color: "#C9BDC4", fontSize: 17, fontFamily: "Poppins_600SemiBold", marginBottom: 10 },
+  priceRow:       { flexDirection: "row", justifyContent: "space-between", marginBottom: 8 },
+  priceLabel:     { color: "#C9BDC4", fontSize: 14, fontFamily: "Poppins_400Regular" },
+  priceValue:     { color: "#E6E1E8", fontSize: 14, fontFamily: "Poppins_500Medium" },
+  priceDivider:   { height: 1, backgroundColor: "rgba(255,255,255,0.8)", marginVertical: 8 },
+  totalPrice:     { color: "#FFFFFF", fontSize: 13, fontFamily: "Poppins_500Medium", marginBottom: 12 },
 
-  notesCard:        { marginTop: 14, borderRadius: 14, borderWidth: 1, borderColor: "rgba(100,160,255,0.2)", backgroundColor: "#010A1F", overflow: "hidden" },
-  notesTitleHeader: { color: C.textPrimary, fontSize: 15, fontFamily: "Poppins_700Bold", backgroundColor: "rgba(226,103,27,0.2)", paddingHorizontal: 16, paddingVertical: 14 },
-  notesInner:       { margin: 14, padding: 14, borderRadius: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.12)" },
-  noteRow:          { flexDirection: "row", marginBottom: 12 },
-  bullet:           { color: ORANGE, fontSize: 16, marginRight: 8, lineHeight: 18 },
-  noteText:         { color: C.textSecondary, fontSize: 12, fontFamily: "Poppins_400Regular", lineHeight: 18, flex: 1 },
-
-  cancelBtn: { marginTop: 14, height: 42, borderRadius: 22, borderWidth: 1, borderColor: "rgba(100,160,255,0.4)", backgroundColor: "rgba(9,36,92,0.5)", alignItems: "center", justifyContent: "center" },
-  cancelTxt: { color: C.textSecondary, fontSize: 13, fontFamily: "Poppins_500Medium" },
+  notesCard:        { marginTop: 18, borderRadius: 18, paddingBottom: 16 },
+  notesTitleHeader: { color: "#FFFFFF", fontSize: 16, fontFamily: "Poppins_600SemiBold", paddingHorizontal: 18, paddingTop: 20, paddingBottom: 12 },
+  notesInner:       { marginHorizontal: 18, padding: 18, paddingBottom: 6, borderRadius: 12, borderWidth: 1, borderColor: "rgba(230,225,232,0.6)" },
+  noteRow:          { flexDirection: "row", alignItems: "center", marginBottom: 16 },
+  bullet:           { color: ORANGE, fontSize: 18, marginRight: 12, lineHeight: 20 },
+  noteText:         { color: "#FFFFFF", fontSize: 14, fontFamily: "Poppins_400Regular", lineHeight: 20, flex: 1 },
 });

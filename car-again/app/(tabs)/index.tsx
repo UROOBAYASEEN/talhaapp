@@ -2,6 +2,17 @@
  * Home Screen — Pixel-perfect Figma match
  * File: HZwQxuVoCIhM2m1s9GfV3B  •  Nodes: 1986:11101 → 1986:11792
  */
+import AskariBank from '@/components/shared/AskariBank';
+import BrowseMoreServices from '@/components/shared/BrowseMoreServices';
+import Chatbot from '@/components/shared/Chatbot';
+import DiscoverMore from '@/components/shared/DiscoverMore';
+import FeaturedVehicleCard from '@/components/shared/FeaturedVehicleCard';
+import LatestVideoSection from '@/components/shared/LatestVideoSection';
+import VehicleSearch from '@/components/shared/VehicleSearch';
+import YouMayNeedThis from '@/components/shared/YouMayNeedThis';
+import { API_BASE } from '@/constants/api';
+import { useAppColors } from '@/constants/theme';
+import { useAuth } from '@/contexts/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -20,33 +31,24 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { API_BASE } from '@/constants/api';
-import { useAuth } from '@/contexts/AuthContext';
-import { useAppColors } from '@/constants/theme';
-import AskariBank from '@/components/shared/AskariBank';
-import VehicleSearch from '@/components/shared/VehicleSearch';
-import FeaturedVehicleCard from '@/components/shared/FeaturedVehicleCard';
-import DiscoverMore from '@/components/shared/DiscoverMore';
-import BrowseMoreServices from '@/components/shared/BrowseMoreServices';
-import LatestVideoSection from '@/components/shared/LatestVideoSection';
-import YouMayNeedThis from '@/components/shared/YouMayNeedThis';
-import Chatbot from '@/components/shared/Chatbot';
+import { Appearance, Switch, useColorScheme } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const { width: W } = Dimensions.get('window');
 
 // ─── Figma exact colors (static — used in StyleSheet) ─────────────────────
 const C = {
-  bg:          '#010a1f',
-  glass:       'rgba(6,27,74,0.6)',
-  glassDark:   '#061b4a',
-  navy:        '#032a69',
+  bg: '#010a1f',
+  glass: 'rgba(6,27,74,0.6)',
+  glassDark: '#061b4a',
+  navy: '#032a69',
   textPrimary: '#f9fafc',
-  textSec:     '#baacb6',
-  textDim:     '#d2d2d2',
-  orange:      '#e2671b',
-  divider:     'rgba(255,255,255,0.13)',
-  red:         '#ff383c',
-  blue:        '#0088ff',
+  textSec: '#baacb6',
+  textDim: '#d2d2d2',
+  orange: '#e2671b',
+  divider: 'rgba(255,255,255,0.13)',
+  red: '#ff383c',
+  blue: '#0088ff',
 };
 
 // ─── Figma exact data ──────────────────────────────────────────────────────
@@ -55,57 +57,67 @@ const C = {
 const MINI_STATS = [
   { value: '1,200+', label: 'Vehicles' },
   { value: '5,000+', label: 'Dealership' },
-  { value: '45+',    label: 'Banks' },
-  { value: '20+',    label: 'Insurance' },
-  { value: '20+',    label: 'Tracker' },
+  { value: '45+', label: 'Banks' },
+  { value: '20+', label: 'Insurance' },
+  { value: '20+', label: 'Tracker' },
 ];
 
 // node 1986:11189  — horizontal 4-card stats scroll
 const SCROLL_STATS = [
-  { icon: 'bicycle',           target: 5000,  suffix: '+',  label: 'Bikes Available',  verified: false },
-  { icon: 'handshake-outline', target: 1800,  suffix: '+',  label: 'Verified Dealers', verified: true  },
-  { icon: 'car',               target: 10000, suffix: '+',  label: 'Cars Available',   verified: false },
-  { icon: 'shield-checkmark',  target: 11800, suffix: '+',  label: 'Trusted Partners', verified: true  },
+  { icon: 'bicycle', target: 5000, suffix: '+', label: 'Bikes Available', verified: false },
+  { icon: 'handshake-outline', target: 1800, suffix: '+', label: 'Verified Dealers', verified: true },
+  { icon: 'car', target: 10000, suffix: '+', label: 'Cars Available', verified: false },
+  { icon: 'shield-checkmark', target: 11800, suffix: '+', label: 'Trusted Partners', verified: true },
 ];
 
 // node 1986:11312  — All Services (8 items, 4 per row)
 const ALL_SERVICES = [
-  { icon: 'car-outline',            label: 'Buy New\nCar',      route: '/(tabs)/explore', p: { condition: 'new' } },
-  { icon: 'car-outline',            label: 'Buy Used\nCar',     route: '/buy/used-car',   p: {} },
-  { icon: 'bicycle-outline', image: require('@/screenshot/bikelogo.png'), label: 'Buy New\nBike',  route: '/buy/new-bike',  p: null },
-  { icon: 'bicycle',         image: require('@/screenshot/bikelogo.png'), label: 'Buy Used\nBike', route: '/buy/used-bike', p: null },
+  { icon: 'car-outline', label: 'Buy New\nCar', route: '/(tabs)/explore', p: { condition: 'new' } },
+  { icon: 'car-outline', label: 'Buy Used\nCar', route: '/buy/used-car', p: {} },
+  { icon: 'bicycle-outline', image: require('@/screenshot/bikelogo.png'), label: 'Buy New\nBike', route: '/buy/new-bike', p: null },
+  { icon: 'bicycle', image: require('@/screenshot/bikelogo.png'), label: 'Buy Used\nBike', route: '/buy/used-bike', p: null },
   { icon: 'git-compare-outline', image: require('@/screenshot/compare.png'), label: 'Compare\nVehicle', route: '/compare-vehicle', p: {} },
   { icon: 'cash-outline', image: require('@/screenshot/finance.png'), imageSize: 24, imageMarginTop: 6, label: 'Auto\nFinancing', route: '/auto-financing', p: {} },
-  { icon: 'shield-checkmark-outline', label: 'Insurance',       route: '/insurance-search', p: {} },
+  { icon: 'shield-checkmark-outline', label: 'Insurance', route: '/insurance-search', p: {} },
   { icon: 'locate-outline', image: require('@/screenshot/location.png'), label: 'Tracker', route: '/tracker-search', p: {} },
 ];
 
 // node 1986:11634  — Explore More (2×2 grid)
 const EXPLORE_MORE = [
-  { title: 'Compare\nVehicle',             desc: 'Compare specs and prices across vehicles easily', route: '/(tabs)/explore' },
-  { title: 'Smart Finance\nCalculator',    desc: 'Calculate your monthly installments instantly',    route: '/(tabs)/explore' },
-  { title: 'Book your\nvehicle',           desc: 'Reserve your preferred vehicle online by selecting your date', route: '/(tabs)/explore' },
-  { title: 'Compare\nInsurance',           desc: 'Get the best insurance deal for your vehicle',    route: '/(tabs)/sellers' },
+  { title: 'Compare\nVehicle', desc: 'Compare specs and prices across vehicles easily', route: '/(tabs)/explore' },
+  { title: 'Smart Finance\nCalculator', desc: 'Calculate your monthly installments instantly', route: '/(tabs)/explore' },
+  { title: 'Book your\nvehicle', desc: 'Reserve your preferred vehicle online by selecting your date', route: '/(tabs)/explore' },
+  { title: 'Compare\nInsurance', desc: 'Get the best insurance deal for your vehicle', route: '/(tabs)/sellers' },
 ];
 
 // node 1986:11674  — Browse more services (3 list items)
 const MORE_SERVICES = [
-  { icon: 'business-outline',       title: 'Find Dealers Near Me',    sub: 'Locate verified dealerships in your city' },
-  { icon: 'shield-outline',         title: 'Compare Insurance Plans', sub: 'Get quotes from top insurance providers' },
-  { icon: 'locate-outline',         title: 'Track My Vehicle',        sub: 'Real-time GPS tracking for your vehicle' },
+  { icon: 'business-outline', title: 'Find Dealers Near Me', sub: 'Locate verified dealerships in your city' },
+  { icon: 'shield-outline', title: 'Compare Insurance Plans', sub: 'Get quotes from top insurance providers' },
+  { icon: 'locate-outline', title: 'Track My Vehicle', sub: 'Real-time GPS tracking for your vehicle' },
 ];
 
 // node 1986:11792  — Recent Activity
 const RECENT_ACTIVITY = [
   { icon: 'business-outline', title: 'Financing Application Submitted', sub: 'Toyota Corolla • 2 hrs ago' },
-  { icon: 'shield-outline',   title: 'Insurance Renewal Due',           sub: 'Toyota Corolla • 2 hrs ago' },
-  { icon: 'locate-outline',   title: 'Tracker Installation Pending',    sub: 'Toyota Corolla • 1 day ago' },
+  { icon: 'calendar-outline', title: 'Insurance Renewal Due', sub: 'Toyota Corolla • 2 hrs ago' },
+  { icon: 'calendar-outline', title: 'Tracker Installation Pending', sub: 'Toyota Corolla • 1 day ago' },
+];
+
+// Visual cards used only when the bike API has fewer entries than Featured Cars.
+const FEATURED_BIKE_PREVIEWS = [
+  { title: 'Honda CG 125', price: 238900, variant: 'Self Start', city: 'Karachi', year: 2024, transmission: 'Manual' },
+  { title: 'Yamaha YBR 125', price: 466000, variant: '125G', city: 'Lahore', year: 2024, transmission: 'Manual' },
+  { title: 'Suzuki GS 150', price: 382000, variant: '150cc', city: 'Islamabad', year: 2025, transmission: 'Manual' },
+  { title: 'Honda CD 70', price: 157900, variant: '70cc', city: 'Karachi', year: 2025, transmission: 'Manual' },
+  { title: 'Suzuki GR 150', price: 547000, variant: '150cc', city: 'Lahore', year: 2024, transmission: 'Manual' },
+  { title: 'Yamaha YB 125Z', price: 424000, variant: '125cc', city: 'Rawalpindi', year: 2025, transmission: 'Manual' },
 ];
 
 // ─── Marquee auto-scroll stats ticker ─────────────────────────────────────
-const CARD_W   = 178;   // must match scrollStatCard width
+const CARD_W = 178;   // must match scrollStatCard width
 const CARD_GAP = 0;
-const TOTAL_W  = (CARD_W + CARD_GAP) * SCROLL_STATS.length;
+const TOTAL_W = (CARD_W + CARD_GAP) * SCROLL_STATS.length;
 
 function MarqueeStats() {
   const translateX = useRef(new Animated.Value(0)).current;
@@ -162,7 +174,7 @@ function AnimatedStatCard({
   const aC = useAppColors();
   const [count, setCount] = useState(0);
   const slideAnim = useRef(new Animated.Value(noSlide ? 0 : 60)).current;
-  const fadeAnim  = useRef(new Animated.Value(noSlide ? 1 : 0)).current;
+  const fadeAnim = useRef(new Animated.Value(noSlide ? 1 : 0)).current;
 
   useEffect(() => {
     if (!noSlide) {
@@ -185,10 +197,10 @@ function AnimatedStatCard({
 
     // Count-up animation
     const duration = 1400;
-    const steps    = 60;
+    const steps = 60;
     const interval = duration / steps;
-    let current    = 0;
-    const step     = item.target / steps;
+    let current = 0;
+    const step = item.target / steps;
     const timer = setInterval(() => {
       current += step;
       if (current >= item.target) {
@@ -302,10 +314,10 @@ function SH({ title, onViewAll }: { title: string; onViewAll?: () => void }) {
   );
 }
 const shStyles = StyleSheet.create({
-  sh:       { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
-  shTitle:  { fontSize: 16, fontFamily: 'Poppins_500Medium' },
-  shRight:  { flexDirection: 'row', alignItems: 'center', gap: 3 },
-  shViewAll:{ fontSize: 12, fontFamily: 'Poppins_500Medium', color: '#e2671b' },
+  sh: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
+  shTitle: { fontSize: 16, fontFamily: 'Poppins_500Medium', textTransform: 'capitalize' },
+  shRight: { flexDirection: 'row', alignItems: 'center', gap: 3 },
+  shViewAll: { fontSize: 12, fontFamily: 'Poppins_500Medium', color: '#e2671b' },
 });
 
 // ─── DropField helper (Find Your Perfect Vehicle 3×3 grid) ──────────────────
@@ -330,23 +342,89 @@ function DropField({
 }
 
 // ─── Main Screen ───────────────────────────────────────────────────────────
+// ── Settings menu (Figma) — opens from the header settings icon ──────────────
+function SettingsMenu({ visible, onClose, anchor }: { visible: boolean; onClose: () => void; anchor: { x: number; y: number; w: number; h: number } | null }) {
+  const router = useRouter();
+  const aC = useAppColors();
+  const scheme = useColorScheme();
+  const lightOn = scheme === 'light';
+  const dark = aC.isDark;
+  const txt = dark ? '#F2F1F5' : '#010a1f';
+  const line = dark ? 'rgba(160,168,196,0.55)' : 'rgba(3,42,105,0.12)';
+  return (
+    // Rendered inside the screen (not a Modal) so it sits exactly under the settings icon.
+    // `anchor` is the icon's position relative to the screen root.
+    visible ? (
+    <View style={[StyleSheet.absoluteFill, { zIndex: 1000, elevation: 1000 }]}>
+      <TouchableOpacity style={sm.overlay} activeOpacity={1} onPress={onClose}>
+        <TouchableOpacity activeOpacity={1} style={[sm.card, anchor
+          // Right-aligned just below the settings icon
+          ? { position: 'absolute', top: anchor.y + anchor.h + 4, right: Math.max(8, Dimensions.get('window').width - (anchor.x + anchor.w)) }
+          : { position: 'absolute', top: 56, right: 14 }, { backgroundColor: dark ? '#081D4A' : '#ffffff', borderColor: dark ? 'rgba(255,255,255,0.12)' : 'rgba(3,42,105,0.12)' }]}>
+          <View style={sm.row}>
+            <Text style={[sm.label, { color: txt }]}>Light Mode</Text>
+            <Switch
+              value={lightOn}
+              onValueChange={v => Appearance.setColorScheme(v ? 'light' : 'dark')}
+              trackColor={{ false: '#0B2E6B', true: '#0B2E6B' }}
+              thumbColor="#ffffff"
+              ios_backgroundColor="#0B2E6B"
+              style={sm.switch}
+            />
+          </View>
+          <View style={[sm.divider, { backgroundColor: line }]} />
+          <TouchableOpacity style={sm.row} activeOpacity={0.8} onPress={() => { onClose(); router.push('/(tabs)/profile' as any); }}>
+            <View style={sm.iconBox}><Ionicons name="person-outline" size={17} color="#E2671B" /></View>
+            <Text style={[sm.label, { color: txt, flex: 1 }]}>Profile</Text>
+          </TouchableOpacity>
+          <View style={[sm.divider, { backgroundColor: line }]} />
+          <TouchableOpacity style={sm.row} activeOpacity={0.8} onPress={() => { onClose(); router.push('/vehicle/create' as any); }}>
+            <View style={sm.iconBox}>
+              <MaterialCommunityIcons name="car-outline" size={19} color="#E2671B" />
+              <MaterialCommunityIcons name="tag-outline" size={10} color="#E2671B" style={sm.tag} />
+            </View>
+            <Text style={[sm.label, { color: txt, flex: 1 }]}>Become A Seller</Text>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </TouchableOpacity>
+    </View>
+    ) : null
+  );
+}
+
+const sm = StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)' },
+  card:    { width: 178, borderRadius: 16, borderWidth: 1, paddingHorizontal: 6, paddingVertical: 4, shadowColor: '#000', shadowOpacity: 0.35, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 12 },
+  row:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 8, paddingVertical: 12, gap: 10 },
+  label:   { fontSize: 12.5, fontFamily: 'Poppins_500Medium' },
+  divider: { height: 1 },
+  iconBox: { width: 22, alignItems: 'center', justifyContent: 'center' },
+  tag:     { position: 'absolute', top: -3, right: -5 },
+  switch:  { transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }], marginVertical: -6, marginRight: -6 },
+});
+
 export default function HomeScreen() {
-  const router   = useRouter();
+  const router = useRouter();
   const { user, token } = useAuth() as any;
-  const aC       = useAppColors();
+  const aC = useAppColors();
 
   const [featured, setFeatured] = useState<any[]>([]);
-  const [bikes,    setBikes]    = useState<any[]>([]);
-  const [loading,  setLoading]  = useState(true);
-  const [refresh,  setRefresh]  = useState(false);
+  const [bikes, setBikes] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refresh, setRefresh] = useState(false);
   const [recentReal, setRecentReal] = useState<any[] | null>(null);
 
   // ── Find Your Perfect Vehicle interactive state ──
   const [payOption, setPayOption] = useState<'Cash' | 'Finance'>('Cash');
-  const [vType,     setVType]     = useState<'Cars' | 'Bikes'>('Cars');
-  const [vCond,     setVCond]     = useState<'New' | 'Used'>('New');
+  const [vType, setVType] = useState<'Cars' | 'Bikes'>('Cars');
+  const [vCond, setVCond] = useState<'New' | 'Used'>('New');
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsAnchor, setSettingsAnchor] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
+  const settingsBtnRef = useRef<View>(null);
+  const screenRef = useRef<View>(null);
 
-  const firstName = user?.full_name?.split(' ')[0] || 'there';
+  const rawFirstName = user?.full_name?.trim().split(/\s+/)[0] || 'there';
+  const firstName = rawFirstName.charAt(0).toUpperCase() + rawFirstName.slice(1);
   const BASE_URL = API_BASE.replace('/api/v1', '');
   const resolvedAvatar = user?.avatar_url
     ? (user.avatar_url.startsWith('http') ? user.avatar_url : `${BASE_URL}${user.avatar_url}`)
@@ -356,7 +434,7 @@ export default function HomeScreen() {
     try {
       const [a, b] = await Promise.all([
         fetch(`${API_BASE}/vehicles?category=car&limit=6`),
-        fetch(`${API_BASE}/vehicles?category=bike&limit=4`),
+        fetch(`${API_BASE}/vehicles?category=bike&limit=6`),
       ]);
       const sortAds = (items: any[]) => [...items].sort((x, y) => {
         const priceDiff = Number(y.price || 0) - Number(x.price || 0);
@@ -390,13 +468,15 @@ export default function HomeScreen() {
             setRecentReal(mapped);
           }
         }
-      } catch {}
+      } catch { }
     })();
   }, [token]);
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: aC.bg }]}>
+      <View ref={screenRef} style={{ flex: 1 }} collapsable={false}>
       <ScrollView
+        onScrollBeginDrag={() => settingsOpen && setSettingsOpen(false)}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refresh} onRefresh={() => { setRefresh(true); load(); }} tintColor="#e2671b" />}
       >
@@ -404,154 +484,173 @@ export default function HomeScreen() {
         {/* ════════════════════════════════════════════════════
             1 · HEADER + HERO (upper section) — bg #061B4A
         ════════════════════════════════════════════════════ */}
-        <View style={[styles.upperBg, { backgroundColor: aC.isDark ? 'rgba(6,27,74,1)' : '#ffffff' }]}>
-          <View style={styles.header}>
+        <View style={[styles.upperBg, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff' }]}> 
+          {aC.isDark && <View pointerEvents="none" style={styles.upperBgShape} />}
+          <View style={[styles.header, { backgroundColor: aC.isDark ? '#071c49' : '#ffffff' }]}>
 
-          {/* ── Top row: back-arrow · company name · icons ── */}
-          <View style={styles.logoRow}>
+            {/* ── Top row: back-arrow · company name · icons ── */}
+            <View style={styles.logoRow}>
 
-            {/* LEFT: arrow-left 24×24 */}
-            <TouchableOpacity style={styles.backArrow} onPress={() => router.back()}>
-              <Ionicons name="arrow-back-outline" size={24} color={aC.textPrimary} />
-            </TouchableOpacity>
-
-            {/* CENTER: Autowizor logo — Figma node 259:2027 exact image */}
-            <View style={styles.companyNameWrap}>
-              {aC.isDark ? (
-                <Image
-                  source={require('@/assets/images/autowizor-logo-text.png')}
-                  style={styles.companyNameImg}
-                  resizeMode="contain"
-                />
-              ) : (
-                <Text style={styles.companyNameTextLight}>
-                  <Text style={{ color: '#032a69' }}>Auto</Text>
-                  <Text style={{ color: '#e2671b' }}>wizor</Text>
-                </Text>
-              )}
-            </View>
-
-            {/* RIGHT: notification + settings — fixed width row */}
-            <View style={styles.topIcons}>
-              <TouchableOpacity
-                style={styles.headerIconBtn}
-                onPress={() => router.push('/alert' as any)}
-              >
-                <Ionicons name="notifications-outline" size={20} color={aC.textPrimary} />
-                <View style={[styles.notifDot, { borderColor: aC.bg }]} />
+              {/* LEFT: arrow-left 24×24 */}
+              <TouchableOpacity style={styles.backArrow} onPress={() => router.back()}>
+                <Ionicons name="arrow-back-outline" size={24} color={aC.isDark ? '#c5bdc9' : aC.textPrimary} />
               </TouchableOpacity>
 
-              <TouchableOpacity
-                style={styles.headerIconBtn}
-                onPress={() => router.push('/profile/settings' as any)}
-              >
-                <Ionicons name="settings-outline" size={20} color={aC.textPrimary} />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* ── [FRAME] Frame 1686558744  343×51 — greeting block ── */}
-          <View style={styles.greetBlock}>
-            <View style={styles.greetRow}>
-              <TouchableOpacity
-                onPress={() => router.push('/profile/edit' as any)}
-                style={styles.greetAvatarPlaceholder}
-              >
-                {resolvedAvatar ? (
+              {/* CENTER: Autowizor logo — Figma node 259:2027 exact image */}
+              <View style={styles.companyNameWrap}>
+                {aC.isDark ? (
                   <Image
-                    source={{ uri: resolvedAvatar }}
-                    style={styles.greetAvatar}
-                    resizeMode="cover"
+                    source={require('@/assets/images/autowizor-logo-text.png')}
+                    style={styles.companyNameImg}
+                    resizeMode="contain"
                   />
                 ) : (
-                  <Text style={styles.greetAvatarText}>
-                    {(user?.full_name || 'U').charAt(0).toUpperCase()}
+                  <Text style={styles.companyNameTextLight}>
+                    <Text style={{ color: '#032a69' }}>Auto</Text>
+                    <Text style={{ color: '#e2671b' }}>wizor</Text>
                   </Text>
                 )}
-              </TouchableOpacity>
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.greetName, { color: aC.textPrimary }]}>Hello, {firstName}👋</Text>
-                <Text style={[styles.greetSub, { color: aC.textSecondary }]}>How can we help today?</Text>
+              </View>
+
+              {/* RIGHT: notification + settings — fixed width row */}
+              <View style={styles.topIcons}>
+                <TouchableOpacity
+                  style={styles.headerIconBtn}
+                  onPress={() => router.push('/alert' as any)}
+                >
+                  <Ionicons name="notifications-outline" size={21} color={aC.isDark ? '#e2deea' : aC.textPrimary} />
+                  <View style={[styles.notifDot, { borderColor: aC.bg }]} />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  ref={settingsBtnRef as any}
+                  style={styles.headerIconBtn}
+                  onPress={() => {
+                    const node: any = settingsBtnRef.current;
+                    const root: any = screenRef.current;
+                    if (node?.measureInWindow && root?.measureInWindow) {
+                      root.measureInWindow((rx: number, ry: number) => {
+                        node.measureInWindow((x: number, y: number, w: number, h: number) => {
+                          setSettingsAnchor({ x: x - rx, y: y - ry, w, h });
+                          setSettingsOpen(true);
+                        });
+                      });
+                    } else {
+                      setSettingsOpen(true);
+                    }
+                  }}
+                >
+                  <Ionicons name="settings-outline" size={21} color={aC.isDark ? '#e2deea' : aC.textPrimary} />
+                </TouchableOpacity>
               </View>
             </View>
+
+            {/* ── [FRAME] Frame 1686558744  343×51 — greeting block ── */}
+            <View style={styles.greetBlock}>
+              <View style={styles.greetRow}>
+                <TouchableOpacity
+                  onPress={() => router.push('/profile/edit' as any)}
+                  style={styles.greetAvatarPlaceholder}
+                >
+                  {resolvedAvatar ? (
+                    <Image
+                      source={{ uri: resolvedAvatar }}
+                      style={styles.greetAvatar}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <Image source={require('@/assets/images/profileDummyImage.png')} style={styles.greetAvatar} resizeMode="cover" />
+                  )}
+                </TouchableOpacity>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.greetName, { color: aC.textPrimary }]}>Hello, {firstName}👋</Text>
+                  <Text style={[styles.greetSub, { color: aC.textSecondary }]}>How can we help today?</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* ── [FRAME] Frame 1686559043 — search bar 350×48 / radius=32 ── */}
+            <TouchableOpacity
+              style={[styles.searchBar, { backgroundColor: aC.isDark ? '#142c59' : aC.glassBg, borderColor: aC.isDark ? '#87a3cc' : 'rgba(3,42,105,0.2)' }]}
+              onPress={() => router.push('/(tabs)/explore')}
+              activeOpacity={0.85}
+            >
+              {aC.isDark && <LinearGradient colors={['#20467f', '#182e59', '#122650', '#1a366a']} locations={[0, 0.32, 0.72, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
+              <Ionicons name="search-outline" size={20} color={aC.isDark ? '#d2d2d2' : aC.textSecondary} />
+              <Text style={[styles.searchPh, { color: aC.textSecondary }]}>Search cars, banks & dealers...</Text>
+            </TouchableOpacity>
+
           </View>
 
-          {/* ── [FRAME] Frame 1686559043 — search bar 350×48 / radius=32 ── */}
-          <TouchableOpacity
-            style={[styles.searchBar, { backgroundColor: aC.glassBg, borderColor: aC.isDark ? 'rgba(100,160,255,0.5)' : 'rgba(3,42,105,0.2)' }]}
-            onPress={() => router.push('/(tabs)/explore')}
-            activeOpacity={0.85}
-          >
-            <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <Ionicons name="search-outline" size={20} color={aC.textSecondary} />
-            <Text style={[styles.searchPh, { color: aC.textSecondary }]}>Search cars, banks & dealers...</Text>
-          </TouchableOpacity>
-
-        </View>
-
-        {/* ════════════════════════════════════════════════════
+          {/* ════════════════════════════════════════════════════
             2 · HERO BANNER  (node 1986:11122 — Glass Button 350×229)
             Figma: bg=rgba(6,27,74,0.6), border=rgba(255,255,255,0.15)
         ════════════════════════════════════════════════════ */}
-        <View style={styles.pad}>
-          <View style={[styles.heroBanner, { backgroundColor: aC.isDark ? '#010A1F' : '#ffffff', borderColor: aC.isDark ? '#e2671b' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, shadowRadius: 10, elevation: aC.isDark ? 0 : 2 }]}>
-            {/* Light mood: pure white, no shade — Dark: orange + 4-side shade */}
-            {aC.isDark ? (
-              <>
-                <LinearGradient colors={['#010A1F', '#010A1F', 'rgba(226,103,27,0.35)']} locations={[0, 0.6, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                <LinearGradient colors={['rgba(22,64,136,0.35)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.25 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                <LinearGradient colors={['transparent', 'rgba(29,83,175,0.35)']} start={{ x: 0.5, y: 0.75 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                <LinearGradient colors={['rgba(13,37,84,0.35)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.25, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                <LinearGradient colors={['transparent', 'rgba(13,37,84,0.35)']} start={{ x: 0.75, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-              </>
-            ) : null}
+          <View style={styles.pad}>
+            <LinearGradient
+              colors={aC.isDark ? ['#E2671B', '#032A69'] : ['rgba(3,42,105,0.12)', 'rgba(3,42,105,0.12)']}
+              start={{ x: 0.5, y: 0 }}
+              end={{ x: 0.5, y: 1 }}
+              style={styles.heroBorder}
+            >
+            <View style={[styles.heroBanner, { backgroundColor: aC.isDark ? '#061538' : '#ffffff', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, shadowRadius: 10, elevation: aC.isDark ? 0 : 2 }]}> 
+              {/* Light mood: pure white, no shade — Dark: orange + 4-side shade */}
+              {aC.isDark ? (
+                <>
+                  <LinearGradient colors={['#061538', '#061538', '#24243a', '#52343b']} locations={[0, 0.58, 0.78, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+                </>
+              ) : null}
 
-            {/* Figma node 1986:11227 — hero car image */}
-            <Image
-              source={require('@/screenshot/realllogo.png')}
-              style={styles.heroCarImg}
-              resizeMode="contain"
-            />
+              {/* Figma node 1986:11227 — hero car image */}
+              <Image
+                source={require('@/screenshot/realllogo.png')}
+                style={styles.heroCarImg}
+                resizeMode="contain"
+              />
 
-            {/* Content — pushed to bottom */}
-            <View style={styles.heroLeft}>
-              {/* Title — #ffffff, 18px, 600 */}
-              <Text style={[styles.heroTitle, { color: aC.isDark ? '#ffffff' : '#032a69' }]}>
-                Pakistan's First Connected{' '}
-                <Text style={{ color: '#e2671b' }}>Auto Ecosystem</Text>
-              </Text>
-              {/* Stats at the bottom — values #e2671b, labels #d2d2d2 (light: black) */}
-              <View style={styles.heroBannerStats}>
-                {MINI_STATS.map((s, i) => (
-                  <React.Fragment key={s.label}>
-                    <View>
-                      <Text style={styles.heroBannerVal}>{s.value}</Text>
-                      <Text style={[styles.heroBannerLabel, { color: aC.isDark ? '#d2d2d2' : '#000000' }]}>{s.label}</Text>
-                    </View>
-                    {i < MINI_STATS.length - 1 && (
-                      <View style={styles.heroStatDiv} />
-                    )}
-                  </React.Fragment>
-                ))}
+              {/* Existing title and statistics, positioned to match the Figma banner */}
+              <View style={styles.heroLeft}>
+                {/* Title — #ffffff, 18px, 600 */}
+                <Text style={[styles.heroTitle, { color: aC.isDark ? '#ffffff' : '#032a69' }]}>
+                  Pakistan's First{'\n'}Connected{' '}
+                  <Text style={{ color: '#e2671b' }}>Auto{'\n'}Ecosystem</Text>
+                </Text>
+                {/* Stats at the bottom — values #e2671b, labels #d2d2d2 (light: black) */}
+                <View style={styles.heroBannerStats}>
+                  {MINI_STATS.map((s, i) => (
+                    <React.Fragment key={s.label}>
+                      <View>
+                        <Text style={styles.heroBannerVal}>{s.value}</Text>
+                        <Text style={[styles.heroBannerLabel, { color: aC.isDark ? '#d2d2d2' : '#000000' }]}>{s.label}</Text>
+                      </View>
+                      {i < MINI_STATS.length - 1 && (
+                        <View style={styles.heroStatDiv} />
+                      )}
+                    </React.Fragment>
+                  ))}
+                </View>
               </View>
             </View>
+            </LinearGradient>
+            <View style={styles.heroDots} pointerEvents="none">
+              <View style={[styles.heroDot, { backgroundColor: aC.isDark ? '#ffffff' : '#032a69' }]} />
+              <View style={[styles.heroDot, { backgroundColor: aC.isDark ? '#baacb6' : 'rgba(3,42,105,0.35)' }]} />
+              <View style={[styles.heroDot, { backgroundColor: aC.isDark ? '#baacb6' : 'rgba(3,42,105,0.35)' }]} />
+            </View>
           </View>
-        </View>
         </View>
 
         {/* ════════════════════════════════════════════════════
             4 · ALL SERVICES  (node 1986:11312)  ← FIRST
             "All services" title + 2 rows × 4 items = 8
         ════════════════════════════════════════════ */}
-        <View style={[styles.sec, styles.pad]}>
+        <View style={[styles.sec, styles.pad, styles.servicesSection]}>
           <SH title="All services" />
           <View style={styles.servGrid}>
             {ALL_SERVICES.map(s => (
               <TouchableOpacity
                 key={s.label}
-                style={[styles.servCard, { backgroundColor: aC.glassBg, borderColor: aC.isDark ? 'rgba(100,160,255,0.5)' : 'rgba(100,160,255,0.6)' }]}
+                style={[styles.servCard, { backgroundColor: aC.isDark ? '#010a1f' : aC.glassBg, borderColor: aC.isDark ? '#8ba7d2' : 'rgba(100,160,255,0.6)' }]}
                 onPress={() => {
                   if (s.p && Object.keys(s.p).length > 0) {
                     router.push({ pathname: s.route as any, params: s.p });
@@ -563,9 +662,8 @@ export default function HomeScreen() {
               >
                 {aC.isDark ? (
                   <>
-                    <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                    <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                    <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+                    <LinearGradient colors={['#16408880', '#0D255480', '#010a1f', '#010a1f', '#0D255480', '#16408880']} locations={[0, 0.09, 0.23, 0.77, 0.91, 1]} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+                    <LinearGradient colors={['rgba(22,64,136,0.30)', 'rgba(13,37,84,0.10)', 'transparent', 'transparent', 'rgba(13,37,84,0.10)', 'rgba(22,64,136,0.30)']} locations={[0, 0.08, 0.22, 0.78, 0.92, 1]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
                   </>
                 ) : (
                   <>
@@ -574,9 +672,9 @@ export default function HomeScreen() {
                   </>
                 )}
                 {(s as any).image ? (
-                  <Image source={(s as any).image} style={{ width: (s as any).imageSize ? Math.round((s as any).imageSize * 0.75) : 24, height: (s as any).imageSize ? Math.round((s as any).imageSize * 0.75) : 24, marginTop: (s as any).imageMarginTop ? Math.round((s as any).imageMarginTop * 0.75) : 0 }} resizeMode="contain" />
+                  <Image source={(s as any).image} style={{ width: (s as any).imageSize || 26, height: (s as any).imageSize || 26, marginTop: (s as any).imageMarginTop || 0 }} resizeMode="contain" />
                 ) : (
-                  <Ionicons name={s.icon as any} size={18} color="#e2671b" />
+                  <Ionicons name={s.icon as any} size={22} color="#e2671b" />
                 )}
                 <Text style={[styles.servLabel, { color: aC.textSecondary }]}>{s.label}</Text>
               </TouchableOpacity>
@@ -600,16 +698,17 @@ export default function HomeScreen() {
             6 · VEHICLE SEARCH
         ════════════════════════════════════════════════════ */}
         <View style={[styles.sec, styles.pad]}>
-          <View style={[styles.vehicleSearchWrapper, { backgroundColor: aC.isDark ? '#061B4A' : '#dde8ff' }]}>
-            <LinearGradient
-              colors={['transparent', 'rgba(226,103,27,0.55)']}
-              start={{ x: 0.5, y: 0.6 }}
-              end={{ x: 0.5, y: 1 }}
-              style={StyleSheet.absoluteFillObject}
-              pointerEvents="none"
-            />
-            <VehicleSearch />
-          </View>
+          <LinearGradient
+            colors={aC.isDark ? ['#E2671B', '#032A69'] : ['#b7c7df', '#b7c7df']}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
+            style={styles.vehicleSearchWrapper}
+          >
+            <View style={[styles.vehicleSearchSurface, { backgroundColor: aC.isDark ? '#061538' : '#dde8ff' }]}>
+              {aC.isDark && <LinearGradient colors={['#061538', '#071a42', '#292b45', '#72433e']} locations={[0, 0.55, 0.76, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
+              <VehicleSearch />
+            </View>
+          </LinearGradient>
         </View>
 
         {/* ════════════════════════════════════════════════════
@@ -640,9 +739,10 @@ export default function HomeScreen() {
               keyExtractor={i => i.id}
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={{ gap: 16 }}
-              renderItem={({ item }) => (
+              renderItem={({ item, index }) => (
                 <FeaturedVehicleCard
                   item={item}
+                  fallbackIndex={index}
                   onPress={() => router.push({ pathname: '/vehicle/[id]', params: { id: item.id } })}
                 />
               )}
@@ -655,22 +755,21 @@ export default function HomeScreen() {
         ════════════════════════════════════════════════════ */}
         <View style={[styles.sec, styles.pad]}>
           <SH title="Featured Bikes" onViewAll={() => router.push({ pathname: '/(tabs)/explore', params: { category: 'bike' } } as any)} />
-          {bikes.length === 0 ? (
-            <View style={[styles.emptyBox, { backgroundColor: aC.glassBg, borderColor: aC.divider }]}>
-              <Ionicons name="bicycle-outline" size={40} color={aC.textSecondary} />
-              <Text style={[styles.emptyTxt, { color: aC.textSecondary }]}>No bikes listed yet</Text>
-            </View>
+          {loading ? (
+            <ActivityIndicator color="#e2671b" style={{ paddingVertical: 28 }} />
           ) : (
             <FlatList
               horizontal
-              data={bikes}
-              keyExtractor={i => i.id}
+              data={Array.from({ length: featured.length || 6 }, (_, index) => bikes[index] ?? { ...FEATURED_BIKE_PREVIEWS[index % FEATURED_BIKE_PREVIEWS.length], id: `featured-bike-placeholder-${index}`, isPlaceholder: true })}
+              keyExtractor={i => String(i.id)}
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={{ gap: 16 }}
-              renderItem={({ item }) => (
+              renderItem={({ item, index }) => (
                 <FeaturedVehicleCard
                   item={item}
-                  onPress={() => router.push({ pathname: '/vehicle/[id]', params: { id: item.id } })}
+                  category="bike"
+                  fallbackIndex={index}
+                  onPress={() => item.isPlaceholder ? router.push({ pathname: '/(tabs)/explore', params: { category: 'bike' } } as any) : router.push({ pathname: '/vehicle/[id]', params: { id: item.id } })}
                 />
               )}
             />
@@ -721,20 +820,23 @@ export default function HomeScreen() {
         <View style={[styles.sec, styles.pad]}>
           <SH title="Recent Activity" />
           <View style={{ gap: 10 }}>
-            {(recentReal && recentReal.length ? recentReal : RECENT_ACTIVITY).map((a: any) => (
-              <TouchableOpacity key={a.title + a.sub} style={[styles.actItem, { backgroundColor: aC.glassBg, borderColor: aC.glassBorder }]} activeOpacity={0.84}>
-                {aC.isDark && <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
-                {aC.isDark && <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
-                {aC.isDark && <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
-                <View style={[styles.actIcon, { backgroundColor: aC.isDark ? C.glassDark : '#e8eeff', borderColor: aC.divider }]}>
-                  <Ionicons name={a.icon as any} size={24} color="#e2671b" />
+            {(recentReal && recentReal.length ? recentReal : RECENT_ACTIVITY).map((a: any, index: number) => (
+              <TouchableOpacity key={a.title + a.sub} style={[styles.actItem, { backgroundColor: aC.isDark ? '#010b1e' : aC.glassBg, borderColor: aC.isDark ? '#829fd0' : aC.glassBorder }]} activeOpacity={0.84}>
+                {aC.isDark && <LinearGradient colors={['#173668', '#010b1e', '#071a3a']} locations={[0, 0.24, 1]} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
+                {aC.isDark && <LinearGradient colors={['rgba(35,81,157,0.13)', 'transparent', 'transparent', 'rgba(35,81,157,0.13)']} locations={[0, 0.09, 0.91, 1]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
+                <View style={[styles.actIcon, { backgroundColor: aC.isDark ? '#061b4a' : '#e8eeff', borderColor: aC.isDark ? 'transparent' : aC.divider }]}>
+                  {index === 0 && a.title === 'Financing Application Submitted' ? (
+                    <Image source={require('@/assets/images/hugeicons_bank.png')} style={styles.activityBankIcon} resizeMode="contain" />
+                  ) : (
+                    <Ionicons name={a.icon as any} size={24} color="#e2671b" />
+                  )}
                 </View>
                 <View style={{ flex: 1, gap: 2 }}>
                   <Text style={[styles.actTitle, { color: aC.textPrimary }]}>{a.title}</Text>
                   <Text style={[styles.actSub, { color: aC.textSecondary }]}>{a.sub}</Text>
                 </View>
                 <View style={styles.actArrow}>
-                  <Ionicons name="chevron-forward" size={14} color="#e2671b"/>
+                  <Ionicons name="chevron-forward" size={24} color="#e2671b" />
                 </View>
               </TouchableOpacity>
             ))}
@@ -745,39 +847,52 @@ export default function HomeScreen() {
       </ScrollView>
       {/* Chatbot FAB — corner company logo (icon) */}
       <Chatbot />
+      <SettingsMenu visible={settingsOpen} anchor={settingsAnchor} onClose={() => setSettingsOpen(false)} />
+      </View>
     </SafeAreaView>
   );
 }
 
 // ─── Styles (exact Figma values) ──────────────────────────────────────────
-const SERV_W  = (W - 32 - 24) / 4;   // 4 per row
-const EXPL_W  = (W - 32 - 10) / 2;   // 2 per row
+const SERV_W = (W - 24 - 36) / 4;   // 4 per row, 12px section padding and gaps
+const EXPL_W = (W - 32 - 10) / 2;   // 2 per row
 
 // Find Your Perfect Vehicle — exact widths to prevent overflow
 // Card inner width = screen - pad(16×2) - cardPadH(12×2) = W - 56
 const FIND_INNER = W - 56;
-const FIND_BTN   = (FIND_INNER - 9)  / 2;   // 2 buttons, gap-9
-const FIND_DROP  = (FIND_INNER - 16) / 3;   // 3 columns, 2×gap-8
+const FIND_BTN = (FIND_INNER - 9) / 2;   // 2 buttons, gap-9
+const FIND_DROP = (FIND_INNER - 16) / 3;   // 3 columns, 2×gap-8
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: 'rgba(1,10,31,1)' },
-  pad:  { paddingHorizontal: 16 },
-  sec:  { marginTop: 20 },
+  pad: { paddingHorizontal: 16 },
+  sec: { marginTop: 20 },
+  servicesSection: { paddingHorizontal: 12, marginTop: 6 },
 
   /* ── Header ── */
-   header: {
-      backgroundColor: 'transparent',
-      paddingHorizontal: 16,
-      paddingTop: 10,
-      paddingBottom: 18,
-      gap: 14,
-    },
+  header: {
+    backgroundColor: 'transparent',
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 18,
+    gap: 14,
+  },
 
-    upperBg: {
-      backgroundColor: 'rgba(6,27,74,1)',
-      borderBottomLeftRadius: 120,
-      borderBottomRightRadius: 120,
-    },
+  upperBg: {
+    backgroundColor: 'transparent',
+    borderBottomLeftRadius: 120,
+    borderBottomRightRadius: 120,
+  },
+  upperBgShape: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 20,
+    backgroundColor: '#071c49',
+    borderBottomLeftRadius: 120,
+    borderBottomRightRadius: 120,
+  },
 
   /* Top row — position:relative so company name can center absolutely */
   logoRow: {
@@ -786,6 +901,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     height: 40,
     position: 'relative',
+    marginHorizontal: 5,
   },
 
   /* [INSTANCE] arrow-left 24×24 */
@@ -806,7 +922,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   companyNameImg: {
-    width: 140,
+    width: 122,
     height: 26,
   },
   companyNameTextLight: {
@@ -820,14 +936,14 @@ const styles = StyleSheet.create({
   topIcons: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 0,
   },
   topIconBtn: {
     width: 36, height: 36, borderRadius: 18,
     alignItems: 'center', justifyContent: 'center',
   },
   headerIconBtn: {
-    width: 36,
+    width: 32,
     height: 36,
     borderRadius: 18,
     alignItems: 'center',
@@ -837,22 +953,22 @@ const styles = StyleSheet.create({
   /* Notification red dot */
   notifDot: {
     position: 'absolute',
-    top: -2, right: -2,
+    top: 5, right: 5,
     width: 7, height: 7,
     borderRadius: 4,
-    backgroundColor: C.orange,
+    backgroundColor: '#e1131f',
     borderWidth: 1, borderColor: '#010a1f',
   },
 
   /* [FRAME] Frame 1686558744  343×51 */
-  greetBlock: { gap: 2 },
+  greetBlock: { gap: 2, marginHorizontal: 5, marginTop: 6, marginBottom: -6 },
   greetRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   greetAvatar: { width: 44, height: 44, borderRadius: 22, overflow: 'hidden' },
   greetAvatarPlaceholder: {
     width: 44, height: 44, borderRadius: 22,
     backgroundColor: '#e2671b',
     alignItems: 'center', justifyContent: 'center',
-    marginRight: 12,
+    marginRight: 10,
   },
   greetAvatarText: { fontSize: 18, fontFamily: 'Poppins_700Bold', color: '#ffffff' },
   /* "Hello, Talha👋"  20px/w500/#f9fafc */
@@ -863,7 +979,7 @@ const styles = StyleSheet.create({
   },
   /* "How can we help today?"  14px/w500/#baacb6 */
   greetSub: {
-    fontSize: 14,
+    fontSize: 15,
     fontFamily: 'Poppins_500Medium',
     color: '#baacb6',
     marginTop: -4,
@@ -874,13 +990,13 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 12,
     height: 48,
     borderRadius: 32,
     backgroundColor: 'rgba(3,12,40,0.6)',
     borderWidth: 1,
     borderColor: 'rgba(100,160,255,0.5)',
-    paddingHorizontal: 16,
+    paddingHorizontal: 18,
     overflow: 'hidden',
   },
   /* "Search cars, banks & dealers..."  12px/w400/#baacb6 */
@@ -892,27 +1008,26 @@ const styles = StyleSheet.create({
   },
   miniStatRow: { gap: 0, paddingRight: 4 },
   miniStat: { alignItems: 'center', paddingHorizontal: 10 },
-  miniStatVal:   { fontSize: 12, fontFamily: 'Poppins_600SemiBold', color: C.orange },
-  miniStatLabel: { fontSize: 8,  fontFamily: 'Poppins_500Medium',    color: C.textDim },
+  miniStatVal: { fontSize: 12, fontFamily: 'Poppins_600SemiBold', color: C.orange },
+  miniStatLabel: { fontSize: 8, fontFamily: 'Poppins_500Medium', color: C.textDim },
   miniStatDiv: { width: 1, height: 20, backgroundColor: C.divider, alignSelf: 'center' },
 
   /* ── Hero Banner — Figma Glass Button exact ── */
+  heroBorder: { borderRadius: 18, padding: 1, overflow: 'hidden' },
   heroBanner: {
     backgroundColor: '#010A1F',
-    borderWidth: 1,
-    borderColor: '#e2671b',
-    borderRadius: 16,
-    padding: 20,
+    borderRadius: 17,
+    padding: 18,
     overflow: 'hidden',
-    minHeight: 229,
+    height: 164,
   },
   heroCarImg: {
     position: 'absolute',
-    width: 140,
-    height: 95,
-    right: 12,
-    bottom: 100,
-    opacity: 0.55,
+    width: '53%',
+    height: 94,
+    right: 6,
+    top: 12,
+    opacity: 1,
   },
   heroC1: {
     position: 'absolute', width: 180, height: 180, borderRadius: 90,
@@ -924,13 +1039,14 @@ const styles = StyleSheet.create({
     right: 40, bottom: -40,
     backgroundColor: 'rgba(3,42,105,0.4)',
   },
-  heroLeft: { flex: 1, gap: 10, justifyContent: 'flex-start' },
+  heroLeft: { flex: 1, justifyContent: 'space-between' },
   // Figma: #ffffff, 18px, weight 600
   heroTitle: {
+    width: '56%',
     fontSize: 18,
     fontFamily: 'Poppins_600SemiBold',
     color: '#ffffff',
-    lineHeight: 26,
+    lineHeight: 21,
   },
   // Figma: #baacb6, 12px, weight 400
   heroDesc: {
@@ -940,12 +1056,12 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   heroBannerStats: {
-    flexDirection: 'row', alignItems: 'center',
-    flexWrap: 'nowrap', gap: 0, marginTop: 24,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    flexWrap: 'nowrap', gap: 0,
   },
   // Figma: #e2671b, 12px, weight 600
   heroBannerVal: {
-    fontSize: 12,
+    fontSize: 16,
     fontFamily: 'Poppins_600SemiBold',
     color: '#e2671b',
   },
@@ -956,10 +1072,10 @@ const styles = StyleSheet.create({
     color: '#d2d2d2',
   },
   heroStatDiv: {
-    width: 1, height: 22,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    marginHorizontal: 8,
+    display: 'none',
   },
+  heroDots: { flexDirection: 'row', alignSelf: 'center', gap: 9, marginTop: 7, marginBottom: 6 },
+  heroDot: { width: 6, height: 6, borderRadius: 3 },
 
   /* ── Scroll Stats — Figma exact (node 1986:11189) ── */
   scrollStatsRow: { paddingHorizontal: 0, gap: 0 },
@@ -1064,8 +1180,8 @@ const styles = StyleSheet.create({
   },
   durTxt: { fontSize: 8, fontFamily: 'Poppins_400Regular', color: '#fff' },
   videoInfo: { flex: 1, padding: 10, gap: 3 },
-  videoTitle:   { fontSize: 14, fontFamily: 'Poppins_500Medium', color: C.textPrimary },
-  videoSub:     { fontSize: 12, fontFamily: 'Poppins_400Regular', color: C.textSec },
+  videoTitle: { fontSize: 14, fontFamily: 'Poppins_500Medium', color: C.textPrimary },
+  videoSub: { fontSize: 12, fontFamily: 'Poppins_400Regular', color: C.textSec },
   videoChannel: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   videoChannelTxt: { fontSize: 10, fontFamily: 'Poppins_500Medium', color: C.textPrimary },
   videoDivider: { height: 1, backgroundColor: C.divider, marginVertical: 4 },
@@ -1081,11 +1197,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row', minHeight: 130,
   },
   finLeft: { flex: 1, gap: 8, justifyContent: 'center' },
-  finTitle:   { fontSize: 16, fontFamily: 'Poppins_600SemiBold', color: C.textPrimary, lineHeight: 24 },
-  finSub:     { fontSize: 10, fontFamily: 'Poppins_500Medium', color: C.textPrimary, lineHeight: 15 },
-  finBtn:     { alignSelf: 'flex-start', borderRadius: 20, overflow: 'hidden' },
+  finTitle: { fontSize: 16, fontFamily: 'Poppins_600SemiBold', color: C.textPrimary, lineHeight: 24 },
+  finSub: { fontSize: 10, fontFamily: 'Poppins_500Medium', color: C.textPrimary, lineHeight: 15 },
+  finBtn: { alignSelf: 'flex-start', borderRadius: 20, overflow: 'hidden' },
   finBtnGrad: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 16, paddingVertical: 7 },
-  finBtnTxt:  { fontSize: 10, fontFamily: 'Poppins_600SemiBold', color: '#fff' },
+  finBtnTxt: { fontSize: 10, fontFamily: 'Poppins_600SemiBold', color: '#fff' },
   finArrow: {
     position: 'absolute', top: '50%',
     width: 32, height: 32, borderRadius: 16,
@@ -1095,20 +1211,20 @@ const styles = StyleSheet.create({
   },
 
   /* ── All Services (node 1986:11312) ── */
-  servGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  servGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: -5 },
   /* Figma: Glass Button bg=#061b4a, blue glow shadow, orange border tint — compact size */
   servCard: {
-    width: SERV_W, height: 68,
+    width: SERV_W, height: 82,
     backgroundColor: 'rgba(3,12,40,0.6)',
-    borderRadius: 10,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: 'rgba(100,160,255,0.5)',
-    alignItems: 'center', justifyContent: 'center', gap: 4,
-    paddingHorizontal: 6,
-    paddingVertical: 6,
+    alignItems: 'center', justifyContent: 'center', gap: 7,
+    paddingHorizontal: 3,
+    paddingVertical: 7,
     overflow: 'hidden',
   },
-  servLabel: { fontSize: 8, fontFamily: 'Poppins_500Medium', color: '#baacb6', textAlign: 'center', lineHeight: 10 },
+  servLabel: { fontSize: 12, fontFamily: 'Poppins_500Medium', color: '#baacb6', textAlign: 'center', lineHeight: 17 },
   servDots: { flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: 12 },
   servDot: { width: 5, height: 5, borderRadius: 3 },
 
@@ -1138,10 +1254,10 @@ const styles = StyleSheet.create({
     width: FIND_BTN, height: 48, borderRadius: 16,
     alignItems: 'center', justifyContent: 'center',
   },
-  findOptBtnActive:   { borderWidth: 1, borderColor: 'rgba(255,255,255,1)' },
+  findOptBtnActive: { borderWidth: 1, borderColor: 'rgba(255,255,255,1)' },
   findOptBtnInactive: {},
-  findOptTxtActive:   { fontSize: 12, fontFamily: 'Poppins_600SemiBold', color: '#e2671b' },
-  findOptTxtInactive: { fontSize: 12, fontFamily: 'Poppins_500Medium',   color: '#f9fafc' },
+  findOptTxtActive: { fontSize: 12, fontFamily: 'Poppins_600SemiBold', color: '#e2671b' },
+  findOptTxtInactive: { fontSize: 12, fontFamily: 'Poppins_500Medium', color: '#f9fafc' },
 
   /* Cars/Bikes — FIND_BTN exact width, h-67, icon+label gap-2 */
   findTypeCardBtn: {
@@ -1156,7 +1272,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center',
     paddingHorizontal: 20, gap: 12,
   },
-  findCondActive:   { borderWidth: 1, borderColor: 'rgba(255,255,255,1)' },
+  findCondActive: { borderWidth: 1, borderColor: 'rgba(255,255,255,1)' },
   findCondInactive: {},
   findCondIcon: {
     width: 30, height: 30, borderRadius: 20,
@@ -1168,7 +1284,7 @@ const styles = StyleSheet.create({
 
   /* 3×3 Dropdown grid — FIND_DROP exact column width prevents overflow */
   findDropGrid: { gap: 12 },
-  findDropRow:  { flexDirection: 'row', gap: 8 },
+  findDropRow: { flexDirection: 'row', gap: 8 },
   findDropItem: { width: FIND_DROP, gap: 8 },
   /* Drop label: 10px Poppins Regular #baacb6 */
   findDropLabel: { fontSize: 10, fontFamily: 'Poppins_400Regular', color: '#baacb6' },
@@ -1235,35 +1351,34 @@ const styles = StyleSheet.create({
   },
   moreServText: { flex: 1, gap: 2 },
   moreServTitle: { fontSize: 14, fontFamily: 'Poppins_500Medium', color: C.textPrimary },
-  moreServSub:   { fontSize: 10, fontFamily: 'Poppins_400Regular', color: C.textSec },
+  moreServSub: { fontSize: 10, fontFamily: 'Poppins_400Regular', color: C.textSec },
 
   /* ── Recent Activity (node 1986:11792) ── */
   actItem: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
-    backgroundColor: 'rgba(3,12,40,0.6)', borderRadius: 12,
+    backgroundColor: 'rgba(3,12,40,0.6)', borderRadius: 18,
     borderWidth: 1, borderColor: 'rgba(100,160,255,0.5)',
-    paddingHorizontal: 14, paddingVertical: 12,
+    paddingHorizontal: 16, paddingVertical: 13,
     overflow: 'hidden',
   },
   actIcon: {
-    width: 40, height: 40, borderRadius: 10, backgroundColor: C.glassDark,
-    borderWidth: 1, borderColor: C.divider,
+    width: 46, height: 46, borderRadius: 23, backgroundColor: C.glassDark,
+    borderWidth: 0, borderColor: C.divider,
     alignItems: 'center', justifyContent: 'center', flexShrink: 0,
   },
+  activityBankIcon: { width: 24, height: 24 },
   actTitle: { fontSize: 12, fontFamily: 'Poppins_500Medium', color: C.textPrimary },
-  actSub:   { fontSize: 8,  fontFamily: 'Poppins_400Regular', color: C.textSec },
+  actSub: { fontSize: 9, fontFamily: 'Poppins_400Regular', color: C.textSec },
   actArrow: {
-    width: 15, alignItems: 'center', justifyContent: 'center',
+    width: 24, alignItems: 'center', justifyContent: 'center',
   },
 
   vehicleSearchWrapper: {
-    borderWidth: 1,
-    borderColor: '#e2671b',
     borderRadius: 16,
-    paddingVertical: 16,
+    padding: 1,
     overflow: 'hidden',
-    backgroundColor: '#061B4A',
   },
+  vehicleSearchSurface: { borderRadius: 15, overflow: 'hidden' },
 
   /* ── Empty ── */
   emptyBox: {
@@ -1275,7 +1390,7 @@ const styles = StyleSheet.create({
 
   // Section header
   sh: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
-  shTitle:   { fontSize: 16, fontFamily: 'Poppins_500Medium', color: C.textPrimary },
-  shRight:   { flexDirection: 'row', alignItems: 'center', gap: 3 },
+  shTitle: { fontSize: 16, fontFamily: 'Poppins_500Medium', color: C.textPrimary },
+  shRight: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   shViewAll: { fontSize: 12, fontFamily: 'Poppins_500Medium', color: C.orange },
 });

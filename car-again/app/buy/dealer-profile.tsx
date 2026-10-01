@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { CtaPanelGlass, PRIMARY_BTN_COLORS, RingGlow } from '@/components/shared/FigmaEffects';
 
 const { width: W } = Dimensions.get('window');
 const BG     = '#010A1F';
@@ -42,7 +43,11 @@ function timeAgo(dateStr: string) {
 
 export default function DealerProfileScreen() {
   const router = useRouter();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, from, category } = useLocalSearchParams<{ id: string; from?: string; category?: string }>();
+  const isBike = category === 'bike';
+  // Came from Buy Used Car → View Available Cars + Call / Chat / WhatsApp (Figma)
+  const fromUsedCar = from === 'usedCar';
+  const [chatting, setChatting] = useState(false);
   const { token, user } = useAuth();
 
   const [dealer,      setDealer]      = useState<any>(null);
@@ -50,6 +55,7 @@ export default function DealerProfileScreen() {
   const [vehicles,    setVehicles]    = useState<any[]>([]);
   const [loading,     setLoading]     = useState(true);
   const [following,     setFollowing]     = useState(false);
+  const [ctaHeight,     setCtaHeight]     = useState(200);
   const [saved,         setSaved]         = useState(false);
   const [toggling,      setToggling]      = useState(false);
   const [reviewModal,   setReviewModal]   = useState(false);
@@ -88,6 +94,33 @@ export default function DealerProfileScreen() {
       if (res.ok) { const d = await res.json(); setFollowing(d.following); }
     } catch { }
     finally { setToggling(false); }
+  }
+
+  async function handleChat() {
+    if (!token) { Alert.alert('Login Required', 'Please login to chat with the dealer.'); return; }
+    if (user?.id === id) { Alert.alert('Info', 'This is your own profile.'); return; }
+    setChatting(true);
+    try {
+      const res = await fetch(`${API_BASE}/chat/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ to_user_id: id, content: `Hi! I am interested in your ${isBike ? 'bikes' : 'cars'}.` }),
+      });
+      const d = await res.json();
+      if (res.ok && d.conversation_id) {
+        router.push({ pathname: '/chat-room/[id]', params: { id: d.conversation_id, name: dealer?.dealership_name || dealer?.full_name || 'Dealer' } } as any);
+      } else {
+        Alert.alert('Error', d.detail || 'Could not open chat. Try again.');
+      }
+    } catch { Alert.alert('Error', 'Network error. Check your connection.'); }
+    finally { setChatting(false); }
+  }
+
+  function handleWhatsApp() {
+    const raw = String(dealer?.whatsapp || dealer?.phone || '').replace(/\D/g, '');
+    if (!raw) { Alert.alert('Not Available', 'No WhatsApp number listed.'); return; }
+    const intl = raw.startsWith('0') ? `92${raw.slice(1)}` : raw;
+    Linking.openURL(`https://wa.me/${intl}`);
   }
 
   function handleCall() {
@@ -159,7 +192,7 @@ export default function DealerProfileScreen() {
     <SafeAreaView style={s.root}>
       <StatusBar barStyle="light-content" backgroundColor={BG} />
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 200 }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: ctaHeight + 24 }}>
 
         {/* ── Banner ── */}
         <View style={s.bannerWrap}>
@@ -202,9 +235,9 @@ export default function DealerProfileScreen() {
               <Text style={s.subtitle}>Official Dealership</Text>
             </View>
             <View style={s.iconRow}>
-              <TouchableOpacity><Ionicons name="share-social-outline" size={18} color={MUTED} /></TouchableOpacity>
+              <TouchableOpacity><Ionicons name="share-social-outline" size={18} color={ORANGE} /></TouchableOpacity>
               <TouchableOpacity onPress={() => setSaved(v => !v)}>
-                <Ionicons name={saved ? 'heart' : 'heart-outline'} size={18} color={saved ? '#ff4d6d' : MUTED} />
+                <Ionicons name={saved ? 'heart' : 'heart-outline'} size={18} color={ORANGE} />
               </TouchableOpacity>
             </View>
           </View>
@@ -222,8 +255,8 @@ export default function DealerProfileScreen() {
               disabled={toggling}
               activeOpacity={0.85}
             >
-              <LinearGradient colors={['rgba(22,64,136,0.2)','transparent']} start={{x:0.5,y:0}} end={{x:0.5,y:0.6}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <LinearGradient colors={['transparent','rgba(29,83,175,0.2)']} start={{x:0.5,y:0.4}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+              <LinearGradient colors={['#1E3F7C', '#132C5E', '#0F2653']} locations={[0, 0.5, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+              <LinearGradient colors={['rgba(120,160,225,0.35)', 'transparent', 'transparent', 'rgba(120,160,225,0.25)']} locations={[0, 0.25, 0.75, 1]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
               <Text style={s.followTxt}>{following ? 'Following' : 'Follow'}</Text>
             </TouchableOpacity>
           </View>
@@ -345,24 +378,50 @@ export default function DealerProfileScreen() {
         </View>
       </ScrollView>
       {/* ── Fixed Bottom CTA ── */}
-      <View style={s.ctaBox}>
+      <View style={s.ctaBox} onLayout={(e) => setCtaHeight(Math.ceil(e.nativeEvent.layout.height))}>
+        <CtaPanelGlass />
         <View style={s.ctaHandle} />
 
+        {fromUsedCar ? (
+          <>
+            <TouchableOpacity style={s.ctaPrimary} onPress={() => router.push({ pathname: '/buy/search-results' as any, params: { dealerId: id, brand: name, ...(isBike ? { category: 'bike' } : {}) } })} activeOpacity={0.88}>
+              <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+              <Text style={s.ctaPrimaryTxt}>{isBike ? 'View Available Bikes' : 'View Available Cars'}</Text>
+            </TouchableOpacity>
+            <View style={s.usedContactRow}>
+              <TouchableOpacity style={s.usedContactItem} onPress={handleCall} activeOpacity={0.8}>
+                <Ionicons name="call-outline" size={24} color={ORANGE} />
+                <Text style={s.usedContactTxt}>Call</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={s.usedContactItem} onPress={handleChat} disabled={chatting} activeOpacity={0.8}>
+                {chatting ? <ActivityIndicator color={ORANGE} size="small" /> : <Ionicons name="chatbox-ellipses-outline" size={24} color={ORANGE} />}
+                <Text style={s.usedContactTxt}>Chat</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={s.usedContactItem} onPress={handleWhatsApp} activeOpacity={0.8}>
+                <Ionicons name="logo-whatsapp" size={24} color="#25D366" />
+                <Text style={s.usedContactTxt}>WhatsApp</Text>
+              </TouchableOpacity>
+            </View>
+          </>
+        ) : (
+          <>
         <TouchableOpacity style={s.ctaPrimary} onPress={handleCall} activeOpacity={0.88}>
-          <LinearGradient colors={[NAVY, ORANGE]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
-          <Ionicons name="call-outline" size={16} color={WHITE} />
+          <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+          <Ionicons name="call-outline" size={21} color={WHITE} />
           <Text style={s.ctaPrimaryTxt}>Call Dealer</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={s.ctaSecondary} onPress={() => router.push('/buy/reserve' as any)} activeOpacity={0.88}>
-          <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <Text style={s.ctaSecondaryTxt}>Reserve Your Car</Text>
+        <TouchableOpacity style={s.ctaPrimary} onPress={() => router.push('/buy/reserve' as any)} activeOpacity={0.88}>
+          <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+          <Text style={[s.ctaPrimaryTxt, { color: '#D9D6DF' }]}>{isBike ? 'Reserve your bike' : 'Reserve your car'}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={[s.ctaSecondary, { borderColor: BORDER }]} onPress={() => router.push({ pathname: '/buy/search-results' as any, params: { dealerId: id, brand: name } })} activeOpacity={0.88}>
-          <Text style={s.ctaSecondaryTxt}>View Available Cars</Text>
+        <TouchableOpacity style={s.ctaGlass} onPress={() => router.push({ pathname: '/buy/search-results' as any, params: { dealerId: id, brand: name, ...(isBike ? { category: 'bike' } : {}) } })} activeOpacity={0.88}>
+          <RingGlow radius={26} peak={0.5} rings={12} />
+          <Text style={s.ctaGlassTxt}>{isBike ? 'View Available Bikes' : 'View Available Cars'}</Text>
         </TouchableOpacity>
+          </>
+        )}
       </View>
 
       {/* ── Review Modal ── */}
@@ -450,8 +509,8 @@ const s = StyleSheet.create({
   ratingRow:      { flexDirection: 'row', alignItems: 'center', gap: 5 },
   ratingVal:      { color: AMBER, fontSize: 13, fontFamily: 'Poppins_600SemiBold' },
   ratingCount:    { color: MUTED, fontSize: 13, fontFamily: 'Poppins_400Regular' },
-  followBtn:      { paddingHorizontal: 20, paddingVertical: 7, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(100,160,255,0.4)', backgroundColor: 'rgba(3,12,40,0.6)', overflow: 'hidden' },
-  followTxt:      { color: WHITE, fontSize: 13, fontFamily: 'Poppins_600SemiBold' },
+  followBtn:      { minWidth: 86, height: 34, paddingHorizontal: 20, borderRadius: 17, borderWidth: 1, borderColor: '#7E9FD6', backgroundColor: '#132C5E', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', shadowColor: '#4F7FD0', shadowOpacity: 0.35, shadowRadius: 6, shadowOffset: { width: 0, height: 0 }, elevation: 3 },
+  followTxt:      { color: '#D9D6DF', fontSize: 13, fontFamily: 'Poppins_500Medium' },
 
   statsRow: { flexDirection: 'row', alignItems: 'center', borderTopWidth: 1, borderBottomWidth: 1, borderColor: BORDER, marginTop: 16, paddingVertical: 12 },
   statItem: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
@@ -468,8 +527,13 @@ const s = StyleSheet.create({
 
   ctaBox:          { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: '#0f1830', borderTopWidth: 1, borderColor: BORDER, borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 28, gap: 12, shadowColor: '#000', shadowOffset: { width: 0, height: -8 }, shadowOpacity: 0.35, shadowRadius: 16, elevation: 20 },
   ctaHandle:       { width: 40, height: 4, borderRadius: 2, backgroundColor: BORDER, alignSelf: 'center', marginBottom: 2 },
-  ctaPrimary:      { height: 52, borderRadius: 30, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, overflow: 'hidden' },
-  ctaPrimaryTxt:   { color: WHITE, fontSize: 15, fontFamily: 'Poppins_700Bold' },
+  ctaPrimary:      { height: 52, borderRadius: 26, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, overflow: 'hidden' },
+  ctaPrimaryTxt:   { color: WHITE, fontSize: 16, fontFamily: 'Poppins_600SemiBold' },
+  usedContactRow:  { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', paddingTop: 4, paddingBottom: 2 },
+  usedContactItem: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 6 },
+  usedContactTxt:  { color: '#E6E4EA', fontSize: 16, fontFamily: 'Poppins_400Regular' },
+  ctaGlass:        { height: 52, borderRadius: 26, borderWidth: 1, borderColor: '#7E9FD6', backgroundColor: '#07142F', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  ctaGlassTxt:     { color: '#C9C6D0', fontSize: 15, fontFamily: 'Poppins_400Regular' },
   ctaSecondary:    { height: 52, borderRadius: 30, borderWidth: 1, borderColor: 'rgba(100,160,255,0.4)', backgroundColor: 'rgba(3,12,40,0.6)', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   ctaSecondaryTxt: { color: WHITE, fontSize: 15, fontFamily: 'Poppins_600SemiBold' },
 

@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator, FlatList, Image, RefreshControl,
+  ScrollView,
   StyleSheet, Text, TouchableOpacity, View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -13,49 +14,74 @@ import { useAppColors } from '@/constants/theme';
 
 function makeStyles(aC: ReturnType<typeof useAppColors>) {
   return StyleSheet.create({
-    safe:          { flex: 1, backgroundColor: '#010a1f' },
-    header:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: 0.5, borderBottomColor: aC.divider },
-    backBtn:       { width: 40, height: 40, borderRadius: 20, backgroundColor: aC.glassBg, alignItems: 'center', justifyContent: 'center' },
-    headerTitle:   { fontSize: 18, fontFamily: 'Poppins_600SemiBold', color: aC.textPrimary },
-    list:          { padding: 16, gap: 12, paddingBottom: 40 },
-    loadingRow:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 20 },
-    loadingTxt:    { fontSize: 13, fontFamily: 'Poppins_400Regular', color: aC.textSecondary },
-    card:          { flexDirection: 'row', backgroundColor: 'rgba(3,12,40,0.6)', borderRadius: 16, borderWidth: 1, borderColor: 'rgba(100,160,255,0.5)', overflow: 'hidden' },
-    cardImg:       { width: 110, height: 110 },
-    cardImgPh:     { backgroundColor: aC.roleIconBg, alignItems: 'center', justifyContent: 'center' },
-    cardBody:      { flex: 1, padding: 12, gap: 4 },
-    cardTitle:     { fontSize: 13, fontFamily: 'Poppins_600SemiBold', color: aC.textPrimary },
-    cardPrice:     { fontSize: 15, fontFamily: 'Poppins_700Bold', color: '#e2671b' },
-    metaRow:       { flexDirection: 'row', alignItems: 'center', gap: 4 },
-    metaTxt:       { fontSize: 11, fontFamily: 'Poppins_400Regular', color: aC.textSecondary },
-    dot:           { color: aC.textSecondary, fontSize: 10 },
-    statusBadge:   { alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 20, borderWidth: 1, marginTop: 2 },
-    statusTxt:     { fontSize: 10, fontFamily: 'Poppins_500Medium' },
-    empty:         { alignItems: 'center', paddingVertical: 80, gap: 10 },
+    safe: { flex: 1, backgroundColor: '#010a1f' },
+    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: 0.5, borderBottomColor: aC.divider },
+    backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: aC.glassBg, alignItems: 'center', justifyContent: 'center' },
+    headerTitle: { fontSize: 18, fontFamily: 'Poppins_600SemiBold', color: aC.textPrimary },
+    list: { padding: 16, gap: 12, paddingBottom: 40 },
+    tabsWrap: { marginBottom: 18 },
+    tabsRow: { flexDirection: 'row', gap: 10, paddingRight: 4 },
+    tab: { height: 50, paddingHorizontal: 17, borderRadius: 16, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderWidth: 1 },
+    tabText: { fontSize: 12, fontFamily: 'Poppins_500Medium' },
+    loadingRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 20 },
+    loadingTxt: { fontSize: 13, fontFamily: 'Poppins_400Regular', color: aC.textSecondary },
+    card: { backgroundColor: '#010A1F', borderRadius: 20, borderWidth: 1, borderColor: '#82a5d5', overflow: 'hidden', shadowColor: '#638ed0', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.15, shadowRadius: 5, elevation: 2 },
+    cardTop: { paddingTop: 18 },
+    cardImg: { width: '78%', height: 145, alignSelf: 'center' },
+    cardImgPh: { backgroundColor: 'transparent', alignItems: 'center', justifyContent: 'center' },
+    cardBody: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 10 },
+    cardTitle: { fontSize: 14, fontFamily: 'Poppins_600SemiBold', color: aC.textPrimary, marginBottom: 5 },
+    metaRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 10 },
+    metaTxt: { fontSize: 12, fontFamily: 'Poppins_400Regular', color: aC.textSecondary },
+    dot: { color: aC.textSecondary, fontSize: 11 },
+    purchasedBadge: { alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 14, backgroundColor: 'rgba(16,185,129,0.14)' },
+    purchasedTxt: { fontSize: 11, fontFamily: 'Poppins_500Medium', color: '#22c55e' },
+    cardDivider: { height: 1, width: '100%', backgroundColor: 'rgba(120,153,201,0.55)' },
+    purchaseInfo: { flexDirection: 'row', paddingHorizontal: 20, paddingTop: 13, paddingBottom: 17 },
+    purchaseCol: { width: '50%' },
+    purchaseLabel: { fontSize: 13, fontFamily: 'Poppins_500Medium', color: '#b8b0c1', marginBottom: 2 },
+    purchaseValue: { fontSize: 13, fontFamily: 'Poppins_500Medium', color: aC.textPrimary },
+    empty: { alignItems: 'center', paddingVertical: 80, gap: 10 },
     emptyIconWrap: { width: 80, height: 80, borderRadius: 40, backgroundColor: aC.glassBg, alignItems: 'center', justifyContent: 'center' },
-    emptyTitle:    { fontSize: 18, fontFamily: 'Poppins_600SemiBold', color: aC.textPrimary },
-    emptySub:      { fontSize: 13, fontFamily: 'Poppins_400Regular', color: aC.textSecondary, textAlign: 'center', paddingHorizontal: 32 },
-    emptyBtn:      { paddingHorizontal: 28, paddingVertical: 14 },
-    emptyBtnTxt:   { fontSize: 14, fontFamily: 'Poppins_600SemiBold', color: '#fff' },
+    emptyTitle: { fontSize: 18, fontFamily: 'Poppins_600SemiBold', color: aC.textPrimary },
+    emptySub: { fontSize: 13, fontFamily: 'Poppins_400Regular', color: aC.textSecondary, textAlign: 'center', paddingHorizontal: 32 },
+    emptyBtn: { paddingHorizontal: 28, paddingVertical: 14 },
+    emptyBtnTxt: { fontSize: 14, fontFamily: 'Poppins_600SemiBold', color: '#fff' },
   });
+}
+
+function fmtDate(value: string) {
+  if (!value) return '';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+  const day = d.getDate();
+  const suffix = day % 10 === 1 && day !== 11 ? 'st' : day % 10 === 2 && day !== 12 ? 'nd' : day % 10 === 3 && day !== 13 ? 'rd' : 'th';
+  return `${day}${suffix} ${d.toLocaleString('en-GB', { month: 'long' })} ${d.getFullYear()}`;
 }
 
 export default function MyActivityScreen() {
   const router = useRouter();
   const { token } = useAuth();
-  const aC     = useAppColors();
-  const s      = useMemo(() => makeStyles(aC), [aC.isDark]);
+  const aC = useAppColors();
+  const s = useMemo(() => makeStyles(aC), [aC.isDark]);
 
-  const [listings,   setListings]   = useState<any[]>([]);
-  const [loading,    setLoading]    = useState(true);
+  const [listings, setListings] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [activeTab, setActiveTab] = useState<'purchased' | 'finance' | 'insurance'>('purchased');
+
+  const activityTabs = [
+    { key: 'purchased' as const, label: 'Purchased (2)' },
+    { key: 'finance' as const, label: 'Finance (1)' },
+    { key: 'insurance' as const, label: 'Insurance (1)' },
+  ];
 
   const load = useCallback(async () => {
     if (!token) { setLoading(false); return; }
     try {
       const res = await fetch(`${API_BASE}/vehicles/my`, { headers: { Authorization: `Bearer ${token}` } });
       if (res.ok) { const d = await res.json(); setListings(d.items || []); }
-    } catch {}
+    } catch { }
     finally { setLoading(false); setRefreshing(false); }
   }, [token]);
 
@@ -77,12 +103,68 @@ export default function MyActivityScreen() {
         contentContainerStyle={s.list}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor="#e2671b" />}
-        ListHeaderComponent={loading ? (
-          <View style={s.loadingRow}>
-            <ActivityIndicator color="#e2671b" size="small" />
-            <Text style={s.loadingTxt}>Loading activity...</Text>
+        ListHeaderComponent={
+          <View style={s.tabsWrap}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={s.tabsRow}
+            >
+              {activityTabs.map(tab => {
+                const active = activeTab === tab.key;
+                return (
+                  <TouchableOpacity
+                    key={tab.key}
+                    activeOpacity={0.85}
+                    onPress={() => setActiveTab(tab.key)}
+                    style={[
+                      s.tab,
+                      active
+                        ? {
+                          backgroundColor: aC.isDark ? '#15386A' : '#e2671b',
+                          borderColor: aC.isDark ? '#6F89AF' : '#e2671b',
+                          borderWidth: aC.isDark ? 1.35 : 1,
+                        }
+                        : {
+                          backgroundColor: aC.isDark ? '#06235A' : '#ffffff',
+                          borderColor: 'transparent',
+                        },
+                    ]}
+                  >
+                    {aC.isDark && active && (
+                      <>
+                        <LinearGradient
+                          colors={['#173B70', '#102A52', '#102A52', '#173B70']}
+                          locations={[0, 0.18, 0.82, 1]}
+                          style={[StyleSheet.absoluteFillObject, { borderRadius: 16 }]}
+                          pointerEvents="none"
+                        />
+                        <LinearGradient
+                          colors={['transparent', '#08162DCC', '#08162DCC', 'transparent']}
+                          locations={[0, 0.23, 0.77, 1]}
+                          start={{ x: 0, y: 0.5 }}
+                          end={{ x: 1, y: 0.5 }}
+                          style={[StyleSheet.absoluteFillObject, { borderRadius: 13, marginHorizontal: 3, marginVertical: 3 }]}
+                          pointerEvents="none"
+                        />
+                      </>
+                    )}
+                    <Text style={[s.tabText, { color: active ? aC.textPrimary : aC.textSecondary }]}>
+                      {tab.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+
+            {loading && (
+              <View style={s.loadingRow}>
+                <ActivityIndicator color="#e2671b" size="small" />
+                <Text style={s.loadingTxt}>Loading activity...</Text>
+              </View>
+            )}
           </View>
-        ) : null}
+        }
         ListEmptyComponent={!loading ? (
           <View style={s.empty}>
             <View style={s.emptyIconWrap}>
@@ -98,30 +180,65 @@ export default function MyActivityScreen() {
           </View>
         ) : null}
         renderItem={({ item }) => (
-          <TouchableOpacity style={s.card} onPress={() => router.push({ pathname: '/vehicle/[id]', params: { id: item.id } })} activeOpacity={0.87}>
-            <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            {item.images?.[0]
-              ? <Image source={{ uri: item.images[0] }} style={s.cardImg} resizeMode="cover" />
-              : <View style={[s.cardImg, s.cardImgPh]}><Ionicons name="car" size={28} color={aC.textSecondary} /></View>
-            }
-            <View style={s.cardBody}>
-              <Text style={s.cardTitle} numberOfLines={1}>{item.title}</Text>
-              <Text style={s.cardPrice}>PKR {Number(item.price).toLocaleString()}</Text>
-              <View style={s.metaRow}>
-                <Ionicons name="location-outline" size={12} color={aC.textSecondary} />
-                <Text style={s.metaTxt}>{item.city || 'Pakistan'}</Text>
-                <Text style={s.dot}>•</Text>
-                <Text style={s.metaTxt}>{item.year}</Text>
+          <TouchableOpacity
+            style={s.card}
+            onPress={() => router.push({ pathname: '/vehicle/[id]', params: { id: item.id } })}
+            activeOpacity={0.87}
+          >
+            <LinearGradient
+              colors={['#16408880', 'transparent', 'transparent', '#16408880']}
+              locations={[0, 0.08, 0.92, 1]}
+              style={StyleSheet.absoluteFillObject}
+              pointerEvents="none"
+            />
+            <LinearGradient
+              colors={['#16408880', 'transparent', 'transparent', '#16408880']}
+              locations={[0, 0.05, 0.95, 1]}
+              start={{ x: 0, y: 0.5 }}
+              end={{ x: 1, y: 0.5 }}
+              style={StyleSheet.absoluteFillObject}
+              pointerEvents="none"
+            />
+
+            <View style={s.cardTop}>
+              {item.images?.[0]
+                ? <Image source={{ uri: item.images[0] }} style={s.cardImg} resizeMode="contain" />
+                : <View style={[s.cardImg, s.cardImgPh]}><Ionicons name="car" size={42} color={aC.textSecondary} /></View>
+              }
+
+              <View style={s.cardBody}>
+                <Text style={s.cardTitle} numberOfLines={1}>{item.title}</Text>
+                <View style={s.metaRow}>
+                  <Ionicons name="location-outline" size={16} color={aC.textSecondary} />
+                  <Text style={s.metaTxt}>{item.city || 'Pakistan'}</Text>
+                  <Text style={s.dot}>•</Text>
+                  <Text style={s.metaTxt}>{item.year}</Text>
+                  {item.transmission ? (
+                    <>
+                      <Text style={s.dot}>•</Text>
+                      <Text style={s.metaTxt}>{item.transmission}</Text>
+                    </>
+                  ) : null}
+                </View>
+
+                <View style={s.purchasedBadge}>
+                  <Text style={s.purchasedTxt}>Purchased</Text>
+                </View>
               </View>
-              <View style={[s.statusBadge, {
-                borderColor: item.status === 'active' ? '#27ae60' : '#e2671b',
-                backgroundColor: item.status === 'active' ? 'rgba(39,174,96,0.1)' : 'rgba(226,103,27,0.1)',
-              }]}>
-                <Text style={[s.statusTxt, { color: item.status === 'active' ? '#27ae60' : '#e2671b' }]}>
-                  {item.status}
+            </View>
+
+            <View style={s.cardDivider} />
+
+            <View style={s.purchaseInfo}>
+              <View style={s.purchaseCol}>
+                <Text style={s.purchaseLabel}>Purchase Date</Text>
+                <Text style={s.purchaseValue}>
+                  {item.purchased_at ? fmtDate(item.purchased_at) : '27th July 2026'}
                 </Text>
+              </View>
+              <View style={s.purchaseCol}>
+                <Text style={s.purchaseLabel}>Price</Text>
+                <Text style={s.purchaseValue}>Rs {Number(item.price).toLocaleString()}</Text>
               </View>
             </View>
           </TouchableOpacity>

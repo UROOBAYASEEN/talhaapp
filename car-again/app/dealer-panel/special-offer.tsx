@@ -9,14 +9,14 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import * as Linking from 'expo-linking';
-import {
-  ChevronLeft, Bookmark, Lightbulb, Upload,
-  ChevronDown, Calendar, Circle, CheckCircle2,
-  X, Zap,
-} from 'lucide-react-native';
+import { CheckCircle2, X, Zap } from 'lucide-react-native';
 import { AppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
+import {
+  BottomActions, Chip, D, DField, DHeader, DSelect, PlanOption, PromoCard, SaveDraftAction, TermsRow, TipBanner, UploadBox, dk,
+} from '@/components/dealer/DealerUI';
+import { GlassButton, GradientButton } from '@/components/shared/GlowUI';
 
 const ORANGE = AppColors.gradientEnd;
 const NAVY   = AppColors.gradientStart;
@@ -193,175 +193,106 @@ export default function SpecialOfferScreen() {
         <View style={s.container}>
 
           {/* HEADER */}
-          <View style={s.header}>
-            <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-              <ChevronLeft size={24} color={C.textPrimary} strokeWidth={2}/>
-            </TouchableOpacity>
-            <Text style={s.headerTitle}>Special Offer Details</Text>
-            <TouchableOpacity style={s.draftTopBtn} onPress={handleDraft}>
-              <Bookmark size={18} color={ORANGE} fill={ORANGE}/>
-              <Text style={s.draftTopTxt}>Save Draft</Text>
-            </TouchableOpacity>
-          </View>
+          <DHeader title="Special Offer Details" right={<SaveDraftAction onPress={handleDraft} />} />
 
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scrollContent}>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scrollContent} keyboardShouldPersistTaps="handled">
 
             {/* RECOMMENDATION */}
-            <View style={s.recCard}>
-              <LinearGradient colors={['transparent','rgba(226,103,27,0.35)']} start={{x:0.5,y:0.5}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <View style={s.recIconWrap}>
-                <Lightbulb size={16} color={ORANGE} fill={'rgba(226,103,27,0.3)'}/>
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={s.recTitle}>Banner Ads are best for promoting special offers…</Text>
-                <Text style={s.recText}>Best for: Quick visibility & offer discovery.</Text>
-              </View>
-            </View>
+            <TipBanner text={'Banner Ads are best for promoting special offers...\nBest for: Quick visibility & offer discovery.'} />
 
             {/* UPLOAD */}
-            <TouchableOpacity style={s.uploadBox} onPress={pickImage} activeOpacity={0.8}>
-              <Upload size={26} color={ORANGE}/>
-              <Text style={s.uploadTitle}>{uploadedFile ? '✓ Image selected' : '+ Upload Banner Image'}</Text>
-              <Text style={s.uploadSub}>{uploadedFile ? uploadedFile.split('/').pop() : 'Tap to browse. Recommended 16:9 ratio.'}</Text>
-            </TouchableOpacity>
+            <View style={{ marginTop: 16 }}>
+              <UploadBox
+                title={uploadedFile ? '✓ Image selected' : '+ Upload Banner Image'}
+                sub={uploadedFile ? String(uploadedFile.split('/').pop()) : 'Drag & drop or click to browse. Recommended 16:9 ratio.'}
+                onPress={pickImage}
+              />
+            </View>
 
             {/* BANNER TITLE */}
-            <Text style={s.label}>Banner Title</Text>
-            <View style={s.inputBox}>
-              <GlassInset/>
-              <TextInput style={s.input} placeholder="e.g. Summer Auto Sale" placeholderTextColor={C.textPlaceholder} value={bannerTitle} onChangeText={setBannerTitle}/>
-            </View>
+            <Text style={dk.label}>Banner Title</Text>
+            <DField placeholder="e.g. Summer Auto Sale" value={bannerTitle} onChangeText={setBannerTitle} />
 
             {/* SHORT DESCRIPTION */}
-            <Text style={s.label}>Short Description</Text>
-            <View style={[s.inputBox, s.textAreaBox]}>
-              <GlassInset/>
-              <TextInput style={[s.input, s.textArea]} placeholder="Catchy description for the banner..." placeholderTextColor={C.textPlaceholder} value={description} onChangeText={setDescription} multiline numberOfLines={4} textAlignVertical="top"/>
-            </View>
+            <Text style={dk.label}>Short Description</Text>
+            <DField placeholder="Catchy description for the banner..." value={description} onChangeText={setDescription} multiline numberOfLines={4} />
 
             {/* CAMPAIGN NAME */}
-            <Text style={s.label}>Campaign Name <Text style={s.labelOptional}>(Optional)</Text></Text>
-            <View style={s.inputBox}>
-              <GlassInset/>
-              <TextInput style={s.input} placeholder="e.g. Summer Campaign 2025" placeholderTextColor={C.textPlaceholder} value={campaignName} onChangeText={setCampaignName}/>
-            </View>
+            <Text style={dk.label}>Campaign Name (Optional)</Text>
+            <DField placeholder="e.g. Summer Campaign 2025" value={campaignName} onChangeText={setCampaignName} />
 
             {/* SHOW ON PAGE */}
-            <Text style={s.label}>Show on Page</Text>
-            <View style={s.chipsRow}>
+            <View style={[s.chipsRow, { marginTop: 18 }]}>
               {PAGES.map(p => (
-                <TouchableOpacity key={p} style={[s.chip, page === p && s.chipActive]} onPress={() => setPage(p)}>
-                  <Text style={[s.chipText, page === p && s.chipTextActive]}>{p}</Text>
-                </TouchableOpacity>
+                <Chip key={p} label={p} selected={page === p} onPress={() => setPage(p)} />
               ))}
             </View>
             <Text style={s.recLine}><Text style={s.recOrange}>Recommendations: </Text><Text style={s.recMuted}>Featured Banner</Text></Text>
 
             {/* DISPLAY LOCATION */}
-            <Text style={s.label}>Display Location</Text>
-            <View style={s.dropdownBox}>
-              <GlassInset/>
-              <Text style={s.dropdownText}>Home Screen Top</Text>
-              <ChevronDown size={16} color={C.textSecondary}/>
-            </View>
+            <Text style={dk.label}>Display Location</Text>
+            <DSelect value="Home Screen Top" />
 
             {/* PARTNER */}
-            <Text style={s.label}>Partner Selection</Text>
-            <View style={s.dropdownBox}>
-              <GlassInset/>
-              <Text style={s.dropdownText}>Autowizor (Default)</Text>
-              <ChevronDown size={16} color={C.textSecondary}/>
-            </View>
+            <Text style={dk.label}>Partner Selection</Text>
+            <DSelect value="Autowizor (Default)" />
 
             {/* SCHEDULE */}
-            <Text style={s.label}>Schedule Banner</Text>
+            <Text style={dk.label}>Schedule Banner</Text>
             <View style={s.scheduleRow}>
               <View style={s.scheduleCol}>
                 <Text style={s.scheduleLabel}>Start Date & Time</Text>
-                <View style={s.dateBox}>
-                  <GlassInset/>
-                  <TextInput style={s.dateInput} placeholder="mm/dd/yyyy" placeholderTextColor={C.textPlaceholder} value={startDate} onChangeText={setStartDate}/>
-                  <Calendar size={14} color={C.textSecondary}/>
-                </View>
+                <DField placeholder="mm/dd/yyyy" value={startDate} onChangeText={setStartDate} />
               </View>
               <View style={s.scheduleCol}>
                 <Text style={s.scheduleLabel}>End Date & Time</Text>
-                <View style={s.dateBox}>
-                  <GlassInset/>
-                  <TextInput style={s.dateInput} placeholder="mm/dd/yyyy" placeholderTextColor={C.textPlaceholder} value={endDate} onChangeText={setEndDate}/>
-                  <Calendar size={14} color={C.textSecondary}/>
-                </View>
+                <DField placeholder="mm/dd/yyyy" value={endDate} onChangeText={setEndDate} />
               </View>
             </View>
 
             {/* AUDIENCE */}
-            <Text style={s.label}>Audience Targeting</Text>
+            <Text style={dk.label}>Audience Targeting</Text>
             <Text style={s.subLabel}>User Type</Text>
             <View style={s.chipsRow}>
               {USER_TYPES.map(t => (
-                <TouchableOpacity key={t} style={[s.chip, userType === t && s.chipActive]} onPress={() => setUserType(t)}>
-                  <Text style={[s.chipText, userType === t && s.chipTextActive]}>{t}</Text>
-                </TouchableOpacity>
+                <Chip key={t} small label={t} selected={userType === t} onPress={() => setUserType(t)} />
               ))}
             </View>
             <Text style={[s.subLabel, { marginTop: 12 }]}>Cities</Text>
             <View style={s.chipsRow}>
               {CITIES.map(c => (
-                <TouchableOpacity key={c} style={[s.chip, city === c && s.chipActive]} onPress={() => setCity(c)}>
-                  <Text style={[s.chipText, city === c && s.chipTextActive]}>{c}</Text>
-                </TouchableOpacity>
+                <Chip key={c} small label={c} selected={city === c} onPress={() => setCity(c)} />
               ))}
             </View>
 
-            {/* Pricing — banker wala same */}
-            <View style={s.pricingCard}>
-              <LinearGradient colors={['transparent', 'rgba(226,103,27,0.45)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-              <View style={s.flameCorner}><Text style={{ color: '#fff', fontSize: 16 }}>♨</Text></View>
-              <Text style={s.pricingTitle}>Ads to Get Your Banner Seen Faster</Text>
-              <Text style={s.pricingSubtitle}>Get 5× more visibility by featuring your banner</Text>
-              {[
-                { label: '6 weeks', sub: 'Recommended for popular offers', price: 'PKR 6,650' },
-                { label: '4 weeks', sub: 'Balanced exposure for more users', price: 'PKR 5,500' },
-                { label: '2 weeks', sub: 'Quick promotion for short offers', price: 'PKR 4,450' },
-              ].map(b => (
-                <View key={b.label} style={[s.durationBtn, { borderColor: 'rgba(255,255,255,0.08)' }]}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={s.durationKey}>{b.label}</Text>
-                    <Text style={s.durationNote}>{b.sub}</Text>
-                  </View>
-                  <Text style={s.durationPrice}>{b.price} {'>'}</Text>
-                </View>
-              ))}
+            {/* PRICING */}
+            <View style={{ marginTop: 20 }}>
+              <PromoCard title="Ads to Get Your  Vehicle Seen Faster" sub="Get 5x more visibility by featuring your listing">
+                {BOOSTS.map(b => (
+                  <PlanOption
+                    key={b.id}
+                    title={b.title}
+                    sub={b.subtitle}
+                    price={b.price.replace('PKR', 'Rs')}
+                    fire={b.id === '4w'}
+                    selected={promoteBoost === b.id}
+                    onPress={() => setPromoteBoost(b.id)}
+                  />
+                ))}
+              </PromoCard>
             </View>
 
             {/* TERMS */}
-            <TouchableOpacity style={s.termsRow} onPress={() => setAgreed(v => !v)}>
-              {agreed
-                ? <CheckCircle2 size={20} color={ORANGE} fill={ORANGE}/>
-                : <Circle size={20} color={C.textSecondary}/>
-              }
-              <Text style={s.termsText}>I confirm that I have read and accept the terms and conditions and privacy policy.</Text>
-            </TouchableOpacity>
+            <TermsRow checked={agreed} onToggle={() => setAgreed(v => !v)} />
 
-            <View style={{ height: 130 }}/>
+            <View style={{ height: 170 }}/>
           </ScrollView>
 
           {/* BOTTOM */}
-          <View style={s.bottomBar}>
-            <GlassInset/>
-            <TouchableOpacity style={[s.publishBtn, (!agreed || submitting) && { opacity: 0.6 }]} onPress={handlePublish} disabled={submitting} activeOpacity={0.85}>
-              <LinearGradient colors={['#c44e00','#ff6900','#ff9a00']} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFillObject}/>
-              <LinearGradient colors={['rgba(3,42,105,0.95)','rgba(3,42,105,0.65)','rgba(3,42,105,0.15)']} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              {submitting
-                ? <ActivityIndicator color="#fff" size="small"/>
-                : <Text style={s.publishTxt}>Publish Banner</Text>
-              }
-            </TouchableOpacity>
-            <TouchableOpacity style={s.draftBtn} onPress={handleDraft} activeOpacity={0.8}>
-              <GlassInset/>
-              <Text style={s.draftTxt}>Save as Draft</Text>
-            </TouchableOpacity>
-          </View>
+          <BottomActions>
+            <GradientButton title="Publish Banner" height={50} fontSize={17} loading={submitting} style={!agreed ? { opacity: 0.6 } : undefined} onPress={handlePublish} />
+            <GlassButton title="Save as Draft" height={48} fontSize={16} color="#E6E1E8" onPress={handleDraft} />
+          </BottomActions>
 
         </View>
       </KeyboardAvoidingView>
@@ -440,76 +371,21 @@ export default function SpecialOfferScreen() {
 }
 
 const s = StyleSheet.create({
-  safeArea:  { flex: 1, backgroundColor: C.bg },
-  container: { flex: 1, backgroundColor: C.bg },
+  safeArea:  { flex: 1, backgroundColor: D.bg },
+  container: { flex: 1, backgroundColor: D.bg },
 
-  header:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, height: 60 },
-  backBtn:     { width: 36, height: 36, justifyContent: 'center', alignItems: 'flex-start' },
-  headerTitle: { color: C.textPrimary, fontSize: 17, fontFamily: 'Poppins_600SemiBold' },
-  draftTopBtn: { alignItems: 'center', gap: 2 },
-  draftTopTxt: { color: ORANGE, fontSize: 10, fontFamily: 'Poppins_500Medium' },
+  scrollContent: { paddingHorizontal: 18, paddingTop: 4, paddingBottom: 20 },
 
-  scrollContent: { paddingHorizontal: 18, paddingTop: 4, gap: 14, paddingBottom: 20 },
+  chipsRow:  { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  recLine:   { fontSize: 12, fontFamily: 'Poppins_400Regular', marginTop: 12 },
+  recOrange: { color: ORANGE, fontStyle: 'italic' },
+  recMuted:  { color: '#FFFFFF', fontStyle: 'italic' },
 
-  /* RECOMMENDATION */
-  recCard:    { flexDirection: 'row', gap: 12, borderRadius: 18, borderWidth: 1, borderColor: 'rgba(226,103,27,0.4)', backgroundColor: C.bg, padding: 14, overflow: 'hidden' },
-  recIconWrap:{ width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(226,103,27,0.2)', alignItems: 'center', justifyContent: 'center', marginTop: 2, flexShrink: 0 },
-  recTitle:   { color: C.textPrimary, fontSize: 13, fontFamily: 'Poppins_600SemiBold', marginBottom: 3 },
-  recText:    { color: C.textSecondary, fontSize: 12, fontFamily: 'Poppins_400Regular', lineHeight: 18 },
-
-  /* UPLOAD */
-  uploadBox:  { borderRadius: 18, borderWidth: 1.5, borderStyle: 'dashed', borderColor: 'rgba(255,255,255,0.15)', paddingVertical: 32, paddingHorizontal: 20, alignItems: 'center', gap: 10, backgroundColor: C.glassBg },
-  uploadTitle:{ color: C.textPrimary, fontSize: 14, fontFamily: 'Poppins_500Medium' },
-  uploadSub:  { color: C.textSecondary, fontSize: 12, fontFamily: 'Poppins_400Regular', textAlign: 'center' },
-
-  /* INPUTS */
-  label:         { color: C.textPrimary, fontSize: 13, fontFamily: 'Poppins_500Medium' },
-  labelOptional: { color: C.textSecondary, fontSize: 12, fontFamily: 'Poppins_400Regular' },
-  inputBox:      { borderRadius: 30, borderWidth: 1, borderColor: 'rgba(99,148,214,0.4)', backgroundColor: C.glassBg, overflow: 'hidden', paddingHorizontal: 18 },
-  input:         { height: 46, color: C.textPrimary, fontSize: 13, fontFamily: 'Poppins_400Regular' },
-  textAreaBox:   { borderRadius: 18, paddingVertical: 10 },
-  textArea:      { height: 90, paddingTop: 4 },
-
-  dropdownBox:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderRadius: 30, borderWidth: 1, borderColor: 'rgba(99,148,214,0.4)', backgroundColor: C.glassBg, overflow: 'hidden', paddingHorizontal: 18, paddingVertical: 14 },
-  dropdownText: { color: C.textSecondary, fontSize: 13, fontFamily: 'Poppins_400Regular' },
-
-  /* CHIPS */
-  chipsRow:      { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip:          { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 30, backgroundColor: C.glassBg, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
-  chipActive:    { backgroundColor: 'rgba(226,103,27,0.15)', borderColor: ORANGE },
-  chipText:      { color: C.textSecondary, fontSize: 12, fontFamily: 'Poppins_500Medium' },
-  chipTextActive:{ color: ORANGE },
-  recLine:       { fontSize: 12, fontFamily: 'Poppins_400Regular' },
-  recOrange:     { color: ORANGE, fontStyle: 'italic' },
-  recMuted:      { color: C.textSecondary, fontStyle: 'italic' },
-
-  /* SCHEDULE */
   scheduleRow:  { flexDirection: 'row', gap: 12 },
   scheduleCol:  { flex: 1, gap: 6 },
-  scheduleLabel:{ color: C.textSecondary, fontSize: 11, fontFamily: 'Poppins_400Regular' },
-  dateBox:      { flexDirection: 'row', alignItems: 'center', borderRadius: 30, borderWidth: 1, borderColor: 'rgba(99,148,214,0.4)', backgroundColor: C.glassBg, overflow: 'hidden', paddingHorizontal: 14, paddingVertical: 12 },
-  dateInput:    { flex: 1, color: C.textPrimary, fontSize: 12, fontFamily: 'Poppins_400Regular' },
+  scheduleLabel:{ color: '#FFFFFF', fontSize: 12, fontFamily: 'Poppins_500Medium' },
 
-  subLabel: { color: C.textSecondary, fontSize: 12, fontFamily: 'Poppins_400Regular' },
-  pricingCard:    { borderRadius: 20, padding: 18, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(226,103,27,0.35)', marginTop: 20, position: 'relative', backgroundColor: C.bg },
-  flameCorner:    { position: 'absolute', top: 0, left: 0, width: 44, height: 44, backgroundColor: ORANGE, borderTopLeftRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  pricingTitle:   { color: '#fff', fontSize: 16, fontFamily: 'Poppins_700Bold', marginTop: 28, marginBottom: 6, lineHeight: 22 },
-  pricingSubtitle:{ color: '#c3cee2', fontSize: 12, fontFamily: 'Poppins_400Regular', marginBottom: 16 },
-  durationBtn:    { flexDirection: 'row', alignItems: 'center', borderRadius: 16, paddingHorizontal: 14, paddingVertical: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', marginBottom: 10 },
-  durationKey:    { color: '#fff', fontSize: 13, fontFamily: 'Poppins_600SemiBold' },
-  durationNote:   { color: '#9fb0cc', fontSize: 10, fontFamily: 'Poppins_400Regular', marginTop: 2 },
-  durationPrice:  { color: '#c3cee2', fontSize: 12, fontFamily: 'Poppins_600SemiBold' },
-
-  /* TERMS */
-  termsRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
-  termsText:{ flex: 1, color: C.textSecondary, fontSize: 12, fontFamily: 'Poppins_400Regular', lineHeight: 18 },
-
-  /* BOTTOM */
-  bottomBar:  { position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: 18, paddingTop: 14, paddingBottom: 28, backgroundColor: 'rgba(1,10,31,0.96)', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.07)', overflow: 'hidden', gap: 10 },
-  publishBtn: { height: 50, borderRadius: 25, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
-  publishTxt: { color: '#fff', fontSize: 15, fontFamily: 'Poppins_700Bold' },
-  draftBtn:   { height: 50, borderRadius: 25, borderWidth: 1, borderColor: 'rgba(99,148,214,0.5)', overflow: 'hidden', alignItems: 'center', justifyContent: 'center', backgroundColor: C.glassBg },
-  draftTxt:   { color: C.textPrimary, fontSize: 13, fontFamily: 'Poppins_600SemiBold' },
+  subLabel: { color: '#FFFFFF', fontSize: 13, fontFamily: 'Poppins_400Regular', marginBottom: 8 },
 });
 
 const pm = StyleSheet.create({

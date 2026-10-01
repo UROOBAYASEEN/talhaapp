@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -9,6 +9,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { PRIMARY_BTN_COLORS, SavedCardEffect, WARM_CARD_COLORS, WARM_CARD_LOCATIONS } from '@/components/shared/FigmaEffects';
 
 const BG     = '#010A1F';
 const CARD   = '#010A1F';
@@ -144,19 +145,16 @@ export default function ReviewReservationScreen() {
       {/* Header */}
       <View style={s.header}>
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={22} color={WHITE} />
+          <Ionicons name="chevron-back" size={26} color="#C9C6D0" />
         </TouchableOpacity>
         <Text style={s.headerTitle}>Review Your Reservation</Text>
-        <View style={{ width: 36 }} />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} style={{ backgroundColor: '#010A1F' }} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40, backgroundColor: '#010A1F' }}>
+      <ScrollView showsVerticalScrollIndicator={false} style={{ backgroundColor: '#010A1F' }} contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 16, paddingBottom: 30, backgroundColor: '#010A1F' }}>
 
         {/* Car Summary Card */}
         <View style={s.carCard}>
-          <LinearGradient colors={['rgba(22,64,136,0.2)','transparent']} start={{x:0.5,y:0}} end={{x:0.5,y:0.6}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-          <LinearGradient colors={['rgba(13,37,84,0.18)','transparent']} start={{x:0,y:0.5}} end={{x:0.45,y:0.5}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-          <LinearGradient colors={['transparent','rgba(29,83,175,0.2)']} start={{x:0.5,y:0.4}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+          <SavedCardEffect />
           {carImg
             ? <Image source={{ uri: carImg }} style={s.carImg} resizeMode="cover" />
             : <View style={[s.carImg, { backgroundColor: '#0d1e3d', alignItems: 'center', justifyContent: 'center' }]}>
@@ -166,46 +164,47 @@ export default function ReviewReservationScreen() {
           <View style={{ flex: 1 }}>
             <Text style={s.carName} numberOfLines={1}>{carName}</Text>
             <View style={s.carMeta}>
-              <Ionicons name="location-outline" size={12} color={MUTED} />
-              <Text style={s.carMetaTxt}>{carCity}  •  {carYear}  •  {carTrans}</Text>
+              <Ionicons name="location-outline" size={15} color="#BAB6C4" />
+              <Text style={s.carMetaTxt} numberOfLines={1}>{carCity} • {carYear} • {carTrans}</Text>
             </View>
             <Text style={s.carPrice}>{carPrice}</Text>
           </View>
-          <Ionicons name="chevron-forward" size={18} color={ORANGE} />
+          <Ionicons name="chevron-forward" size={24} color={ORANGE} />
         </View>
 
-        {/* Dealer Card */}
-        <LinearGradient colors={['rgba(3,12,40,0.6)', 'rgba(3,12,40,0.6)']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={s.dealerCard}>
-          <LinearGradient colors={['transparent', 'rgba(226,103,27,0.15)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+        {/* Dealer Card — border: orange (top) → blue (bottom) */}
+        <LinearGradient colors={['#E2671B', '#8A5A55', '#2E4F8E']} locations={[0, 0.5, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={s.dealerBorder}>
+        <View style={s.dealerCard}>
+          <LinearGradient colors={WARM_CARD_COLORS as any} locations={WARM_CARD_LOCATIONS as any} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
           <View style={s.dealerAvatar}>
             {dealerAvatar
-              ? <Image source={{ uri: dealerAvatar }} style={{ width: 68, height: 68 }} resizeMode="cover" />
+              ? <Image source={{ uri: dealerAvatar }} style={StyleSheet.absoluteFillObject} resizeMode="cover" />
               : <Text style={s.dealerInitial}>{dealerName[0]?.toUpperCase()}</Text>
             }
           </View>
           <View style={{ flex: 1 }}>
             <View style={s.dealerNameRow}>
-              <Text style={s.dealerName}>{dealerName}</Text>
-              <Ionicons name="checkmark-circle" size={16} color="#2f7dff" style={{ marginLeft: 4 }} />
+              <Text style={s.dealerName} numberOfLines={2}>{dealerName}</Text>
+              <MaterialCommunityIcons name="check-decagram" size={18} color="#1d8cf8" style={{ marginLeft: 6, marginTop: 3 }} />
             </View>
             <Text style={s.dealerSub}>Official Dealership</Text>
             <View style={s.dealerRatingRow}>
-              <Ionicons name="star" size={13} color={AMBER} />
-              <Text style={s.dealerRatingVal}>{dealerRating}</Text>
-              <Text style={s.dealerRatingCount}>({dealerReviews} Reviews)</Text>
+              <Ionicons name="star" size={20} color={ORANGE} />
+              <Text style={s.dealerRatingTxt}>{dealerRating} ({dealerReviews} Reviews)</Text>
             </View>
             <View style={s.dealerLocRow}>
               <Ionicons name="location-outline" size={16} color={ORANGE} />
-              <Text style={s.dealerLocTxt}>{dealerCity}, Pakistan</Text>
+              <Text style={s.dealerLocTxt} numberOfLines={1}>{dealerCity}, Pakistan</Text>
             </View>
           </View>
+        </View>
         </LinearGradient>
 
         {/* Your Details */}
         <View style={s.section}>
           <Text style={s.secTitle}>Your Details</Text>
           {yourDetails.map((row, i) => (
-            <View key={i} style={[s.row, i < yourDetails.length - 1 && s.rowBorder]}>
+            <View key={i} style={[s.row, s.rowBorder]}>
               <Text style={s.rowLabel}>{row.label}</Text>
               <Text style={s.rowVal}>{row.value}</Text>
             </View>
@@ -213,10 +212,10 @@ export default function ReviewReservationScreen() {
         </View>
 
         {/* Your Reservation */}
-        <View style={[s.section, { marginTop: 12 }]}>
+        <View style={[s.section, { marginTop: 20 }]}>
           <Text style={s.secTitle}>Your Reservation</Text>
           {yourReservation.map((row, i) => (
-            <View key={i} style={[s.row, i < yourReservation.length - 1 && s.rowBorder]}>
+            <View key={i} style={[s.row, s.rowBorder]}>
               <Text style={s.rowLabel}>{row.label}</Text>
               <Text style={s.rowVal}>{row.value}</Text>
             </View>
@@ -224,8 +223,9 @@ export default function ReviewReservationScreen() {
         </View>
 
         {/* Continue Button */}
+        <View style={{ height: 56 }} />
         <TouchableOpacity style={s.continueBtn} onPress={handleContinue} disabled={submitting} activeOpacity={0.88}>
-          <LinearGradient colors={[NAVY, ORANGE]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+          <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
           {submitting
             ? <ActivityIndicator color={WHITE} />
             : <Text style={s.continueTxt}>Continue</Text>
@@ -240,36 +240,36 @@ export default function ReviewReservationScreen() {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#010A1F' },
 
-  header:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12 },
-  backBtn:     { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { color: WHITE, fontSize: 18, fontFamily: 'Poppins_700Bold' },
+  header:      { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 12, paddingTop: 10, paddingBottom: 14 },
+  backBtn:     { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+  headerTitle: { color: '#F2F1F5', fontSize: 21, fontFamily: 'Poppins_500Medium' },
 
-  carCard:    { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: 'rgba(3,12,40,0.6)', borderWidth: 1, borderColor: 'rgba(100,160,255,0.4)', borderRadius: 14, padding: 10, marginTop: 8, overflow: 'hidden' },
-  carImg:     { width: 48, height: 38, borderRadius: 7 },
-  carName:    { color: WHITE, fontSize: 13, fontFamily: 'Poppins_700Bold' },
-  carMeta:    { flexDirection: 'row', alignItems: 'center', gap: 3 },
-  carMetaTxt: { color: MUTED, fontSize: 11, fontFamily: 'Poppins_400Regular' },
-  carPrice:   { color: ORANGE, fontSize: 13, fontFamily: 'Poppins_700Bold' },
+  carCard:    { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 8, paddingRight: 12, backgroundColor: '#010A1F', borderWidth: 1, borderColor: '#82a5d5', borderRadius: 16, overflow: 'hidden', shadowColor: '#638ed0', shadowOpacity: 0.15, shadowRadius: 5, shadowOffset: { width: 0, height: 0 }, elevation: 2 },
+  carImg:     { width: 96, height: 64, borderRadius: 10 },
+  carName:    { color: '#F2F1F5', fontSize: 13, fontFamily: 'Poppins_500Medium' },
+  carMeta:    { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 1 },
+  carMetaTxt: { color: '#BAB6C4', fontSize: 13, fontFamily: 'Poppins_400Regular', flexShrink: 1 },
+  carPrice:   { color: ORANGE, fontSize: 16, fontFamily: 'Poppins_600SemiBold', marginTop: 1 },
 
-  dealerCard:      { flexDirection: 'row', alignItems: 'flex-start', gap: 12, borderWidth: 1, borderColor: BORDER, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 14, marginTop: 14, overflow: 'hidden' },
-  dealerAvatar:    { width: 68, height: 68, borderRadius: 14, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  dealerInitial:   { color: WHITE, fontSize: 22, fontFamily: 'Poppins_700Bold' },
-  dealerNameRow:   { flexDirection: 'row', alignItems: 'center' },
-  dealerName:      { color: WHITE, fontSize: 15, fontFamily: 'Poppins_700Bold' },
-  dealerSub:       { color: MUTED, fontSize: 12, fontFamily: 'Poppins_400Regular', marginTop: 1 },
-  dealerRatingRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 },
-  dealerRatingVal: { color: AMBER, fontSize: 13, fontFamily: 'Poppins_600SemiBold' },
-  dealerRatingCount:{ color: MUTED, fontSize: 12, fontFamily: 'Poppins_400Regular' },
-  dealerLocRow:    { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 4 },
-  dealerLocTxt:    { color: MUTED, fontSize: 12, fontFamily: 'Poppins_400Regular' },
+  dealerBorder:    { borderRadius: 16, padding: 1, marginTop: 14 },
+  dealerCard:      { flexDirection: 'row', alignItems: 'flex-start', gap: 14, borderRadius: 15, padding: 14, overflow: 'hidden', backgroundColor: '#0B1D4A' },
+  dealerAvatar:    { width: 110, height: 90, borderRadius: 12, backgroundColor: '#ECEEF2', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  dealerInitial:   { color: '#0B1D4A', fontSize: 28, fontFamily: 'Poppins_600SemiBold' },
+  dealerNameRow:   { flexDirection: 'row', alignItems: 'flex-start' },
+  dealerName:      { color: '#F2F1F5', fontSize: 17, fontFamily: 'Poppins_500Medium', flexShrink: 1, lineHeight: 24 },
+  dealerSub:       { color: '#BAB6C4', fontSize: 13, fontFamily: 'Poppins_400Regular', marginTop: 6 },
+  dealerRatingRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 },
+  dealerRatingTxt: { color: '#BAB6C4', fontSize: 14, fontFamily: 'Poppins_400Regular' },
+  dealerLocRow:    { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 },
+  dealerLocTxt:    { color: '#D2CFD8', fontSize: 11, fontFamily: 'Poppins_400Regular', flexShrink: 1 },
 
-  section:   { backgroundColor: CARD, borderWidth: 1, borderColor: BORDER, borderRadius: 16, paddingHorizontal: 16, paddingTop: 14, paddingBottom: 4, marginTop: 14 },
-  secTitle:  { color: WHITE, fontSize: 15, fontFamily: 'Poppins_700Bold', marginBottom: 4 },
-  row:       { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 13 },
-  rowBorder: { borderBottomWidth: 1, borderColor: BORDER },
-  rowLabel:  { color: MUTED, fontSize: 13, fontFamily: 'Poppins_400Regular' },
-  rowVal:    { color: WHITE, fontSize: 13, fontFamily: 'Poppins_600SemiBold' },
+  section:   { backgroundColor: '#020B1F', borderWidth: 1, borderColor: 'rgba(255,255,255,0.14)', borderRadius: 16, paddingHorizontal: 14, paddingTop: 16, paddingBottom: 12, marginTop: 20 },
+  secTitle:  { color: '#F2F1F5', fontSize: 16, fontFamily: 'Poppins_500Medium', marginBottom: 4 },
+  row:       { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 13 },
+  rowBorder: { borderBottomWidth: 1, borderColor: 'rgba(255,255,255,0.12)' },
+  rowLabel:  { color: '#BAB6C4', fontSize: 14, fontFamily: 'Poppins_400Regular' },
+  rowVal:    { color: '#F2F1F5', fontSize: 14, fontFamily: 'Poppins_400Regular', textAlign: 'right', flexShrink: 1, marginLeft: 12 },
 
-  continueBtn: { height: 54, borderRadius: 30, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', marginTop: 32 },
-  continueTxt: { color: WHITE, fontSize: 15, fontFamily: 'Poppins_700Bold' },
+  continueBtn: { height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', marginTop: 'auto', marginBottom: 4 },
+  continueTxt: { color: '#EDEBF0', fontSize: 17, fontFamily: 'Poppins_600SemiBold' },
 });

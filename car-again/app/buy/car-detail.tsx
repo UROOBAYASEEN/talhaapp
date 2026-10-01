@@ -1,10 +1,10 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator, Alert, Dimensions, FlatList,
-  Image, ScrollView, StyleSheet, Text, Linking,
+  Image, Modal, ScrollView, StyleSheet, Text, Linking,
   TouchableOpacity, View, StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -12,6 +12,7 @@ import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppColors, useAppColors } from '@/constants/theme';
 import DealerConfirmationModal from '@/components/shared/DealerConfirmationModal';
+import { CtaPanelGlass, PRIMARY_BTN_COLORS, RingGlow } from '@/components/shared/FigmaEffects';
 
 const { width: W } = Dimensions.get('window');
 
@@ -23,6 +24,52 @@ const WHITE  = '#f9fafc';
 const MUTED  = '#baacb6';
 const BORDER = 'rgba(255,255,255,0.1)';
 const AMBER  = '#f59e0b';
+
+// Exact vehicle-card effect from app/profile/saved.tsx
+function SavedCardEffect() {
+  const aC = useAppColors();
+  if (aC.isDark) {
+    return (
+      <>
+        <LinearGradient colors={['#16408880', 'transparent', 'transparent', '#16408880']} locations={[0, 0.08, 0.92, 1]} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+        <LinearGradient colors={['#16408880', 'transparent', 'transparent', '#16408880']} locations={[0, 0.05, 0.95, 1]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+      </>
+    );
+  }
+  return (
+    <>
+      <LinearGradient colors={['rgba(3,42,105,0.03)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+      <LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+    </>
+  );
+}
+
+// Selected variant glow: same navy tone as the saved card, equal on all four sides and rounded.
+function SelectedVariantGlow({ radius = 18 }: { radius?: number }) {
+  const aC = useAppColors();
+  if (!aC.isDark) return <SavedCardEffect />;
+  const RINGS = 10;
+  const PEAK = 0.4; // slightly lighter than the saved card's 0.5 (#16408880)
+  return (
+    <>
+      {Array.from({ length: RINGS }).map((_, i) => {
+        const a = PEAK * Math.pow(1 - i / RINGS, 1.6);
+        return (
+          <View
+            key={i}
+            pointerEvents="none"
+            style={{
+              position: 'absolute', top: i, left: i, right: i, bottom: i,
+              borderRadius: Math.max(radius - i, 0),
+              borderWidth: 1,
+              borderColor: `rgba(22,64,136,${a.toFixed(3)})`,
+            }}
+          />
+        );
+      })}
+    </>
+  );
+}
 
 function GlassInset() {
   const aC = useAppColors();
@@ -64,7 +111,11 @@ const SERVICES = [
 export default function CarDetailScreen() {
   const router = useRouter();
   const aC = useAppColors();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, from } = useLocalSearchParams<{ id: string; from?: string }>();
+  // Came from Buy Used Car → Contact Dealer + Test Drive (Figma)
+  const fromUsedCar = from === 'usedCar';
+  // Came from Book a vehicle → same screen, bottom shows Contact Dealer + Test Drive (Book flow screens)
+  const fromBook = from === 'book';
   const { token, user } = useAuth();
 
   const [vehicle,         setVehicle]         = useState<any>(null);
@@ -72,6 +123,9 @@ export default function CarDetailScreen() {
   const [imgIdx,          setImgIdx]          = useState(0);
   const [saved,           setSaved]           = useState(false);
   const [selectedVariant, setSelectedVariant] = useState(0);
+  // Second variant chosen by the user; the default (selectedVariant) always stays selected.
+  const [secondVariant, setSecondVariant] = useState<number | null>(null);
+  const [compareModal, setCompareModal] = useState(false);
   const [openFeature,     setOpenFeature]     = useState<string>('exterior');
   const [tax,             setTax]             = useState<any>(null);
   const [reserving,       setReserving]       = useState(false);
@@ -79,6 +133,7 @@ export default function CarDetailScreen() {
   const [contacting,      setContacting]      = useState(false);
   const [confirmVisible,  setConfirmVisible]  = useState(false);
   const [callDone,        setCallDone]        = useState(false);
+  const [ctaHeight,       setCtaHeight]       = useState(210);
   const flatRef = useRef<FlatList>(null);
 
   useEffect(() => { if (id) load(); }, [id]);
@@ -218,7 +273,7 @@ export default function CarDetailScreen() {
     <SafeAreaView style={[s.root, { backgroundColor: aC.bg }]} edges={["top"]}>
       <StatusBar barStyle={aC.isDark ? "light-content" : "dark-content"} backgroundColor={aC.bg} />
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 210, backgroundColor: aC.bg }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: ctaHeight, backgroundColor: aC.bg }}>
 
         {/* ── Hero Image ── */}
         <View style={s.heroWrap}>
@@ -278,9 +333,9 @@ export default function CarDetailScreen() {
               </Text>
             </View>
             <View style={s.iconRow}>
-              <TouchableOpacity><Ionicons name="share-social-outline" size={18} color={aC.isDark ? MUTED : '#64748b'} /></TouchableOpacity>
+              <TouchableOpacity><Ionicons name="share-social-outline" size={18} color={ORANGE} /></TouchableOpacity>
               <TouchableOpacity onPress={toggleSave}>
-                <Ionicons name={saved ? 'heart' : 'heart-outline'} size={18} color={saved ? '#ff4d6d' : (aC.isDark ? MUTED : '#64748b')} />
+                <Ionicons name={saved ? 'heart' : 'heart-outline'} size={18} color={ORANGE} />
               </TouchableOpacity>
             </View>
           </View>
@@ -350,11 +405,22 @@ export default function CarDetailScreen() {
 
           {/* ── Variant Cards ── */}
           {variants.length > 0 && variants.map((v: any, i: number) => {
-            const sel = selectedVariant === i;
+            const sel = selectedVariant === i || secondVariant === i;
             return (
-              <TouchableOpacity key={i} onPress={() => setSelectedVariant(i)} activeOpacity={0.85} style={{ marginTop: 10 }}>
-                <View style={[s.variantCard2, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: sel ? (aC.isDark ? 'rgba(100,160,255,0.5)' : ORANGE) : (aC.isDark ? 'rgba(255,255,255,0.15)' : 'rgba(3,42,105,0.12)'), shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2, overflow: 'hidden' }]}>
-                  <GlassInset />
+              <TouchableOpacity key={i} onPress={() => { if (i !== selectedVariant) { setSecondVariant(i); setCompareModal(true); } }} activeOpacity={0.85} style={{ marginTop: 10 }}>
+                {/* Saved-card effect only on selected variants; others keep the original card look */}
+                <View style={sel ? [s.savedOuterCard, {
+                  backgroundColor: aC.isDark ? '#010A1F' : '#ffffff',
+                  borderColor: aC.isDark ? '#82a5d5' : ORANGE,
+                  shadowColor: aC.isDark ? '#638ed0' : 'rgba(3,42,105,0.12)',
+                  shadowOpacity: aC.isDark ? 0.15 : 0.08,
+                  shadowRadius: aC.isDark ? 5 : 10,
+                  elevation: aC.isDark ? 2 : 8,
+                }] : undefined}>
+                <View style={sel
+                  ? [s.variantCard2, { backgroundColor: aC.isDark ? '#010A1F' : '#ffffff', borderWidth: 0, borderRadius: 18, overflow: 'hidden' }]
+                  : [s.variantCard2, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? 'rgba(255,255,255,0.15)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2, overflow: 'hidden' }]}>
+                  {sel ? <SelectedVariantGlow radius={18} /> : <GlassInset />}
                   {/* Radio top-right */}
                   <View style={[s.radio2, { borderColor: aC.isDark ? MUTED : 'rgba(3,42,105,0.2)' }, sel && s.radio2Sel]}>
                     {sel && <View style={s.radio2Dot} />}
@@ -368,6 +434,7 @@ export default function CarDetailScreen() {
                     </View>
                     <Text style={[s.variantPrice2, { paddingBottom: 2 }]}>{v.price ? `Rs ${Number(v.price).toLocaleString()}` : formatPrice(vehicle.price)}</Text>
                   </View>
+                </View>
                 </View>
               </TouchableOpacity>
             );
@@ -404,7 +471,7 @@ export default function CarDetailScreen() {
 
           {/* ── Browse More Services ── */}
           <Text style={[s.secTitle, { color: aC.isDark ? WHITE : '#010a1f' }]}>Browse More Services</Text>
-          {SERVICES.map((item, i) => (
+          {SERVICES.map(sv => (vehicle?.category === 'bike' ? { ...sv, title: sv.title.replace('Dream Car', 'Dream Bike') } : sv)).map((item, i) => (
             <TouchableOpacity key={i} style={[s.serviceCard, { backgroundColor: aC.isDark ? '#061B4A' : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2, overflow: 'hidden' }]} activeOpacity={0.85}>
               <GlassInset />
               <View style={[s.serviceIcon, { backgroundColor: aC.isDark ? 'rgba(226,103,27,0.1)' : '#eef2ff' }]}>
@@ -422,29 +489,44 @@ export default function CarDetailScreen() {
         </View>
       </ScrollView>
       {/* ── Fixed Bottom CTA ── */}
-      <View style={[s.ctaBox, { backgroundColor: aC.isDark ? '#0f1830' : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.08)', shadowColor: aC.isDark ? '#000' : 'rgba(3,42,105,0.12)' }]}>
+      <View onLayout={(e) => setCtaHeight(Math.ceil(e.nativeEvent.layout.height))} style={[s.ctaBox, { backgroundColor: aC.isDark ? '#0f1830' : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.08)', shadowColor: aC.isDark ? '#000' : 'rgba(3,42,105,0.12)' }]}>
+        {aC.isDark && <CtaPanelGlass />}
         <View style={[s.ctaHandle, { backgroundColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.12)' }]} />
 
-        {isDealer ? (
+        {fromUsedCar || fromBook ? (
+          /* ── USED CAR / BOOK A VEHICLE: Contact Dealer + Test Drive ── */
+          <>
+            <TouchableOpacity style={[s.ctaPrimary, s.dealerCtaBtn]} onPress={() => vehicle?.seller_id && (fromBook
+              ? router.push({ pathname: '/book/dealer-profile', params: { id: vehicle.seller_id, category: vehicle?.category || 'car' } } as any)
+              : router.push({ pathname: '/buy/dealer-profile', params: { id: vehicle.seller_id, from: 'usedCar', category: vehicle?.category || '' } } as any))} activeOpacity={0.88}>
+              <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+              <Text style={[s.ctaPrimaryTxt, s.dealerCtaTxt, { color: '#F2F1F5' }]}>Contact Dealer</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[s.ctaSecondary, s.dealerCtaBtn, { backgroundColor: aC.isDark ? '#07142F' : '#ffffff', borderColor: aC.isDark ? '#7E9FD6' : 'rgba(3,42,105,0.12)' }]} onPress={() => router.push({ pathname: fromBook ? '/book/test-drive' : '/buy/test-drive', params: { id } } as any)} activeOpacity={0.88}>
+              {aC.isDark ? <RingGlow radius={26} peak={0.5} rings={12} /> : <GlassInset />}
+              <Text style={[s.ctaSecondaryTxt, { fontSize: 16, fontFamily: 'Poppins_400Regular', color: aC.isDark ? '#C9C6D0' : '#010a1f' }]}>Test Drive</Text>
+            </TouchableOpacity>
+          </>
+        ) : isDealer ? (
           /* ── DEALER: Contact Dealer + Reserve + Test Drive ── */
           <>
-            <TouchableOpacity style={s.ctaPrimary} onPress={() => vehicle?.seller_id && router.push({ pathname: '/buy/dealer-profile', params: { id: vehicle.seller_id } } as any)} activeOpacity={0.88}>
-              <LinearGradient colors={['#032a69', '#e2671b']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
-              {contacting ? <ActivityIndicator color={WHITE} /> : <Text style={s.ctaPrimaryTxt}>Contact Dealer</Text>}
+            <TouchableOpacity style={[s.ctaPrimary, s.dealerCtaBtn]} onPress={() => vehicle?.seller_id && router.push({ pathname: '/buy/dealer-profile', params: { id: vehicle.seller_id, category: vehicle?.category || '' } } as any)} activeOpacity={0.88}>
+              <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+              {contacting ? <ActivityIndicator color={WHITE} /> : <Text style={[s.ctaPrimaryTxt, s.dealerCtaTxt, { color: '#F2F1F5' }]}>Contact Dealer</Text>}
             </TouchableOpacity>
-            <TouchableOpacity style={[s.ctaSecondary, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.4)' : 'rgba(3,42,105,0.12)' }]} onPress={() => {
+            <TouchableOpacity style={[s.ctaSecondary, s.dealerCtaBtn, { backgroundColor: aC.isDark ? '#07142F' : '#ffffff', borderColor: aC.isDark ? '#7E9FD6' : 'rgba(3,42,105,0.12)' }]} onPress={() => {
               if (callDone) {
                 router.push({ pathname: '/buy/reserve', params: { id, variantName: variants[selectedVariant]?.name } } as any);
               } else {
                 setConfirmVisible(true);
               }
             }} activeOpacity={0.88}>
-              <GlassInset />
-              {reserving ? <ActivityIndicator color={aC.isDark ? WHITE : '#010a1f'} /> : <Text style={[s.ctaSecondaryTxt, { color: aC.isDark ? WHITE : '#010a1f' }]}>{vehicle?.category === 'bike' ? 'Reserve your bike' : 'Reserve your car'}</Text>}
+              {aC.isDark ? <RingGlow radius={26} peak={0.5} rings={12} /> : <GlassInset />}
+              {reserving ? <ActivityIndicator color={aC.isDark ? WHITE : '#010a1f'} /> : <Text style={[s.ctaSecondaryTxt, s.dealerCtaTxt, { color: aC.isDark ? '#C9C6D0' : '#010a1f' }]}>{vehicle?.category === 'bike' ? 'Reserve your bike' : 'Reserve your car'}</Text>}
             </TouchableOpacity>
-            <TouchableOpacity style={[s.ctaSecondary, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.4)' : 'rgba(3,42,105,0.12)' }]} onPress={() => router.push({ pathname: '/buy/test-drive', params: { id } } as any)} activeOpacity={0.88}>
-              <GlassInset />
-              <Text style={[s.ctaSecondaryTxt, { color: aC.isDark ? WHITE : '#010a1f' }]}>Test Drive</Text>
+            <TouchableOpacity style={[s.ctaSecondary, s.dealerCtaBtn, { backgroundColor: aC.isDark ? '#07142F' : '#ffffff', borderColor: aC.isDark ? '#7E9FD6' : 'rgba(3,42,105,0.12)' }]} onPress={() => router.push({ pathname: '/buy/test-drive', params: { id } } as any)} activeOpacity={0.88}>
+              {aC.isDark ? <RingGlow radius={26} peak={0.5} rings={12} /> : <GlassInset />}
+              <Text style={[s.ctaSecondaryTxt, s.dealerCtaTxt, { color: aC.isDark ? '#C9C6D0' : '#010a1f' }]}>Test Drive</Text>
             </TouchableOpacity>
           </>
         ) : (
@@ -512,11 +594,100 @@ export default function CarDetailScreen() {
         }}
       />
 
+      {/* ── Selected Car modal — opens when the user picks the second variant ── */}
+      <Modal visible={compareModal && secondVariant !== null} transparent animationType="fade" onRequestClose={() => setCompareModal(false)}>
+        <View style={s.selOverlay}>
+          <TouchableOpacity style={StyleSheet.absoluteFillObject} activeOpacity={1} onPress={() => setCompareModal(false)} />
+          <View style={[s.selCard, {
+            backgroundColor: aC.isDark ? '#010A1F' : '#ffffff',
+            borderColor: aC.isDark ? '#82a5d5' : 'rgba(3,42,105,0.12)',
+            shadowColor: aC.isDark ? '#638ed0' : 'rgba(3,42,105,0.12)',
+            shadowOffset: { width: 0, height: 0 },
+            shadowOpacity: aC.isDark ? 0.15 : 0.08,
+            shadowRadius: aC.isDark ? 5 : 10,
+            elevation: aC.isDark ? 2 : 8,
+          }]}>
+            <SavedCardEffect />
+
+            <Text style={[s.selTitle, { color: aC.isDark ? '#d6cfd6' : '#010a1f' }]}>{vehicle?.category === 'bike' ? 'Selected Bike' : 'Selected Car'}</Text>
+            <TouchableOpacity style={s.selClose} onPress={() => setCompareModal(false)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+              <Ionicons name="close" size={26} color={aC.isDark ? '#d6cfd6' : '#010a1f'} />
+            </TouchableOpacity>
+
+            {/* Dashed divider with car badge */}
+            <View style={s.selBadgeRow}>
+              <View style={[s.selDash, { borderColor: aC.isDark ? 'rgba(255,255,255,0.55)' : 'rgba(3,42,105,0.3)' }]} />
+              <View style={[s.selBadge, { borderColor: aC.isDark ? 'rgba(255,255,255,0.7)' : 'rgba(3,42,105,0.35)' }]}>
+                <LinearGradient colors={['#1b3a78', '#0a1a3d']} style={[StyleSheet.absoluteFillObject, { borderRadius: 40 }]} />
+                <MaterialCommunityIcons name="car-outline" size={40} color="#ffffff" />
+              </View>
+            </View>
+
+            {[
+              { label: vehicle?.category === 'bike' ? 'First Bike' : 'First Car', v: variants[selectedVariant] },
+              { label: vehicle?.category === 'bike' ? 'Second Bike' : 'Second Car', v: secondVariant !== null ? variants[secondVariant] : null },
+            ].map((row) => (
+              <View key={row.label} style={{ marginTop: 14 }}>
+                <View style={s.selLabelRow}>
+                  <View style={s.selLabelIcon}><MaterialCommunityIcons name="car" size={13} color="#1e293b" /></View>
+                  <Text style={[s.selLabel, { color: aC.isDark ? '#c9c2cc' : '#334155' }]}>{row.label}</Text>
+                  <MaterialCommunityIcons name="check-decagram" size={14} color="#1d8cf8" />
+                </View>
+                <View style={[s.selField, { backgroundColor: aC.isDark ? '#07142f' : '#f8fafc', borderColor: aC.isDark ? 'rgba(120,160,225,0.7)' : 'rgba(3,42,105,0.15)' }]}>
+                  {aC.isDark && (
+                    <LinearGradient colors={['rgba(40,80,150,0.45)', 'rgba(7,20,47,0)', 'rgba(7,20,47,0)', 'rgba(40,80,150,0.35)']} locations={[0, 0.3, 0.7, 1]} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+                  )}
+                  <Text style={[s.selFieldTxt, { color: aC.isDark ? WHITE : '#010a1f' }]} numberOfLines={1}>
+                    {`${vehicle.make || ''} ${row.v?.name || ''}`.trim()}
+                  </Text>
+                </View>
+              </View>
+            ))}
+
+            <TouchableOpacity
+              style={s.selBtn}
+              activeOpacity={0.88}
+              onPress={() => {
+                if (secondVariant === null) return;
+                const toData = (v: any) => JSON.stringify({
+                  ...vehicle,
+                  title: `${vehicle.make || ''} ${v?.name || ''}`.trim(),
+                  variant: v?.name,
+                  price: v?.price || vehicle.price,
+                  fuel_type: v?.fuel || vehicle.fuel_type,
+                  transmission: v?.trans || vehicle.transmission,
+                });
+                setCompareModal(false);
+                router.push({ pathname: '/compare-result', params: { aData: toData(variants[selectedVariant]), bData: toData(variants[secondVariant]) } } as any);
+              }}
+            >
+              <LinearGradient colors={['#0b3a82', '#7a4a4a', '#e2671b']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+              <Text style={s.selBtnTxt}>Compare your Vehicle</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
     </SafeAreaView>
   );
 }
 
 const s = StyleSheet.create({
+  selOverlay:   { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16 },
+  selCard:      { width: '100%', maxWidth: 400, borderRadius: 22, borderWidth: 1, paddingHorizontal: 14, paddingTop: 14, paddingBottom: 34, overflow: 'hidden' },
+  selTitle:     { textAlign: 'center', fontSize: 19, fontFamily: 'Poppins_500Medium' },
+  selClose:     { position: 'absolute', top: 10, right: 12, zIndex: 2 },
+  selBadgeRow:  { height: 80, marginTop: 8, marginHorizontal: -14, alignItems: 'center', justifyContent: 'center' },
+  selDash:      { position: 'absolute', left: 0, right: 0, top: '50%', borderTopWidth: 1, borderStyle: 'dashed' },
+  selBadge:     { width: 78, height: 78, borderRadius: 39, borderWidth: 1, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  selLabelRow:  { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
+  selLabelIcon: { width: 20, height: 20, borderRadius: 10, backgroundColor: '#c9c2cc', alignItems: 'center', justifyContent: 'center' },
+  selLabel:     { fontSize: 14, fontFamily: 'Poppins_500Medium' },
+  selField:     { height: 48, borderRadius: 24, borderWidth: 1, paddingHorizontal: 20, justifyContent: 'center', overflow: 'hidden' },
+  selFieldTxt:  { fontSize: 12.5, fontFamily: 'Poppins_500Medium' },
+  selBtn:       { height: 48, borderRadius: 24, marginTop: 18, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  selBtnTxt:    { color: '#f2eef2', fontSize: 14, fontFamily: 'Poppins_500Medium' },
+
   root: { flex: 1, backgroundColor: BG },
 
   heroWrap: { position: 'relative' },
@@ -572,8 +743,11 @@ const s = StyleSheet.create({
   ctaPrimaryTxt:   { color: WHITE, fontSize: 15, fontFamily: 'Poppins_700Bold' },
   ctaSecondary:    { height: 52, borderRadius: 30, borderWidth: 1, borderColor: 'rgba(100,160,255,0.4)', backgroundColor: 'rgba(3,12,40,0.6)', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   ctaSecondaryTxt: { color: WHITE, fontSize: 15, fontFamily: 'Poppins_600SemiBold' },
+  dealerCtaBtn:    { borderRadius: 26 },
+  dealerCtaTxt:    { fontSize: 16, fontFamily: 'Poppins_600SemiBold' },
 
   /* Variant cards new */
+  savedOuterCard:  { borderRadius: 20, borderWidth: 1, shadowOffset: { width: 0, height: 0 }, overflow: 'hidden' },
   variantCard2:    { borderRadius: 20, paddingHorizontal: 12, paddingVertical: 8, position: 'relative', backgroundColor: 'rgba(3,12,40,0.6)', borderWidth: 1, overflow: 'hidden' },
   variantName2:    { color: WHITE, fontSize: 13, fontFamily: 'Poppins_700Bold', marginBottom: 1, marginRight: 30 },
   variantMeta:     { color: MUTED, fontSize: 11, fontFamily: 'Poppins_400Regular' },

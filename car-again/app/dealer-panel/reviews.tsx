@@ -6,10 +6,12 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { ChevronLeft, MoreVertical, Star } from 'lucide-react-native';
 import { AppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { PRIMARY_BTN_COLORS } from '@/components/shared/FigmaEffects';
+import { ReviewItem as SharedReviewItem } from '@/components/book/reviews';
+import { Ionicons } from '@expo/vector-icons';
 
 const ORANGE = AppColors.gradientEnd;
 const C      = AppColors;
@@ -54,7 +56,7 @@ export default function ReviewsScreen() {
         {/* HEADER */}
         <View style={s.header}>
           <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-            <ChevronLeft size={27} color={C.textSecondary} strokeWidth={1.8}/>
+            <Ionicons name="chevron-back" size={26} color={C.textSecondary} />
           </TouchableOpacity>
           <Text style={s.headerTitle}>Reviews</Text>
           <View style={s.headerRight}/>
@@ -69,8 +71,9 @@ export default function ReviewsScreen() {
             {reviews.length === 0 ? (
               <Text style={s.emptyText}>No reviews yet. Be the first to review!</Text>
             ) : (
-              reviews.map((r) => (
-                <ReviewItem key={r.id} review={r}/>
+              // Same review row as the Book-a-vehicle Reviews screen
+              reviews.map((r, i) => (
+                <SharedReviewItem key={r.id} r={r} index={i} divider={i < reviews.length - 1} />
               ))
             )}
             <View style={{ height: 95 }}/>
@@ -84,7 +87,8 @@ export default function ReviewsScreen() {
             onPress={() => router.push({ pathname: '/dealer-panel/write-review', params: { dealer_id } } as any)}
           >
             <LinearGradient
-              colors={[AppColors.gradientStart, AppColors.gradientEnd]}
+              colors={PRIMARY_BTN_COLORS as any}
+              locations={[0, 0.5, 1]}
               start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
               style={StyleSheet.absoluteFillObject}
             />
@@ -97,95 +101,48 @@ export default function ReviewsScreen() {
   );
 }
 
-function ReviewItem({ review }: { review: Review }) {
-  const initial = (review.reviewer_name || 'U')[0].toUpperCase();
-  const colors  = [ORANGE, C.textSecondary, '#4fc3f7', '#a5d6a7', '#ce93d8'];
-  const color   = colors[initial.charCodeAt(0) % colors.length];
-
-  const timeAgo = (iso: string) => {
-    const diff = Date.now() - new Date(iso).getTime();
-    const mins = Math.floor(diff / 60000);
-    if (mins < 60)  return `${mins}m ago`;
-    const hrs = Math.floor(mins / 60);
-    if (hrs < 24)   return `${hrs}h ago`;
-    return `${Math.floor(hrs / 24)}d ago`;
-  };
-
-  return (
-    <View style={s.review}>
-      <View style={[s.avatar, { backgroundColor: color }]}>
-        <Text style={s.avatarInitial}>{initial}</Text>
-      </View>
-
-      <View style={s.reviewContent}>
-        <View style={s.nameRow}>
-          <Text style={s.name}>{review.reviewer_name}</Text>
-          <MoreVertical size={20} color={C.textSecondary} strokeWidth={2}/>
-        </View>
-
-        <View style={s.ratingRow}>
-          <View style={s.stars}>
-            {[1,2,3,4,5].map(i => (
-              <Star key={i} size={13}
-                color={i <= review.rating ? ORANGE : 'rgba(255,255,255,0.2)'}
-                fill={i <= review.rating ? ORANGE : 'rgba(255,255,255,0.2)'}
-                strokeWidth={1.5}
-              />
-            ))}
-          </View>
-          <Text style={s.time}>{timeAgo(review.created_at)}</Text>
-        </View>
-
-        {review.comment ? (
-          <Text style={s.reviewText}>"{review.comment}"</Text>
-        ) : null}
-      </View>
-    </View>
-  );
-}
-
 const s = StyleSheet.create({
   safeArea:  { flex: 1, backgroundColor: C.bg },
   container: { flex: 1, backgroundColor: C.bg },
   center:    { flex: 1, alignItems: 'center', justifyContent: 'center' },
 
   header: {
-    height: 66, paddingHorizontal: 20,
+    height: 60, paddingHorizontal: 16,
     flexDirection: 'row', alignItems: 'center',
     justifyContent: 'space-between',
   },
   backBtn:     { width: 40, height: 40, justifyContent: 'center', alignItems: 'flex-start' },
   headerTitle: {
     position: 'absolute', left: 0, right: 0,
-    textAlign: 'center', color: C.textPrimary,
-    fontSize: 20, fontFamily: 'Poppins_600SemiBold',
+    textAlign: 'center', color: '#F2F1F5',
+    fontSize: 20, fontFamily: 'Poppins_500Medium',
   },
   headerRight: { width: 40 },
 
-  scrollContent: { paddingHorizontal: 24, paddingTop: 20 },
-  emptyText:     { color: C.textSecondary, fontSize: 14, fontFamily: 'Poppins_400Regular', textAlign: 'center', marginTop: 40 },
+  scrollContent: { paddingHorizontal: 24, paddingTop: 12 },
+  emptyText:     { color: '#BAB6C4', fontSize: 14, fontFamily: 'Poppins_400Regular', textAlign: 'center', marginTop: 40 },
 
-  review:        { flexDirection: 'row', marginBottom: 20 },
-  avatar:        { width: 40, height: 40, borderRadius: 20, flexShrink: 0, alignItems: 'center', justifyContent: 'center' },
+  review:        { marginBottom: 16 },
+  reviewTop:     { flexDirection: 'row', alignItems: 'center' },
+  avatar:        { width: 42, height: 42, borderRadius: 21, flexShrink: 0 },
   avatarInitial: { color: '#fff', fontSize: 16, fontFamily: 'Poppins_700Bold' },
-  reviewContent: { flex: 1, marginLeft: 10 },
+  reviewContent: { flex: 1, marginLeft: 12 },
 
   nameRow:   { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  name:      { color: C.textPrimary, fontSize: 14, fontFamily: 'Poppins_600SemiBold' },
+  name:      { color: '#C9C6D0', fontSize: 15, fontFamily: 'Poppins_600SemiBold' },
   ratingRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
-  stars:     { flexDirection: 'row', alignItems: 'center', gap: 3 },
-  time:      { color: C.textSecondary, fontSize: 11, fontFamily: 'Poppins_400Regular', marginLeft: 8 },
-  reviewText:{ color: C.textSecondary, fontSize: 13, fontFamily: 'Poppins_400Regular', lineHeight: 19, marginTop: 10 },
+  stars:     { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  time:      { color: '#BAB6C4', fontSize: 15, fontFamily: 'Poppins_400Regular', marginLeft: 8 },
+  reviewText:{ color: '#C9C6D0', fontSize: 13, fontFamily: 'Poppins_400Regular', lineHeight: 20, marginTop: 12 },
 
   bottomContainer: {
     position: 'absolute', left: 0, right: 0, bottom: 0,
-    paddingHorizontal: 28, paddingBottom: 20, paddingTop: 10,
-    backgroundColor: C.bg,
+    paddingHorizontal: 36, paddingBottom: 20, paddingTop: 10,
+    backgroundColor: 'transparent',
   },
   writeBtn: {
-    height: 50, borderRadius: 25, overflow: 'hidden',
+    height: 54, borderRadius: 27, overflow: 'hidden',
     alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: 'rgba(99,148,214,0.5)',
   },
-  writeBtnText: { color: '#fff', fontSize: 15, fontFamily: 'Poppins_700Bold' },
+  writeBtnText: { color: '#EDEBF0', fontSize: 16, fontFamily: 'Poppins_600SemiBold' },
 });

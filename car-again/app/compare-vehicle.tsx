@@ -19,6 +19,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { AppColors, useAppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import LatestVideoSection from '@/components/shared/LatestVideoSection';
+import { PRIMARY_BTN_COLORS, RingGlow, SavedCardEffect, SearchInputEffect, WARM_CARD_COLORS, WARM_CARD_LOCATIONS } from '@/components/shared/FigmaEffects';
+import InnerGlow from '@/components/shared/InnerGlow';
 
 const BG = AppColors.bg;
 const ORANGE = AppColors.gradientEnd;
@@ -171,7 +173,7 @@ const sh = StyleSheet.create({
 export default function CompareVehicle() {
   const router = useRouter();
   const aC = useAppColors();
-  const { category: initialCategory } = useLocalSearchParams<{ category?: string }>();
+  const { category: initialCategory, from } = useLocalSearchParams<{ category?: string; from?: string }>();
   const [vehicleType, setVehicleType] = useState<'Cars' | 'Bikes'>(initialCategory === 'bike' ? 'Bikes' : 'Cars');
   const category = vehicleType === 'Cars' ? 'car' : 'bike';
 
@@ -335,7 +337,8 @@ export default function CompareVehicle() {
         return;
       }
       // Navigate to detailed compare page (HTML wala design)
-      router.push({ pathname: '/compare-result' as any, params: { aId: a.id, bId: b.id } });
+      if (from === 'book') router.push({ pathname: '/book/compare' as any, params: { aId: a.id, bId: b.id } });
+      else router.push({ pathname: '/compare-result' as any, params: { aId: a.id, bId: b.id, from: 'compareVehicle' } });
       // keep inline result as fallback if user stays
       setCompareResult({ a, b });
     } catch (e: any) {
@@ -362,10 +365,10 @@ export default function CompareVehicle() {
   const SelectBox = ({ label, icon, value, onPress }: { label: string; icon: any; value: string; onPress: () => void }) => (
     <View style={styles.selectColumn}>
       <View style={styles.selectLabelRow}>
-        <MaterialCommunityIcons name={icon} size={15} color="#ff6b00" />
-        <Text style={[styles.selectLabel, { color: aC.isDark ? '#d9ddec' : '#475569' }]}>{label}</Text>
+        <MaterialCommunityIcons name={icon} size={16} color="#E2671B" />
+        <Text style={[styles.selectLabel, { color: aC.isDark ? '#E6E4EA' : '#475569' }]}>{label}</Text>
       </View>
-      <TouchableOpacity style={[styles.selectBox, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderColor: aC.isDark ? '#68728b' : 'rgba(3,42,105,0.12)' }]} onPress={onPress} activeOpacity={0.85}>
+      <TouchableOpacity style={[styles.selectBox, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderColor: aC.isDark ? 'rgba(255,255,255,0.35)' : 'rgba(3,42,105,0.12)' }]} onPress={onPress} activeOpacity={0.85}>
         <Text style={[styles.selectValue, { color: aC.isDark ? '#ffffff' : '#010a1f' }]} numberOfLines={1}>
           {value}
         </Text>
@@ -393,7 +396,7 @@ export default function CompareVehicle() {
       <View style={styles.vehicleSection}>
         <Text style={[styles.chooseTitle, { color: aC.isDark ? '#ffffff' : '#010a1f' }]}>Choose Vehicle {number}</Text>
         <View style={styles.selectRow}>
-          <SelectBox label="Brand" icon="sitemap-outline" value={brand} onPress={() => setOpenSheet(`${prefix}-brand`)} />
+          <SelectBox label="Brand" icon="cube-outline" value={brand} onPress={() => setOpenSheet(`${prefix}-brand`)} />
           <SelectBox label={vehicleType === 'Cars' ? 'Car' : 'Bike'} icon="car-outline" value={carName} onPress={() => setOpenSheet(`${prefix}-car`)} />
           <SelectBox label="Variant" icon="steering" value={variant} onPress={() => setOpenSheet(`${prefix}-variant`)} />
         </View>
@@ -422,7 +425,7 @@ export default function CompareVehicle() {
         {/* HEADER */}
         <View style={[styles.header, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderBottomWidth: aC.isDark ? 0 : 1, borderBottomColor: 'rgba(3,42,105,0.08)' }]}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <Ionicons name="chevron-back" size={27} color={aC.isDark ? "#ffffff" : '#010a1f'} />
+            <Ionicons name="chevron-back" size={27} color={aC.isDark ? "#C9C6D0" : '#010a1f'} />
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: aC.isDark ? '#ffffff' : '#010a1f' }]}>Compare Vehicle</Text>
           <View style={{ width: 35 }} />
@@ -431,22 +434,112 @@ export default function CompareVehicle() {
         <Text style={[styles.mainHeading, { color: aC.isDark ? '#ffffff' : '#010a1f' }]}>Find Your Best Match</Text>
 
         {/* COMPARE BOX */}
-        <View style={[styles.compareCard, { backgroundColor: aC.isDark ? '#071b46' : '#ffffff', borderColor: aC.isDark ? '#ff6500' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, shadowRadius: 10, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }]}>
-          <GlassInset />
+        <LinearGradient
+          colors={aC.isDark ? ['#E2671B', '#8A5A55', '#2E4F8E'] : ['rgba(3,42,105,0.12)', 'rgba(3,42,105,0.12)']}
+          locations={aC.isDark ? [0, 0.5, 1] : undefined}
+          start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }}
+          style={styles.compareBorder}
+        >
+        <View style={[styles.compareCard, { backgroundColor: aC.isDark ? '#0B1D4A' : '#ffffff', borderWidth: 0, shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, shadowRadius: 10, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }]}>
+          {aC.isDark
+            ? <LinearGradient colors={WARM_CARD_COLORS as any} locations={WARM_CARD_LOCATIONS as any} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+            : <GlassInset />}
           <Text style={[styles.vehicleTypeTitle, { color: aC.isDark ? '#ffffff' : '#010a1f' }]}>Select Your Vehicle Type</Text>
           <View style={styles.vehicleTypeRow}>
             <TouchableOpacity
-              style={[styles.typeButton, { backgroundColor: aC.isDark ? '#092455' : '#ffffff', borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', borderWidth: 1, shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.06)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 1 }, vehicleType === 'Cars' && (aC.isDark ? styles.activeTypeButton : { borderColor: '#ff6b00', backgroundColor: 'rgba(226,103,27,0.12)' })]}
+              style={[styles.typeButton, { backgroundColor: aC.isDark ? '#071D50' : '#ffffff', borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', borderWidth: 1, shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.06)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 1 }, vehicleType === 'Cars' && (aC.isDark ? styles.activeTypeButton : { borderColor: '#ff6b00', backgroundColor: 'rgba(226,103,27,0.12)' })]}
               onPress={() => setVehicleType('Cars')}
             >
-              <MaterialCommunityIcons name="car" size={23} color={vehicleType === 'Cars' ? '#ff6b00' : (aC.isDark ? '#ffffff' : '#64748b')} />
-              <Text style={[styles.typeText, { color: aC.isDark ? '#ffffff' : '#010a1f' }]}>Cars</Text>
+              {aC.isDark && vehicleType !== 'Cars' && (
+                <>
+                  <LinearGradient
+                    colors={['#071D50', '#08245C', '#071D50']}
+                    locations={[0, 0.5, 1]}
+                    start={{ x: 0, y: 0.5 }}
+                    end={{ x: 1, y: 0.5 }}
+                    style={StyleSheet.absoluteFillObject}
+                    pointerEvents="none"
+                  />
+                  <LinearGradient
+                    colors={['rgba(20,55,115,0.20)', 'transparent', 'rgba(1,10,31,0.12)']}
+                    locations={[0, 0.5, 1]}
+                    start={{ x: 0.5, y: 0 }}
+                    end={{ x: 0.5, y: 1 }}
+                    style={StyleSheet.absoluteFillObject}
+                    pointerEvents="none"
+                  />
+                </>
+              )}
+              {vehicleType === 'Cars' && aC.isDark && <InnerGlow radius={16} />}
+              {/* previous selected-card gradient (replaced by Skia inner shadow)
+              {vehicleType === 'Cars' && aC.isDark && (
+                <>
+                  <LinearGradient
+                    colors={[
+                      'rgba(80,126,197,0.16)',
+                      '#06183F',
+                      '#06183F',
+                      '#06183F',
+                      'rgba(80,126,197,0.10)'
+                    ]}
+                    locations={[0, 0.18, 0.5, 0.82, 1]}
+                    start={{ x: 0, y: 0.5 }}
+                    end={{ x: 1, y: 0.5 }}
+                    style={StyleSheet.absoluteFillObject}
+                    pointerEvents="none"
+                  />
+                </>
+              )}
+              */}
+              <MaterialCommunityIcons name="car" size={26} color={vehicleType === 'Cars' ? '#ff6b00' : (aC.isDark ? '#ffffff' : '#64748b')} />
+              <Text style={[styles.typeText, { color: aC.isDark ? '#F2F1F5' : '#010a1f' }]}>Cars</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.typeButton, { backgroundColor: aC.isDark ? '#092455' : '#ffffff', borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', borderWidth: 1, shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.06)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 1 }, vehicleType === 'Bikes' && (aC.isDark ? styles.activeTypeButton : { borderColor: '#ff6b00', backgroundColor: 'rgba(226,103,27,0.12)' })]}
+              style={[styles.typeButton, { backgroundColor: aC.isDark ? '#071D50' : '#ffffff', borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', borderWidth: 1, shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.06)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 1 }, vehicleType === 'Bikes' && (aC.isDark ? styles.activeTypeButton : { borderColor: '#ff6b00', backgroundColor: 'rgba(226,103,27,0.12)' })]}
               onPress={() => setVehicleType('Bikes')}
             >
-              <MaterialCommunityIcons name="motorbike" size={23} color={vehicleType === 'Bikes' ? '#ff6b00' : (aC.isDark ? '#ffffff' : '#64748b')} />
+              {aC.isDark && vehicleType !== 'Bikes' && (
+                <>
+                  <LinearGradient
+                    colors={['#071D50', '#08245C', '#071D50']}
+                    locations={[0, 0.5, 1]}
+                    start={{ x: 0, y: 0.5 }}
+                    end={{ x: 1, y: 0.5 }}
+                    style={StyleSheet.absoluteFillObject}
+                    pointerEvents="none"
+                  />
+                  <LinearGradient
+                    colors={['rgba(20,55,115,0.20)', 'transparent', 'rgba(1,10,31,0.12)']}
+                    locations={[0, 0.5, 1]}
+                    start={{ x: 0.5, y: 0 }}
+                    end={{ x: 0.5, y: 1 }}
+                    style={StyleSheet.absoluteFillObject}
+                    pointerEvents="none"
+                  />
+                </>
+              )}
+              {vehicleType === 'Bikes' && aC.isDark && <InnerGlow radius={16} />}
+              {/* previous selected-card gradient (replaced by Skia inner shadow)
+              {vehicleType === 'Bikes' && aC.isDark && (
+                <>
+                  <LinearGradient
+                    colors={[
+                      'rgba(80,126,197,0.16)',
+                      '#06183F',
+                      '#06183F',
+                      '#06183F',
+                      'rgba(80,126,197,0.10)'
+                    ]}
+                    locations={[0, 0.18, 0.5, 0.82, 1]}
+                    start={{ x: 0, y: 0.5 }}
+                    end={{ x: 1, y: 0.5 }}
+                    style={StyleSheet.absoluteFillObject}
+                    pointerEvents="none"
+                  />
+                </>
+              )}
+              */}
+              <MaterialCommunityIcons name="motorbike" size={26} color={vehicleType === 'Bikes' ? '#ff6b00' : (aC.isDark ? '#ffffff' : '#64748b')} />
               <Text style={[styles.typeText, { color: aC.isDark ? '#ffffff' : '#010a1f' }]}>Bikes</Text>
             </TouchableOpacity>
           </View>
@@ -462,7 +555,8 @@ export default function CompareVehicle() {
 
           <TouchableOpacity style={styles.compareButton} onPress={handleCompare} activeOpacity={0.88} disabled={compareLoading}>
             <LinearGradient
-              colors={[AppColors.gradientStart, AppColors.gradientEnd]}
+              colors={PRIMARY_BTN_COLORS as any}
+              locations={[0, 0.5, 1]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={StyleSheet.absoluteFillObject}
@@ -470,6 +564,7 @@ export default function CompareVehicle() {
             {compareLoading ? <ActivityIndicator color="#fff" /> : <Text style={styles.compareButtonText}>Compare your Vehicle</Text>}
           </TouchableOpacity>
         </View>
+        </LinearGradient>
 
         {/* COMPARISON RESULT */}
         {compareResult && (
@@ -551,11 +646,13 @@ export default function CompareVehicle() {
                     return (
                       <TouchableOpacity
                         key={item.id || idx}
-                        style={[styles.trendingCard, { backgroundColor: aC.isDark ? '#071b46' : '#ffffff', borderColor: aC.isDark ? '#172e57' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 2 }]}
+                        style={[styles.trendingCard, { backgroundColor: aC.isDark ? '#0B1D4A' : '#ffffff', borderColor: aC.isDark ? 'rgba(143,174,227,0.45)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 2 }]}
                         activeOpacity={0.86}
                         onPress={() => router.push({ pathname: '/vehicle/[id]', params: { id: item.id } } as any)}
                       >
-                        <GlassInset />
+                        {aC.isDark
+                          ? <LinearGradient colors={['#0B1D4A', '#0E2152', '#3A2F4A', '#6E4538']} locations={[0, 0.5, 0.78, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+                          : <GlassInset />}
                         {uri ? (
                           <Image source={{ uri }} style={styles.carImage} resizeMode="cover" />
                         ) : (
@@ -563,13 +660,14 @@ export default function CompareVehicle() {
                             <Ionicons name={category === 'car' ? 'car-outline' : 'bicycle-outline'} size={24} color={aC.isDark ? "#baacb6" : '#94a3b8'} />
                           </View>
                         )}
-                        <Text style={[styles.carName, { color: aC.isDark ? '#ffffff' : '#010a1f' }]} numberOfLines={1}>
+                        <Text style={[styles.carName, { color: aC.isDark ? '#F2F1F5' : '#010a1f' }]} numberOfLines={2}>
                           {item.title || `${item.make} ${item.model}`}
                         </Text>
+                        {/* variant line — not in Figma
                         <Text style={[styles.carVariant, { color: aC.isDark ? '#baacb6' : '#475569' }]} numberOfLines={1}>
                           {item.variant || item.transmission || '—'}
-                        </Text>
-                        <Text style={styles.carPrice}>{formatPrice(item.price)}</Text>
+                        </Text> */}
+                        <Text style={[styles.carPrice, { color: aC.isDark ? '#E6E4EA' : '#475569' }]}>{formatPrice(item.price)}</Text>
                       </TouchableOpacity>
                     );
                   })}
@@ -607,73 +705,84 @@ const styles = StyleSheet.create({
   container: { paddingHorizontal: 17, paddingBottom: 35 },
   header: { height: 58, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   backButton: { width: 35, height: 40, justifyContent: 'center' },
-  headerTitle: { color: '#ffffff', fontSize: 21, fontWeight: '500' },
-  mainHeading: { color: '#ffffff', fontSize: 17, fontWeight: '500', marginBottom: 16 },
+  headerTitle: { color: '#ffffff', fontSize: 21, fontFamily: 'Poppins_500Medium' },
+  mainHeading: { color: '#ffffff', fontSize: 17, fontFamily: 'Poppins_500Medium', marginBottom: 14 },
+  compareBorder: { borderRadius: 18, padding: 1 },
   compareCard: {
     borderWidth: 1,
     borderColor: '#ff6500',
     borderRadius: 17,
-    padding: 11,
-    paddingBottom: 17,
+    padding: 12,
+    paddingBottom: 18,
     backgroundColor: '#071b46',
     overflow: 'hidden',
   },
-  vehicleTypeTitle: { color: '#ffffff', fontSize: 12, marginBottom: 14 },
-  vehicleTypeRow: { flexDirection: 'row', gap: 9, marginBottom: 15 },
-  typeButton: { flex: 1, height: 67, borderRadius: 16, backgroundColor: '#092455', justifyContent: 'center', alignItems: 'center', gap: 2 },
-  activeTypeButton: { borderWidth: 1, borderColor: '#7fa4df', backgroundColor: '#102e65' },
-  typeText: { color: '#ffffff', fontSize: 13 },
+  vehicleTypeTitle: { color: '#ffffff', fontSize: 13, fontFamily: 'Poppins_500Medium', marginBottom: 12 },
+  vehicleTypeRow: { flexDirection: 'row', gap: 10, marginBottom: 15 },
+  typeButton: { flex: 1, height: 78, borderRadius: 16, backgroundColor: '#092455', justifyContent: 'center', alignItems: 'center', gap: 6, overflow: 'hidden' },
+  activeTypeButton: {
+    // Fill + border are drawn by <InnerGlow /> (Skia inner shadow)
+    borderWidth: 0,
+    borderColor: 'transparent',
+    backgroundColor: 'transparent',
+    shadowColor: '#6E9DDD',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.22,
+    shadowRadius: 5,
+    elevation: 2,
+  },
+  typeText: { color: '#ffffff', fontSize: 15, fontFamily: 'Poppins_500Medium' },
   vehicleSection: { marginBottom: 13 },
-  chooseTitle: { color: '#ffffff', fontSize: 13, marginBottom: 11 },
+  chooseTitle: { color: '#ffffff', fontSize: 13.5, fontFamily: 'Poppins_500Medium', marginBottom: 10 },
   selectRow: { flexDirection: 'row', gap: 8 },
   selectColumn: { flex: 1 },
   selectLabelRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 7, gap: 5 },
-  selectLabel: { color: '#d9ddec', fontSize: 11 },
+  selectLabel: { color: '#d9ddec', fontSize: 11.5, fontFamily: 'Poppins_400Regular' },
   selectBox: {
     height: 36,
     borderWidth: 1,
     borderColor: '#68728b',
-    borderRadius: 7,
+    borderRadius: 8,
     paddingHorizontal: 9,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  selectValue: { color: '#ffffff', fontSize: 10, flex: 1, marginRight: 4 },
-  compareButton: { height: 46, borderRadius: 30, marginTop: 10, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' },
-  compareButtonText: { color: '#ffffff', fontSize: 15, fontWeight: '500' },
-  sectionTitle: { color: '#ffffff', fontSize: 17, fontWeight: '500', marginTop: 17, marginBottom: 13 },
+  selectValue: { color: '#ffffff', fontSize: 11.5, fontFamily: 'Poppins_500Medium', flex: 1, marginRight: 4 },
+  compareButton: { height: 46, borderRadius: 24, marginTop: 12, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  compareButtonText: { color: '#EDEBF0', fontSize: 16, fontFamily: 'Poppins_400Regular' },
+  sectionTitle: { color: '#ffffff', fontSize: 17, fontFamily: 'Poppins_500Medium', marginTop: 17, marginBottom: 13 },
   trendingGrid: { gap: 14 },
   pairRow: { flexDirection: 'row', gap: 28, position: 'relative', alignItems: 'center', marginBottom: 18 },
   trendingCard: {
     flex: 1,
-    height: 160,
+    height: 150,
     backgroundColor: '#071b46',
-    borderRadius: 7,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: '#172e57',
     alignItems: 'center',
     overflow: 'hidden',
     paddingBottom: 8,
   },
-  carImage: { width: '100%', height: 85 },
-  carName: { color: '#ffffff', fontSize: 12, marginTop: 6, textAlign: 'center', paddingHorizontal: 6, fontFamily: 'Poppins_600SemiBold' },
+  carImage: { width: '100%', height: 78 },
+  carName: { color: '#ffffff', fontSize: 12.5, marginTop: 6, textAlign: 'center', paddingHorizontal: 6, fontFamily: 'Poppins_500Medium', lineHeight: 17 },
   carVariant: { color: '#baacb6', fontSize: 11, marginTop: 2, textAlign: 'center', paddingHorizontal: 6, fontFamily: 'Poppins_400Regular' },
-  carPrice: { color: '#ff6b00', fontSize: 11, marginTop: 4, fontFamily: 'Poppins_600SemiBold' },
+  carPrice: { color: '#ff6b00', fontSize: 12, marginTop: 2, fontFamily: 'Poppins_400Regular' },
   vsContainer: {
     position: 'absolute',
     left: '50%',
     marginLeft: -14,
-    top: 50,
+    top: 60,
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#ff6b00',
+    backgroundColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 10,
   },
-  vsText: { color: '#ffffff', fontSize: 11, fontWeight: '700' },
+  vsText: { color: '#E2671B', fontSize: 15, fontFamily: 'Poppins_500Medium' },
   pairUseBtn: {
     position: 'absolute',
     bottom: -2,

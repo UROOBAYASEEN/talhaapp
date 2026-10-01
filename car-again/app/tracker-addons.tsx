@@ -10,6 +10,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { AppColors, useAppColors } from "@/constants/theme";
+import { Ionicons } from "@expo/vector-icons";
+import { PRIMARY_BTN_COLORS } from "@/components/shared/FigmaEffects";
 
 function GlassInset() {
   const aC = useAppColors();
@@ -68,13 +70,13 @@ export default function AddonsScreen() {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: aC.bg }]} edges={["top"]}>
-      <View style={[styles.container, { backgroundColor: aC.bg, borderColor: aC.isDark ? AppColors.glassBorder : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }]}>
+      <View style={[styles.container, { backgroundColor: aC.bg, borderColor: aC.isDark ? 'rgba(126,159,214,0.35)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }]}>
         {/* Header */}
-        <View style={[styles.header, { backgroundColor: aC.isDark ? AppColors.glassBg : '#ffffff', borderColor: aC.isDark ? AppColors.glassBorder : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.06)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]}>
-          <GlassInset />
-          <Text style={[styles.headerTitle, { color: aC.textPrimary }]}>Addons</Text>
+        <View style={[styles.header, { backgroundColor: aC.isDark ? '#0B2656' : '#ffffff', borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)' }]}>
+          {!aC.isDark && <GlassInset />}
+          <Text style={[styles.headerTitle, { color: aC.isDark ? '#F2F1F5' : '#010a1f' }]}>Addons</Text>
           <TouchableOpacity style={styles.closeButton} activeOpacity={0.7} onPress={() => router.back()}>
-            <Text style={[styles.closeText, { color: aC.textSecondary }]}>×</Text>
+            <Ionicons name="close" size={26} color={aC.isDark ? '#C9C6D0' : '#64748b'} />
           </TouchableOpacity>
         </View>
 
@@ -89,15 +91,14 @@ export default function AddonsScreen() {
             return (
               <TouchableOpacity
                 key={addon.id}
-                style={[styles.addonItem, { backgroundColor: aC.isDark ? AppColors.glassBg : '#ffffff', borderColor: aC.isDark ? AppColors.glassBorder : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.06)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 1 }, isSelected && styles.addonSelected, isSelected && { borderColor: aC.isDark ? 'rgba(100,160,255,0.5)' : AppColors.gradientEnd, backgroundColor: aC.isDark ? 'rgba(3,12,40,0.8)' : 'rgba(226,103,27,0.08)' }]}
+                style={[styles.addonItem, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderColor: aC.isDark ? (isSelected ? '#7E9FD6' : 'rgba(255,255,255,0.22)') : (isSelected ? AppColors.gradientEnd : 'rgba(3,42,105,0.12)') }]}
                 onPress={() => toggleAddon(addon.id)}
                 activeOpacity={0.8}
               >
-                {!isSelected && <GlassInset />}
-                <View style={[styles.radioOuter, { backgroundColor: aC.isDark ? AppColors.glassBg : '#ffffff', borderColor: aC.isDark ? AppColors.glassBorder : 'rgba(3,42,105,0.12)' }, isSelected && styles.radioSelected]}>
-                  {isSelected ? <View style={styles.radioInner} /> : null}
+                <View style={[styles.radioOuter, isSelected && styles.radioSelected]}>
+                  <View style={[styles.radioInner, isSelected && styles.radioInnerOn]} />
                 </View>
-                <Text style={[styles.addonText, { color: aC.isDark ? AppColors.textSecondary : '#475569' }]}>
+                <Text style={[styles.addonText, { color: aC.isDark ? '#C9C6D0' : '#475569' }]}>
                   {addon.title} [+Rs{addon.price.toLocaleString()}]
                 </Text>
               </TouchableOpacity>
@@ -107,18 +108,19 @@ export default function AddonsScreen() {
 
         {/* Product Price */}
         <View style={styles.productRow}>
-          <Text style={[styles.productText, { color: aC.isDark ? AppColors.textSecondary : '#475569' }]}>Product Price Rs{productPrice.toLocaleString()} x 1</Text>
-          <Text style={[styles.priceText, { color: aC.isDark ? AppColors.textSecondary : '#475569' }]}>Rs{productPrice.toLocaleString()}</Text>
+          <Text style={[styles.productText, { color: aC.isDark ? '#C9C6D0' : '#475569' }]}>Product Price Rs{productPrice.toLocaleString()} x 1</Text>
+          <Text style={[styles.priceText, { color: aC.isDark ? '#C9C6D0' : '#475569' }]}>Rs{productPrice.toLocaleString()}</Text>
         </View>
+        <View style={[styles.divider, { backgroundColor: aC.isDark ? 'rgba(255,255,255,0.12)' : aC.divider }]} />
 
         {/* Total */}
         <View style={styles.totalRow}>
-          <Text style={[styles.totalLabel, { color: aC.textPrimary }]}>Total</Text>
-          <Text style={[styles.totalPrice, { color: aC.textPrimary }]}>Rs{total.toLocaleString()}</Text>
+          <Text style={[styles.totalLabel, { color: aC.isDark ? '#C9C6D0' : '#010a1f' }]}>Total</Text>
+          <Text style={[styles.totalPrice, { color: aC.isDark ? '#C9C6D0' : '#010a1f' }]}>Rs{total.toLocaleString()}</Text>
         </View>
 
         {/* Divider */}
-        <View style={[styles.divider, { backgroundColor: aC.divider }]} />
+        <View style={[styles.divider, { backgroundColor: aC.isDark ? 'rgba(255,255,255,0.12)' : aC.divider }]} />
 
         {/* Add Button -> Tracker Detail */}
         <TouchableOpacity
@@ -144,7 +146,8 @@ export default function AddonsScreen() {
           }}
         >
           <LinearGradient
-            colors={[AppColors.gradientStart, AppColors.gradientEnd]}
+            colors={PRIMARY_BTN_COLORS as any}
+            locations={[0, 0.5, 1]}
             start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
             style={StyleSheet.absoluteFillObject}
           />
@@ -188,7 +191,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     color: AppColors.textPrimary,
     fontSize: 17,
-    fontFamily: "Poppins_600SemiBold",
+    fontFamily: "Poppins_400Regular",
   },
   closeButton: {
     width: 30,
@@ -205,12 +208,12 @@ const styles = StyleSheet.create({
   list: { flex: 1 },
   listContent: { paddingBottom: 10 },
   addonItem: {
-    height: 34,
+    height: 38,
     borderWidth: 1,
     borderColor: AppColors.glassBorder,
     backgroundColor: AppColors.glassBg,
-    borderRadius: 18,
-    marginBottom: 14,
+    borderRadius: 19,
+    marginBottom: 12,
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 6,
@@ -221,29 +224,35 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(3,12,40,0.8)",
   },
   radioOuter: {
-    width: 25,
-    height: 25,
+    width: 26,
+    height: 26,
     borderRadius: 13,
     borderWidth: 1,
-    borderColor: AppColors.glassBorder,
-    backgroundColor: AppColors.glassBg,
+    borderColor: "rgba(143,174,227,0.6)",
+    backgroundColor: "#1D3B73",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 7,
   },
   radioSelected: {
-    borderColor: AppColors.gradientEnd,
-    backgroundColor: "rgba(226,103,27,0.2)",
+    borderColor: "#8FAEE3",
+    shadowColor: "#8FAEE3", shadowOpacity: 0.7, shadowRadius: 5, shadowOffset: { width: 0, height: 0 }, elevation: 3,
   },
   radioInner: {
-    width: 9,
-    height: 9,
-    borderRadius: 5,
-    backgroundColor: AppColors.gradientEnd,
+    width: 11,
+    height: 11,
+    borderRadius: 6,
+    borderWidth: 1.5,
+    borderColor: "rgba(220,230,247,0.5)",
+  },
+  radioInnerOn: {
+    borderWidth: 2,
+    borderColor: "#DCE6F7",
+    backgroundColor: "#0E2552",
   },
   addonText: {
     color: AppColors.textSecondary,
-    fontSize: 11,
+    fontSize: 12,
     fontFamily: "Poppins_400Regular",
     flex: 1,
   },
@@ -274,12 +283,12 @@ const styles = StyleSheet.create({
   totalLabel: {
     color: AppColors.textPrimary,
     fontSize: 14,
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "Poppins_600SemiBold",
   },
   totalPrice: {
     color: AppColors.textPrimary,
     fontSize: 14,
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "Poppins_600SemiBold",
   },
   divider: {
     height: 1,
@@ -287,7 +296,7 @@ const styles = StyleSheet.create({
     marginBottom: 13,
   },
   addButton: {
-    height: 48,
+    height: 52,
     borderRadius: 25,
     marginHorizontal: 10,
     alignItems: "center",
@@ -295,8 +304,8 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   addButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontFamily: "Poppins_700Bold",
+    color: "#EDEBF0",
+    fontSize: 17,
+    fontFamily: "Poppins_600SemiBold",
   },
 });

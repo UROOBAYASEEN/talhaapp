@@ -1,5 +1,3 @@
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -11,8 +9,8 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import AuthHeader from '@/components/auth/AuthHeader';
-import LinearButton from '@/components/auth/LinearButton';
+import AuthGlowBackground from '@/components/auth/AuthGlowBackground';
+import { Glass, GradientButton, ScreenHeader } from '@/components/shared/GlowUI';
 import { useAppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
@@ -106,104 +104,91 @@ export default function VerifyOTPScreen() {
   const timeStr = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}s`;
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: C.bg }]}>
-      <AuthHeader />
-      <View style={styles.content}>
-        <Text style={[styles.title, { color: C.textPrimary }]}>Verify Code</Text>
-        <Text style={[styles.subtitle, { color: C.textSecondary }]}>
-          Enter the 6-digit verification code sent to{' '}
-          <Text style={{ color: '#e2671b', fontFamily: 'Poppins_600SemiBold' }}>{sent_to || phone}</Text>
-        </Text>
+    <AuthGlowBackground>
+      <SafeAreaView style={styles.safe}>
+        <ScreenHeader logo />
+        <View style={styles.content}>
+          <Text style={styles.title}>Verify Code</Text>
+          <Text style={styles.subtitle}>Enter the 6-digit that we have sent to</Text>
+          <Text style={styles.phone}>{sent_to || phone}</Text>
 
-        <View style={styles.otpRow}>
-          {otp.map((digit, idx) => (
-            <View
-              key={idx}
-              style={[
-                styles.otpBox,
-                {
-                  borderColor: digit
-                    ? C.isDark ? 'rgba(255,255,255,0.9)' : 'rgba(3,12,40,0.5)'
-                    : C.isDark ? 'rgba(255,255,255,0.3)' : 'rgba(3,12,40,0.15)',
-                  backgroundColor: C.glassBg,
-                  overflow: 'hidden',
-                },
-              ]}
-            >
-              <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-              <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-              <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-              <TextInput
-                ref={(el) => { inputs.current[idx] = el; }}
-                style={[styles.otpInput, { color: C.textPrimary }]}
-                value={digit}
-                onChangeText={(v) => handleChange(v, idx)}
-                onKeyPress={(e) => handleKeyPress(e, idx)}
-                keyboardType="numeric"
-                maxLength={1}
-                textAlign="center"
-                secureTextEntry
-                selectionColor={C.gradientEnd}
-              />
-            </View>
-          ))}
+          <View style={styles.otpRow}>
+            {otp.map((digit, idx) => (
+              <View key={idx} style={styles.otpBox}>
+                <Glass radius={23} blur={10} />
+                <TextInput
+                  ref={(el) => { inputs.current[idx] = el; }}
+                  style={styles.otpInput}
+                  value={digit}
+                  onChangeText={(v) => handleChange(v, idx)}
+                  onKeyPress={(e) => handleKeyPress(e, idx)}
+                  keyboardType="number-pad"
+                  maxLength={1}
+                  textAlign="center"
+                  selectionColor={C.gradientEnd}
+                />
+              </View>
+            ))}
+          </View>
+
+          <Text style={styles.timer}>{timeStr}</Text>
+
+          <TouchableOpacity onPress={timer <= 0 ? handleResend : undefined} activeOpacity={timer <= 0 ? 0.7 : 1}>
+            <Text style={styles.orText}>
+              {"Didn't receive it? "}
+              <Text style={{ color: timer <= 0 ? '#e2671b' : '#FFFFFF' }}>Resend code</Text>
+            </Text>
+          </TouchableOpacity>
         </View>
 
-        {timer > 0 ? (
-          <Text style={[styles.timer, { color: C.textPrimary }]}>{timeStr}</Text>
-        ) : (
-          <TouchableOpacity onPress={handleResend}>
-            <Text style={[styles.resendLink, { color: C.textSecondary }]}>Resend OTP</Text>
-          </TouchableOpacity>
-        )}
-
-        <TouchableOpacity onPress={timer <= 0 ? handleResend : undefined} activeOpacity={timer <= 0 ? 0.7 : 1}>
-          <Text style={[styles.orText, { color: C.textSecondary }]}>
-            Didn't receive it?{' '}
-            <Text style={{ color: timer <= 0 ? '#e2671b' : C.textSecondary, fontFamily: 'Poppins_600SemiBold' }}>
-              Resend it
-            </Text>
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.btnFixed}>
-        <LinearButton title="Verify" onPress={handleVerify} loading={loading} />
-      </View>
-    </SafeAreaView>
+        <View style={styles.btnFixed}>
+          <GradientButton title="Verify" height={50} fontSize={17} onPress={handleVerify} loading={loading} />
+        </View>
+      </SafeAreaView>
+    </AuthGlowBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, paddingHorizontal: 20 },
-  content: { flex: 1, gap: 20, justifyContent: 'center', paddingBottom: 190 },
-  btnFixed: { paddingBottom: 24 },
+  safe: { flex: 1 },
+  content: { flex: 1, alignItems: 'center', paddingHorizontal: 16, paddingTop: 70 },
+  btnFixed: { paddingHorizontal: 16, paddingBottom: 20 },
 
   title: {
+    color: '#FFFFFF',
     fontSize: 20,
     fontFamily: 'Poppins_600SemiBold',
     textAlign: 'center',
   },
   subtitle: {
+    color: '#BAACB6',
+    fontSize: 14,
+    fontFamily: 'Poppins_400Regular',
+    textAlign: 'center',
+    marginTop: 6,
+  },
+  phone: {
+    color: '#E6E1E8',
     fontSize: 14,
     fontFamily: 'Poppins_500Medium',
-    lineHeight: 22,
     textAlign: 'center',
   },
 
-  otpRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 10 },
+  otpRow: { flexDirection: 'row', justifyContent: 'center', gap: 12, marginTop: 14 },
   otpBox: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    borderWidth: 1,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    overflow: 'hidden',
     justifyContent: 'center',
     alignItems: 'center',
   },
   otpInput: {
     width: '100%',
     height: '100%',
-    fontSize: 24,
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontFamily: 'Poppins_600SemiBold',
     textAlign: 'center',
     textAlignVertical: 'center',
     paddingVertical: 0,
@@ -212,18 +197,17 @@ const styles = StyleSheet.create({
   },
 
   timer: {
+    color: '#FFFFFF',
     textAlign: 'center',
     fontSize: 16,
-    fontFamily: 'Poppins_600SemiBold',
-  },
-  resendLink: {
-    textAlign: 'center',
-    fontSize: 14,
-    fontFamily: 'Poppins_600SemiBold',
+    fontFamily: 'Poppins_500Medium',
+    marginTop: 24,
   },
   orText: {
+    color: '#BAACB6',
     textAlign: 'center',
     fontSize: 14,
-    fontFamily: 'Poppins_500Medium',
+    fontFamily: 'Poppins_400Regular',
+    marginTop: 24,
   },
 });

@@ -1,20 +1,20 @@
+import { useAppColors } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useAppColors } from '@/constants/theme';
 
-const IMG_COMPARE   = require('@/screenshot/comparevehcile.png');
+const IMG_COMPARE = require('@/screenshot/comparevehcile.png');
 const IMG_INSURANCE = require('@/screenshot/insurance.png');
-const IMG_FINANCE   = require('@/screenshot/smartcalculator.png');
-const IMG_BOOK      = require('@/screenshot/book.png');
+const IMG_FINANCE = require('@/screenshot/smartcalculator.png');
+const IMG_BOOK = require('@/screenshot/book.png');
 
 const ITEMS = [
-  { img: IMG_FINANCE,   title: 'Smart Finance\nCalculator', sub: 'Calculate your monthly payments instantly.',                route: '/auto-financing' },
-  { img: IMG_COMPARE,   title: 'Compare\nVehicle',         sub: 'Compare and choose the vehicle that best fits your needs.',  route: '/compare-vehicle' },
-  { img: IMG_INSURANCE, title: 'Compare\nInsurance Plan',   sub: 'Compare plans, coverage, and benefits to find the right insurance.', route: '/insurance-search' },
-  { img: IMG_BOOK,      title: 'Book Your\nVehicle',        sub: 'Reserve your preferred vehicle online by selecting your date.', route: '/buy/new-car' },
+  { img: IMG_FINANCE, title: 'Smart Finance\nCalculator', sub: 'Calculate your monthly payments instantly.', route: '/auto-financing' },
+  { img: IMG_COMPARE, title: 'Compare\nVehicle', sub: 'Compare and choose the vehicle that best fits your needs.', route: '/compare-vehicle' },
+  { img: IMG_INSURANCE, title: 'Compare\nInsurance Plan', sub: 'Compare plans, coverage, and benefits to find the right insurance.', route: '/insurance-search' },
+  { img: IMG_BOOK, title: 'Book Your\nVehicle', sub: 'Reserve your preferred vehicle online by selecting your date.', route: '/book' },
 ];
 
 export default function YouMayNeedThis() {
@@ -50,15 +50,15 @@ export default function YouMayNeedThis() {
 const styles = StyleSheet.create({
   wrapper: { gap: 14 },
   heading: { fontSize: 16, fontFamily: 'Poppins_600SemiBold', color: '#f9fafc' },
-  grid:    { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  card:    { width: '47.5%', borderRadius: 16, overflow: 'hidden', height: 200 },
-  grad:    { flex: 1, padding: 12, justifyContent: 'flex-end' },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+  card: { width: '47.5%', borderRadius: 16, overflow: 'hidden', height: 200 },
+  grad: { flex: 1, padding: 12, justifyContent: 'flex-end' },
   titleRow: {
     flexDirection: 'row', alignItems: 'flex-end',
     justifyContent: 'space-between', marginBottom: 4,
   },
   title: { color: '#f9fafc', fontSize: 12, fontFamily: 'Poppins_500Medium', textTransform: 'capitalize', flex: 1 },
   imgWrap: { height: 76, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
-  img:   { width: 84, height: 68 },
-  sub:   { color: '#baacb6', fontSize: 10, fontFamily: 'Poppins_400Regular', lineHeight: 14 },
+  img: { width: 84, height: 68 },
+  sub: { color: '#baacb6', fontSize: 10, fontFamily: 'Poppins_400Regular', lineHeight: 14 },
 });

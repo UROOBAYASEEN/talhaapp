@@ -11,6 +11,8 @@ import { ChevronDown, ChevronLeft, Car, Bike, Search, X } from 'lucide-react-nat
 import { AppColors, useAppColors } from '@/constants/theme';
 import AskariBank from '@/components/shared/AskariBank';
 import { API_BASE } from '@/constants/api';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { PRIMARY_BTN_COLORS, SavedCardEffect, SearchInputEffect } from '@/components/shared/FigmaEffects';
 
 const C      = AppColors;
 const ORANGE = '#e2671b';
@@ -183,8 +185,8 @@ function Dropdown({ value, onChange, options, placeholder }: {
         style={[
           dd.btn,
           {
-            backgroundColor: aC.isDark ? '#0e1a3d' : '#ffffff',
-            borderColor: aC.isDark ? 'rgba(30,58,138,0.8)' : 'rgba(3,42,105,0.12)',
+            backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff',
+            borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.12)',
             shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)',
             shadowOpacity: aC.isDark ? 0 : 0.06,
             shadowRadius: 6,
@@ -196,18 +198,14 @@ function Dropdown({ value, onChange, options, placeholder }: {
         activeOpacity={0.85}
       >
         {aC.isDark ? (
-          <>
-            <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-            <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-            <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-          </>
+          <SearchInputEffect />
         ) : (
           <>
             <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
             <LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
           </>
         )}
-        <Text style={[dd.val, { color: isPlaceholder ? (aC.isDark ? C.textPlaceholder : '#94a3b8') : (aC.isDark ? '#fff' : '#010a1f') }]} numberOfLines={1}>{value}</Text>
+        <Text style={[dd.val, { color: isPlaceholder ? (aC.isDark ? '#F2F1F5' : '#94a3b8') : (aC.isDark ? '#F2F1F5' : '#010a1f') }]} numberOfLines={1}>{value}</Text>
         <ChevronDown size={18} color={ORANGE} style={open ? { transform: [{ rotate: '180deg' }] } : undefined} />
       </TouchableOpacity>
       {open && (
@@ -237,10 +235,10 @@ function Dropdown({ value, onChange, options, placeholder }: {
 }
 
 const dd = StyleSheet.create({
-  wrap:        { marginBottom: 16, zIndex: 1 },
-  btn:         { height: 52, borderRadius: 30, borderWidth: 1, borderColor: 'rgba(30,58,138,0.8)', backgroundColor: '#0e1a3d', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, overflow: 'hidden' },
-  val:         { color: '#fff', fontSize: 15, fontFamily: 'Poppins_400Regular', flex: 1 },
-  list:        { position: 'absolute', top: 56, left: 0, right: 0, backgroundColor: 'rgba(6,18,52,0.99)', borderRadius: 14, borderWidth: 1, borderColor: 'rgba(100,160,255,0.3)', overflow: 'hidden', zIndex: 100 },
+  wrap:        { marginBottom: 12, zIndex: 1 },
+  btn:         { height: 46, borderRadius: 32, borderWidth: 1, borderColor: '#829fd0', backgroundColor: 'rgba(3,12,40,0.6)', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, overflow: 'hidden' },
+  val:         { color: '#fff', fontSize: 13.5, fontFamily: 'Poppins_400Regular', flex: 1 },
+  list:        { position: 'absolute', top: 50, left: 0, right: 0, backgroundColor: 'rgba(6,18,52,0.99)', borderRadius: 14, borderWidth: 1, borderColor: 'rgba(100,160,255,0.3)', overflow: 'hidden', zIndex: 100 },
   option:      { paddingHorizontal: 20, paddingVertical: 13, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' },
   optionActive:{ backgroundColor: 'rgba(226,103,27,0.1)' },
   optTxt:      { color: '#fff', fontSize: 13, fontFamily: 'Poppins_400Regular' },
@@ -257,10 +255,10 @@ function ToggleCard({ icon, title, selected, onSelect }: {
         s.toggleCard,
         selected ? s.toggleCardActive : s.toggleCardInactive,
         {
-          backgroundColor: aC.isDark ? (selected ? '#16234a' : '#0e1a3d') : '#ffffff',
-          borderColor: selected ? ORANGE : (aC.isDark ? '#1e3a8a' : 'rgba(3,42,105,0.12)'),
-          shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)',
-          shadowOpacity: aC.isDark ? 0 : 0.06,
+          backgroundColor: aC.isDark ? (selected ? '#010A1F' : '#0B1D4A') : '#ffffff',
+          borderColor: aC.isDark ? (selected ? '#82a5d5' : 'transparent') : (selected ? ORANGE : 'rgba(3,42,105,0.12)'),
+          shadowColor: aC.isDark ? (selected ? '#638ed0' : 'transparent') : 'rgba(3,42,105,0.08)',
+          shadowOpacity: aC.isDark ? (selected ? 0.15 : 0) : 0.06,
           shadowRadius: 6,
           shadowOffset: { width: 0, height: 2 },
           elevation: aC.isDark ? 0 : 2,
@@ -271,10 +269,7 @@ function ToggleCard({ icon, title, selected, onSelect }: {
     >
       {selected && (
         aC.isDark ? (
-          <>
-            <LinearGradient colors={['rgba(22,64,136,0.35)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.25 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-            <LinearGradient colors={['transparent', 'rgba(29,83,175,0.35)']} start={{ x: 0.5, y: 0.75 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-          </>
+          <SavedCardEffect />
         ) : (
           <>
             <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
@@ -283,7 +278,7 @@ function ToggleCard({ icon, title, selected, onSelect }: {
         )
       )}
       {icon}
-      <Text style={[s.toggleTxt, { color: selected ? ORANGE : (aC.isDark ? '#fff' : '#010a1f') }]}>{title}</Text>
+      <Text style={[s.toggleTxt, { color: aC.isDark ? '#F2F1F5' : (selected ? ORANGE : '#010a1f') }]}>{title}</Text>
     </TouchableOpacity>
   );
 }
@@ -299,10 +294,10 @@ function ConditionCard({ title, subtitle, selected, onSelect }: {
         s.condCard,
         selected ? s.condCardActive : s.condCardInactive,
         {
-          backgroundColor: aC.isDark ? (selected ? '#16234a' : '#0e1a3d') : '#ffffff',
-          borderColor: selected ? ORANGE : (aC.isDark ? '#1e3a8a' : 'rgba(3,42,105,0.12)'),
-          shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)',
-          shadowOpacity: aC.isDark ? 0 : 0.06,
+          backgroundColor: aC.isDark ? (selected ? '#010A1F' : '#0B1D4A') : '#ffffff',
+          borderColor: aC.isDark ? (selected ? '#82a5d5' : 'transparent') : (selected ? ORANGE : 'rgba(3,42,105,0.12)'),
+          shadowColor: aC.isDark ? (selected ? '#638ed0' : 'transparent') : 'rgba(3,42,105,0.08)',
+          shadowOpacity: aC.isDark ? (selected ? 0.15 : 0) : 0.06,
           shadowRadius: 6,
           shadowOffset: { width: 0, height: 2 },
           elevation: aC.isDark ? 0 : 2,
@@ -313,10 +308,7 @@ function ConditionCard({ title, subtitle, selected, onSelect }: {
     >
       {selected && (
         aC.isDark ? (
-          <>
-            <LinearGradient colors={['rgba(22,64,136,0.35)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.25 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-            <LinearGradient colors={['transparent', 'rgba(29,83,175,0.35)']} start={{ x: 0.5, y: 0.75 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-          </>
+          <SavedCardEffect />
         ) : (
           <>
             <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
@@ -324,10 +316,10 @@ function ConditionCard({ title, subtitle, selected, onSelect }: {
           </>
         )
       )}
-      <View style={[s.condIcon, { backgroundColor: aC.isDark ? '#1c2c5c' : '#eef2ff' }]}><Car size={14} color={ORANGE} /></View>
-      <View>
-        <Text style={[s.condTitle, { color: aC.isDark ? '#fff' : '#010a1f' }]}>{title}</Text>
-        <Text style={[s.condSub, { color: aC.isDark ? '#94a3b8' : '#64748b' }]}>{subtitle}</Text>
+      <View style={[s.condIcon, { backgroundColor: aC.isDark ? '#12306A' : '#eef2ff' }]}><MaterialCommunityIcons name="car" size={16} color={ORANGE} /></View>
+      <View style={{ flex: 1 }}>
+        <Text style={[s.condTitle, { color: aC.isDark ? '#F2F1F5' : '#010a1f' }]}>{title}</Text>
+        <Text style={[s.condSub, { color: aC.isDark ? '#BAB6C4' : '#64748b' }]}>{subtitle}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -335,7 +327,7 @@ function ConditionCard({ title, subtitle, selected, onSelect }: {
 
 function FL({ children }: { children: React.ReactNode }) {
   const aC = useAppColors();
-  return <Text style={[s.fieldLabel, { color: aC.isDark ? '#cbd5e1' : '#475569' }]}>{children}</Text>;
+  return <Text style={[s.fieldLabel, { color: aC.isDark ? '#C9C6D0' : '#475569' }]}>{children}</Text>;
 }
 
 function InputField({ value, onChange, placeholder, keyboardType, priceStyle }: {
@@ -344,13 +336,9 @@ function InputField({ value, onChange, placeholder, keyboardType, priceStyle }: 
 }) {
   const aC = useAppColors();
   return (
-    <View style={[s.inputWrap, { backgroundColor: aC.isDark ? '#0e1a3d' : '#ffffff', borderColor: aC.isDark ? '#1e3a8a' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: aC.isDark ? 0 : 2 }]}>
+    <View style={[s.inputWrap, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: aC.isDark ? 0 : 2 }]}>
       {aC.isDark ? (
-        <>
-          <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-          <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-          <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-        </>
+        <SearchInputEffect />
       ) : (
         <>
           <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
@@ -358,7 +346,7 @@ function InputField({ value, onChange, placeholder, keyboardType, priceStyle }: 
         </>
       )}
       <TextInput
-        style={[s.input, { color: priceStyle ? ORANGE : (aC.isDark ? '#fff' : '#010a1f') }, priceStyle && { color: ORANGE, fontFamily: 'Poppins_600SemiBold' }]}
+        style={[s.input, { color: priceStyle ? ORANGE : (aC.isDark ? '#F2F1F5' : '#010a1f') }, priceStyle && { color: ORANGE, fontFamily: 'Poppins_500Medium' }]}
         placeholder={placeholder}
         placeholderTextColor={aC.isDark ? C.textPlaceholder : '#94a3b8'}
         value={value}
@@ -420,7 +408,7 @@ export default function AutoFinancingScreen() {
         {/* HEADER */}
         <View style={[s.header, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderBottomWidth: aC.isDark ? 0 : 1, borderBottomColor: 'rgba(3,42,105,0.08)' }]}>
           <TouchableOpacity style={s.backBtn} onPress={() => router.back()} activeOpacity={0.75}>
-            <ChevronLeft size={26} color={aC.isDark ? '#e2e8f0' : '#010a1f'} />
+            <ChevronLeft size={26} color={aC.isDark ? '#C9C6D0' : '#010a1f'} />
           </TouchableOpacity>
           <Text style={[s.headerTitle, { color: aC.isDark ? '#fff' : '#010a1f' }]}>
             Auto<Text style={{ color: ORANGE }}>wizor</Text>
@@ -436,16 +424,16 @@ export default function AutoFinancingScreen() {
           </View>
 
           {/* VEHICLE TYPE */}
-          <Text style={[s.sectionTitle, { color: aC.isDark ? '#fff' : '#010a1f' }]}>Select Vehicle Type</Text>
+          <Text style={[s.sectionTitle, { color: aC.isDark ? '#F2F1F5' : '#010a1f' }]}>Select Vehicle Type</Text>
           <View style={s.row}>
             <ToggleCard
-              icon={<Car size={26} color={vehicleType === 'cars' ? ORANGE : (aC.isDark ? '#94a3b8' : '#64748b')} />}
+              icon={<MaterialCommunityIcons name="car" size={26} color={vehicleType === 'cars' ? ORANGE : (aC.isDark ? '#F2F1F5' : '#64748b')} />}
               title="Cars"
               selected={vehicleType === 'cars'}
               onSelect={() => { setVehicleType('cars'); setSelectedLabel(''); setVehicleImage(''); }}
             />
             <ToggleCard
-              icon={<Bike size={26} color={vehicleType === 'bikes' ? ORANGE : (aC.isDark ? '#94a3b8' : '#64748b')} />}
+              icon={<MaterialCommunityIcons name="motorbike" size={28} color={vehicleType === 'bikes' ? ORANGE : (aC.isDark ? '#F2F1F5' : '#64748b')} />}
               title="Bikes"
               selected={vehicleType === 'bikes'}
               onSelect={() => { setVehicleType('bikes'); setSelectedLabel(''); setVehicleImage(''); }}
@@ -453,14 +441,14 @@ export default function AutoFinancingScreen() {
           </View>
 
           {/* VEHICLE CONDITION */}
-          <Text style={[s.sectionTitle, { color: aC.isDark ? '#fff' : '#010a1f' }]}>Vehicle Condition</Text>
+          <Text style={[s.sectionTitle, { color: aC.isDark ? '#F2F1F5' : '#010a1f' }]}>Vehicle Condition</Text>
           <View style={s.row}>
             <ConditionCard title="New Cars"  subtitle="Brand new Vehicle"  selected={condition === 'new'}  onSelect={() => { setCondition('new');  setSelectedLabel(''); setVehicleImage(''); }} />
             <ConditionCard title="Used Car"  subtitle="Pre-owned Vehicle"  selected={condition === 'used'} onSelect={() => { setCondition('used'); setSelectedLabel(''); setVehicleImage(''); }} />
           </View>
 
           {/* BASIC DETAILS */}
-          <Text style={[s.bigTitle, { color: aC.isDark ? '#fff' : '#010a1f' }]}>Basic Details</Text>
+          <Text style={[s.bigTitle, { color: aC.isDark ? '#F2F1F5' : '#010a1f' }]}>Basic Details</Text>
 
           <FL>City</FL>
           <Dropdown value={city} onChange={setCity} options={CITIES} />
@@ -471,23 +459,19 @@ export default function AutoFinancingScreen() {
           {/* SELECT CAR FROM DB */}
           <FL>Select your {vehicleType === 'bikes' ? 'Bike' : 'Car'}</FL>
           <TouchableOpacity
-            style={[s.pickerBtn, { backgroundColor: aC.isDark ? '#0e1a3d' : '#ffffff', borderColor: aC.isDark ? 'rgba(30,58,138,0.8)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: aC.isDark ? 0 : 2 }]}
+            style={[s.pickerBtn, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: aC.isDark ? 0 : 2 }]}
             onPress={() => setShowPicker(true)}
             activeOpacity={0.85}
           >
             {aC.isDark ? (
-              <>
-                <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              </>
+              <SearchInputEffect />
             ) : (
               <>
                 <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
                 <LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
               </>
             )}
-            <Text style={[s.pickerTxt, { color: !selectedLabel ? (aC.isDark ? C.textPlaceholder : '#94a3b8') : (aC.isDark ? '#fff' : '#010a1f') }]} numberOfLines={1}>
+            <Text style={[s.pickerTxt, { color: !selectedLabel ? (aC.isDark ? '#BAB6C4' : '#94a3b8') : (aC.isDark ? '#F2F1F5' : '#010a1f') }]} numberOfLines={1}>
               {selectedLabel || `Tap to select from database`}
             </Text>
             <Search size={16} color={ORANGE} />
@@ -521,7 +505,8 @@ export default function AutoFinancingScreen() {
         <View style={[s.footer, { backgroundColor: aC.bg, borderTopWidth: aC.isDark ? 0 : 1, borderTopColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)' }]}>
           <TouchableOpacity style={s.nextBtn} onPress={handleNext} activeOpacity={0.88}>
             <LinearGradient
-              colors={['#1b3a8f', '#5a4a7b', '#d2621f']}
+              colors={PRIMARY_BTN_COLORS as any}
+              locations={[0, 0.5, 1]}
               start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
               style={StyleSheet.absoluteFillObject}
             />
@@ -546,38 +531,38 @@ export default function AutoFinancingScreen() {
 
 const s = StyleSheet.create({
   safe:   { flex: 1, backgroundColor: '#010A1F' },
-  scroll: { paddingHorizontal: 20, paddingBottom: 16 },
+  scroll: { paddingHorizontal: 14, paddingBottom: 16 },
 
-  header:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 6, paddingBottom: 10 },
-  backBtn:     { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { fontSize: 19, fontFamily: 'Poppins_600SemiBold', color: '#fff' },
+  header:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingTop: 6, paddingBottom: 10 },
+  backBtn:     { width: 36, height: 36, alignItems: 'flex-start', justifyContent: 'center' },
+  headerTitle: { fontSize: 20, fontFamily: 'Poppins_700Bold', color: '#fff' },
 
-  sectionTitle: { color: '#fff', fontSize: 15, fontFamily: 'Poppins_600SemiBold', marginBottom: 10, marginTop: 4 },
-  bigTitle:     { color: '#fff', fontSize: 19, fontFamily: 'Poppins_700Bold', marginBottom: 16, marginTop: 8 },
+  sectionTitle: { color: '#fff', fontSize: 14, fontFamily: 'Poppins_400Regular', marginBottom: 12, marginTop: 2 },
+  bigTitle:     { color: '#fff', fontSize: 19, fontFamily: 'Poppins_500Medium', marginBottom: 12, marginTop: 4 },
 
-  row: { flexDirection: 'row', gap: 12, marginBottom: 20 },
+  row: { flexDirection: 'row', gap: 12, marginBottom: 16 },
 
-  toggleCard:         { flex: 1, height: 88, borderRadius: 20, borderWidth: 1, alignItems: 'center', justifyContent: 'center', gap: 8, overflow: 'hidden' },
+  toggleCard:         { flex: 1, height: 88, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center', gap: 8, overflow: 'hidden' },
   toggleCardActive:   { borderColor: ORANGE, backgroundColor: '#16234a' },
   toggleCardInactive: { borderColor: '#1e3a8a', backgroundColor: '#0e1a3d' },
-  toggleTxt:          { color: '#fff', fontSize: 15, fontFamily: 'Poppins_600SemiBold' },
+  toggleTxt:          { color: '#fff', fontSize: 15, fontFamily: 'Poppins_500Medium' },
 
-  condCard:         { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 16, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 10, overflow: 'hidden' },
+  condCard:         { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: 14, borderWidth: 1, paddingHorizontal: 10, height: 60, overflow: 'hidden' },
   condCardActive:   { borderColor: ORANGE, backgroundColor: '#16234a' },
   condCardInactive: { borderColor: '#1e3a8a', backgroundColor: '#0e1a3d' },
-  condIcon:         { width: 28, height: 28, borderRadius: 14, backgroundColor: '#1c2c5c', alignItems: 'center', justifyContent: 'center' },
-  condTitle:        { color: '#fff', fontSize: 10, fontFamily: 'Poppins_600SemiBold' },
-  condSub:          { color: '#94a3b8', fontSize: 8, fontFamily: 'Poppins_400Regular' },
+  condIcon:         { width: 32, height: 32, borderRadius: 16, backgroundColor: '#1c2c5c', alignItems: 'center', justifyContent: 'center' },
+  condTitle:        { color: '#fff', fontSize: 13.5, fontFamily: 'Poppins_500Medium' },
+  condSub:          { color: '#94a3b8', fontSize: 10, fontFamily: 'Poppins_400Regular', marginTop: 1 },
 
-  fieldLabel: { color: '#cbd5e1', fontSize: 14, fontFamily: 'Poppins_400Regular', marginBottom: 8 },
+  fieldLabel: { color: '#cbd5e1', fontSize: 13.5, fontFamily: 'Poppins_400Regular', marginBottom: 8 },
 
-  pickerBtn: { height: 52, borderRadius: 30, borderWidth: 1, borderColor: 'rgba(30,58,138,0.8)', backgroundColor: '#0e1a3d', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, overflow: 'hidden', marginBottom: 16 },
-  pickerTxt: { color: '#fff', fontSize: 15, fontFamily: 'Poppins_400Regular', flex: 1 },
+  pickerBtn: { height: 46, borderRadius: 32, borderWidth: 1, borderColor: '#829fd0', backgroundColor: 'rgba(3,12,40,0.6)', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, overflow: 'hidden', marginBottom: 16 },
+  pickerTxt: { color: '#fff', fontSize: 13.5, fontFamily: 'Poppins_400Regular', flex: 1 },
 
-  inputWrap: { height: 52, borderRadius: 30, borderWidth: 1, borderColor: '#1e3a8a', backgroundColor: '#0e1a3d', overflow: 'hidden', justifyContent: 'center', marginBottom: 16 },
-  input:     { paddingHorizontal: 20, color: '#fff', fontSize: 15, fontFamily: 'Poppins_400Regular' },
+  inputWrap: { height: 46, borderRadius: 32, borderWidth: 1, borderColor: '#829fd0', backgroundColor: 'rgba(3,12,40,0.6)', overflow: 'hidden', justifyContent: 'center', marginBottom: 12 },
+  input:     { paddingHorizontal: 20, color: '#fff', fontSize: 13.5, fontFamily: 'Poppins_400Regular' },
 
-  footer:  { paddingHorizontal: 20, paddingBottom: 36, paddingTop: 10 },
-  nextBtn: { height: 56, borderRadius: 30, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
-  nextTxt: { color: '#fff', fontSize: 17, fontFamily: 'Poppins_700Bold' },
+  footer:  { paddingHorizontal: 14, paddingBottom: 36, paddingTop: 10 },
+  nextBtn: { height: 46, borderRadius: 24, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
+  nextTxt: { color: '#EDEBF0', fontSize: 16, fontFamily: 'Poppins_600SemiBold' },
 });

@@ -11,6 +11,7 @@ import {
   Alert,
   ActivityIndicator,
   Linking,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -18,6 +19,8 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import { useAppColors } from "@/constants/theme";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { PRIMARY_BTN_COLORS, RingGlow, SavedCardEffect } from "@/components/shared/FigmaEffects";
 
 const BG = "#010a1f";
 const WHITE = "#f9fafc";
@@ -39,6 +42,7 @@ function fmtDT(ts: number) {
 export default function PaymentSuccessScreen() {
   const router = useRouter();
   const aC = useAppColors();
+  const insets = useSafeAreaInsets();
   const {
     photo = "",
     title = "Your Vehicle",
@@ -53,13 +57,16 @@ export default function PaymentSuccessScreen() {
     deviceName = "",
     date = "",
     vid = "",
+    time = "",
+    center = "",
     home = "/(dealer)",
+    demo = "",
   } = useLocalSearchParams<{
     photo: string; title: string; price: string;
     city?: string; year?: string; trans?: string; dealerPhone?: string;
     kind?: string; company?: string;
     providerName?: string; deviceName?: string; date?: string;
-    vid?: string; home?: string;
+    vid?: string; home?: string; demo?: string; time?: string; center?: string;
   }>();
 
   const isInsurance = kind === "insurance";
@@ -69,8 +76,29 @@ export default function PaymentSuccessScreen() {
 
   if (isPromote) {
     const homeRoute = (home || "/(dealer)") as any;
+    const vehiclePrice = Number(String(price).replace(/,/g, "")) || 0;
+    const promotedPrice = vehiclePrice >= 10_000_000
+      ? `${Number((vehiclePrice / 10_000_000).toFixed(2))} Crore`
+      : vehiclePrice >= 100_000
+        ? `${Number((vehiclePrice / 100_000).toFixed(2))} Lac`
+        : vehiclePrice.toLocaleString();
+    const vehicleMeta = [city, year, trans].filter(Boolean).join(" · ");
+    async function downloadPromotionInvoice() {
+      try {
+        const safeTitle = String(title).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character] || character));
+        const html = `<html><body style="font-family:Arial,sans-serif;padding:32px;color:#010a1f"><h1>${demo === '1' ? 'Autowizor Demo Promotion Summary' : 'Autowizor Promotion Invoice'}</h1><p>${demo === '1' ? 'Demo only — no payment was charged' : 'Payment successful'}</p><hr/><p><strong>Vehicle:</strong> ${safeTitle}</p><p><strong>Promotion:</strong> Featured Ad</p><p><strong>Ad Posting Fee:</strong> Rs 1,650</p><p><strong>Featured Fee:</strong> Rs 5,000</p><h3>${demo === '1' ? 'Demo Total' : 'Total Paid'}: Rs 6,650</h3><p>Date: ${new Date().toLocaleDateString('en-PK')}</p></body></html>`;
+        const { uri } = await Print.printToFileAsync({ html });
+        if (await Sharing.isAvailableAsync()) {
+          await Sharing.shareAsync(uri, { mimeType: 'application/pdf', dialogTitle: 'Promotion Invoice' });
+        } else {
+          Alert.alert('Invoice ready', `Saved at ${uri}`);
+        }
+      } catch {
+        Alert.alert('Error', 'Could not generate the invoice. Please try again.');
+      }
+    }
     return (
-      <SafeAreaView style={[styles.safe, { backgroundColor: BG }]}>
+      <SafeAreaView style={[styles.safe, { backgroundColor: BG, paddingTop: Platform.OS === 'android' ? insets.top : 0 }]}>
         <StatusBar barStyle="light-content" backgroundColor={BG} />
 
         {/* Header */}
@@ -82,153 +110,145 @@ export default function PaymentSuccessScreen() {
           >
             <Ionicons name="chevron-back" size={24} color={WHITE} />
           </TouchableOpacity>
-          <Text style={styles.extraHeaderTitle}>Promotion</Text>
+          <Text style={styles.extraHeaderTitle}>Processing Payment</Text>
           <View style={{ width: 40 }} />
         </View>
 
-        {/* Center content */}
-        <View style={styles.extraBody}>
-          <Text style={styles.extraEmoji}>🎉</Text>
-          <Text style={styles.extraTitle}>
-            Vehicle Promoted{"\n"}Successfully!
-          </Text>
-          <Text style={styles.extraSub} numberOfLines={2}>
-            {title || "Your vehicle"} is now live and promoted.
-          </Text>
-        </View>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.promoteScroll}>
+          <View style={styles.promoteBody}>
+            <Text style={styles.promoteEmoji}>🎉</Text>
+            <Text style={styles.promoteTitle}>Ad Promoted{"\n"}Successfully!</Text>
+            <Text style={styles.promoteSub}>Your ad is now added to the featured listing</Text>
+          </View>
+
+          <LinearGradient colors={["#E2671B", "#032A69"]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={styles.promoteCardBorder}>
+            <View style={styles.promoteCard}>
+              <LinearGradient colors={["rgba(22,64,136,0.28)", "transparent", "rgba(226,103,27,0.24)"]} locations={[0, 0.48, 1]} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+              <View style={styles.promoteImageBox}>
+                {photo ? <Image source={{ uri: String(photo) }} style={StyleSheet.absoluteFillObject} resizeMode="cover" /> : <Ionicons name="car-outline" size={35} color={SUBTITLE} />}
+              </View>
+              <View style={styles.promoteInfo}>
+                <Text style={styles.promoteCarName} numberOfLines={2}>{title}</Text>
+                <Text style={styles.promoteCarPrice}>PKR {promotedPrice}</Text>
+                {!!vehicleMeta && <View style={styles.promoteMetaRow}>
+                  <Ionicons name="location-outline" size={13} color={SUBTITLE} />
+                  <Text style={styles.promoteMeta} numberOfLines={1}>{vehicleMeta}</Text>
+                </View>}
+                <View style={styles.promoteStatusRow}>
+                  <View style={styles.promoteBadge}><Text style={styles.promoteBadgeText}>·  Active</Text></View>
+                  <Text style={styles.promotePosted}>Posted today</Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={ORANGE} style={styles.promoteChevron} />
+            </View>
+          </LinearGradient>
 
         {/* Bottom buttons */}
-        <View style={styles.extraFooter}>
-          {!!vid && (
-            <TouchableOpacity
-              style={styles.extraPrimaryBtn}
-              activeOpacity={0.85}
-              onPress={() => router.replace({ pathname: '/buy/car-detail', params: { id: String(vid) } } as any)}
-            >
-              <LinearGradient
-                colors={["#032a69", "#e2671b"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={StyleSheet.absoluteFillObject}
-              />
-              <Text style={styles.extraPrimaryTxt}>View Ad</Text>
-            </TouchableOpacity>
-          )}
+        <View style={[styles.extraFooter, styles.promoteFooter]}>
+          <TouchableOpacity style={[styles.extraPrimaryBtn, styles.promotePrimaryBtn]} activeOpacity={0.85} onPress={downloadPromotionInvoice}>
+            <LinearGradient colors={["#032A69", "#E2671B"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+            <Text style={styles.promotePrimaryText}>Download Invoice</Text>
+          </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.extraSecondaryBtn}
+            style={[styles.extraSecondaryBtn, styles.promoteSecondaryBtn]}
             activeOpacity={0.85}
             onPress={() => router.replace(homeRoute)}
           >
-            <LinearGradient
-              colors={["rgba(22,64,136,0.2)", "transparent"]}
-              start={{ x: 0.5, y: 0 }}
-              end={{ x: 0.5, y: 0.6 }}
-              style={StyleSheet.absoluteFillObject}
-              pointerEvents="none"
-            />
-            <LinearGradient
-              colors={["transparent", "rgba(29,83,175,0.2)"]}
-              start={{ x: 0.5, y: 0.4 }}
-              end={{ x: 0.5, y: 1 }}
-              style={StyleSheet.absoluteFillObject}
-              pointerEvents="none"
-            />
-            <Text style={styles.extraSecondaryTxt}>Back to home</Text>
+            <LinearGradient colors={['#16408880', '#0D255480', '#00000001', '#00000001', '#0D255480', '#16408880']} locations={[0, 0.08, 0.22, 0.78, 0.92, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+            <LinearGradient colors={['#16408880', '#0D255480', '#00000001', '#00000001', '#0D255480', '#16408880']} locations={[0, 0.04, 0.12, 0.88, 0.96, 1]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+            <LinearGradient colors={['rgba(22,64,136,0.28)', 'rgba(0,0,0,0.36)', 'rgba(0,0,0,0.36)', 'rgba(22,64,136,0.28)']} locations={[0, 0.15, 0.85, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+            <LinearGradient colors={['rgba(22,64,136,0.24)', 'rgba(0,0,0,0.32)', 'rgba(0,0,0,0.32)', 'rgba(22,64,136,0.24)']} locations={[0, 0.1, 0.9, 1]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+            <Text style={styles.promoteSecondaryText}>Back to home</Text>
           </TouchableOpacity>
+          {!!vid && <TouchableOpacity style={styles.promoteViewAd} onPress={() => router.replace({ pathname: '/buy/car-detail', params: { id: String(vid) } } as any)}><Text style={styles.promoteViewAdText}>View Ad</Text></TouchableOpacity>}
         </View>
+        </ScrollView>
       </SafeAreaView>
     );
   }
 
   if (isTracker) {
     const paidAmt = Number(String(price).replace?.(/,/g, "") || price || 0).toLocaleString();
+    const bookingId = `#AW-TRK-${String(Date.now()).slice(-5)}`;
     const rows: [string, string][] = [
-      ["Provider", String(providerName || company || title || "—")],
-      ["Device", String(deviceName || title || "—")],
-      ["City", String(city || "—")],
-      ["Install Date", String(date || "—")],
-      ["Amount Paid", `PKR ${paidAmt}`],
+      ["Tracker Provider",    String(providerName || company || title || "—")],
+      ["Installation Date",   String(date || "—")],
+      ["Installation Time",   String(time || "—")],
+      ["Installation Center", String(center || city || "—")],
     ];
+    async function downloadTrackerInvoice() {
+      try {
+        const esc = (v: string) => String(v).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch] || ch));
+        const html = `<html><body style="font-family:Arial,sans-serif;padding:32px;color:#010a1f"><h1>Autowizor Tracker Invoice</h1><p>Booking ID: ${esc(bookingId)}</p><hr/><p><strong>Provider:</strong> ${esc(String(providerName || company || title || '—'))}</p><p><strong>Device:</strong> ${esc(String(deviceName || title || '—'))}</p><p><strong>Installation Date:</strong> ${esc(String(date || '—'))}</p><p><strong>Installation Time:</strong> ${esc(String(time || '—'))}</p><p><strong>Installation Center:</strong> ${esc(String(center || city || '—'))}</p><h3>Total Paid: PKR ${esc(paidAmt)}</h3><p>Date: ${new Date().toLocaleDateString('en-PK')}</p></body></html>`;
+        const { uri } = await Print.printToFileAsync({ html });
+        if (await Sharing.isAvailableAsync()) {
+          await Sharing.shareAsync(uri, { mimeType: 'application/pdf', dialogTitle: 'Tracker Invoice' });
+        } else {
+          Alert.alert('Invoice ready', `Saved at ${uri}`);
+        }
+      } catch {
+        Alert.alert('Error', 'Could not generate the invoice. Please try again.');
+      }
+    }
     return (
-      <SafeAreaView style={[styles.safe, { backgroundColor: BG }]}>
+      <SafeAreaView style={[styles.safe, { backgroundColor: BG, paddingTop: Platform.OS === 'android' ? insets.top : 0 }]}>
         <StatusBar barStyle="light-content" backgroundColor={BG} />
 
         {/* Header */}
         <View style={styles.extraHeader}>
-          <TouchableOpacity
-            style={styles.extraBackBtn}
-            onPress={() => router.back()}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="chevron-back" size={24} color={WHITE} />
+          <TouchableOpacity style={styles.extraBackBtn} onPress={() => router.back()} activeOpacity={0.7}>
+            <Ionicons name="chevron-back" size={26} color="#C9C6D0" />
           </TouchableOpacity>
-          <Text style={styles.extraHeaderTitle}>Tracker Booking</Text>
+          <Text style={[styles.extraHeaderTitle, styles.iHeaderTitle]}>Processing Payment</Text>
           <View style={{ width: 40 }} />
         </View>
 
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 28 }}>
-          {/* Center content */}
-          <View style={[styles.extraBody, { flex: 0, paddingTop: 24, paddingBottom: 8 }]}>
-            <Text style={styles.extraEmoji}>🎉</Text>
-            <Text style={styles.extraTitle}>
-              Tracker Booked{"\n"}Successfully!
-            </Text>
-            <Text style={styles.extraSub}>
-              Your installation booking has been confirmed.
-            </Text>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 16, paddingBottom: 24 }}>
+          <View style={styles.headingBox}>
+            <Text style={[styles.celebrationIcon, styles.iCelebration, { textAlign: "center" }]}>🎉</Text>
+            <Text style={[styles.heading, styles.iHeading, { color: WHITE }]}>Tracker Purchased{"\n"}Successfully!</Text>
+            <Text style={[styles.subHeading, styles.iSubHeading, { color: "#BAB6C4" }]}>Your installation is booked. Our technician will{"\n"}contact you shortly.</Text>
           </View>
 
-          {/* Booking details */}
-          <View style={[styles.policyCard, { backgroundColor: "#010A1F", borderColor: CARD_BORDER }]}>
-            <LinearGradient colors={["rgba(22,64,136,0.25)", "transparent"]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <LinearGradient colors={["transparent", "rgba(29,83,175,0.22)"]} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+          {/* Booking details — saved vehicle-card effect */}
+          <View style={[styles.policyCard, styles.iPolicyCard, { backgroundColor: "#010A1F", borderColor: "#82a5d5", shadowColor: "#638ed0", shadowOpacity: 0.15, shadowRadius: 5, shadowOffset: { width: 0, height: 0 }, elevation: 2 }]}>
+            <SavedCardEffect />
+            <View style={styles.policyRow}>
+              <Text style={[styles.policyLabel, styles.iPolicyTxt, { color: WHITE }]}>Installation Booking ID</Text>
+              <Text style={[styles.policyVal, { color: ORANGE, fontSize: 15, fontFamily: "Poppins_600SemiBold" }]} numberOfLines={1}>{bookingId}</Text>
+            </View>
             {rows.map(([label, val], i) => (
               <View key={label} style={[styles.policyRow, i === rows.length - 1 && { marginBottom: 0 }]}>
-                <Text style={[styles.policyLabel, { color: SUBTITLE }]}>{label}</Text>
-                <Text style={[styles.policyVal, { color: WHITE }]} numberOfLines={1}>{val}</Text>
+                <Text style={[styles.policyLabel, styles.iPolicyTxt, { color: "#C9C6D0" }]}>{label}</Text>
+                <Text style={[styles.policyVal, styles.iPolicyTxt, { color: "#F2F1F5" }]} numberOfLines={1}>{val}</Text>
               </View>
             ))}
           </View>
 
-          {/* Bottom buttons */}
-          <View style={[styles.extraFooter, { paddingHorizontal: 0, paddingBottom: 0 }]}>
-            <TouchableOpacity
-              style={styles.extraPrimaryBtn}
-              activeOpacity={0.85}
-              onPress={() => router.replace("/(tabs)" as any)}
-            >
-              <LinearGradient
-                colors={["#032a69", "#e2671b"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={StyleSheet.absoluteFillObject}
-              />
-              <Text style={styles.extraPrimaryTxt}>Back to home</Text>
-            </TouchableOpacity>
+          <View style={{ flex: 1, minHeight: 50 }} />
 
-            <TouchableOpacity
-              style={styles.extraSecondaryBtn}
-              activeOpacity={0.85}
-              onPress={() => router.push("/profile/my-activity" as any)}
-            >
-              <LinearGradient
-                colors={["rgba(22,64,136,0.2)", "transparent"]}
-                start={{ x: 0.5, y: 0 }}
-                end={{ x: 0.5, y: 0.6 }}
-                style={StyleSheet.absoluteFillObject}
-                pointerEvents="none"
-              />
-              <LinearGradient
-                colors={["transparent", "rgba(29,83,175,0.2)"]}
-                start={{ x: 0.5, y: 0.4 }}
-                end={{ x: 0.5, y: 1 }}
-                style={StyleSheet.absoluteFillObject}
-                pointerEvents="none"
-              />
-              <Text style={styles.extraSecondaryTxt}>View My Bookings</Text>
-            </TouchableOpacity>
-          </View>
+          {/* Download Invoice */}
+          <TouchableOpacity style={[styles.invoiceBtn, styles.rBigBtn]} onPress={downloadTrackerInvoice} activeOpacity={0.88}>
+            <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={[styles.gradBtn, { height: 48 }]}>
+              <Text style={[styles.invoiceTxt, styles.rBigBtnTxt]}>Download Invoice</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+
+          {/* Back to home */}
+          <TouchableOpacity
+            style={[styles.homeBtn, styles.rHomeBtn, { backgroundColor: "#07142F", borderColor: "#7E9FD6", marginBottom: 10 }]}
+            onPress={() => router.replace("/(tabs)" as any)}
+            activeOpacity={0.88}
+          >
+            <RingGlow radius={24} peak={0.5} rings={12} />
+            <Text style={[styles.homeBtnTxt, styles.rBigBtnTxt, { color: "#EDEBF0" }]}>Back to home</Text>
+          </TouchableOpacity>
+
+          {/* View My Bookings — kept as a link */}
+          <TouchableOpacity style={styles.promoteViewAd} onPress={() => router.push("/profile/my-activity" as any)}>
+            <Text style={styles.promoteViewAdText}>View My Bookings</Text>
+          </TouchableOpacity>
         </ScrollView>
       </SafeAreaView>
     );
@@ -246,15 +266,15 @@ export default function PaymentSuccessScreen() {
             onPress={() => router.back()}
             activeOpacity={0.7}
           >
-            <Ionicons name="chevron-back" size={24} color={WHITE} />
+            <Ionicons name="chevron-back" size={26} color="#C9C6D0" />
           </TouchableOpacity>
-          <Text style={styles.extraHeaderTitle}>Processing Payment</Text>
+          <Text style={[styles.extraHeaderTitle, { fontSize: 20, fontFamily: "Poppins_500Medium" }]}>Processing Payment</Text>
           <View style={{ width: 40 }} />
         </View>
 
         {/* Center content */}
         <View style={styles.extraBody}>
-          <Text style={styles.extraEmoji}>🎉</Text>
+          <Image source={require("@/assets/images/successful.png")} style={{ width: 88, height: 88, marginBottom: 16 }} resizeMode="contain" />
           <Text style={styles.extraTitle}>
             Ad Payment Done{"\n"}Successfully!
           </Text>
@@ -271,7 +291,8 @@ export default function PaymentSuccessScreen() {
             onPress={() => router.replace("/(dealer)" as any)}
           >
             <LinearGradient
-              colors={["#032a69", "#e2671b"]}
+              colors={PRIMARY_BTN_COLORS as any}
+              locations={[0, 0.5, 1]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={StyleSheet.absoluteFillObject}
@@ -280,24 +301,11 @@ export default function PaymentSuccessScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.extraSecondaryBtn}
+            style={[styles.extraSecondaryBtn, { backgroundColor: "#07142F", borderColor: "#7E9FD6", borderWidth: 1 }]}
             activeOpacity={0.85}
             onPress={() => router.push("/(dealer)/plan" as any)}
           >
-            <LinearGradient
-              colors={["rgba(22,64,136,0.2)", "transparent"]}
-              start={{ x: 0.5, y: 0 }}
-              end={{ x: 0.5, y: 0.6 }}
-              style={StyleSheet.absoluteFillObject}
-              pointerEvents="none"
-            />
-            <LinearGradient
-              colors={["transparent", "rgba(29,83,175,0.2)"]}
-              start={{ x: 0.5, y: 0.4 }}
-              end={{ x: 0.5, y: 1 }}
-              style={StyleSheet.absoluteFillObject}
-              pointerEvents="none"
-            />
+            <RingGlow radius={24} peak={0.5} rings={12} />
             <Text style={styles.extraSecondaryTxt}>Upgrade Plan</Text>
           </TouchableOpacity>
         </View>
@@ -445,21 +453,21 @@ export default function PaymentSuccessScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: aC.bg }]}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: aC.bg, paddingTop: Platform.OS === 'android' ? insets.top : 0 }]}>
       <StatusBar barStyle={aC.isDark ? "light-content" : "dark-content"} backgroundColor={aC.bg} />
 
       {/* Header */}
       {isInsurance ? (
         <View style={styles.insHeader}>
           <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-            <Ionicons name="chevron-back" size={26} color={aC.isDark ? WHITE : "#010a1f"} />
+            <Ionicons name="chevron-back" size={26} color={aC.isDark ? "#C9C6D0" : "#010a1f"} />
           </TouchableOpacity>
-          <Text style={[styles.insHeaderTitle, { color: aC.isDark ? WHITE : "#010a1f" }]}>Processing Payment</Text>
+          <Text style={[styles.insHeaderTitle, styles.iHeaderTitle, { color: aC.isDark ? "#F2F1F5" : "#010a1f" }]}>Processing Payment</Text>
           <View style={{ width: 40 }} />
         </View>
       ) : (
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={26} color={aC.isDark ? WHITE : "#010a1f"} />
+          <Ionicons name="chevron-back" size={26} color={aC.isDark ? "#C9C6D0" : "#010a1f"} />
         </TouchableOpacity>
       )}
 
@@ -467,15 +475,15 @@ export default function PaymentSuccessScreen() {
 
         {/* Celebration */}
         <View style={styles.iconContainer}>
-          <Text style={styles.celebrationIcon}>🎉</Text>
+          <Text style={[styles.celebrationIcon, !isInsurance && styles.rCelebration, isInsurance && styles.iCelebration]}>🎉</Text>
         </View>
 
         {/* Heading */}
         <View style={styles.headingBox}>
-          <Text style={[styles.heading, { color: aC.isDark ? WHITE : "#010a1f" }]}>
+          <Text style={[styles.heading, !isInsurance && styles.rHeading, isInsurance && styles.iHeading, { color: aC.isDark ? WHITE : "#010a1f" }]}>
             {isInsurance ? "Insurance Purchased\nSuccessfully!" : "Reservation Submitted\nSuccessfully!"}
           </Text>
-          <Text style={[styles.subHeading, { color: aC.isDark ? SUBTITLE : "#475569" }]}>
+          <Text style={[styles.subHeading, !isInsurance && styles.rSubHeading, isInsurance && styles.iSubHeading, { color: aC.isDark ? "#BAB6C4" : "#475569" }]}>
             {isInsurance
               ? "Your insurance policy has been activated\nsuccessfully."
               : "Your reservation request has been\nsuccessfully submitted."}
@@ -483,24 +491,28 @@ export default function PaymentSuccessScreen() {
         </View>
 
         {isInsurance && (
-          <View style={[styles.policyCard, { backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? CARD_BORDER : "rgba(3,42,105,0.14)" }]}>
-            <LinearGradient colors={["rgba(22,64,136,0.25)", "transparent"]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <LinearGradient colors={["transparent", "rgba(29,83,175,0.22)"]} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+          <View style={[styles.policyCard, styles.iPolicyCard, aC.isDark ? { backgroundColor: "#010A1F", borderColor: "#82a5d5", shadowColor: "#638ed0", shadowOpacity: 0.15, shadowRadius: 5, shadowOffset: { width: 0, height: 0 }, elevation: 2 } : { backgroundColor: "#ffffff", borderColor: "rgba(3,42,105,0.14)" }]}>
+            {aC.isDark ? <SavedCardEffect /> : (
+              <>
+                <LinearGradient colors={["rgba(22,64,136,0.25)", "transparent"]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+                <LinearGradient colors={["transparent", "rgba(29,83,175,0.22)"]} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+              </>
+            )}
             <View style={styles.policyRow}>
-              <Text style={[styles.policyLabel, { color: aC.isDark ? SUBTITLE : "#475569" }]}>Policy Number</Text>
-              <Text style={[styles.policyVal, { color: aC.isDark ? WHITE : "#010a1f" }]}>{policyNo}</Text>
+              <Text style={[styles.policyLabel, styles.iPolicyTxt, { color: aC.isDark ? "#C9C6D0" : "#475569" }]}>Policy Number</Text>
+              <Text style={[styles.policyVal, styles.iPolicyTxt, { color: aC.isDark ? "#F2F1F5" : "#010a1f" }]}>{policyNo}</Text>
             </View>
             <View style={styles.policyRow}>
-              <Text style={[styles.policyLabel, { color: aC.isDark ? SUBTITLE : "#475569" }]}>Insurance</Text>
-              <Text style={[styles.policyVal, { color: aC.isDark ? WHITE : "#010a1f" }]} numberOfLines={1}>{String(company || title)}</Text>
+              <Text style={[styles.policyLabel, styles.iPolicyTxt, { color: aC.isDark ? "#C9C6D0" : "#475569" }]}>Insurance</Text>
+              <Text style={[styles.policyVal, styles.iPolicyTxt, { color: aC.isDark ? "#F2F1F5" : "#010a1f" }]} numberOfLines={1}>{String(company || title)}</Text>
             </View>
             <View style={styles.policyRow}>
-              <Text style={[styles.policyLabel, { color: aC.isDark ? SUBTITLE : "#475569" }]}>Coverage</Text>
-              <Text style={[styles.policyVal, { color: aC.isDark ? WHITE : "#010a1f" }]}>{coverageStart} - {coverageEnd}</Text>
+              <Text style={[styles.policyLabel, styles.iPolicyTxt, { color: aC.isDark ? "#C9C6D0" : "#475569" }]}>Coverage</Text>
+              <Text style={[styles.policyVal, styles.iPolicyTxt, { color: aC.isDark ? "#F2F1F5" : "#010a1f" }]}>{coverageStart} - {coverageEnd}</Text>
             </View>
             <View style={[styles.policyRow, { marginBottom: 0 }]}>
-              <Text style={[styles.policyLabel, { color: aC.isDark ? SUBTITLE : "#475569" }]}>Premium Paid</Text>
-              <Text style={[styles.policyVal, { color: aC.isDark ? WHITE : "#010a1f" }]}>PKR {formattedPrice}</Text>
+              <Text style={[styles.policyLabel, styles.iPolicyTxt, { color: aC.isDark ? "#C9C6D0" : "#475569" }]}>Premium Paid</Text>
+              <Text style={[styles.policyVal, styles.iPolicyTxt, { color: aC.isDark ? "#F2F1F5" : "#010a1f" }]}>PKR {formattedPrice}</Text>
             </View>
           </View>
         )}
@@ -508,13 +520,17 @@ export default function PaymentSuccessScreen() {
         {!isInsurance && (
         <>
         {/* Reservation Card */}
-        <View style={[styles.resCard, { backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? CARD_BORDER : "rgba(3,42,105,0.14)" }]}>
-          <LinearGradient colors={["rgba(22,64,136,0.25)", "transparent"]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <LinearGradient colors={["transparent", "rgba(29,83,175,0.22)"]} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+        <View style={[styles.resCard, styles.rCard, { backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "#7E9FD6" : "rgba(3,42,105,0.14)" }]}>
+          {aC.isDark ? <RingGlow radius={16} peak={0.5} rings={12} /> : (
+            <>
+              <LinearGradient colors={["rgba(22,64,136,0.25)", "transparent"]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+              <LinearGradient colors={["transparent", "rgba(29,83,175,0.22)"]} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+            </>
+          )}
 
           {/* Car row */}
-          <View style={styles.carRow}>
-            <View style={styles.carImageBox}>
+          <View style={[styles.carRow, styles.rCarRow]}>
+            <View style={[styles.carImageBox, styles.rCarImageBox]}>
               {photo ? (
                 <Image source={{ uri: String(photo) }} style={StyleSheet.absoluteFillObject} resizeMode="cover" />
               ) : (
@@ -523,79 +539,82 @@ export default function PaymentSuccessScreen() {
                 </View>
               )}
             </View>
-            <View style={styles.carInfo}>
-              <Text style={[styles.carName, { color: aC.isDark ? WHITE : "#010a1f" }]} numberOfLines={2}>{title}</Text>
-              <Text style={styles.carPrice}>PKR {formattedPrice}</Text>
+            <View style={[styles.carInfo, { gap: 6 }]}>
+              <Text style={[styles.rCarName, { color: aC.isDark ? "#F2F1F5" : "#010a1f" }]} numberOfLines={2}>{title}</Text>
+              <Text style={styles.rCarPrice}>PKR {formattedPrice}</Text>
               {!!metaLine && (
                 <View style={styles.metaRow}>
-                  <Ionicons name="location-outline" size={12} color={aC.isDark ? SUBTITLE : "#94a3b8"} />
-                  <Text style={[styles.metaText, { color: aC.isDark ? SUBTITLE : "#64748b" }]} numberOfLines={1}>{metaLine}</Text>
+                  <Ionicons name="location-outline" size={14} color={aC.isDark ? "#BAB6C4" : "#94a3b8"} />
+                  <Text style={[styles.rMetaText, { color: aC.isDark ? "#BAB6C4" : "#64748b" }]} numberOfLines={1}>{metaLine}</Text>
                 </View>
               )}
             </View>
           </View>
 
           {/* Countdown */}
-          <Text style={[styles.timeLabel, { color: aC.isDark ? SUBTITLE : "#475569" }]}>Time Remaining</Text>
-          <Text style={styles.timeValue}>{rh}h {rm}m {rs}s</Text>
-          <Text style={[styles.timeNote, { color: aC.isDark ? SUBTITLE : "#475569" }]}>
+          <Text style={[styles.rTimeLabel, { color: aC.isDark ? "#D2CFD8" : "#475569" }]}>Time Remaining</Text>
+          <Text style={styles.rTimeValue}>{rh}h {rm}m {rs}s</Text>
+          <Text style={[styles.rTimeNote, { color: aC.isDark ? "#C9C6D0" : "#475569" }]}>
             Your vehicle is reserved for the next 12 hours. Please complete your booking before the time expires.
           </Text>
 
           {/* Dates */}
-          <View style={styles.datesRow}>
+          <View style={styles.rDatesRow}>
             <View style={styles.dateCol}>
-              <View style={styles.dateLabelRow}>
-                <Ionicons name="calendar-outline" size={13} color={aC.isDark ? SUBTITLE : "#64748b"} />
-                <Text style={[styles.dateLabel, { color: aC.isDark ? SUBTITLE : "#64748b" }]}>Reserved on</Text>
+              <View style={styles.rDateLabelRow}>
+                <Ionicons name="calendar-outline" size={16} color={aC.isDark ? "#C9C6D0" : "#64748b"} />
+                <Text style={[styles.rDateLabel, { color: aC.isDark ? "#F2F1F5" : "#010a1f" }]}>Reserved on</Text>
               </View>
-              <Text style={[styles.dateVal, { color: aC.isDark ? WHITE : "#010a1f" }]}>{fmtDT(reservedAt)}</Text>
+              <Text style={[styles.rDateVal, { color: aC.isDark ? "#BAB6C4" : "#475569" }]}>{fmtDT(reservedAt)}</Text>
             </View>
             <View style={styles.dateCol}>
-              <View style={styles.dateLabelRow}>
-                <Ionicons name="time-outline" size={13} color={aC.isDark ? SUBTITLE : "#64748b"} />
-                <Text style={[styles.dateLabel, { color: aC.isDark ? SUBTITLE : "#64748b" }]}>Expires on</Text>
+              <View style={styles.rDateLabelRow}>
+                <Ionicons name="time-outline" size={16} color={aC.isDark ? "#C9C6D0" : "#64748b"} />
+                <Text style={[styles.rDateLabel, { color: aC.isDark ? "#F2F1F5" : "#010a1f" }]}>Expires on</Text>
               </View>
-              <Text style={[styles.dateVal, { color: aC.isDark ? WHITE : "#010a1f" }]}>{fmtDT(expiresAt)}</Text>
+              <Text style={[styles.rDateVal, { color: aC.isDark ? "#BAB6C4" : "#475569" }]}>{fmtDT(expiresAt)}</Text>
             </View>
           </View>
 
           {/* View Reservation + Call Dealer */}
           <View style={styles.cardBtnRow}>
-            <TouchableOpacity style={[styles.cardBtnFlex, styles.viewResShadow]} activeOpacity={0.85} onPress={() => router.push("/profile/my-activity" as any)}>
-              <LinearGradient colors={["#0d2f7a", "#e2671b", "#ff8c42"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.viewResGrad}>
-                <Text style={styles.viewResTxt}>View Reservation</Text>
-              </LinearGradient>
+            <TouchableOpacity style={styles.rCardBtn} activeOpacity={0.85} onPress={() => router.push("/profile/my-activity" as any)}>
+              <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+              <Text style={styles.rCardBtnTxt}>View Reservation</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.cardBtnFlex, styles.callDealerBtn, { borderColor: aC.isDark ? CARD_BORDER : "rgba(3,42,105,0.2)" }]}
+              style={[styles.rCardBtn, { borderWidth: 1, borderColor: aC.isDark ? "#7E9FD6" : "rgba(3,42,105,0.2)", backgroundColor: aC.isDark ? "#0B1D45" : "#ffffff" }]}
               activeOpacity={0.85}
               onPress={handleCallDealer}
             >
-              <Text style={[styles.cardBtnTxt, { color: aC.isDark ? WHITE : "#032a69" }]}>Call Dealer</Text>
+              {aC.isDark && <RingGlow radius={17} peak={0.4} rings={7} />}
+              <Text style={[styles.rCardBtnTxt, { color: aC.isDark ? "#F2F1F5" : "#032a69" }]}>Call Dealer</Text>
             </TouchableOpacity>
           </View>
         </View>
         </>
         )}
 
+        {isInsurance && <View style={{ height: 70 }} />}
+
         {/* Download Invoice */}
-        <TouchableOpacity style={styles.invoiceBtn} onPress={handleDownloadInvoice} disabled={downloading} activeOpacity={0.88}>
-          <LinearGradient colors={["#032a69", ORANGE]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.gradBtn}>
+        <TouchableOpacity style={[styles.invoiceBtn, styles.rBigBtn]} onPress={handleDownloadInvoice} disabled={downloading} activeOpacity={0.88}>
+          <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={[styles.gradBtn, { height: 48 }]}>
             {downloading
               ? <ActivityIndicator color={WHITE} />
-              : <Text style={styles.invoiceTxt}>Download Invoice</Text>
+              : <Text style={[styles.invoiceTxt, styles.rBigBtnTxt]}>Download Invoice</Text>
             }
           </LinearGradient>
         </TouchableOpacity>
 
         {/* Back to home */}
         <TouchableOpacity
-          style={[styles.homeBtn, { backgroundColor: "transparent", borderColor: aC.isDark ? "rgba(91,152,213,0.5)" : "rgba(3,42,105,0.14)" }]}
+          style={[styles.homeBtn, { backgroundColor: "transparent", borderColor: aC.isDark ? "rgba(91,152,213,0.5)" : "rgba(3,42,105,0.14)" }, styles.rHomeBtn, aC.isDark && { backgroundColor: "#07142F", borderColor: "#7E9FD6" }]}
           onPress={() => router.push("/(tabs)")}
           activeOpacity={0.88}
         >
-          <Text style={[styles.homeBtnTxt, { color: aC.isDark ? WHITE : "#032a69" }]}>Back to home</Text>
+          {aC.isDark && <RingGlow radius={24} peak={0.5} rings={12} />}
+          <Text style={[styles.homeBtnTxt, styles.rBigBtnTxt, { color: aC.isDark ? "#EDEBF0" : "#032a69" }]}>Back to home</Text>
         </TouchableOpacity>
 
       </ScrollView>
@@ -662,6 +681,37 @@ const styles = StyleSheet.create({
   homeBtn: { height: 50, borderRadius: 28, borderWidth: 1.5, justifyContent: "center", alignItems: "center", marginBottom: 16 },
   homeBtnTxt: { fontSize: 13, fontFamily: "Poppins_600SemiBold" },
 
+  /* Insurance success — Figma */
+  iHeaderTitle:  { fontSize: 19, fontFamily: "Poppins_500Medium" },
+  iCelebration:  { fontSize: 58, marginTop: 60 },
+  iHeading:      { fontSize: 19, fontFamily: "Poppins_600SemiBold", lineHeight: 27, marginBottom: 6 },
+  iSubHeading:   { fontSize: 13, lineHeight: 20 },
+  iPolicyCard:   { borderRadius: 16, paddingHorizontal: 16, paddingVertical: 10, marginTop: 6 },
+  iPolicyTxt:    { fontSize: 13, fontFamily: "Poppins_400Regular" },
+
+  /* Reservation success — Figma */
+  rCelebration: { fontSize: 50, textAlign: "center", alignSelf: "center" },
+  rHeading: { fontSize: 18, fontFamily: "Poppins_600SemiBold", lineHeight: 26, marginBottom: 6 },
+  rSubHeading: { fontSize: 13, lineHeight: 19 },
+  rCard: { borderRadius: 16, padding: 10, paddingBottom: 12, marginBottom: 14 },
+  rCarRow: { gap: 14, marginBottom: 12 },
+  rCarImageBox: { width: 124, height: 100, borderRadius: 10 },
+  rCarName: { fontSize: 11.5, fontFamily: "Poppins_500Medium", lineHeight: 17 },
+  rCarPrice: { color: ORANGE, fontSize: 14, fontFamily: "Poppins_500Medium" },
+  rMetaText: { fontSize: 11.5, fontFamily: "Poppins_400Regular", flex: 1 },
+  rTimeLabel: { fontSize: 11.5, fontFamily: "Poppins_400Regular", textAlign: "center" },
+  rTimeValue: { color: ORANGE, fontSize: 18, fontFamily: "Poppins_500Medium", textAlign: "center", marginTop: 1 },
+  rTimeNote: { fontSize: 12.5, fontFamily: "Poppins_400Regular", lineHeight: 18, textAlign: "center", marginTop: 2, paddingHorizontal: 4 },
+  rDatesRow: { flexDirection: "row", gap: 12, marginTop: 14, marginBottom: 14, paddingHorizontal: 4 },
+  rDateLabelRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  rDateLabel: { fontSize: 11.5, fontFamily: "Poppins_400Regular" },
+  rDateVal: { fontSize: 10.5, fontFamily: "Poppins_400Regular", lineHeight: 15, marginTop: 1 },
+  rCardBtn: { flex: 1, height: 34, borderRadius: 17, overflow: "hidden", alignItems: "center", justifyContent: "center" },
+  rCardBtnTxt: { color: "#F2F1F5", fontSize: 11.5, fontFamily: "Poppins_500Medium" },
+  rBigBtn: { borderRadius: 24, marginBottom: 12 },
+  rBigBtnTxt: { fontSize: 15, fontFamily: "Poppins_400Regular", color: "#EDEBF0" },
+  rHomeBtn: { height: 48, borderRadius: 24, borderWidth: 1, overflow: "hidden" },
+
   /* Dealer extra ad success — matches screenshot */
   extraHeader: {
     flexDirection: "row", alignItems: "center", justifyContent: "space-between",
@@ -679,17 +729,42 @@ const styles = StyleSheet.create({
     color: SUBTITLE, fontSize: 12, fontFamily: "Poppins_400Regular",
     textAlign: "center", marginTop: 8, lineHeight: 18,
   },
-  extraFooter: { paddingHorizontal: 20, paddingBottom: 28, gap: 12 },
+  extraFooter: { paddingHorizontal: 16, paddingBottom: 28, gap: 14 },
   extraPrimaryBtn: {
     height: 52, borderRadius: 26, overflow: "hidden",
     alignItems: "center", justifyContent: "center",
   },
-  extraPrimaryTxt: { color: WHITE, fontSize: 14, fontFamily: "Poppins_500Medium" },
+  extraPrimaryTxt: { color: WHITE, fontSize: 16, fontFamily: "Poppins_500Medium" },
   extraSecondaryBtn: {
     height: 52, borderRadius: 26, overflow: "hidden",
     alignItems: "center", justifyContent: "center",
     backgroundColor: "rgba(3,12,40,0.6)",
     borderWidth: 1, borderColor: "rgba(100,160,255,0.5)",
   },
-  extraSecondaryTxt: { color: WHITE, fontSize: 14, fontFamily: "Poppins_500Medium" },
+  extraSecondaryTxt: { color: WHITE, fontSize: 16, fontFamily: "Poppins_400Regular" },
+  promoteScroll: { flexGrow: 1, paddingBottom: 22 },
+  promoteFooter: { marginTop: 'auto', paddingTop: 32 },
+  promotePrimaryBtn: { height: 50 },
+  promotePrimaryText: { color: WHITE, fontSize: 16, fontFamily: "Poppins_500Medium" },
+  promoteSecondaryBtn: { height: 50, backgroundColor: "#010817", borderColor: "#849dc5", borderWidth: 0.8 },
+  promoteSecondaryText: { color: WHITE, fontSize: 16, fontFamily: "Poppins_500Medium" },
+  promoteViewAd: { alignSelf: "center", padding: 8 },
+  promoteViewAdText: { color: SUBTITLE, fontSize: 12, fontFamily: "Poppins_500Medium", textDecorationLine: "underline" },
+  promoteBody: { alignItems: "center", paddingTop: 125, paddingHorizontal: 18, paddingBottom: 14 },
+  promoteEmoji: { fontSize: 49, marginBottom: 12 },
+  promoteTitle: { color: WHITE, fontSize: 21, fontFamily: "Poppins_700Bold", lineHeight: 30, textAlign: "center" },
+  promoteSub: { color: SUBTITLE, fontSize: 12, fontFamily: "Poppins_400Regular", textAlign: "center", marginTop: 9 },
+  promoteCardBorder: { marginHorizontal: 18, padding: 1, borderRadius: 17, overflow: "hidden" },
+  promoteCard: { flexDirection: "row", minHeight: 120, padding: 7, backgroundColor: BG, borderRadius: 16, overflow: "hidden", alignItems: "center", gap: 9 },
+  promoteImageBox: { width: "38%", aspectRatio: 1.28, borderRadius: 10, overflow: "hidden", backgroundColor: "#102348", alignItems: "center", justifyContent: "center" },
+  promoteInfo: { flex: 1, alignSelf: "stretch", justifyContent: "center", gap: 5 },
+  promoteCarName: { color: WHITE, fontSize: 11, fontFamily: "Poppins_600SemiBold", lineHeight: 16 },
+  promoteCarPrice: { color: ORANGE, fontSize: 12, fontFamily: "Poppins_600SemiBold" },
+  promoteMetaRow: { flexDirection: "row", gap: 3, alignItems: "center" },
+  promoteMeta: { color: SUBTITLE, fontSize: 10, fontFamily: "Poppins_400Regular", flexShrink: 1 },
+  promoteStatusRow: { flexDirection: "row", alignItems: "center", gap: 4, flexWrap: "wrap" },
+  promoteBadge: { backgroundColor: "rgba(0,112,74,0.23)", borderRadius: 15, paddingHorizontal: 7, paddingVertical: 2 },
+  promoteBadgeText: { color: "#19d273", fontSize: 9, fontFamily: "Poppins_500Medium" },
+  promotePosted: { color: SUBTITLE, fontSize: 8, fontFamily: "Poppins_400Regular" },
+  promoteChevron: { alignSelf: "flex-end", marginBottom: 4 },
 });

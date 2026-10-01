@@ -7,6 +7,8 @@ import {
   SafeAreaView,
   StatusBar,
   ScrollView,
+  KeyboardAvoidingView,
+  Platform,
   Image,
   Alert,
   Linking,
@@ -19,6 +21,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { API_BASE } from "@/constants/api";
 import PaymentSection from "@/components/shared/PaymentSection";
 import { useAppColors } from "@/constants/theme";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const BG       = "#010a1f";
 const WHITE    = "#f9fafc";
@@ -31,12 +34,14 @@ const BLUE_B   = "rgba(91,152,213,0.5)";
 const AD_POSTING_FEE = 1_650;
 const FEATURED_FEE   = 5_000;
 const TOTAL          = AD_POSTING_FEE + FEATURED_FEE;   // 6,650
+const DEMO_SUCCESS_AFTER_SAFE_PAY_RETURN = true;
 
 
 export default function ApplyDealScreen() {
   const router = useRouter();
   const { token } = useAuth();
   const aC = useAppColors();
+  const insets = useSafeAreaInsets();
 
   const {
     vehicleId = "",
@@ -96,13 +101,23 @@ export default function ApplyDealScreen() {
       }
 
       // Open SafePay URL — try WebBrowser first, fallback to Linking
+      let returnedFromSafePay = false;
       try {
         await WebBrowser.openBrowserAsync(checkout_url, {
           toolbarColor: BG,
           showTitle:    true,
         });
+        returnedFromSafePay = true;
       } catch {
         await Linking.openURL(checkout_url);
+      }
+
+      if (DEMO_SUCCESS_AFTER_SAFE_PAY_RETURN && returnedFromSafePay) {
+        router.replace({
+          pathname: "/vehicle/payment-success",
+          params: { kind: 'promote', vid: vehicleId, photo, title, price, home: '/(tabs)', demo: '1' },
+        });
+        return;
       }
 
       // 3 — Browser closed: poll backend status (max 30s)
@@ -141,22 +156,33 @@ export default function ApplyDealScreen() {
     }
   }
 
-  const formattedPrice = Number(price.replace?.(/,/g, "") || price || 0).toLocaleString();
+  const vehiclePrice = Number(price.replace?.(/,/g, "") || price || 0);
+  const formattedPrice = vehiclePrice >= 10_000_000
+    ? `${Number((vehiclePrice / 10_000_000).toFixed(2))} Crore`
+    : vehiclePrice >= 100_000
+      ? `${Number((vehiclePrice / 100_000).toFixed(2))} Lac`
+      : vehiclePrice.toLocaleString();
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: aC.bg }]}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: aC.bg, paddingTop: Platform.OS === 'android' ? insets.top : 0 }]}>
       <StatusBar barStyle={aC.isDark ? "light-content" : "dark-content"} backgroundColor={aC.bg} />
 
       {/* Header */}
       <View style={[styles.header, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderBottomWidth: aC.isDark ? 0 : 1, borderBottomColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)' }]}>
         <TouchableOpacity style={styles.headerIcon} onPress={() => router.back()} disabled={loading}>
-          <Ionicons name="chevron-back" size={28} color={aC.isDark ? WHITE : '#010a1f'} />
+          <Ionicons name="chevron-back" size={27} color={aC.isDark ? SUBTITLE : '#010a1f'} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: aC.isDark ? WHITE : '#010a1f' }]}>Payment</Text>
         <View style={styles.headerIcon} />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+      <KeyboardAvoidingView style={styles.keyboardArea} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scroll}
+        keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
+      >
 
         {/* Heading */}
         <View style={styles.headingBox}>
@@ -181,24 +207,22 @@ export default function ApplyDealScreen() {
               <Text style={styles.carPrice}>PKR {formattedPrice}</Text>
               <View style={styles.activeBadge}>
                 <View style={styles.activeDot} />
-                <Text style={styles.activeTxt}>Pending</Text>
+              <Text style={styles.activeTxt}>Active</Text>
               </View>
             </View>
           </View>
-
-          <View style={[styles.divider, { backgroundColor: aC.isDark ? 'rgba(255,255,255,0.06)' : 'rgba(3,42,105,0.08)', height: 1 }]} />
 
           {[
             { label: "Ad Posting Fee", value: `Rs ${AD_POSTING_FEE.toLocaleString()}` },
             { label: "Featured",       value: `Rs ${FEATURED_FEE.toLocaleString()}` },
           ].map((r, i) => (
             <View key={i} style={[styles.feeRow, { borderBottomWidth: 0 }]}>
-              <Text style={[styles.feeLabel, { color: aC.isDark ? SUBTITLE : '#64748b' }]}>{r.label}</Text>
+              <Text style={[styles.feeLabel, { color: aC.isDark ? WHITE : '#64748b' }]}>{r.label}</Text>
               <Text style={[styles.feeValue, { color: aC.isDark ? WHITE : '#010a1f' }]}>{r.value}</Text>
             </View>
           ))}
 
-          <View style={[styles.divider, { backgroundColor: aC.isDark ? 'rgba(255,255,255,0.06)' : 'rgba(3,42,105,0.08)', height: 1 }]} />
+          <View style={[styles.divider, { backgroundColor: aC.isDark ? 'rgba(255,255,255,0.12)' : 'rgba(3,42,105,0.08)', height: 1 }]} />
 
           <View style={styles.feeRow}>
             <Text style={[styles.totalLabel, { color: aC.isDark ? WHITE : '#010a1f' }]}>Total Amount</Text>
@@ -215,29 +239,31 @@ export default function ApplyDealScreen() {
         />
 
       </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: BG },
+  keyboardArea: { flex: 1 },
 
   header: {
-    height: 64,
+    height: 62,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingTop: 10,
+    paddingTop: 8,
   },
   headerIcon: { width: 35, height: 35, justifyContent: "center" },
-  headerTitle: { color: WHITE, fontSize: 20, fontFamily: "Poppins_600SemiBold" },
+  headerTitle: { color: WHITE, fontSize: 21, fontFamily: "Poppins_600SemiBold" },
 
-  scroll: { paddingHorizontal: 20, paddingBottom: 40 },
+  scroll: { paddingHorizontal: 20, paddingTop: 10, paddingBottom: 40 },
 
   headingBox: { marginBottom: 24 },
-  heading: { color: WHITE, fontSize: 20, fontFamily: "Poppins_700Bold", marginBottom: 4 },
-  subHeading: { color: SUBTITLE, fontSize: 13, fontFamily: "Poppins_400Regular", lineHeight: 20 },
+  heading: { color: WHITE, fontSize: 19, fontFamily: "Poppins_600SemiBold", marginBottom: 3 },
+  subHeading: { color: SUBTITLE, fontSize: 15, fontFamily: "Poppins_400Regular", lineHeight: 21 },
 
   sectionTitle: {
     color: WHITE, fontSize: 15,
@@ -252,40 +278,39 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   carRow: {
-    flexDirection: "row", gap: 12,
-    padding: 14, alignItems: "stretch",
+    flexDirection: "row", gap: 20,
+    paddingHorizontal: 12, paddingTop: 18, paddingBottom: 5, alignItems: "center",
   },
   carImgBox: {
-    width: 100, borderRadius: 10,
+    width: '48%', aspectRatio: 1.51, borderRadius: 11,
     overflow: "hidden",
     backgroundColor: "rgba(255,255,255,0.06)",
     alignItems: "center", justifyContent: "center",
-    flexShrink: 0, alignSelf: "stretch",
-    minHeight: 80,
+    flexShrink: 0,
   },
-  carInfo: { flex: 1, gap: 4, justifyContent: "center" },
-  carName: { color: WHITE, fontSize: 13, fontFamily: "Poppins_600SemiBold", lineHeight: 19 },
-  carPrice: { color: ORANGE, fontSize: 15, fontFamily: "Poppins_700Bold" },
+  carInfo: { flex: 1, gap: 7, justifyContent: "center" },
+  carName: { color: WHITE, fontSize: 12, fontFamily: "Poppins_600SemiBold", lineHeight: 18 },
+  carPrice: { color: ORANGE, fontSize: 14, fontFamily: "Poppins_600SemiBold" },
   activeBadge: {
     flexDirection: "row", alignItems: "center", gap: 5,
-    backgroundColor: "rgba(234,179,8,0.15)",
+    backgroundColor: "rgba(0,105,81,0.22)",
     alignSelf: "flex-start",
-    paddingHorizontal: 9, paddingVertical: 3,
-    borderRadius: 20, borderWidth: 1, borderColor: "rgba(234,179,8,0.3)",
+    paddingHorizontal: 12, paddingVertical: 3,
+    borderRadius: 20,
   },
-  activeDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: "#eab308" },
-  activeTxt: { color: "#eab308", fontSize: 11, fontFamily: "Poppins_500Medium" },
+  activeDot: { width: 3, height: 3, borderRadius: 2, backgroundColor: "#19d273" },
+  activeTxt: { color: "#19d273", fontSize: 11, fontFamily: "Poppins_500Medium" },
 
   divider: { height: 0 },
 
   feeRow: {
     flexDirection: "row", justifyContent: "space-between",
-    paddingHorizontal: 16, paddingVertical: 13,
+    paddingHorizontal: 12, paddingVertical: 11,
   },
-  feeLabel: { color: SUBTITLE, fontSize: 13, fontFamily: "Poppins_400Regular" },
-  feeValue: { color: WHITE, fontSize: 13, fontFamily: "Poppins_500Medium" },
+  feeLabel: { color: WHITE, fontSize: 14, fontFamily: "Poppins_600SemiBold" },
+  feeValue: { color: WHITE, fontSize: 14, fontFamily: "Poppins_400Regular" },
   totalLabel: { color: WHITE, fontSize: 14, fontFamily: "Poppins_600SemiBold" },
-  totalValue: { color: WHITE, fontSize: 14, fontFamily: "Poppins_700Bold" },
+  totalValue: { color: WHITE, fontSize: 14, fontFamily: "Poppins_400Regular" },
 
   methodCard: {
     backgroundColor: 'rgba(3,12,40,0.6)',

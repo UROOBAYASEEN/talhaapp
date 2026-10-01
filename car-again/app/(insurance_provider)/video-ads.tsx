@@ -13,6 +13,10 @@ import {
 import * as ImagePicker from 'expo-image-picker';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
+import {
+  AddChip, BottomActions, Chip as DChip, DField, DHeader, DSelect, PlanOption, PromoCard, SaveDraftAction, TermsRow, TipBanner, UploadBox, dk,
+} from '@/components/dealer/DealerUI';
+import { GlassButton, GradientButton } from '@/components/shared/GlowUI';
 
 const ORANGE = '#e2671b';
 const BG     = '#010A1F';
@@ -174,64 +178,33 @@ export default function InsuranceVideoAdsScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
 
         {/* HEADER */}
-        <View style={s.header}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <ChevronLeft size={24} color="#fff" />
-          </TouchableOpacity>
-          <Text style={s.heading}>Video Ads</Text>
-          <TouchableOpacity style={s.saveDraft}>
-            <Bookmark size={15} color={ORANGE} />
-            <Text style={s.saveDraftText}>{'Save\nDraft'}</Text>
-          </TouchableOpacity>
+        <View style={{ marginHorizontal: -16 }}>
+          <DHeader title="Video Ads" center right={<SaveDraftAction />} />
         </View>
 
         {/* RECOMMENDATION */}
-        <View style={s.infoBanner}>
-          <LinearGradient colors={['transparent', 'rgba(226,103,27,0.25)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <Lightbulb size={20} color="#f0b429" style={{ flexShrink: 0 }} />
-          <View style={{ flex: 1 }}>
-            <Text style={s.infoTitle}>Recommendation</Text>
-            <Text style={s.infoText}>Video Ads are best for showcasing insurance plans directly to interested buyers for Higher engagement & plan showcase</Text>
+        <TipBanner title="Recommendation" text="Video Ads are best for showcasing insurance plans directly to interested buyers for Higher engagement & plan showcase" />
+
+        {/* UPLOAD */}
+        <View style={{ marginTop: 16, alignItems: 'center' }}>
+          <View style={{ width: '64%' }}>
+            <UploadBox title="+ Upload video/img" sub="Drag & drop or click to browse. Recommended 16:9 ratio." onPress={pickMedia}>
+              {uploadedFile ? (
+                <View style={{ alignItems: 'center', gap: 8 }}>
+                  <Image source={{ uri: uploadedFile }} style={{ width: 80, height: 80, borderRadius: 8 }} resizeMode="cover" />
+                  <Text style={{ color: '#22c55e', fontSize: 13, fontFamily: 'Poppins_500Medium' }}>✓ File selected</Text>
+                  <Text style={{ color: '#BAACB6', fontSize: 11, fontFamily: 'Poppins_400Regular' }} numberOfLines={1}>{fileName}</Text>
+                </View>
+              ) : undefined}
+            </UploadBox>
           </View>
         </View>
 
-        {/* UPLOAD */}
-        <TouchableOpacity style={s.uploadArea} activeOpacity={0.8} onPress={pickMedia}>
-          {uploadedFile ? (
-            <View style={{ alignItems: 'center', gap: 8 }}>
-              <Image source={{ uri: uploadedFile }} style={{ width: 80, height: 80, borderRadius: 8 }} resizeMode="cover" />
-              <Text style={[s.uploadTitle, { color: '#22c55e' }]}>✓ File selected</Text>
-              <Text style={s.uploadSub} numberOfLines={1}>{fileName}</Text>
-            </View>
-          ) : (
-            <>
-              <Upload size={26} color={ORANGE} />
-              <Text style={s.uploadTitle}>+ Upload video/img</Text>
-              <Text style={s.uploadSub}>Tap to browse. Recommended 16:9 ratio.</Text>
-            </>
-          )}
-        </TouchableOpacity>
+        <Text style={dk.label}>Video Title</Text>
+        <DField value={videoTitle} onChangeText={setVideoTitle} placeholder="e.g. Summer Auto Sale" />
 
-        {/* TITLE */}
-        <Text style={s.label}>Video Title</Text>
-        <View style={s.inputWrap}>
-          <GlassInset />
-          <TextInput
-            style={s.input}
-            value={videoTitle}
-            onChangeText={setVideoTitle}
-            placeholder="e.g. EFU Shield Plan Showcase"
-            placeholderTextColor="#6f7f9c"
-          />
-        </View>
-
-        {/* DISPLAY LOCATION */}
-        <Text style={s.label}>Display Location</Text>
-        <TouchableOpacity style={s.dropdown} onPress={() => { setLocOpen(v => !v); setPartnerOpen(false); }} activeOpacity={0.8}>
-          <GlassInset />
-          <Text style={s.dropdownText}>{location}</Text>
-          <ChevronDown size={18} color="#8f9cb5" />
-        </TouchableOpacity>
+        <Text style={dk.label}>Display Location</Text>
+        <DSelect value={location} onPress={() => { setLocOpen(v => !v); setPartnerOpen(false); }} />
         {locOpen && (
           <View style={s.dropMenu}>
             {LOCATIONS.map(opt => (
@@ -242,13 +215,8 @@ export default function InsuranceVideoAdsScreen() {
           </View>
         )}
 
-        {/* PARTNER SELECTION */}
-        <Text style={s.label}>Partner Selection</Text>
-        <TouchableOpacity style={s.dropdown} onPress={() => { setPartnerOpen(v => !v); setLocOpen(false); }} activeOpacity={0.8}>
-          <GlassInset />
-          <Text style={s.dropdownText}>{partner}</Text>
-          <ChevronDown size={18} color="#8f9cb5" />
-        </TouchableOpacity>
+        <Text style={dk.label}>Partner Selection</Text>
+        <DSelect value={partner} onPress={() => { setPartnerOpen(v => !v); setLocOpen(false); }} />
         {partnerOpen && (
           <View style={s.dropMenu}>
             {PARTNERS.map(opt => (
@@ -259,77 +227,39 @@ export default function InsuranceVideoAdsScreen() {
           </View>
         )}
 
-        {/* AUDIENCE TARGETING */}
-        <Text style={s.sectionTitle}>Audience Targeting</Text>
+        <Text style={dk.label}>Audience Targeting</Text>
         <Text style={s.subLabel}>User Type</Text>
         <View style={s.chipsRow}>
-          {USER_TYPES.map(u => <Chip key={u} label={u} active={userType === u} onPress={() => setUserType(u)} />)}
+          {USER_TYPES.map(u => <DChip key={u} small label={u} selected={userType === u} onPress={() => setUserType(u)} />)}
+          <AddChip small />
         </View>
         <Text style={[s.subLabel, { marginTop: 12 }]}>Cities</Text>
         <View style={s.chipsRow}>
-          {CITIES.map(c => <Chip key={c} label={c} active={city === c} onPress={() => setCity(c)} />)}
+          {CITIES.map(c => <DChip key={c} small label={c} selected={city === c} onPress={() => setCity(c)} />)}
+          <AddChip small />
         </View>
 
-        {/* PRICING */}
-        <View style={s.pricingCard}>
-          <LinearGradient colors={['transparent', 'rgba(226,103,27,0.45)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <View style={s.flameCorner}><Flame size={14} color="#fff" /></View>
-          <Text style={s.pricingTitle}>Ads to Get Your Insurance Plan Seen Faster</Text>
-          <Text style={s.pricingSubtitle}>Get 5x more visibility by featuring your plan</Text>
-          {DURATIONS.map(d => (
-            <TouchableOpacity
-              key={d.key}
-              style={[s.durationBtn, duration === d.key && s.durationBtnActive]}
-              onPress={() => setDuration(d.key)}
-              activeOpacity={0.8}
-            >
-              <View style={{ flex: 1 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  {d.key === '4 weeks' && <Flame size={13} color={ORANGE} />}
-                  <Text style={s.durationKey}>{d.key}</Text>
-                </View>
-                <Text style={s.durationNote}>{d.note}</Text>
-              </View>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                <Text style={[s.durationPrice, duration === d.key && { color: ORANGE }]}>{d.price} {'>'}</Text>
-                <View style={s.radio}>{duration === d.key && <View style={s.radioFill} />}</View>
-              </View>
-            </TouchableOpacity>
-          ))}
+        {/* ADS PLAN (same section as the other ad screens) */}
+        <View style={{ marginTop: 20 }}>
+          <PromoCard title="Ads to Get Your  Vehicle Seen Faster" sub="Get 5x more visibility by featuring your listing">
+            {DURATIONS.map(d => (
+              <PlanOption key={d.key} title={d.key} sub={d.note} price={String(d.price).replace('PKR', 'Rs')} fire={d.key === '4 weeks'}
+                selected={duration === d.key} onPress={() => setDuration(d.key)} />
+            ))}
+          </PromoCard>
         </View>
 
-        {/* TERMS */}
-        <TouchableOpacity style={s.termsRow} onPress={() => setAgreed(v => !v)}>
-          {agreed
-            ? <CheckCircle2 size={20} color={ORANGE} fill={ORANGE} />
-            : <Circle size={20} color="#6f7f9c" />
-          }
-          <Text style={s.termsText}>I confirm that I have read and accept the terms and conditions and privacy policy.</Text>
-        </TouchableOpacity>
+        <TermsRow checked={agreed} onToggle={() => setAgreed(v => !v)} />
 
-        <View style={{ height: 140 }} />
+        <View style={{ height: 170 }} />
       </ScrollView>
 
       {/* FOOTER BUTTONS */}
-      <View style={s.footer}>
-        <LinearGradient colors={['rgba(1,10,31,0.7)', 'rgba(1,10,31,0.97)']} style={StyleSheet.absoluteFillObject} />
-        <TouchableOpacity
-          style={[s.publishWrap, (!agreed || publishing) && { opacity: 0.6 }]}
-          activeOpacity={0.85}
-          onPress={handlePublish}
-          disabled={publishing}
-        >
-          <LinearGradient colors={['#1e3a66', ORANGE]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.publishBtn}>
-            {publishing
-              ? <><ActivityIndicator color="#fff" size="small" /><Text style={[s.publishText, { marginLeft: 8 }]}>{uploadedFile ? 'Uploading...' : 'Publishing...'}</Text></>
-              : <Text style={s.publishText}>Publish Reel</Text>
-            }
-          </LinearGradient>
-        </TouchableOpacity>
-        <TouchableOpacity style={s.draftBtn} activeOpacity={0.85}>
-          <Text style={s.draftText}>Save as Draft</Text>
-        </TouchableOpacity>
-      </View>
+      <BottomActions>
+        <GradientButton title="Publish  Reel" loadingTitle={uploadedFile ? 'Uploading...' : 'Publishing...'} height={50} fontSize={17}
+          loading={publishing} style={!agreed ? { opacity: 0.6 } : undefined} onPress={handlePublish} />
+        <GlassButton title="Save as Draft" height={48} fontSize={16} color="#E6E1E8" />
+      </BottomActions>
 
       {/* Pay Now modal — paid-first, no free publish */}
       <Modal visible={showPay} transparent animationType="slide" onRequestClose={() => setShowPay(false)}>
@@ -387,8 +317,8 @@ const s = StyleSheet.create({
   dropItemTxt:   { color: '#C8D3E8', fontSize: 13, fontFamily: 'Poppins_400Regular' },
 
   sectionTitle:  { color: '#fff', fontSize: 14, fontFamily: 'Poppins_600SemiBold', marginTop: 20, marginBottom: 10 },
-  subLabel:      { color: '#9fb0cc', fontSize: 12, fontFamily: 'Poppins_400Regular', marginBottom: 8 },
-  chipsRow:      { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  subLabel:      { color: '#FFFFFF', fontSize: 13, fontFamily: 'Poppins_400Regular', marginBottom: 8 },
+  chipsRow:      { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   chip:          { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 30, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.12)' },
   chipActive:    { borderColor: ORANGE, backgroundColor: 'rgba(226,103,27,0.08)' },
   chipText:      { color: '#c3cee2', fontSize: 12, fontFamily: 'Poppins_500Medium' },

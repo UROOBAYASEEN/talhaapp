@@ -86,15 +86,26 @@ export default function MyListingsScreen() {
     const statusLabel = item.status.charAt(0).toUpperCase() + item.status.slice(1);
     return (
       <TouchableOpacity
-        style={[styles.card, { backgroundColor: aC.isDark ? aC.glassBg : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.5)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, shadowRadius: 10, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }]}
+        style={[styles.card, { backgroundColor: aC.isDark ? '#010A1F' : '#ffffff', borderColor: aC.isDark ? '#82a5d5' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? '#638ed0' : 'rgba(3,42,105,0.12)', shadowOffset: { width: 0, height: 0 }, shadowOpacity: aC.isDark ? 0.15 : 0.08, shadowRadius: aC.isDark ? 5 : 10, elevation: aC.isDark ? 2 : 3, overflow: 'hidden' }]}
         activeOpacity={0.85}
         onPress={() => router.push({ pathname: '/vehicle/[id]', params: { id: item.id } })}
       >
         {aC.isDark ? (
           <>
-            <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+            <LinearGradient
+              colors={['#16408880', 'transparent', 'transparent', '#16408880']}
+              locations={[0, 0.08, 0.92, 1]}
+              style={StyleSheet.absoluteFillObject}
+              pointerEvents="none"
+            />
+            <LinearGradient
+              colors={['#16408880', 'transparent', 'transparent', '#16408880']}
+              locations={[0, 0.05, 0.95, 1]}
+              start={{ x: 0, y: 0.5 }}
+              end={{ x: 1, y: 0.5 }}
+              style={StyleSheet.absoluteFillObject}
+              pointerEvents="none"
+            />
           </>
         ) : (
           <>
@@ -185,11 +196,29 @@ export default function MyListingsScreen() {
                 styles.chip,
                 { borderWidth: 1, overflow: 'hidden' },
                 active
-                  ? { backgroundColor: aC.isDark ? NAVY : ORANGE, borderColor: ORANGE }
+                  ? { backgroundColor: aC.isDark ? '#15386A' : ORANGE, borderColor: aC.isDark ? '#6F89AF' : ORANGE, borderWidth: aC.isDark ? 1.35 : 1 }
                   : { backgroundColor: aC.isDark ? NAVY : '#ffffff', borderColor: aC.isDark ? 'rgba(255,255,255,0.15)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 },
               ]}
               onPress={() => setFilter(f.key)}
             >
+              {aC.isDark && active && (
+                <>
+                  <LinearGradient
+                    colors={['#173B70', '#102A52', '#102A52', '#173B70']}
+                    locations={[0, 0.18, 0.82, 1]}
+                    style={[StyleSheet.absoluteFillObject, { borderRadius: 16 }]}
+                    pointerEvents="none"
+                  />
+                  <LinearGradient
+                    colors={['transparent', '#08162DCC', '#08162DCC', 'transparent']}
+                    locations={[0, 0.23, 0.77, 1]}
+                    start={{ x: 0, y: 0.5 }}
+                    end={{ x: 1, y: 0.5 }}
+                    style={[StyleSheet.absoluteFillObject, { borderRadius: 13, marginHorizontal: 3, marginVertical: 3 }]}
+                    pointerEvents="none"
+                  />
+                </>
+              )}
               {!aC.isDark && !active && <LinearGradient colors={['rgba(3,42,105,0.03)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
               <Text style={[styles.chipTxt, active ? { color: aC.isDark ? ORANGE : WHITE, fontFamily: 'Poppins_700Bold' } : { color: aC.isDark ? WHITE : '#032a69', fontFamily: 'Poppins_500Medium' }]}>{f.label}</Text>
               <View style={[styles.countBadge, { backgroundColor: f.badgeColor }]}>

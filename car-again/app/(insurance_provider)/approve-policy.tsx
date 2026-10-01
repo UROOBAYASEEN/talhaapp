@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import {
-  SafeAreaView, View, Text, StyleSheet, ScrollView,
+  View, Text, StyleSheet, ScrollView,
   TouchableOpacity, Image, StatusBar, Alert, Modal, TextInput,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { BottomActions, DHeader, GlowCard, OutlineCard, TermsRow } from '@/components/dealer/DealerUI';
+import { GlassButton, GradientButton } from '@/components/shared/GlowUI';
+import { ApplicantCard, DocGallery, InfoTable, StatusBand, Timeline } from '@/components/insurance/AppDetailUI';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AppColors } from '@/constants/theme';
@@ -52,6 +57,7 @@ export default function ApprovePolicyScreen() {
   const [assigning,       setAssigning]       = useState(false);
   const [note,            setNote]            = useState('');
   const [noteSaved,       setNoteSaved]       = useState(false);
+  const [agreedTerms,     setAgreedTerms]     = useState(false);
 
   useEffect(() => {
     if (!token || !params.appId) return;
@@ -152,231 +158,143 @@ export default function ApprovePolicyScreen() {
     Alert.alert('Saved', 'Internal note saved.');
   }
 
+  const galleryDocs = docs.length > 0
+    ? docs.slice(0, 6).map((doc, i) => ({ uri: doc.file_url?.startsWith('http') ? doc.file_url : `${API_BASE.replace('/api/v1','')}${doc.file_url}`, label: String(doc.doc_type || `DOC ${i+1}`).toUpperCase() }))
+    : [
+        { uri: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=200', label: 'CNIC FRONT' },
+        { uri: 'https://images.unsplash.com/photo-1568667256549-094345857637?w=200', label: 'REG. BOOK' },
+        { uri: 'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=200', label: 'VEHICLE IMG 1' },
+      ];
+  const docsDone = docs.length > 0 || status !== 'PENDING REVIEW';
+
   return (
-    <SafeAreaView style={s.safeArea}>
+    <SafeAreaView style={s.safeArea} edges={['top', 'bottom']}>
       <StatusBar barStyle="light-content" backgroundColor={BG} />
       <View style={s.container}>
 
-        {/* HEADER */}
-        <View style={s.header}>
-          <TouchableOpacity style={s.backButton} onPress={() => router.back()}>
-            <Text style={s.backIcon}>‹</Text>
-          </TouchableOpacity>
-          <Text style={s.headerTitle}>Applications Details</Text>
-        </View>
-
-        {/* STATUS BAR */}
-        <View style={s.statusBar}>
-          <View style={s.statusLeft}>
-            <View style={s.folderIcon}><Text style={s.folderIconText}>▣</Text></View>
-            <Text style={[s.statusText, status === 'APPROVED' && s.approvedText, status === 'REJECTED' && s.rejectedText]}>
-              {status}
-            </Text>
-          </View>
-          <Text style={s.appliedText}>Applied: {dateStr}</Text>
-        </View>
+        <DHeader title="Applications Details" />
 
         {/* CONTENT */}
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scrollContent}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 210 }}>
+          <StatusBand label={status} date={dateStr} />
 
-          {/* APPLICANT CARD */}
-          <View style={s.applicantCard}>
-            <LinearGradient colors={['rgba(226,103,27,0.25)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <LinearGradient colors={['rgba(226,103,27,0.12)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.4, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <LinearGradient colors={['transparent', 'rgba(226,103,27,0.18)']} start={{ x: 0.5, y: 0.5 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <View style={s.profileRow}>
-              <View style={s.avatarContainer}>
-                {params.avatar ? (
-                  <Image source={{ uri: resolveUrl(params.avatar) }} style={[s.avatar, { overflow: 'hidden' }]} resizeMode="cover" />
-                ) : (
-                  <View style={[s.avatar, { backgroundColor: '#09265A', alignItems: 'center', justifyContent: 'center' }]}>
-                    <Text style={{ color: '#E7EBF4', fontSize: 22, fontWeight: '700' }}>{initials}</Text>
-                  </View>
-                )}
-                <View style={s.verifiedBadge}><Text style={s.badgeText}>✓</Text></View>
-              </View>
-              <View style={s.profileInfo}>
-                <Text style={s.name}>{name}</Text>
-                <View style={s.contactRow}>
-                  <Text style={s.contactIcon}>⌕</Text>
-                  <Text style={s.contactText}>{phone}</Text>
-                </View>
-                <View style={s.contactRow}>
-                  <Text style={s.contactIcon}>✉</Text>
-                  <Text style={s.contactText}>{email}</Text>
-                </View>
-              </View>
-            </View>
-            <Text style={s.chassisLabel}>Chassis #</Text>
-            <View style={s.chassisRow}>
-              <Text style={s.chassisNumber}>{claimInfo?.chassis_no || claimInfo?.chassis_number || policyId}</Text>
-              <Text style={s.copyIcon}>□</Text>
-            </View>
-          </View>
+          <ApplicantCard
+            name={name}
+            phone={phone}
+            email={email}
+            avatar={params.avatar ? resolveUrl(params.avatar) : null}
+            chassis={claimInfo?.chassis_no || claimInfo?.chassis_number || policyId}
+          />
 
-          {/* VEHICLE INFORMATION */}
-          <View style={s.sectionCard}>
-            <Text style={s.sectionTitle}>Vehicle Information</Text>
-            <InfoRow label="Make / Model"   value={claimInfo?.make_model || claimInfo?.vehicle || vehicle} />
-            <InfoRow label="Registration #" value={claimInfo?.registration_no || claimInfo?.reg_no || '—'} />
-            <InfoRow label="Engine #"       value={claimInfo?.engine_no || claimInfo?.engine_number || '—'} />
-            <InfoRow label="Chassis #"      value={claimInfo?.chassis_no || claimInfo?.chassis_number || policyId} />
-            <InfoRow label="Color"          value={claimInfo?.color || '—'} last />
-          </View>
+          <InfoTable
+            title="Vehicle Information"
+            rows={[
+              { label: 'Make / Model',   value: claimInfo?.make_model || claimInfo?.vehicle || vehicle },
+              { label: 'Registration #', value: claimInfo?.registration_no || claimInfo?.reg_no || '—' },
+              { label: 'Engine #',       value: claimInfo?.engine_no || claimInfo?.engine_number || '—' },
+              { label: 'Chassis #',      value: claimInfo?.chassis_no || claimInfo?.chassis_number || policyId },
+              { label: 'Color',          value: claimInfo?.color || '—' },
+            ]}
+          />
 
-          {/* CLAIM DETAILS */}
-          <View style={s.sectionCard}>
-            <InfoRow
-              label="Incident Date"
-              value={claimInfo?.incident_date
-                ? new Date(claimInfo.incident_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
-                : dateStr}
-            />
-            <InfoRow label="Claim Type" value={claimInfo?.claim_type || claimInfo?.type || '—'} />
-            <InfoRow
-              label="Coverage Limit"
-              value={claimInfo?.coverage_limit ? `PKR ${Number(claimInfo.coverage_limit).toLocaleString()}` : premium}
-              last
-            />
-          </View>
+          <InfoTable
+            rows={[
+              { label: 'Incident Date', value: claimInfo?.incident_date
+                  ? new Date(claimInfo.incident_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+                  : dateStr },
+              { label: 'Claim Type', value: claimInfo?.claim_type || claimInfo?.type || '—' },
+              { label: 'Coverage Limit', value: <Text style={s.coverageVal}>{claimInfo?.coverage_limit ? `PKR ${Number(claimInfo.coverage_limit).toLocaleString()}` : premium}</Text> },
+            ]}
+          />
 
           {/* ACCIDENT DESCRIPTION */}
-          <View style={s.sectionCard}>
-            <Text style={s.sectionTitle}>Accident Description</Text>
-            <View style={s.descBox}>
-              <Text style={s.descTxt}>
-                "{claimInfo?.description || claimInfo?.accident_description || 'No description provided.'}"
-              </Text>
-            </View>
-          </View>
+          <Text style={s.descTitle}>Accident Description</Text>
+          <OutlineCard style={s.descCard}>
+            <Text style={s.descTxt}>
+              {`"${claimInfo?.description || claimInfo?.accident_description || 'No description provided.'}"`}
+            </Text>
+          </OutlineCard>
 
-          {/* VEHICLE PHOTOS — div from user claim */}
+          {/* VEHICLE PHOTOS — from the user's claim */}
           {claimPhotos.length > 0 && (
-            <View style={s.gallerySection}>
-              <View style={s.galleryHeader}>
-                <Text style={s.galleryTitle}>Vehicle Photos</Text>
-              </View>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }}>
+            <View style={{ marginTop: 22 }}>
+              <Text style={[s.descTitle, { marginTop: 0 }]}>Vehicle Photos</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingHorizontal: 16 }}>
                 {claimPhotos.map((uri,i)=>(
-                  <Image key={i} source={{ uri }} style={{ width: 140, height: 100, borderRadius: 10, borderWidth: 1, borderColor: 'rgba(100,160,255,0.3)' }} resizeMode="cover" />
+                  <Image key={i} source={{ uri }} style={{ width: 140, height: 100, borderRadius: 10, borderWidth: 1, borderColor: 'rgba(230,225,232,0.6)' }} resizeMode="cover" />
                 ))}
               </ScrollView>
             </View>
           )}
-          {/* DOCUMENT GALLERY */}
-          <View style={s.gallerySection}>
-            <View style={s.galleryHeader}>
-              <Text style={s.galleryTitle}>Document Gallery</Text>
-              <TouchableOpacity onPress={() => setDocumentVisible(true)}><Text style={s.viewAll}>View All</Text></TouchableOpacity>
-            </View>
-            <View style={s.documentsRow}>
-              {docs.length > 0
-                ? docs.slice(0, 3).map((doc, i) => (
-                    <DocImage key={i} uri={doc.file_url?.startsWith('http') ? doc.file_url : `${API_BASE.replace('/api/v1','')}${doc.file_url}`} label={doc.doc_type || `DOC ${i+1}`} />
-                  ))
-                : <>
-                    <DocImage uri="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=200" label="CNIC FRONT" />
-                    <DocImage uri="https://images.unsplash.com/photo-1568667256549-094345857637?w=200" label="REG. BOOK" />
-                    <DocImage uri="https://images.unsplash.com/photo-1550355291-bbee04a92027?w=200" label="VEHICLE IMG 1" />
-                  </>
-              }
-            </View>
-          </View>
+
+          <DocGallery docs={galleryDocs} onViewAll={() => setDocumentVisible(true)} />
 
           {/* SURVEY REPORT */}
-          <View style={[s.sectionCard, s.surveyCard]}>
+          <GlowCard style={s.surveyCard} radius={20}>
             <View style={s.surveyHeader}>
-              <Text style={[s.sectionTitle, { marginBottom: 0 }]}>Survey Report</Text>
+              <Text style={s.surveyTitle}>Survey Report</Text>
               <TouchableOpacity style={s.assignBtn} onPress={assignSurveyor} activeOpacity={0.85}>
-                <LinearGradient colors={['#032a69', '#e2671b']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+                <LinearGradient colors={['#0B3585', '#7E4F5C', '#E8702A']} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
                 <Text style={s.assignTxt}>{surveyor ? 'Assigned' : 'Assign Surveyor'}</Text>
               </TouchableOpacity>
             </View>
             <View style={s.surveyDivider} />
             {surveyor ? (
               <View style={s.surveyorRow}>
-                <View style={s.surveyorLeft}>
-                  <Text style={s.surveyorIcon}>👤</Text>
-                  <View>
-                    <Text style={s.surveyorName}>{surveyor.name}</Text>
-                    <Text style={s.surveyorDate}>Assigned on {surveyor.assigned_on || dateStr}</Text>
-                  </View>
+                <MaterialCommunityIcons name="account-cog-outline" size={28} color={ORANGE} />
+                <View style={{ flex: 1 }}>
+                  <Text style={s.surveyorName}>{surveyor.name}</Text>
+                  <Text style={s.surveyorDate}>Assigned on {surveyor.assigned_on || dateStr}</Text>
                 </View>
                 <TouchableOpacity onPress={assignSurveyor}>
-                  <Text style={s.changeSurveyor}>Change{'\n'}Surveyor</Text>
+                  <Text style={s.changeSurveyor}>{'Change\nSurveyor'}</Text>
                 </TouchableOpacity>
               </View>
             ) : (
               <Text style={s.noSurveyorTxt}>No surveyor assigned yet.</Text>
             )}
-          </View>
+          </GlowCard>
 
           {/* INTERNAL ADJUSTER NOTES */}
-          <View style={s.sectionCard}>
-            <Text style={s.sectionTitle}>Internal Adjuster Notes</Text>
+          <OutlineCard style={s.notesCard}>
+            <Text style={s.notesTitle}>Internal Adjuster Notes</Text>
             <TextInput
               style={s.noteInput}
               value={note}
               onChangeText={t => { setNote(t); setNoteSaved(false); }}
               placeholder="Add confidential notes for internal review..."
-              placeholderTextColor="rgba(197,199,208,0.5)"
+              placeholderTextColor="rgba(197,199,208,0.6)"
               multiline
               numberOfLines={4}
               textAlignVertical="top"
             />
-            <TouchableOpacity style={s.saveNoteBtn} onPress={saveNote} activeOpacity={0.8}>
+            <TouchableOpacity style={{ alignSelf: 'flex-end', marginTop: 14 }} onPress={saveNote} activeOpacity={0.8}>
               <Text style={s.saveNoteTxt}>{noteSaved ? 'Saved ✓' : 'Save Note'}</Text>
             </TouchableOpacity>
-          </View>
+          </OutlineCard>
 
           {/* TIMELINE */}
-          <View style={s.timelineSection}>
-            <Text style={s.timelineTitle}>Application Timeline</Text>
-            <TLItem active title="Claim Submitted" date={dateStr} by={`by ${name}`} />
-            <TLItem
-              active={docs.length > 0 || status !== 'PENDING REVIEW'}
-              current={(status === 'PENDING REVIEW' || status === 'UNDER REVIEW') && docs.length === 0}
-              title="Documents Verified"
-              date={docs.length > 0 ? `${docs.length} documents attached` : 'Pending verification'}
-            />
-            <TLItem
-              current
-              title={status === 'APPROVED' ? 'Approved' : status === 'REJECTED' ? 'Rejected' : 'In Review'}
-              date={status === 'PENDING REVIEW' || status === 'UNDER REVIEW' ? 'Assigned to insurance team' : 'Final decision'}
-              last
-            />
+          <View style={{ marginHorizontal: 22 }}>
+            <Timeline steps={[
+              { title: 'Claim Submitted', sub: `${dateStr} • by ${name}` },
+              { title: 'Documents Verified', sub: docs.length > 0 ? `${docs.length} documents attached` : 'Pending verification', current: !docsDone },
+              { title: status === 'APPROVED' ? 'Approved' : status === 'REJECTED' ? 'Rejected' : 'In Review',
+                sub: status === 'PENDING REVIEW' || status === 'UNDER REVIEW' ? 'Assigned to insurance team' : 'Final decision', current: true },
+            ]} />
+            <TermsRow checked={agreedTerms} onToggle={() => setAgreedTerms(v => !v)} />
           </View>
-
-          {/* TERMS */}
-          <View style={s.termsRow}>
-            <View style={s.checkbox} />
-            <Text style={s.termsText}>
-              I confirm that I have read and accept the terms and conditions and privacy policy.
-            </Text>
-          </View>
-
-          <View style={{ height: 125 }} />
         </ScrollView>
 
         {/* BOTTOM ACTION BAR */}
-        <View style={s.bottomActionContainer}>
-          <LinearGradient colors={['rgba(22,64,136,0.22)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <LinearGradient colors={['rgba(13,37,84,0.20)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <LinearGradient colors={['transparent', 'rgba(29,83,175,0.22)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <TouchableOpacity style={s.approveButton} onPress={approvePolicy} activeOpacity={0.8} disabled={updating}>
-            <LinearGradient colors={['#032a69', '#e2671b']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
-            <Text style={s.approveText}>{updating ? 'Updating...' : 'Approve Claim'}</Text>
-          </TouchableOpacity>
+        <BottomActions>
+          <GradientButton title={updating ? 'Updating...' : 'Approve Claim'} height={50} fontSize={17} disabled={updating} onPress={approvePolicy} />
           <View style={s.bottomButtonsRow}>
             <TouchableOpacity style={s.rejectButton} onPress={rejectPolicy} activeOpacity={0.8} disabled={updating}>
               <Text style={s.rejectText}>Reject</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={s.documentButton} onPress={updateClaimStatus} activeOpacity={0.8} disabled={updating}>
-              <LinearGradient colors={['rgba(22,64,136,0.18)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-              <Text style={s.documentButtonText}>Update Status</Text>
-            </TouchableOpacity>
+            <GlassButton title="Update Status" height={46} fontSize={15} color="#E6E1E8" style={{ flex: 1 }} onPress={() => { if (!updating) updateClaimStatus(); }} />
           </View>
-        </View>
+        </BottomActions>
 
         {/* DOCUMENT MODAL */}
         <Modal visible={documentVisible} transparent animationType="slide" onRequestClose={() => setDocumentVisible(false)}>
@@ -434,6 +352,26 @@ function TLItem({ active, current, title, date, by, last }: any) {
 }
 
 const s = StyleSheet.create({
+  coverageVal:   { color: '#FFFFFF', fontSize: 16, fontFamily: 'Poppins_600SemiBold' },
+  descTitle:     { color: '#FFFFFF', fontSize: 16, fontFamily: 'Poppins_600SemiBold', marginTop: 24, marginBottom: 12, marginHorizontal: 30 },
+  descCard:      { marginHorizontal: 16, padding: 20 },
+  descTxt:       { color: '#FFFFFF', fontSize: 15, fontFamily: 'Poppins_400Regular', lineHeight: 26 },
+  surveyCard:    { marginHorizontal: 16, marginTop: 26, padding: 20 },
+  surveyHeader:  { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  surveyTitle:   { color: '#FFFFFF', fontSize: 22, fontFamily: 'Poppins_600SemiBold' },
+  assignBtn:     { height: 42, paddingHorizontal: 20, borderRadius: 21, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
+  assignTxt:     { color: '#FFFFFF', fontSize: 14, fontFamily: 'Poppins_500Medium' },
+  surveyDivider: { height: 1, backgroundColor: 'rgba(255,255,255,0.14)', marginVertical: 14 },
+  surveyorRow:   { flexDirection: 'row', alignItems: 'center', gap: 16 },
+  surveyorName:  { color: '#FFFFFF', fontSize: 16, fontFamily: 'Poppins_600SemiBold' },
+  surveyorDate:  { color: '#FFFFFF', fontSize: 14, fontFamily: 'Poppins_400Regular' },
+  changeSurveyor:{ color: ORANGE, fontSize: 14, fontFamily: 'Poppins_500Medium', textAlign: 'center' },
+  noSurveyorTxt: { color: '#BAACB6', fontSize: 13, fontFamily: 'Poppins_400Regular' },
+  notesCard:     { marginHorizontal: 16, marginTop: 20, padding: 20 },
+  notesTitle:    { color: '#FFFFFF', fontSize: 20, fontFamily: 'Poppins_500Medium', marginBottom: 14 },
+  noteInput:     { minHeight: 110, borderRadius: 12, backgroundColor: '#262F45', padding: 14, color: '#FFFFFF', fontSize: 14, fontFamily: 'Poppins_400Regular' },
+  saveNoteTxt:   { color: ORANGE, fontSize: 14, fontFamily: 'Poppins_500Medium' },
+
   safeArea:  { flex: 1, backgroundColor: '#010A1F' },
   container: { flex: 1, backgroundColor: '#010A1F' },
 
@@ -471,25 +409,12 @@ const s = StyleSheet.create({
 
   sectionCard:   { backgroundColor: '#010A1F', borderWidth: 1, borderColor: 'rgba(36,52,82,1)', borderRadius: 14, paddingHorizontal: 16, paddingTop: 20, paddingBottom: 16, marginBottom: 16 },
   sectionTitle:  { color: C.textPrimary, fontSize: 16, fontFamily: 'Poppins_600SemiBold', marginBottom: 14 },
-  descTxt:       { color: C.textSecondary, fontSize: 13, fontFamily: 'Poppins_400Regular', lineHeight: 21 },
   descBox:       { borderWidth: 1, borderColor: 'rgba(48,58,80,1)', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 12 },
 
-  surveyCard:    { borderColor: 'rgba(59,110,180,0.55)' },
-  surveyHeader:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  surveyDivider: { height: 1, backgroundColor: 'rgba(48,58,80,1)', marginVertical: 12 },
-  assignBtn:     { height: 32, borderRadius: 16, overflow: 'hidden', paddingHorizontal: 14, justifyContent: 'center' },
-  assignTxt:     { color: '#fff', fontSize: 11, fontFamily: 'Poppins_600SemiBold' },
-  surveyorRow:   { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   surveyorLeft:  { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
   surveyorIcon:  { color: ORANGE, fontSize: 20 },
-  surveyorName:  { color: C.textPrimary, fontSize: 13, fontFamily: 'Poppins_600SemiBold' },
-  surveyorDate:  { color: C.textSecondary, fontSize: 11, fontFamily: 'Poppins_400Regular', marginTop: 2 },
-  changeSurveyor:{ color: ORANGE, fontSize: 11, fontFamily: 'Poppins_600SemiBold', textAlign: 'right', lineHeight: 16 },
-  noSurveyorTxt: { color: C.textSecondary, fontSize: 12, fontFamily: 'Poppins_400Regular' },
 
-  noteInput:     { minHeight: 90, borderRadius: 10, backgroundColor: 'rgba(38,52,80,0.6)', paddingHorizontal: 12, paddingVertical: 10, color: C.textPrimary, fontSize: 12, fontFamily: 'Poppins_400Regular', lineHeight: 18, textAlignVertical: 'top' },
   saveNoteBtn:   { alignSelf: 'flex-end', marginTop: 10 },
-  saveNoteTxt:   { color: ORANGE, fontSize: 12, fontFamily: 'Poppins_600SemiBold' },
   infoRow:       { minHeight: 42, borderBottomWidth: 1, borderBottomColor: 'rgba(48,58,80,1)', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   infoRowLast:   { borderBottomWidth: 0 },
   infoLabel:     { color: C.textPrimary, fontSize: 12, fontFamily: 'Poppins_500Medium' },
@@ -555,9 +480,9 @@ const s = StyleSheet.create({
   bottomActionContainer: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 23, paddingTop: 20, paddingBottom: 26, backgroundColor: 'rgba(3,12,40,0.65)', borderTopWidth: 1, borderTopColor: 'rgba(100,160,255,0.25)', overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: -5 }, shadowOpacity: 0.25, shadowRadius: 10, elevation: 15 },
   approveButton:   { height: 46, borderRadius: 25, justifyContent: 'center', alignItems: 'center', backgroundColor: ORANGE, marginBottom: 11 },
   approveText:     { color: '#fff', fontSize: 15, fontFamily: 'Poppins_700Bold' },
-  bottomButtonsRow:{ flexDirection: 'row', gap: 12 },
-  rejectButton:    { flex: 1, height: 42, borderRadius: 22, borderWidth: 1.5, borderColor: '#f00020', justifyContent: 'center', alignItems: 'center', backgroundColor: 'transparent' },
-  rejectText:      { color: '#ff172a', fontSize: 14, fontFamily: 'Poppins_600SemiBold' },
+  bottomButtonsRow:{ flexDirection: 'row', gap: 16 },
+  rejectButton:    { flex: 1, height: 46, borderRadius: 23, borderWidth: 1.5, borderColor: '#E0363A', justifyContent: 'center', alignItems: 'center', backgroundColor: '#050A18' },
+  rejectText:      { color: '#E0363A', fontSize: 15, fontFamily: 'Poppins_500Medium' },
   documentButton:  { flex: 1, height: 42, borderRadius: 22, borderWidth: 1, borderColor: 'rgba(99,130,183,0.8)', justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(41,70,111,0.8)' },
   documentButtonText: { color: C.textSecondary, fontSize: 14, fontFamily: 'Poppins_600SemiBold' },
 

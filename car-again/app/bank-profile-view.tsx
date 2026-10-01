@@ -32,11 +32,11 @@ function InfoRow({ icon, label, value, isLast }: {
   );
 }
 const ir = StyleSheet.create({
-  row:   { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, paddingVertical: 20 },
+  row:   { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, paddingVertical: 18 },
   border:{ borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)' },
   left:  { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  label: { color: '#cbd5e1', fontSize: 14, fontFamily: 'Poppins_400Regular' },
-  value: { color: '#fff', fontSize: 13, fontFamily: 'Poppins_500Medium', maxWidth: '55%', textAlign: 'right' },
+  label: { color: '#9A97A6', fontSize: 15, fontFamily: 'Poppins_400Regular' },
+  value: { color: '#F2F1F5', fontSize: 12.5, fontFamily: 'Poppins_400Regular', maxWidth: '55%', textAlign: 'right', lineHeight: 20 },
 });
 
 export default function BankProfileViewScreen() {
@@ -56,6 +56,7 @@ export default function BankProfileViewScreen() {
   }, [bankId]);
 
   const avatarUrl  = resolveUrl(bank?.avatar_url);
+  const coverUrl   = resolveUrl(bank?.cover_url || bank?.cover_photo_url);
   const initials   = (bank?.name || 'B').slice(0, 2).toUpperCase();
   const isIslamic  = bank?.bank_type === 'Islamic';
 
@@ -78,11 +79,15 @@ export default function BankProfileViewScreen() {
 
           {/* COVER / HEADER */}
           <View style={s.coverWrap}>
-            <LinearGradient
-              colors={['#0b1e4b', '#061B4A', '#010A1F']}
-              start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
-              style={StyleSheet.absoluteFillObject}
-            />
+            {coverUrl ? (
+              <Image source={{ uri: coverUrl }} style={StyleSheet.absoluteFillObject} resizeMode="cover" />
+            ) : (
+              <LinearGradient
+                colors={['#0b1e4b', '#061B4A', '#010A1F']}
+                start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
+                style={StyleSheet.absoluteFillObject}
+              />
+            )}
             <LinearGradient
               colors={['rgba(0,0,0,0.15)', 'rgba(0,0,0,0.55)']}
               start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
@@ -139,16 +144,16 @@ const s = StyleSheet.create({
   safe:   { flex: 1, backgroundColor: '#010A1F' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 
-  coverWrap: { height: 200, width: '100%', overflow: 'hidden' },
+  coverWrap: { height: 180, width: '100%', overflow: 'hidden' },
   backBtn:   { position: 'absolute', top: 16, left: 16, width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
 
-  profileRow:  { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 20, marginTop: -36 },
-  logoWrap:    { width: 72, height: 72, borderRadius: 36, backgroundColor: '#ffffff', borderWidth: 2, borderColor: '#010A1F', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' },
-  logoImg:     { width: 68, height: 68, borderRadius: 34 },
+  profileRow:  { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 12, marginTop: -40 },
+  logoWrap:    { width: 78, height: 78, borderRadius: 39, backgroundColor: '#ffffff', borderWidth: 2, borderColor: '#2E6B4F', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' },
+  logoImg:     { width: 74, height: 74, borderRadius: 37 },
   logoInitials:{ color: ORANGE, fontSize: 20, fontFamily: 'Poppins_700Bold' },
   nameWrap:    { paddingTop: 30, flex: 1 },
-  bankName:    { color: '#fff', fontSize: 20, fontFamily: 'Poppins_700Bold' },
-  productName: { color: '#94a3b8', fontSize: 12, fontFamily: 'Poppins_400Regular', marginTop: 3 },
+  bankName:    { color: '#F2F1F5', fontSize: 20, fontFamily: 'Poppins_500Medium' },
+  productName: { color: '#C9C6D0', fontSize: 13, fontFamily: 'Poppins_400Regular', marginTop: 6 },
 
   tagsRow:   { flexDirection: 'row', gap: 10, paddingHorizontal: 20, marginTop: 12, marginBottom: 20 },
   tag:       { borderRadius: 20, paddingHorizontal: 12, paddingVertical: 4 },
@@ -159,10 +164,10 @@ const s = StyleSheet.create({
   sectionTitle: { color: '#fff', fontSize: 15, fontFamily: 'Poppins_600SemiBold', paddingHorizontal: 20, marginBottom: 10 },
 
   card: {
-    marginHorizontal: 20, borderRadius: 20, marginBottom: 20,
-    marginTop: 28, minHeight: 280,
+    marginHorizontal: 6, borderRadius: 16, marginBottom: 20,
+    marginTop: 18,
     borderWidth: 1, borderColor: 'rgba(255,255,255,0.14)',
     backgroundColor: '#010A1F',
-    paddingHorizontal: 20, paddingVertical: 10, overflow: 'hidden',
+    paddingHorizontal: 8, paddingVertical: 4, overflow: 'hidden',
   },
 });

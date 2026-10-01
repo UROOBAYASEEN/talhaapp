@@ -14,7 +14,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Search, ArrowDownUp, ChevronRight, Check } from 'lucide-react-native';
+import { ChevronRight, Check } from 'lucide-react-native';
+import { D, DHeader, FilterPills, GlowCard, SearchBar } from '@/components/dealer/DealerUI';
 import { AppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
@@ -23,7 +24,7 @@ import { useRouter } from 'expo-router';
 const ORANGE = '#e2671b';
 const C = AppColors;
 
-const FILTERS = ['All', 'Insurance', 'Insurance + Tracker'];
+const FILTERS = ['All', 'Insurance', 'Insurance + Tracker'] as const;
 
 const SORT_OPTIONS = [
   { key: 'name_asc',     label: 'Name (A → Z)' },
@@ -92,10 +93,7 @@ function applySortKey(list: any[], key: string) {
 function PolicyCard({ policy }: { policy: any }) {
   const router = useRouter();
   return (
-    <View style={pc.card}>
-      <LinearGradient colors={['rgba(22,64,136,0.5)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-      <LinearGradient colors={['rgba(13,37,84,0.5)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-      <LinearGradient colors={['transparent', 'rgba(29,83,175,0.5)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+    <GlowCard style={pc.card} radius={22}>
 
       <View style={pc.topRow}>
         <TouchableOpacity
@@ -119,9 +117,10 @@ function PolicyCard({ policy }: { policy: any }) {
             </View>
           ) : null}
         </TouchableOpacity>
-        <View style={[pc.statusBadge, { backgroundColor: policy.statusColor }]}>
-          <View style={pc.statusDot} />
-          <Text style={pc.statusTxt}>{policy.status}</Text>
+        {/* Figma: approved/active = warm brown pill with orange text, others = navy pill with white text */}
+        <View style={[pc.statusBadge, policy.status === 'Approved' || policy.status === 'Active' ? pc.statusWarm : pc.statusNavy]}>
+          <View style={[pc.statusDot, (policy.status === 'Approved' || policy.status === 'Active') && { backgroundColor: ORANGE }]} />
+          <Text style={[pc.statusTxt, (policy.status === 'Approved' || policy.status === 'Active') && { color: ORANGE }]}>{policy.status}</Text>
         </View>
       </View>
 
@@ -133,7 +132,7 @@ function PolicyCard({ policy }: { policy: any }) {
         </View>
         <View style={{ alignItems: 'flex-end', flexShrink: 0 }}>
           <Text style={pc.fieldLabel}>PREMIUM</Text>
-          <Text style={[pc.fieldValue, { color: ORANGE }]}>{policy.premium}</Text>
+          <Text style={[pc.fieldValue, { color: ORANGE, fontSize: 20, fontFamily: 'Poppins_600SemiBold' }]}>{policy.premium}</Text>
           <Text style={[pc.fieldLabel, { marginTop: 2, color: '#9fb0cc', fontSize: 9 }]}>Price: {policy.price}</Text>
         </View>
       </View>
@@ -144,30 +143,32 @@ function PolicyCard({ policy }: { policy: any }) {
         <Text style={pc.expires}>Expires: {policy.expires}</Text>
         <TouchableOpacity style={pc.viewBtn} onPress={() => router.push({ pathname: '/insurance-application-detail' as any, params: { id: policy.id } })}>
           <Text style={pc.viewTxt}>View Details</Text>
-          <ChevronRight size={14} color={ORANGE} />
+          <ChevronRight size={16} color={ORANGE} />
         </TouchableOpacity>
       </View>
-    </View>
+    </GlowCard>
   );
 }
 
 const pc = StyleSheet.create({
-  card:        { borderRadius: 16, overflow: 'hidden', padding: 14, marginBottom: 14, borderWidth: 1, borderColor: 'rgba(100,160,255,0.5)', backgroundColor: 'rgba(1,6,20,1)' },
-  topRow:      { flexDirection: 'row', alignItems: 'center', marginBottom: 14 },
-  avatar:      { width: 44, height: 44, borderRadius: 22, backgroundColor: '#1a2a4a' },
-  name:        { fontSize: 15, fontFamily: 'Poppins_600SemiBold', color: C.textPrimary },
-  policyId:    { fontSize: 11, fontFamily: 'Poppins_400Regular', color: '#8f9cb5', marginTop: 1 },
-  statusBadge: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20 },
+  card:        { padding: 18, paddingTop: 20, marginBottom: 16 },
+  topRow:      { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 14 },
+  avatar:      { width: 70, height: 70, borderRadius: 35, backgroundColor: '#1a2a4a' },
+  name:        { fontSize: 20, fontFamily: 'Poppins_500Medium', color: '#FFFFFF', marginTop: 4 },
+  policyId:    { fontSize: 13, fontFamily: 'Poppins_400Regular', color: '#FFFFFF', marginTop: 1 },
+  statusBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 5, borderRadius: 16 },
+  statusWarm:  { backgroundColor: '#3A2420' },
+  statusNavy:  { backgroundColor: '#0B2A66' },
   statusDot:   { width: 6, height: 6, borderRadius: 3, backgroundColor: '#fff' },
-  statusTxt:   { fontSize: 11, fontFamily: 'Poppins_600SemiBold', color: '#fff' },
+  statusTxt:   { fontSize: 14, fontFamily: 'Poppins_400Regular', color: '#fff' },
   midRow:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 },
-  fieldLabel:  { fontSize: 10, fontFamily: 'Poppins_400Regular', color: '#8f9cb5', letterSpacing: 0.8, marginBottom: 3 },
-  fieldValue:  { fontSize: 14, fontFamily: 'Poppins_600SemiBold', color: C.textPrimary },
-  divider:     { height: 1, backgroundColor: 'rgba(255,255,255,0.08)', marginBottom: 12 },
+  fieldLabel:  { fontSize: 12, fontFamily: 'Poppins_400Regular', color: '#C9BDC4', letterSpacing: 0.8, marginBottom: 1 },
+  fieldValue:  { fontSize: 14, fontFamily: 'Poppins_500Medium', color: '#FFFFFF' },
+  divider:     { height: 1, backgroundColor: 'rgba(255,255,255,0.14)', marginBottom: 12 },
   footer:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  expires:     { fontSize: 12, fontFamily: 'Poppins_400Regular', color: '#9fb0cc' },
+  expires:     { fontSize: 13, fontFamily: 'Poppins_500Medium', color: '#FFFFFF' },
   viewBtn:     { flexDirection: 'row', alignItems: 'center', gap: 2 },
-  viewTxt:     { fontSize: 12, fontFamily: 'Poppins_600SemiBold', color: ORANGE },
+  viewTxt:     { fontSize: 13, fontFamily: 'Poppins_400Regular', color: ORANGE },
 });
 
 export default function InsurancePoliciesScreen() {
@@ -191,7 +192,7 @@ export default function InsurancePoliciesScreen() {
   }, [token]);
 
   useEffect(() => { fetchPolicies(); }, [fetchPolicies]);
-  const [activeFilter, setFilter] = useState('All');
+  const [activeFilter, setFilter] = useState<typeof FILTERS[number]>('All');
   const [search, setSearch]       = useState('');
   const [sortKey, setSortKey]     = useState('');
   const [sortModal, setSortModal] = useState(false);
@@ -212,31 +213,13 @@ export default function InsurancePoliciesScreen() {
   return (
     <View style={s.root}>
       <SafeAreaView edges={['top']}>
-        <View style={s.header}>
-          <Text style={s.title}>Policy Applications</Text>
-        </View>
+        <DHeader title="Policy Applications" />
 
         <View style={s.searchRow}>
-          <View style={s.searchBox}>
-            <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <Search size={16} color="#8f9cb5" />
-            <TextInput style={s.searchInput} placeholder="Search by name, vehicle or ID..." placeholderTextColor="#8f9cb5" value={search} onChangeText={setSearch} />
-          </View>
-          <TouchableOpacity style={s.sortBtn} onPress={() => setSortModal(true)}>
-            <ArrowDownUp size={15} color={sortKey ? ORANGE : '#8f9cb5'} />
-            <Text style={[s.sortTxt, { color: sortKey ? ORANGE : '#8f9cb5' }]}>Sort</Text>
-          </TouchableOpacity>
+          <SearchBar placeholder="Search by name, vehicle or ID..." value={search} onChangeText={setSearch} onSort={() => setSortModal(true)} />
         </View>
 
-        <View style={s.filterRow}>
-          {FILTERS.map(f => (
-            <TouchableOpacity key={f} style={[s.chip, activeFilter === f && s.chipActive]} onPress={() => setFilter(f)}>
-              <Text style={[s.chipTxt, activeFilter === f && s.chipTxtActive]}>{f}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+        <FilterPills items={FILTERS} value={activeFilter} onChange={setFilter} labels={{ 'Insurance + Tracker': 'Insurance  + Tracker' }} style={s.filterRow} />
       </SafeAreaView>
 
       {loading ? (
@@ -285,19 +268,9 @@ export default function InsurancePoliciesScreen() {
 }
 
 const s = StyleSheet.create({
-  root:         { flex: 1, backgroundColor: C.bg },
-  header:       { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 },
-  title:        { fontSize: 18, fontFamily: 'Poppins_600SemiBold', color: C.textPrimary },
-  searchRow:    { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, marginBottom: 12 },
-  searchBox:    { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 30, paddingHorizontal: 14, paddingVertical: 11, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(100,160,255,0.5)', backgroundColor: C.bg },
-  searchInput:  { flex: 1, fontSize: 13, fontFamily: 'Poppins_400Regular', color: C.textPrimary, padding: 0 },
-  sortBtn:      { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  sortTxt:      { fontSize: 13, fontFamily: 'Poppins_600SemiBold' },
-  filterRow:    { flexDirection: 'row', gap: 8, paddingHorizontal: 16, marginBottom: 14 },
-  chip:         { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 30, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.12)', backgroundColor: 'rgba(6,27,74,1)' },
-  chipActive:   { borderColor: ORANGE },
-  chipTxt:      { fontSize: 12, fontFamily: 'Poppins_500Medium', color: '#c3cee2' },
-  chipTxtActive:{ color: ORANGE },
+  root:         { flex: 1, backgroundColor: D.bg },
+  searchRow:    { paddingHorizontal: 16, marginBottom: 18 },
+  filterRow:    { paddingHorizontal: 16, marginBottom: 20 },
   list:         { paddingHorizontal: 16, paddingBottom: 100 },
   center:       { flex: 1, alignItems: 'center', justifyContent: 'center' },
   empty:        { alignItems: 'center', paddingTop: 80 },

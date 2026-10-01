@@ -1,33 +1,40 @@
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import LinearButton from '@/components/auth/LinearButton';
-import { useAppColors } from '@/constants/theme';
+import AuthGlowBackground from '@/components/auth/AuthGlowBackground';
+import { GradientButton, ScreenHeader } from '@/components/shared/GlowUI';
 
 export default function PasswordUpdatedScreen() {
   const router = useRouter();
-  const C = useAppColors();
+  const toLogin = () => router.replace('/(auth)/login');
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: C.bg }]}>
-      <View style={styles.content}>
-        <Text style={styles.emoji}>🎉</Text>
-        <Text style={[styles.title, { color: C.textPrimary }]}>Password Updated Successfully!</Text>
-        <LinearButton title="Back to Login" onPress={() => router.replace('/(auth)/login')} />
-      </View>
-    </SafeAreaView>
+    <AuthGlowBackground>
+      <SafeAreaView style={styles.safe}>
+        <ScreenHeader logo onBack={toLogin} />
+        <View style={styles.content}>
+          <Image source={require('@/assets/images/successful.png')} style={styles.emoji} resizeMode="contain" />
+          <Text style={styles.title}>{'Password Updated\nSuccessfully!'}</Text>
+        </View>
+        <View style={styles.btnFixed}>
+          <GradientButton title="Back to login" height={50} fontSize={17} onPress={toLogin} />
+        </View>
+      </SafeAreaView>
+    </AuthGlowBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, paddingHorizontal: 20 },
-  content: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 20, paddingHorizontal: 20 },
-  emoji: { fontSize: 56 },
+  safe: { flex: 1 },
+  content: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 14, paddingHorizontal: 20, paddingBottom: 40 },
+  emoji: { width: 84, height: 84 },
   title: {
+    color: '#FFFFFF',
     fontSize: 20,
     fontFamily: 'Poppins_600SemiBold',
     textAlign: 'center',
     lineHeight: 30,
   },
+  btnFixed: { paddingHorizontal: 16, paddingBottom: 20 },
 });

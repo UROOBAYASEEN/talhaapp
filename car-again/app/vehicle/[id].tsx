@@ -3,13 +3,15 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  ActivityIndicator, Alert, Dimensions, FlatList,
-  Image, ScrollView, StyleSheet, Text, Linking,
+  ActivityIndicator, Alert, Dimensions, FlatList, Modal,
+  Image, ScrollView, StyleSheet, Text, TextInput, Linking,
   TouchableOpacity, View, SafeAreaView, StatusBar,
 } from 'react-native';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAppColors } from '@/constants/theme';
+import FacebookIcon from '@/assets/Icons/facebook.png';
+import BankIcon from '@/assets/images/hugeicons_bank.png';
 
 const { width: W } = Dimensions.get('window');
 const ORANGE  = '#e2671b';
@@ -41,6 +43,12 @@ export default function VehicleDetailScreen() {
   const [expanded,     setExpanded]     = useState<Record<string, boolean>>({});
   const [avatarError,  setAvatarError]  = useState(false);
   const [sellerAvatar, setSellerAvatar] = useState<string | null>(null);
+  const [compareSheet, setCompareSheet] = useState(false);
+  const [variantLoading, setVariantLoading] = useState(false);
+  const [variantSearch, setVariantSearch] = useState('');
+  const [variantOptions, setVariantOptions] = useState<any[]>([]);
+  const [secondVehicle, setSecondVehicle] = useState<any>(null);
+  const [comparePreviewShown, setComparePreviewShown] = useState(false);
   const flatRef = useRef<FlatList>(null);
 
   useEffect(() => { if (id) load(); }, [id]);
@@ -61,6 +69,43 @@ export default function VehicleDetailScreen() {
     } catch { /* offline */ }
     finally { setLoading(false); }
   }
+
+  useEffect(() => {
+    if (!vehicle || comparePreviewShown) return;
+
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const q = new URLSearchParams({ category: vehicle?.category || 'car', limit: '50' });
+        if (vehicle?.make) q.set('make', vehicle.make);
+        if (vehicle?.model) q.set('model', vehicle.model);
+
+        const res = await fetch(`${API_BASE}/vehicles?${q.toString()}`);
+        if (!res.ok || cancelled) return;
+
+        const data = await res.json();
+        const items = data.items || data || [];
+        if (cancelled) return;
+
+        setVariantOptions(items);
+
+        // Current API vehicle remains the first/default selection.
+        // Pick the first different API variant only for this automatic sheet preview.
+        const second = items.find((v: any) => String(v.id) !== String(vehicle.id));
+        if (second) {
+          // Lock: once a second variant is selected it is never replaced.
+          setSecondVehicle((prev: any) => prev ?? second);
+          setComparePreviewShown(true);
+          setCompareSheet(true);
+        }
+      } catch {
+        // Keep normal compare flow unchanged if preview data is unavailable.
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [vehicle, comparePreviewShown]);
 
   async function handlePublish() {
     if (!token) return;
@@ -170,6 +215,30 @@ export default function VehicleDetailScreen() {
 
   function toggleSection(key: string) {
     setExpanded(prev => ({ ...prev, [key]: !prev[key] }));
+  }
+
+  async function openCompareSheet() {
+    setCompareSheet(true);
+    setVariantSearch('');
+    setVariantLoading(true);
+    try {
+      const q = new URLSearchParams({ category: vehicle?.category || 'car', limit: '50' });
+      if (vehicle?.make) q.set('make', vehicle.make);
+      if (vehicle?.model) q.set('model', vehicle.model);
+      const res = await fetch(`${API_BASE}/vehicles?${q.toString()}`);
+      if (res.ok) {
+        const data = await res.json();
+        const items = data.items || data || [];
+        setVariantOptions(items);
+      } else setVariantOptions([]);
+    } catch { setVariantOptions([]); }
+    finally { setVariantLoading(false); }
+  }
+
+  function goToVariantCompare() {
+    if (!secondVehicle) { Alert.alert('Select Variant', 'Please select a second variant to compare.'); return; }
+    setCompareSheet(false);
+    router.push({ pathname: '/compare-result' as any, params: { aId: String(vehicle.id), bId: String(secondVehicle.id) } });
   }
 
   function handleCall() {
@@ -309,7 +378,7 @@ export default function VehicleDetailScreen() {
                 <Ionicons name="share-social-outline" size={20} color={ORANGE} />
               </TouchableOpacity>
               <TouchableOpacity onPress={handleSaveAndFavorite}>
-                <Ionicons name={saved ? 'heart' : 'heart-outline'} size={22} color={saved ? '#ff4d6d' : ORANGE} />
+                <Ionicons name={saved ? 'heart' : 'heart-outline'} size={22} color={ORANGE} />
               </TouchableOpacity>
             </View>
           </View>
@@ -358,10 +427,93 @@ export default function VehicleDetailScreen() {
               <Text style={[styles.detailValue, { color: aC.isDark ? WHITE : '#010a1f' }]}>{r.value}</Text>
             </View>
           ))}
+
+          <View style={styles.compareVariantSection}>
+            <Text style={[styles.compareVariantHeading, { color: aC.isDark ? WHITE : '#010a1f' }]}>Compare Variant</Text>
+
+            <View style={styles.compareVariantRow}>
+              {/* Current model — always selected by default */}
+              <View style={styles.savedEffectOuter}>
+              <View style={[styles.compareVariantSlot, styles.savedEffectInner, styles.compareVariantSlotSelected, {
+                backgroundColor: aC.isDark ? '#010A1F' : '#ffffff',
+                borderColor: aC.isDark ? '#82a5d5' : 'rgba(3,42,105,0.12)'
+              }]}>
+                {aC.isDark && (
+                  <>
+                    <LinearGradient
+                      colors={['#16408880', 'transparent', 'transparent', '#16408880']}
+                      locations={[0, 0.08, 0.92, 1]}
+                      style={StyleSheet.absoluteFillObject}
+                      pointerEvents="none"
+                    />
+                    <LinearGradient
+                      colors={['#16408880', 'transparent', 'transparent', '#16408880']}
+                      locations={[0, 0.05, 0.95, 1]}
+                      start={{ x: 0, y: 0.5 }}
+                      end={{ x: 1, y: 0.5 }}
+                      style={StyleSheet.absoluteFillObject}
+                      pointerEvents="none"
+                    />
+                  </>
+                )}
+                <View style={styles.compareSlotTop}>
+                  <Text style={[styles.compareSlotLabel, { color: aC.isDark ? MUTED : '#64748b' }]}>Current Model</Text>
+                  <View style={styles.compareSelectedTick}><Ionicons name="checkmark" size={12} color="#fff" /></View>
+                </View>
+                <Text style={[styles.compareSlotTitle, { color: aC.isDark ? WHITE : '#010a1f' }]} numberOfLines={1}>
+                  {vehicle.variant || vehicle.title || `${vehicle.make || ''} ${vehicle.model || ''}`}
+                </Text>
+              </View>
+              </View>
+
+              {/* Second option — selecting this opens the exact selection bottom sheet */}
+              <View style={secondVehicle ? styles.savedEffectOuter : undefined}>
+              <TouchableOpacity
+                style={[styles.compareVariantSlot, secondVehicle && styles.savedEffectInner, secondVehicle && styles.compareVariantSlotSelected, {
+                  backgroundColor: aC.isDark ? '#010A1F' : '#ffffff',
+                  borderColor: secondVehicle
+                    ? (aC.isDark ? '#82a5d5' : 'rgba(3,42,105,0.12)')
+                    : (aC.isDark ? '#08245C' : 'rgba(3,42,105,0.12)')
+                }]}
+                onPress={openCompareSheet}
+                activeOpacity={0.86}
+              >
+                {aC.isDark && secondVehicle && (
+                  <>
+                    <LinearGradient
+                      colors={['#16408880', 'transparent', 'transparent', '#16408880']}
+                      locations={[0, 0.08, 0.92, 1]}
+                      style={StyleSheet.absoluteFillObject}
+                      pointerEvents="none"
+                    />
+                    <LinearGradient
+                      colors={['#16408880', 'transparent', 'transparent', '#16408880']}
+                      locations={[0, 0.05, 0.95, 1]}
+                      start={{ x: 0, y: 0.5 }}
+                      end={{ x: 1, y: 0.5 }}
+                      style={StyleSheet.absoluteFillObject}
+                      pointerEvents="none"
+                    />
+                  </>
+                )}
+                <View style={styles.compareSlotTop}>
+                  <Text style={[styles.compareSlotLabel, { color: aC.isDark ? MUTED : '#64748b' }]}>Second Variant</Text>
+                  {secondVehicle
+                    ? <View style={styles.compareSelectedTick}><Ionicons name="checkmark" size={12} color="#fff" /></View>
+                    : <Ionicons name="add-circle-outline" size={17} color={ORANGE} />
+                  }
+                </View>
+                <Text style={[styles.compareSlotTitle, { color: secondVehicle ? (aC.isDark ? WHITE : '#010a1f') : (aC.isDark ? '#929DB1' : '#94a3b8') }]} numberOfLines={1}>
+                  {secondVehicle?.variant || secondVehicle?.title || 'Select Variant'}
+                </Text>
+              </TouchableOpacity>
+              </View>
+            </View>
+          </View>
         </View>
 
         {/* ── Features ── */}
-        <View style={[styles.section, { backgroundColor: aC.isDark ? DARK_BG : '#ffffff', borderTopWidth: aC.isDark ? 0 : 1, borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.06)', shadowOpacity: aC.isDark ? 0 : 0.05, elevation: aC.isDark ? 0 : 1 }]}>
+        <View style={[styles.section, { backgroundColor: aC.isDark ? aC.bg : '#ffffff', borderTopWidth: aC.isDark ? 0 : 1, borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.06)', shadowOpacity: aC.isDark ? 0 : 0.05, elevation: aC.isDark ? 0 : 1 }]}>
           {comfortF.length > 0 && comfortF.map((f: string, i: number) => (
             <View key={i} style={styles.featureSimpleRow}>
               <View style={[styles.featureIconBox, { backgroundColor: aC.isDark ? NAVY2 : '#eef2ff' }]}>
@@ -400,7 +552,7 @@ export default function VehicleDetailScreen() {
         </View>
 
         {/* ── Seller Detail ── */}
-        <View style={[styles.sellerSection, { backgroundColor: aC.isDark ? DARK_BG : '#ffffff', borderTopWidth: aC.isDark ? 0 : 1, borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.06)', shadowOpacity: aC.isDark ? 0 : 0.05, elevation: aC.isDark ? 0 : 1 }]}>
+        <View style={[styles.sellerSection, { backgroundColor: aC.isDark ? aC.bg : '#ffffff', borderTopWidth: aC.isDark ? 0 : 1, borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.06)', shadowOpacity: aC.isDark ? 0 : 0.05, elevation: aC.isDark ? 0 : 1 }]}>
           <Text style={[styles.sectionTitle, { color: aC.isDark ? WHITE : '#010a1f' }]}>Seller Detail</Text>
           <View style={styles.sellerRow}>
             <View style={{ flex: 1 }}>
@@ -420,6 +572,9 @@ export default function VehicleDetailScreen() {
                   Linking.openURL(`mailto:${email}`);
                 }}>
                   <Ionicons name="mail-outline" size={22} color={ORANGE} />
+                </TouchableOpacity>
+                <TouchableOpacity>
+                  <Image source={FacebookIcon} style={styles.facebookIcon} resizeMode="contain" />
                 </TouchableOpacity>
               </View>
             </View>
@@ -466,7 +621,7 @@ export default function VehicleDetailScreen() {
         </View>
 
         {/* ── Recommendation ── */}
-        <View style={[styles.recSection, { backgroundColor: aC.isDark ? DARK_BG : '#ffffff', borderTopWidth: aC.isDark ? 0 : 1, borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)' }]}>
+        <View style={[styles.recSection, { backgroundColor: aC.isDark ? aC.bg : '#ffffff', borderTopWidth: aC.isDark ? 0 : 1, borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)' }]}>
           <Text style={[styles.sectionTitle, { color: aC.isDark ? WHITE : '#010a1f' }]}>Recommendation</Text>
           {[
             { icon: 'business-outline',         text: 'Apply for Vehicle Financing' },
@@ -475,23 +630,39 @@ export default function VehicleDetailScreen() {
           ].map((r, i) => (
             <TouchableOpacity key={i} activeOpacity={0.85} style={aC.isDark ? {} : { borderRadius: 14, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(3,42,105,0.12)', backgroundColor: '#ffffff', shadowColor: 'rgba(3,42,105,0.06)', shadowOpacity: 0.05, elevation: 1, marginBottom: 10 }}>
               {aC.isDark ? (
-                <LinearGradient
-                  colors={['#09275c', '#071c43', '#08295d']}
-                  start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                  style={styles.recBtn}
-                >
+                <View style={[styles.recBtn, styles.recBtnSavedEffect]}>
+                  <LinearGradient
+                    colors={['#163565', '#061124', '#061124', '#0D2146']}
+                    locations={[0, 0.24, 0.76, 1]}
+                    style={StyleSheet.absoluteFillObject}
+                    pointerEvents="none"
+                  />
+                  <LinearGradient
+                    colors={['#24518F8F', '#16356552', 'transparent', 'transparent', '#16356552', '#24518F8F']}
+                    locations={[0, 0.025, 0.075, 0.925, 0.975, 1]}
+                    start={{ x: 0, y: 0.5 }}
+                    end={{ x: 1, y: 0.5 }}
+                    style={[StyleSheet.absoluteFillObject, { borderRadius: 32 }]}
+                    pointerEvents="none"
+                  />
                   <View style={styles.recIconWrap}>
-                    <Ionicons name={r.icon as any} size={20} color={ORANGE} />
+                    {i === 0
+                      ? <Image source={BankIcon} style={styles.bankIcon} resizeMode="contain" />
+                      : <Ionicons name={r.icon as any} size={20} color={ORANGE} />
+                    }
                   </View>
                   <Text style={styles.recTxt}>{r.text}</Text>
                   <Ionicons name="chevron-forward" size={20} color={ORANGE} />
-                </LinearGradient>
+                </View>
               ) : (
                 <View style={[styles.recBtn, { backgroundColor: '#ffffff' }]}>
                   <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
                   <LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
                   <View style={[styles.recIconWrap, { backgroundColor: '#eef2ff' }]}>
-                    <Ionicons name={r.icon as any} size={20} color={ORANGE} />
+                    {i === 0
+                      ? <Image source={BankIcon} style={styles.bankIcon} resizeMode="contain" />
+                      : <Ionicons name={r.icon as any} size={20} color={ORANGE} />
+                    }
                   </View>
                   <Text style={[styles.recTxt, { color: '#010a1f' }]}>{r.text}</Text>
                   <Ionicons name="chevron-forward" size={20} color={ORANGE} />
@@ -547,6 +718,127 @@ export default function VehicleDetailScreen() {
           </TouchableOpacity>
         </View>
       </View>
+
+      <Modal visible={compareSheet && !!secondVehicle} transparent animationType="slide" onRequestClose={() => setCompareSheet(false)}>
+        <View style={styles.sheetOverlay}>
+          <TouchableOpacity style={StyleSheet.absoluteFillObject} activeOpacity={1} onPress={() => setCompareSheet(false)} />
+
+          <View style={styles.compareSheetOuter}>
+          <View style={[styles.compareSheet, {
+            backgroundColor: aC.isDark ? '#010A1F' : '#ffffff',
+            borderColor: aC.isDark ? '#82a5d5' : 'rgba(3,42,105,0.12)'
+          }]}>
+            {/* Saved.tsx Vehicle Card effect on bottom-sheet background */}
+            {aC.isDark && (
+              <>
+                <LinearGradient
+                  colors={['#16408880', 'transparent', 'transparent', '#16408880']}
+                  locations={[0, 0.08, 0.92, 1]}
+                  style={StyleSheet.absoluteFillObject}
+                  pointerEvents="none"
+                />
+                <LinearGradient
+                  colors={['#16408880', 'transparent', 'transparent', '#16408880']}
+                  locations={[0, 0.05, 0.95, 1]}
+                  start={{ x: 0, y: 0.5 }}
+                  end={{ x: 1, y: 0.5 }}
+                  style={StyleSheet.absoluteFillObject}
+                  pointerEvents="none"
+                />
+              </>
+            )}
+
+            <View style={styles.sheetHandle} />
+
+            <View style={styles.sheetHeader}>
+              <Text style={[styles.sheetTitle, { color: aC.isDark ? WHITE : '#010a1f' }]}>Selected Cars</Text>
+              <TouchableOpacity style={styles.sheetClose} onPress={() => setCompareSheet(false)}>
+                <Ionicons name="close" size={20} color={aC.isDark ? WHITE : '#010a1f'} />
+              </TouchableOpacity>
+            </View>
+
+            {/* FIRST CAR — current/default vehicle, permanently selected */}
+            <View style={styles.savedEffectOuter}>
+            <View style={[styles.selectedCarCard, styles.savedEffectInner, {
+              backgroundColor: aC.isDark ? '#010A1F' : '#f8fafc',
+              borderColor: aC.isDark ? '#82a5d5' : 'rgba(3,42,105,0.12)'
+            }]}>
+              {aC.isDark && (
+                <>
+                  <LinearGradient colors={['#16408880', 'transparent', 'transparent', '#16408880']} locations={[0, 0.08, 0.92, 1]} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+                  <LinearGradient colors={['#16408880', 'transparent', 'transparent', '#16408880']} locations={[0, 0.05, 0.95, 1]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+                </>
+              )}
+
+              {vehicle.images?.[0]
+                ? <Image source={{ uri: vehicle.images[0] }} style={styles.sheetCarImage} resizeMode="cover" />
+                : <View style={[styles.sheetCarImage, styles.sheetImagePlaceholder]}><Ionicons name="car-outline" size={28} color={ORANGE} /></View>
+              }
+
+              <View style={{ flex: 1 }}>
+                <Text style={styles.sheetCarIndex}>First Car</Text>
+                <Text style={[styles.sheetCarTitle, { color: aC.isDark ? WHITE : '#010a1f' }]} numberOfLines={1}>
+                  {vehicle.title || `${vehicle.make || ''} ${vehicle.model || ''}`}
+                </Text>
+                <Text style={styles.sheetVariant}>{vehicle.variant || 'Current Variant'}</Text>
+                <Text style={[styles.sheetMeta, { color: aC.isDark ? MUTED : '#64748b' }]}>
+                  {vehicle.year || '—'} • {vehicle.transmission || '—'} • {vehicle.fuel_type || '—'}
+                </Text>
+              </View>
+
+              <View style={styles.selectedTick}><Ionicons name="checkmark" size={14} color="#fff" /></View>
+            </View>
+            </View>
+
+            {/* SECOND CAR — the variant the user just clicked */}
+            {secondVehicle && (
+              <View style={[styles.savedEffectOuter, styles.secondSelectedCarCard]}>
+              <View style={[styles.selectedCarCard, styles.savedEffectInner, {
+                backgroundColor: aC.isDark ? '#010A1F' : '#f8fafc',
+                borderColor: aC.isDark ? '#82a5d5' : 'rgba(3,42,105,0.12)'
+              }]}>
+                {aC.isDark && (
+                  <>
+                    <LinearGradient colors={['#16408880', 'transparent', 'transparent', '#16408880']} locations={[0, 0.08, 0.92, 1]} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+                    <LinearGradient colors={['#16408880', 'transparent', 'transparent', '#16408880']} locations={[0, 0.05, 0.95, 1]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+                  </>
+                )}
+
+                {secondVehicle.images?.[0]
+                  ? <Image source={{ uri: secondVehicle.images[0] }} style={styles.sheetCarImage} resizeMode="cover" />
+                  : <View style={[styles.sheetCarImage, styles.sheetImagePlaceholder]}><Ionicons name="car-outline" size={28} color={ORANGE} /></View>
+                }
+
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.sheetCarIndex}>Second Car</Text>
+                  <Text style={[styles.sheetCarTitle, { color: aC.isDark ? WHITE : '#010a1f' }]} numberOfLines={1}>
+                    {secondVehicle.title || `${secondVehicle.make || ''} ${secondVehicle.model || ''}`}
+                  </Text>
+                  <Text style={styles.sheetVariant}>{secondVehicle.variant || 'Selected Variant'}</Text>
+                  <Text style={[styles.sheetMeta, { color: aC.isDark ? MUTED : '#64748b' }]}>
+                    {secondVehicle.year || '—'} • {secondVehicle.transmission || '—'} • {secondVehicle.fuel_type || '—'}
+                  </Text>
+                </View>
+
+                <View style={styles.selectedTick}><Ionicons name="checkmark" size={14} color="#fff" /></View>
+              </View>
+              </View>
+            )}
+
+            <TouchableOpacity
+              disabled={!secondVehicle}
+              style={[styles.sheetCompareBtn, !secondVehicle && { opacity: 0.45 }]}
+              onPress={goToVariantCompare}
+              activeOpacity={0.88}
+            >
+              <LinearGradient colors={['#073C8E', '#F46A19']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+              <Text style={styles.sheetCompareTxt}>Compare your Vehicle</Text>
+              <Ionicons name="arrow-forward" size={18} color="#fff" />
+            </TouchableOpacity>
+          </View>
+          </View>
+        </View>
+      </Modal>
 
     </SafeAreaView>
   );
@@ -612,6 +904,7 @@ const styles = StyleSheet.create({
   sellerName:    { color: WHITE, fontSize: 15, fontFamily: 'Poppins_600SemiBold' },
   memberTxt:     { color: MUTED, fontSize: 12, fontFamily: 'Poppins_400Regular', marginTop: 2 },
   socialRow:     { flexDirection: 'row', gap: 14, marginTop: 10 },
+  facebookIcon:   { width: 24, height: 24, tintColor: ORANGE },
 
   profileWrap:   { position: 'relative', width: 64, height: 64 },
   profileAvatar: { width: 64, height: 64, borderRadius: 32, backgroundColor: NAVY2, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
@@ -622,14 +915,114 @@ const styles = StyleSheet.create({
 
   recSection: { backgroundColor: DARK_BG, paddingHorizontal: 20, paddingVertical: 16, marginTop: 8 },
   recBtn:     { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 14, paddingHorizontal: 16, paddingVertical: 14, marginBottom: 10 },
+  recBtnSavedEffect: { backgroundColor: '#061124', borderWidth: 1, borderColor: '#829fd0', borderRadius: 32, overflow: 'hidden' },
   recIconWrap:{ width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center' },
+  bankIcon:    { width: 22, height: 22, tintColor: ORANGE },
   recTxt:     { flex: 1, color: WHITE, fontSize: 13, fontFamily: 'Poppins_500Medium' },
 
-  reportBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, justifyContent: 'center', paddingVertical: 16 },
+  reportBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, justifyContent: 'center', paddingTop: 6, paddingBottom: 16 },
   reportTxt: { color: MUTED, fontSize: 13, fontFamily: 'Poppins_400Regular' },
 
   publishBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 52, marginHorizontal: 20, marginBottom: 8, borderRadius: 26, overflow: 'hidden' },
   publishTxt: { color: WHITE, fontSize: 15, fontFamily: 'Poppins_700Bold' },
+
+  compareVariantBtn: { height: 48, marginTop: 16, marginBottom: 10, borderRadius: 24, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  compareVariantTxt: { color: '#fff', fontSize: 14, fontFamily: 'Poppins_600SemiBold' },
+  compareVariantSection: { marginTop: 18, marginBottom: 10 },
+  compareVariantHeading: { fontSize: 15, fontFamily: 'Poppins_600SemiBold', marginBottom: 10 },
+  compareVariantRow: { flexDirection: 'row', gap: 10 },
+  savedEffectOuter: {
+    borderRadius: 20,
+    backgroundColor: '#010A1F',
+    borderWidth: 1,
+    borderColor: '#82a5d5',
+    shadowColor: '#638ed0',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.15,
+    shadowRadius: 5,
+    elevation: 2,
+  },
+  savedEffectInner: {
+    borderRadius: 18,
+    overflow: 'hidden',
+    backgroundColor: '#010A1F',
+  },
+  compareVariantSlot: {
+    flex: 1, minHeight: 74, borderWidth: 1, borderRadius: 20,
+    paddingHorizontal: 11, paddingVertical: 10, overflow: 'hidden',
+    backgroundColor: '#010A1F',
+    borderColor: '#82a5d5',
+  },
+  compareVariantSlotSelected: {
+    shadowColor: '#638ed0', shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.15, shadowRadius: 5, elevation: 2,
+  },
+  compareSlotTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
+  compareSlotLabel: { fontSize: 9.5, fontFamily: 'Poppins_400Regular' },
+  compareSlotTitle: { fontSize: 11.5, fontFamily: 'Poppins_600SemiBold' },
+  compareSelectedTick: { width: 18, height: 18, borderRadius: 9, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' },
+  sheetOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.62)', justifyContent: 'flex-end' },
+  compareSheetOuter: {
+    maxHeight: '88%',
+    borderTopLeftRadius: 26,
+    borderTopRightRadius: 26,
+    backgroundColor: '#010A1F',
+    borderWidth: 1,
+    borderBottomWidth: 0,
+    borderColor: '#82a5d5',
+    shadowColor: '#638ed0',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.15,
+    shadowRadius: 5,
+    elevation: 2,
+  },
+  compareSheet: {
+    maxHeight: '88%', borderTopLeftRadius: 26, borderTopRightRadius: 26,
+    paddingHorizontal: 18, paddingTop: 9, paddingBottom: 22,
+    borderWidth: 0,
+    backgroundColor: '#010A1F',
+    overflow: 'hidden',
+  },
+  sheetHandle: { width: 44, height: 4, borderRadius: 2, backgroundColor: '#64748b', alignSelf: 'center', marginBottom: 12 },
+  sheetHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
+  sheetTitle: { fontSize: 18, fontFamily: 'Poppins_600SemiBold' },
+  sheetClose: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(127,164,223,0.12)' },
+  selectedCarCard: {
+    minHeight: 88, borderWidth: 0, borderRadius: 18, padding: 10,
+    flexDirection: 'row', alignItems: 'center', gap: 11, overflow: 'hidden',
+    backgroundColor: '#010A1F',
+    borderColor: '#82a5d5',
+    shadowColor: '#638ed0',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.15,
+    shadowRadius: 5,
+    elevation: 2,
+  },
+  secondSelectedCarCard: { marginTop: 10 },
+  sheetCarImage: { width: 78, height: 62, borderRadius: 12 },
+  sheetImagePlaceholder: { alignItems: 'center', justifyContent: 'center', backgroundColor: '#0a2458' },
+  sheetCarIndex: { color: '#929DB1', fontSize: 9, fontFamily: 'Poppins_500Medium', marginBottom: 1 },
+  sheetCarTitle: { fontSize: 13, fontFamily: 'Poppins_600SemiBold' },
+  currentVehicleTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  currentSelectedText: { color: ORANGE, fontSize: 9, fontFamily: 'Poppins_600SemiBold' },
+  sheetVariant: { color: ORANGE, fontSize: 12, fontFamily: 'Poppins_500Medium', marginTop: 2 },
+  sheetMeta: { fontSize: 10, fontFamily: 'Poppins_400Regular', marginTop: 2 },
+  selectedTick: { width: 24, height: 24, borderRadius: 12, backgroundColor: '#24a148', alignItems: 'center', justifyContent: 'center' },
+  completeTitle: { fontSize: 15, fontFamily: 'Poppins_600SemiBold', marginTop: 18 },
+  completeSub: { fontSize: 11, fontFamily: 'Poppins_400Regular', marginTop: 2, marginBottom: 10 },
+  variantSearchBox: { height: 48, borderWidth: 1, borderRadius: 24, paddingHorizontal: 15, flexDirection: 'row', alignItems: 'center', gap: 9, overflow: 'hidden', marginBottom: 12 },
+  variantSearchInput: { flex: 1, height: '100%', fontSize: 13, fontFamily: 'Poppins_400Regular' },
+  variantOptionCard: { minHeight: 82, borderWidth: 1, borderRadius: 18, padding: 9, marginBottom: 9, flexDirection: 'row', alignItems: 'center', gap: 10, overflow: 'hidden' },
+  variantOptionActive: { borderWidth: 1.4 },
+  variantImage: { width: 72, height: 58, borderRadius: 11 },
+  variantName: { fontSize: 12, fontFamily: 'Poppins_600SemiBold' },
+  variantMeta: { fontSize: 9.5, fontFamily: 'Poppins_400Regular', marginTop: 2 },
+  variantPrice: { color: ORANGE, fontSize: 11, fontFamily: 'Poppins_600SemiBold', marginTop: 3 },
+  radioOuter: { width: 20, height: 20, borderRadius: 10, borderWidth: 1.5, borderColor: '#64748b', alignItems: 'center', justifyContent: 'center' },
+  radioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: ORANGE },
+  noVariantTxt: { textAlign: 'center', fontSize: 12, fontFamily: 'Poppins_400Regular', paddingVertical: 24 },
+  sheetCompareBtn: { height: 50, borderRadius: 25, overflow: 'hidden', marginTop: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  sheetCompareTxt: { color: '#fff', fontSize: 14, fontFamily: 'Poppins_600SemiBold' },
 
   callBox:    { backgroundColor: DARK_BG, paddingHorizontal: 20, paddingTop: 12, paddingBottom: 16, borderTopWidth: 1, borderColor: BORDER },
   callBtn:    { height: 50, borderRadius: 25, alignItems: 'center', justifyContent: 'center', marginBottom: 12 },

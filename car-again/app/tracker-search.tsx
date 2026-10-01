@@ -6,13 +6,12 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { ChevronLeft, ChevronDown, Car, Bike } from 'lucide-react-native';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { AppColors, useAppColors } from '@/constants/theme';
-import { API_BASE } from '@/constants/api';
 import AskariBank from '@/components/shared/AskariBank';
+import { PRIMARY_BTN_COLORS, SavedCardEffect, SearchInputEffect } from '@/components/shared/FigmaEffects';
 
 const ORANGE = '#e2671b';
-const NAVY   = '#032a69';
 const C      = AppColors;
 
 const BRANDS  = ['Toyota', 'Honda', 'Suzuki', 'Kia', 'Hyundai', 'Changan', 'MG', 'DFSK'];
@@ -30,57 +29,35 @@ function GlassInset() {
       </>
     );
   }
-  return (
-    <>
-      <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-      <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-      <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-    </>
-  );
+  return <SearchInputEffect />;
 }
 
-function Dropdown({ label, value, options, onSelect }: {
-  label: string; value: string; options: string[]; onSelect: (v: string) => void;
+// Figma pill dropdown (saved search-input effect)
+function Dropdown({ label, value, placeholder, options, onSelect }: {
+  label: string; value: string; placeholder?: string; options: string[]; onSelect: (v: string) => void;
 }) {
   const aC = useAppColors();
   const [open, setOpen] = useState(false);
   return (
     <View style={[s.fieldWrap, { zIndex: open ? 99 : 1 }]}>
-      <Text style={[s.fieldLabel, { color: aC.isDark ? '#baacb6' : '#475569' }]}>{label}</Text>
+      <Text style={[s.fieldLabel, { color: aC.isDark ? '#C9C6D0' : '#475569' }]}>{label}</Text>
       <TouchableOpacity
-        style={[s.dropBtn, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? 'rgba(255,255,255,0.15)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]}
+        style={[s.pill, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.12)' }]}
         onPress={() => setOpen(!open)}
         activeOpacity={0.85}
       >
         <GlassInset />
-        <Text style={[s.dropVal, { color: !value ? (aC.isDark ? '#8f8f8f' : '#94a3b8') : (aC.isDark ? '#f9fafc' : '#010a1f') }]}>
-          {value || `Select ${label}`}
+        <Text style={[s.pillTxt, { color: aC.isDark ? '#F2F1F5' : (value ? '#010a1f' : '#94a3b8') }]}>
+          {value || placeholder || `Select ${label}`}
         </Text>
-        <ChevronDown
-          size={16}
-          color={aC.isDark ? '#baacb6' : '#64748b'}
-          style={open ? { transform: [{ rotate: '180deg' }] } : undefined}
-        />
+        <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={20} color={aC.isDark ? '#F2F1F5' : '#64748b'} />
       </TouchableOpacity>
       {open && (
-        <View style={[s.dropList, { backgroundColor: aC.isDark ? 'rgba(6,18,52,0.98)' : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.3)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.12, elevation: aC.isDark ? 0 : 8 }]}>
-          {aC.isDark ? (
-            <>
-              <LinearGradient colors={['rgba(22,64,136,0.35)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.25 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <LinearGradient colors={['transparent', 'rgba(29,83,175,0.35)']} start={{ x: 0.5, y: 0.75 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <LinearGradient colors={['rgba(13,37,84,0.35)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.25, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <LinearGradient colors={['transparent', 'rgba(13,37,84,0.35)']} start={{ x: 0.75, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-            </>
-          ) : (
-            <>
-              <LinearGradient colors={['rgba(3,42,105,0.03)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.3 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <LinearGradient colors={['transparent', 'rgba(226,103,27,0.06)']} start={{ x: 0.5, y: 0.7 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-            </>
-          )}
+        <View style={[s.dropList, { backgroundColor: aC.isDark ? 'rgba(6,18,52,0.98)' : '#ffffff', borderColor: aC.isDark ? 'rgba(126,159,214,0.5)' : 'rgba(3,42,105,0.12)' }]}>
           {options.map(opt => (
             <TouchableOpacity
               key={opt}
-              style={[s.dropOption, { borderBottomColor: aC.isDark ? 'rgba(255,255,255,0.06)' : 'rgba(3,42,105,0.06)' }, value === opt && { backgroundColor: aC.isDark ? 'rgba(226,103,27,0.1)' : 'rgba(226,103,27,0.08)' }]}
+              style={[s.dropOption, { borderBottomColor: aC.isDark ? 'rgba(255,255,255,0.06)' : 'rgba(3,42,105,0.06)' }, value === opt && { backgroundColor: 'rgba(226,103,27,0.1)' }]}
               onPress={() => { onSelect(opt); setOpen(false); }}
             >
               <Text style={[s.dropOptionTxt, { color: value === opt ? ORANGE : (aC.isDark ? '#f9fafc' : '#010a1f') }]}>{opt}</Text>
@@ -111,135 +88,102 @@ export default function TrackerSearchScreen() {
     });
   }
 
+  const dark = aC.isDark;
+  const typeCard = (active: boolean) => [
+    s.typeCard,
+    dark
+      ? (active ? { backgroundColor: '#010A1F', borderColor: '#82a5d5', borderWidth: 1, shadowColor: '#638ed0', shadowOpacity: 0.15, shadowRadius: 5, shadowOffset: { width: 0, height: 0 }, elevation: 2 } : { backgroundColor: '#0B1D4A', borderColor: 'transparent', borderWidth: 1 })
+      : { backgroundColor: '#ffffff', borderWidth: 1, borderColor: active ? ORANGE : 'rgba(3,42,105,0.12)' },
+  ];
+
   return (
     <SafeAreaView style={[s.safe, { backgroundColor: aC.bg }]} edges={['top']}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[s.scroll, { backgroundColor: aC.bg }]}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[s.scroll, { backgroundColor: aC.bg }]} keyboardShouldPersistTaps="handled">
 
-          {/* ── HEADER ── */}
-          <View style={[s.header, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderBottomWidth: aC.isDark ? 0 : 1, borderBottomColor: 'rgba(3,42,105,0.08)' }]}>
+          {/* HEADER */}
+          <View style={[s.header, { backgroundColor: dark ? 'transparent' : '#ffffff' }]}>
             <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
-              <ChevronLeft size={24} color={aC.textPrimary} strokeWidth={2} />
+              <Ionicons name="chevron-back" size={26} color={dark ? '#C9C6D0' : '#010a1f'} />
             </TouchableOpacity>
-            <Text style={[s.headerTitle, { color: aC.textPrimary }]}>
+            <Text style={[s.headerTitle, { color: dark ? '#F2F1F5' : '#010a1f' }]}>
               Auto<Text style={{ color: ORANGE }}>wizor</Text>
             </Text>
             <View style={{ width: 36 }} />
           </View>
 
-          {/* ── AD BANNER ── */}
-          <View style={{ marginBottom: 24 }}>
+          {/* AD BANNER */}
+          <View style={{ marginBottom: 18 }}>
             <AskariBank />
           </View>
 
-          {/* ── VEHICLE TYPE ── */}
-          <Text style={[s.sectionTitle, { color: aC.textPrimary }]}>Select Vehicle Type</Text>
+          {/* VEHICLE TYPE */}
+          <Text style={[s.sectionTitle, { color: dark ? '#F2F1F5' : '#010a1f' }]}>Select Vehicle Type</Text>
           <View style={s.typeRow}>
-            <TouchableOpacity
-              style={[s.typeCard, { backgroundColor: aC.isDark ? (vehicleType === 'car' ? 'rgba(19,34,66,1)' : '#061B4A') : '#ffffff', borderColor: aC.isDark ? (vehicleType === 'car' ? 'rgba(226,103,27,0.6)' : 'rgba(255,255,255,0.1)') : (vehicleType === 'car' ? ORANGE : 'rgba(3,42,105,0.12)'), shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]}
-              onPress={() => setVehicleType('car')}
-              activeOpacity={0.85}
-            >
-              {vehicleType === 'car' ? (
-                aC.isDark ? (
-                  <>
-                    <LinearGradient colors={['rgba(22,64,136,0.35)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.25 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                    <LinearGradient colors={['transparent', 'rgba(29,83,175,0.35)']} start={{ x: 0.5, y: 0.75 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                    <LinearGradient colors={['rgba(13,37,84,0.35)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.25, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                    <LinearGradient colors={['transparent', 'rgba(13,37,84,0.35)']} start={{ x: 0.75, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                  </>
-                ) : (
-                  <>
-                    <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                    <LinearGradient colors={['transparent', 'rgba(226,103,27,0.08)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                  </>
-                )
-              ) : null}
-              <Car size={26} color={vehicleType === 'car' ? ORANGE : aC.textSecondary} />
-              <Text style={[s.typeTxt, { color: vehicleType === 'car' ? ORANGE : aC.textSecondary }]}>Cars</Text>
+            <TouchableOpacity style={typeCard(vehicleType === 'car')} onPress={() => setVehicleType('car')} activeOpacity={0.85}>
+              {vehicleType === 'car' && (dark ? <SavedCardEffect /> : <GlassInset />)}
+              <MaterialCommunityIcons name="car" size={26} color={vehicleType === 'car' ? ORANGE : (dark ? '#F2F1F5' : '#475569')} />
+              <Text style={[s.typeTxt, { color: dark ? '#F2F1F5' : '#010a1f' }]}>Cars</Text>
             </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[s.typeCard, { backgroundColor: aC.isDark ? (vehicleType === 'bike' ? 'rgba(19,34,66,1)' : '#061B4A') : '#ffffff', borderColor: aC.isDark ? (vehicleType === 'bike' ? 'rgba(226,103,27,0.6)' : 'rgba(255,255,255,0.1)') : (vehicleType === 'bike' ? ORANGE : 'rgba(3,42,105,0.12)'), shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]}
-              onPress={() => setVehicleType('bike')}
-              activeOpacity={0.85}
-            >
-              {vehicleType === 'bike' ? (
-                aC.isDark ? (
-                  <>
-                    <LinearGradient colors={['rgba(22,64,136,0.35)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.25 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                    <LinearGradient colors={['transparent', 'rgba(29,83,175,0.35)']} start={{ x: 0.5, y: 0.75 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                    <LinearGradient colors={['rgba(13,37,84,0.35)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.25, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                    <LinearGradient colors={['transparent', 'rgba(13,37,84,0.35)']} start={{ x: 0.75, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                  </>
-                ) : (
-                  <>
-                    <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                    <LinearGradient colors={['transparent', 'rgba(226,103,27,0.08)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                  </>
-                )
-              ) : null}
-              <Bike size={26} color={vehicleType === 'bike' ? ORANGE : aC.textSecondary} />
-              <Text style={[s.typeTxt, { color: vehicleType === 'bike' ? ORANGE : aC.textSecondary }]}>Bikes</Text>
+            <TouchableOpacity style={typeCard(vehicleType === 'bike')} onPress={() => setVehicleType('bike')} activeOpacity={0.85}>
+              {vehicleType === 'bike' && (dark ? <SavedCardEffect /> : <GlassInset />)}
+              <MaterialCommunityIcons name="motorbike" size={28} color={vehicleType === 'bike' ? ORANGE : (dark ? '#F2F1F5' : '#475569')} />
+              <Text style={[s.typeTxt, { color: dark ? '#F2F1F5' : '#010a1f' }]}>Bikes</Text>
             </TouchableOpacity>
           </View>
 
-          {/* ── BASIC DETAILS ── */}
-          <Text style={[s.sectionTitle, { color: aC.textPrimary, marginTop: 24 }]}>Basic Details</Text>
+          {/* BASIC DETAILS */}
+          <Text style={[s.bigTitle, { color: dark ? '#F2F1F5' : '#010a1f' }]}>Basic Details</Text>
 
-          <Dropdown label="Brand" value={brand} options={BRANDS} onSelect={setBrand} />
-          <Dropdown label="Model" value={model} options={MODELS} onSelect={setModel} />
-          <Dropdown label="Year"  value={year}  options={YEARS}  onSelect={setYear}  />
+          <Dropdown label="Brand" value={brand} placeholder="Select Brand" options={BRANDS} onSelect={setBrand} />
+
+          <Dropdown label="Model" value={model} placeholder="Select Model" options={MODELS} onSelect={setModel} />
+
+          <Dropdown label="Year" value={year} placeholder="Select Year" options={YEARS} onSelect={setYear} />
+
 
           {/* Registered */}
-          <View style={s.fieldWrap}>
-            <Text style={[s.fieldLabel, { color: aC.isDark ? '#baacb6' : '#475569' }]}>Registered</Text>
-            <View style={s.radioRow}>
-              {(['yes', 'no'] as const).map(opt => (
-                <TouchableOpacity
-                  key={opt}
-                  style={s.radioItem}
-                  onPress={() => setRegistered(opt)}
-                  activeOpacity={0.8}
-                >
-                  <View style={[s.radioCircle, { borderColor: aC.isDark ? '#baacb6' : 'rgba(3,42,105,0.18)', backgroundColor: aC.isDark ? 'transparent' : '#ffffff' }, registered === opt && { borderColor: '#60a5fa', backgroundColor: aC.isDark ? 'transparent' : '#ffffff' }]}>
-                    {registered === opt && <View style={s.radioDot} />}
+          <View style={s.radioRow}>
+            <Text style={[s.radioLabel, { color: dark ? '#C9C6D0' : '#475569' }]}>Registered</Text>
+            {(['yes', 'no'] as const).map(opt => {
+              const active = registered === opt;
+              return (
+                <TouchableOpacity key={opt} style={s.radioItem} onPress={() => setRegistered(opt)} activeOpacity={0.8}>
+                  <View style={[s.radioOuter, active && s.radioOuterActive]}>
+                    <View style={[s.radioInner, active && s.radioInnerActive]} />
                   </View>
-                  <Text style={[s.radioTxt, { color: aC.isDark ? '#baacb6' : '#475569' }]}>{opt === 'yes' ? 'Yes' : 'No'}</Text>
+                  <Text style={[s.radioTxt, { color: dark ? '#F2F1F5' : '#010a1f' }]}>{opt === 'yes' ? 'Yes' : 'No'}</Text>
                 </TouchableOpacity>
-              ))}
-            </View>
+              );
+            })}
           </View>
 
           <Dropdown label="Registration City" value={city} options={CITIES} onSelect={setCity} />
 
           {/* Registration Number */}
           <View style={s.fieldWrap}>
-            <Text style={[s.fieldLabel, { color: aC.isDark ? '#baacb6' : '#475569' }]}>Registration Number</Text>
-            <View style={[s.inputBox, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? 'rgba(255,255,255,0.15)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]}>
+            <Text style={[s.fieldLabel, { color: dark ? '#C9C6D0' : '#475569' }]}>Registration Number</Text>
+            <View style={[s.pill, { backgroundColor: dark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: dark ? '#829fd0' : 'rgba(3,42,105,0.12)' }]}>
               <GlassInset />
               <TextInput
-                style={[s.input, { color: aC.isDark ? '#f9fafc' : '#010a1f' }]}
-                placeholder="e.g. LEA-22-1234"
-                placeholderTextColor={aC.isDark ? '#8f8f8f' : '#94a3b8'}
+                style={[s.pillInput, { color: dark ? '#F2F1F5' : '#010a1f' }]}
+                placeholder="LEA-22-1234"
+                placeholderTextColor={dark ? '#F2F1F5' : '#94a3b8'}
                 value={regNumber}
                 onChangeText={setRegNumber}
                 autoCapitalize="characters"
               />
+              <Ionicons name="chevron-down" size={20} color={dark ? '#F2F1F5' : '#64748b'} />
             </View>
           </View>
 
-          {/* ── SEARCH BUTTON ── */}
+          {/* SEARCH BUTTON */}
           <TouchableOpacity style={s.searchBtn} activeOpacity={0.85} onPress={handleSearch}>
-            <LinearGradient
-              colors={[NAVY, ORANGE]}
-              start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-              style={StyleSheet.absoluteFillObject}
-            />
+            <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
             <Text style={s.searchTxt}>Search Trackers</Text>
           </TouchableOpacity>
 
-          <View style={{ height: 40 }} />
+          <View style={{ height: 30 }} />
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -248,48 +192,43 @@ export default function TrackerSearchScreen() {
 
 const s = StyleSheet.create({
   safe:   { flex: 1, backgroundColor: C.bg },
-  scroll: { paddingHorizontal: 20, paddingBottom: 40 },
-
-  /* Header */
+  scroll: { paddingHorizontal: 16, paddingBottom: 30 },
   header:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: 56 },
   backBtn:     { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { fontSize: 18, fontFamily: 'Poppins_600SemiBold', color: C.textPrimary },
+  headerTitle: { fontSize: 20, fontFamily: 'Poppins_700Bold' },
 
-  /* Section title */
-  sectionTitle: { color: C.textPrimary, fontSize: 15, fontFamily: 'Poppins_500Medium', marginBottom: 14 },
+  sectionTitle: { fontSize: 14, fontFamily: 'Poppins_400Regular', marginBottom: 12 },
+  bigTitle:     { fontSize: 19, fontFamily: 'Poppins_500Medium', marginTop: 16, marginBottom: 12 },
 
-  /* Vehicle type */
-  typeRow:      { flexDirection: 'row', gap: 14, marginBottom: 4 },
-  typeCard:        { flex: 1, height: 96, borderRadius: 20, borderWidth: 1, alignItems: 'center', justifyContent: 'center', gap: 10, overflow: 'hidden' },
-  typeCardActive:  { borderColor: 'rgba(226,103,27,0.6)', backgroundColor: 'rgba(19,34,66,1)' },
-  typeCardInactive:{ borderColor: 'rgba(255,255,255,0.1)', backgroundColor: '#061B4A' },
-  typeTxt:      { color: C.textSecondary, fontSize: 13, fontFamily: 'Poppins_500Medium' },
+  typeRow:  { flexDirection: 'row', gap: 12 },
+  typeCard: { flex: 1, height: 88, borderRadius: 14, alignItems: 'center', justifyContent: 'center', gap: 6, overflow: 'hidden' },
+  typeTxt:  { fontSize: 15, fontFamily: 'Poppins_500Medium' },
 
-  /* Field */
-  fieldWrap:  { marginBottom: 18, zIndex: 1 },
-  fieldLabel: { color: C.textSecondary, fontSize: 12, fontFamily: 'Poppins_400Regular', marginBottom: 8 },
+  condCard:  { height: 60, flexDirection: 'row', justifyContent: 'flex-start', gap: 10, paddingHorizontal: 10 },
+  condIcon:  { width: 32, height: 32, borderRadius: 16, backgroundColor: '#12306A', alignItems: 'center', justifyContent: 'center' },
+  condTitle: { fontSize: 13.5, fontFamily: 'Poppins_500Medium' },
+  condSub:   { fontSize: 10, fontFamily: 'Poppins_400Regular', marginTop: 1 },
 
-  /* Dropdown */
-  dropBtn:    { height: 52, borderRadius: 30, borderWidth: 1, borderColor: C.glassBorder, backgroundColor: C.glassBg, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, overflow: 'hidden' },
-  dropVal:    { color: C.textPrimary, fontSize: 14, fontFamily: 'Poppins_400Regular', flex: 1 },
-  dropList:   { position: 'absolute', top: 88, left: 0, right: 0, backgroundColor: 'rgba(6,18,52,0.98)', borderRadius: 14, borderWidth: 1, borderColor: 'rgba(100,160,255,0.3)', overflow: 'hidden', zIndex: 100 },
-  dropOption: { paddingHorizontal: 20, paddingVertical: 13, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' },
-  dropOptionActive: { backgroundColor: 'rgba(226,103,27,0.1)' },
-  dropOptionTxt:{ color: C.textPrimary, fontSize: 13, fontFamily: 'Poppins_400Regular' },
+  fieldWrap:  { marginBottom: 12, zIndex: 1 },
+  fieldLabel: { fontSize: 13.5, fontFamily: 'Poppins_400Regular', marginBottom: 8 },
+  pill:       { height: 46, borderRadius: 32, borderWidth: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, overflow: 'hidden' },
+  pillTxt:    { flex: 1, fontSize: 13.5, fontFamily: 'Poppins_400Regular' },
+  pillInput:  { flex: 1, fontSize: 13.5, fontFamily: 'Poppins_400Regular', paddingVertical: 0 },
 
-  /* Radio */
-  radioRow:   { flexDirection: 'row', gap: 28 },
-  radioItem:  { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  radioCircle:{ width: 18, height: 18, borderRadius: 9, borderWidth: 1.5, borderColor: C.textSecondary, alignItems: 'center', justifyContent: 'center' },
-  radioCircleActive: { borderColor: '#60a5fa' },
-  radioDot:   { width: 8, height: 8, borderRadius: 4, backgroundColor: '#60a5fa' },
-  radioTxt:   { color: C.textSecondary, fontSize: 13, fontFamily: 'Poppins_400Regular' },
+  dropList:      { position: 'absolute', top: 82, left: 0, right: 0, borderRadius: 14, borderWidth: 1, overflow: 'hidden', zIndex: 100 },
+  dropOption:    { paddingHorizontal: 20, paddingVertical: 13, borderBottomWidth: 1 },
+  dropOptionTxt: { fontSize: 13, fontFamily: 'Poppins_400Regular' },
 
-  /* Input */
-  inputBox: { height: 52, borderRadius: 30, borderWidth: 1, borderColor: C.glassBorder, backgroundColor: C.glassBg, overflow: 'hidden', justifyContent: 'center' },
-  input:    { paddingHorizontal: 20, color: C.textPrimary, fontSize: 14, fontFamily: 'Poppins_400Regular' },
+  radioRow:   { flexDirection: 'row', alignItems: 'center', gap: 22, marginTop: 6, marginBottom: 16 },
+  radioLabel: { fontSize: 13.5, fontFamily: 'Poppins_400Regular' },
+  radioItem:  { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  radioOuter: { width: 22, height: 22, borderRadius: 11, backgroundColor: '#1D3B73', borderWidth: 1, borderColor: 'rgba(143,174,227,0.6)', alignItems: 'center', justifyContent: 'center' },
+  radioOuterActive: { borderColor: '#8FAEE3', shadowColor: '#8FAEE3', shadowOpacity: 0.7, shadowRadius: 5, shadowOffset: { width: 0, height: 0 }, elevation: 3 },
+  radioInner: { width: 10, height: 10, borderRadius: 5, borderWidth: 1.5, borderColor: 'rgba(220,230,247,0.45)' },
+  radioInnerActive: { borderWidth: 2, borderColor: '#DCE6F7', backgroundColor: '#0E2552' },
+  radioTxt:   { fontSize: 13.5, fontFamily: 'Poppins_400Regular' },
 
-  /* Search button */
-  searchBtn:  { height: 52, borderRadius: 30, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', marginTop: 8 },
-  searchTxt:  { color: '#fff', fontSize: 15, fontFamily: 'Poppins_700Bold', letterSpacing: 0.3 },
+  searchBtn:  { height: 48, borderRadius: 24, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', marginTop: 8 },
+  searchTxt:  { color: '#EDEBF0', fontSize: 16, fontFamily: 'Poppins_600SemiBold' },
+  errTxt:     { color: '#f87171', fontSize: 11, fontFamily: 'Poppins_400Regular', marginTop: -6, marginBottom: 10, marginLeft: 4 },
 });

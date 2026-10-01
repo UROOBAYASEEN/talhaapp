@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { PRIMARY_BTN_COLORS, RingGlow, SearchInputEffect } from '@/components/shared/FigmaEffects';
 
 const BG     = '#010A1F';
 const CARD   = 'rgba(3,12,40,0.6)';
@@ -50,6 +51,16 @@ function formatPrice(p: number) {
   if (p >= 10_000_000) return `PKR ${(p / 10_000_000).toFixed(2)} Crore`;
   if (p >= 100_000)    return `PKR ${(p / 100_000).toFixed(2)} Lacs`;
   return `PKR ${p.toLocaleString()}`;
+}
+// "11:00 AM" → "11:00 AM - 12:00 PM"
+function timeRange(t: string) {
+  const m = /^(\d{1,2}):(\d{2})\s*(AM|PM)$/i.exec(t.trim());
+  if (!m) return t;
+  let h = Number(m[1]) % 12 + (m[3].toUpperCase() === 'PM' ? 12 : 0);
+  h = (h + 1) % 24;
+  const ap = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 || 12;
+  return `${t} - ${h12}:${m[2]} ${ap}`;
 }
 function formatDisplayDate(dateStr: string) {
   const d = new Date(dateStr);
@@ -309,9 +320,18 @@ export default function TestDriveScreen() {
       });
       const d = await res.json();
       if (res.ok) {
-        Alert.alert('Booked!', d.message || 'Test drive booked! Dealer will confirm your appointment.', [
-          { text: 'OK', onPress: () => router.back() },
-        ]);
+        router.replace({
+          pathname: '/buy/test-drive-success' as any,
+          params: {
+            title: vehicle?.title || '',
+            price: vehicle?.price ? String(vehicle.price) : '',
+            photo: vehicle?.images?.[0] || '',
+            city:  vehicle?.city || '',
+            year:  vehicle?.year ? String(vehicle.year) : '',
+            trans: vehicle?.transmission || '',
+            id:    String(id || ''),
+          },
+        });
       } else {
         Alert.alert('Error', d.detail || 'Could not book test drive.');
       }
@@ -333,7 +353,7 @@ export default function TestDriveScreen() {
         {/* ── Header ── */}
         <View style={s.header}>
           <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-            <Ionicons name="chevron-back" size={22} color={WHITE} />
+            <Ionicons name="chevron-back" size={26} color="#C9C6D0" />
           </TouchableOpacity>
           <Text style={s.headerTitle}>Book Test Drive</Text>
           <View style={{ width: 36 }} />
@@ -347,9 +367,7 @@ export default function TestDriveScreen() {
 
           {/* ── Car Summary Card ── */}
           <TouchableOpacity style={s.carCard} activeOpacity={0.85} onPress={() => router.back()}>
-            <LinearGradient colors={['rgba(22,64,136,0.2)','transparent']} start={{x:0.5,y:0}} end={{x:0.5,y:0.6}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-            <LinearGradient colors={['rgba(13,37,84,0.18)','transparent']} start={{x:0,y:0.5}} end={{x:0.45,y:0.5}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-            <LinearGradient colors={['transparent','rgba(29,83,175,0.2)']} start={{x:0.5,y:0.4}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+            <RingGlow radius={16} />
             {carImg
               ? <Image source={{ uri: carImg }} style={s.carImg} resizeMode="cover" />
               : <View style={[s.carImg, s.carImgPh]}>
@@ -359,12 +377,12 @@ export default function TestDriveScreen() {
             <View style={{ flex: 1 }}>
               <Text style={s.carName} numberOfLines={1}>{carName}</Text>
               <View style={s.carMeta}>
-                <Ionicons name="location-outline" size={12} color={MUTED} />
-                <Text style={s.carMetaTxt}>{carCity}  •  {carYear}  •  {carTrans}</Text>
+                <Ionicons name="location-outline" size={15} color="#BAB6C4" />
+                <Text style={s.carMetaTxt} numberOfLines={1}>{carCity} • {carYear} • {carTrans}</Text>
               </View>
               <Text style={s.carPrice}>{carPrice}</Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color={ORANGE} />
+            <Ionicons name="chevron-forward" size={24} color={ORANGE} />
           </TouchableOpacity>
 
           {/* ── Select Date ── */}
@@ -375,10 +393,9 @@ export default function TestDriveScreen() {
               onPress={() => { setCalOpen(true); setTimeModalOpen(false); }}
               activeOpacity={0.85}
             >
-              <LinearGradient colors={['rgba(22,64,136,0.2)','transparent']} start={{x:0.5,y:0}} end={{x:0.5,y:0.6}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <LinearGradient colors={['transparent','rgba(29,83,175,0.2)']} start={{x:0.5,y:0.4}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+              <SearchInputEffect />
               <Text style={s.inputTxt}>{formatDisplayDate(form.date)}</Text>
-              <Ionicons name="calendar-outline" size={17} color={ORANGE} style={{ marginRight: 20 }} />
+              <Ionicons name="calendar-outline" size={22} color="#E6E4EA" style={{ marginRight: 20 }} />
             </TouchableOpacity>
           </View>
 
@@ -390,11 +407,9 @@ export default function TestDriveScreen() {
               onPress={() => { setTimeModalOpen(true); setCalOpen(false); }}
               activeOpacity={0.85}
             >
-              <LinearGradient colors={['rgba(22,64,136,0.2)','transparent']} start={{x:0.5,y:0}} end={{x:0.5,y:0.6}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <LinearGradient colors={['transparent','rgba(29,83,175,0.2)']} start={{x:0.5,y:0.4}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <Ionicons name="time-outline" size={16} color={ORANGE} style={{ marginLeft: 20 }} />
-              <Text style={[s.inputTxt, { marginLeft: 8 }]}>{form.time}</Text>
-              <Ionicons name="chevron-down" size={16} color={ORANGE} style={{ marginRight: 20 }} />
+              <SearchInputEffect />
+              <Text style={s.inputTxt}>{timeRange(form.time)}</Text>
+              <Ionicons name="chevron-down" size={20} color="#E6E4EA" style={{ marginRight: 20 }} />
             </TouchableOpacity>
           </View>
 
@@ -402,8 +417,7 @@ export default function TestDriveScreen() {
           <View style={s.field}>
             <Text style={s.fieldLabel}>Your Name</Text>
             <View style={s.inputRow}>
-              <LinearGradient colors={['rgba(22,64,136,0.2)','transparent']} start={{x:0.5,y:0}} end={{x:0.5,y:0.6}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <LinearGradient colors={['transparent','rgba(29,83,175,0.2)']} start={{x:0.5,y:0.4}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+              <SearchInputEffect />
               <TextInput
                 style={s.input}
                 value={form.name}
@@ -418,8 +432,7 @@ export default function TestDriveScreen() {
           <View style={s.field}>
             <Text style={s.fieldLabel}>Phone Number</Text>
             <View style={s.inputRow}>
-              <LinearGradient colors={['rgba(22,64,136,0.2)','transparent']} start={{x:0.5,y:0}} end={{x:0.5,y:0.6}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <LinearGradient colors={['transparent','rgba(29,83,175,0.2)']} start={{x:0.5,y:0.4}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+              <SearchInputEffect />
               <TextInput
                 style={s.input}
                 value={form.phone}
@@ -433,17 +446,15 @@ export default function TestDriveScreen() {
 
           {/* ── Info Note ── */}
           <View style={s.infoRow}>
-            <View style={s.infoIcon}>
-              <Ionicons name="clipboard-outline" size={14} color={ORANGE} />
-            </View>
+            <MaterialCommunityIcons name="clipboard-text-outline" size={22} color={ORANGE} />
             <Text style={s.infoTxt}>Dealer will confirm your test drive appointment.</Text>
           </View>
 
-          <View style={{ height: 40 }} />
+          <View style={{ flex: 1, minHeight: 60 }} />
 
           {/* ── Book Button ── */}
           <TouchableOpacity style={s.bookBtn} onPress={handleBook} disabled={submitting} activeOpacity={0.88}>
-            <LinearGradient colors={[NAVY, ORANGE]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+            <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
             {submitting
               ? <ActivityIndicator color={WHITE} />
               : <Text style={s.bookTxt}>Book Test Drive</Text>
@@ -474,41 +485,41 @@ export default function TestDriveScreen() {
 
 const s = StyleSheet.create({
   root:   { flex: 1, backgroundColor: BG },
-  scroll: { paddingHorizontal: 20, paddingBottom: 40, backgroundColor: BG },
+  scroll: { flexGrow: 1, paddingHorizontal: 16, paddingBottom: 30, backgroundColor: BG },
 
-  header:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12 },
-  backBtn:     { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { color: WHITE, fontSize: 18, fontFamily: 'Poppins_700Bold' },
+  header:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, paddingTop: 8, paddingBottom: 12 },
+  backBtn:     { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+  headerTitle: { flex: 1, textAlign: 'center', color: '#F2F1F5', fontSize: 20, fontFamily: 'Poppins_500Medium' },
 
-  carCard:    { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: CARD, borderWidth: 1, borderColor: BORDER, borderRadius: 16, padding: 12, marginTop: 8, overflow: 'hidden' },
-  carImg:     { width: 64, height: 54, borderRadius: 10 },
+  carCard:    { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#0A1838', borderWidth: 1, borderColor: '#7E9FD6', borderRadius: 16, padding: 8, paddingRight: 12, overflow: 'hidden', shadowColor: '#4F7FD0', shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 0 }, elevation: 3 },
+  carImg:     { width: 84, height: 56, borderRadius: 8 },
   carImgPh:   { backgroundColor: '#0d1e3d', alignItems: 'center', justifyContent: 'center' },
-  carName:    { color: WHITE,  fontSize: 14, fontFamily: 'Poppins_700Bold' },
-  carMeta:    { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 2 },
-  carMetaTxt: { color: MUTED,  fontSize: 12, fontFamily: 'Poppins_400Regular' },
-  carPrice:   { color: ORANGE, fontSize: 14, fontFamily: 'Poppins_700Bold', marginTop: 2 },
+  carName:    { color: '#F2F1F5', fontSize: 12.5, fontFamily: 'Poppins_500Medium' },
+  carMeta:    { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 1 },
+  carMetaTxt: { color: '#BAB6C4', fontSize: 12, fontFamily: 'Poppins_400Regular', flexShrink: 1 },
+  carPrice:   { color: ORANGE, fontSize: 14.5, fontFamily: 'Poppins_500Medium', marginTop: 1 },
 
-  field:      { marginTop: 20 },
-  fieldLabel: { color: '#cbd5e1', fontSize: 13, fontFamily: 'Poppins_400Regular', marginBottom: 8 },
+  field:      { marginTop: 16 },
+  fieldLabel: { color: '#D2CFD8', fontSize: 14, fontFamily: 'Poppins_400Regular', marginBottom: 8 },
 
   inputRow: {
-    height: 52, borderRadius: 30,
-    borderWidth: 1, borderColor: BLUE_B,
-    backgroundColor: CARD,
+    height: 50, borderRadius: 32,
+    borderWidth: 1, borderColor: '#829fd0',
+    backgroundColor: 'rgba(3,12,40,0.6)',
     overflow: 'hidden',
     flexDirection: 'row', alignItems: 'center',
   },
-  inputTxt: { flex: 1, color: WHITE, fontSize: 14, fontFamily: 'Poppins_400Regular', paddingHorizontal: 20 },
-  input:    { flex: 1, color: WHITE, fontSize: 14, fontFamily: 'Poppins_400Regular', paddingHorizontal: 20 },
+  inputTxt: { flex: 1, color: '#F2F1F5', fontSize: 14, fontFamily: 'Poppins_400Regular', paddingHorizontal: 20 },
+  input:    { flex: 1, color: '#F2F1F5', fontSize: 14, fontFamily: 'Poppins_400Regular', paddingHorizontal: 20 },
 
   dropdown:      { marginTop: 6, backgroundColor: '#061629', borderRadius: 16, borderWidth: 1, borderColor: BLUE_B, overflow: 'hidden' },
   dropOption:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: 1, borderColor: BORDER },
   dropOptionTxt: { color: WHITE, fontSize: 14, fontFamily: 'Poppins_400Regular' },
 
-  infoRow:  { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 24 },
+  infoRow:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 14, marginTop: 30 },
   infoIcon: { width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(226,103,27,0.15)', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  infoTxt:  { flex: 1, color: MUTED, fontSize: 12, fontFamily: 'Poppins_400Regular', lineHeight: 20 },
+  infoTxt:  { color: '#BAB6C4', fontSize: 12, fontFamily: 'Poppins_400Regular' },
 
-  bookBtn: { height: 54, borderRadius: 30, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  bookTxt: { color: WHITE, fontSize: 15, fontFamily: 'Poppins_700Bold' },
+  bookBtn: { height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  bookTxt: { color: '#EDEBF0', fontSize: 16, fontFamily: 'Poppins_600SemiBold' },
 });

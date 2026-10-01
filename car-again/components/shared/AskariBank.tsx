@@ -12,7 +12,7 @@ export default function AskariBank() {
 
   return (
     <LinearGradient
-      colors={['#032A69', '#F9FAFC']}
+      colors={['#153970', '#c8d1df']}
       start={{ x: 0, y: 0.5 }}
       end={{ x: 1, y: 0.43 }}
       style={styles.finBanner}
@@ -46,17 +46,18 @@ export default function AskariBank() {
 const styles = StyleSheet.create({
   finBanner: {
     borderRadius: 16,
-    height: 110,
+    height: 112,
+    marginBottom: 10,
     flexDirection: 'row',
-    paddingLeft: 20,
-    paddingVertical: 14,
+    paddingLeft: 18,
+    paddingVertical: 12,
     overflow: 'hidden',
   },
-  finLeft:   { flex: 1, gap: 4, justifyContent: 'center' },
-  finTitle:  { color: '#f9fafc', fontSize: 14, fontFamily: 'Poppins_600SemiBold', lineHeight: 20 },
-  finSub:    { color: 'rgba(249,250,252,0.85)', fontSize: 7, fontFamily: 'Poppins_400Regular', lineHeight: 11, maxWidth: 130 },
-  finBtn:    { alignSelf: 'flex-start', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 5, marginTop: 6 },
+  finLeft: { flex: 1, gap: 4, justifyContent: 'center' },
+  finTitle: { color: '#f9fafc', fontSize: 16, fontFamily: 'Poppins_600SemiBold', lineHeight: 23 },
+  finSub: { color: '#f9fafc', fontSize: 10, fontFamily: 'Poppins_400Regular', lineHeight: 14, maxWidth: 174 },
+  finBtn: { alignSelf: 'flex-start', borderRadius: 20, paddingHorizontal: 22, paddingVertical: 6, marginTop: 5, marginLeft: -5 },
   finBtnTxt: { color: '#f9fafc', fontSize: 9, fontFamily: 'Poppins_600SemiBold' },
-  bankLogo: { position: 'absolute', top: 10, right: 10, width: 64, height: 18 },
-  bankCar:   { position: 'absolute', bottom: -2, right: 6, width: 120, height: 88 },
+  bankLogo: { position: 'absolute', top: 8, right: 11, width: 70, height: 20 },
+  bankCar: { position: 'absolute', bottom: -10, right: 5, width: 170, height: 134 },
 });

@@ -14,9 +14,11 @@ import { useAppColors } from "@/constants/theme";
 interface Props {
   onApply?: (filters: any) => void;
   activeFilters?: any;
+  /** Figma design (Buy Used Car flow) */
+  figma?: boolean;
 }
 
-export default function FilterBar({ onApply, activeFilters = {} }: Props) {
+export default function FilterBar({ onApply, activeFilters = {}, figma = false }: Props) {
   const aC = useAppColors();
   const [showFilter, setShowFilter] = useState(false);
 
@@ -27,6 +29,45 @@ export default function FilterBar({ onApply, activeFilters = {} }: Props) {
     activeFilters.maxBudget < 50_000_000,
     activeFilters.minYear > 1990,
   ].filter(Boolean).length;
+
+  if (figma) {
+    return (
+      <>
+        <View style={styles.fContainer}>
+          <TouchableOpacity style={styles.fIconButton} activeOpacity={0.75}>
+            <MaterialCommunityIcons name="sort-variant" size={22} color="#e2671b" />
+            <Text style={[styles.fIconText, { color: aC.isDark ? '#F2F1F5' : '#010a1f' }]}>Sort</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.fIconButton} activeOpacity={0.75} onPress={() => setShowFilter(true)}>
+            <MaterialCommunityIcons name="tune-variant" size={22} color="#e2671b" />
+            <Text style={[styles.fIconText, { color: aC.isDark ? '#F2F1F5' : '#010a1f' }]}>Filter</Text>
+            {activeCount > 0 && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeTxt}>{activeCount}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.pillsScroll} contentContainerStyle={styles.pillsRow}>
+            {["Model", "Price", "Location"].map((label) => (
+              <TouchableOpacity key={label} activeOpacity={0.8} style={[styles.fPill, { backgroundColor: aC.isDark ? '#0B2A63' : '#e8eefb' }]} onPress={() => setShowFilter(true)}>
+                <Text style={[styles.fPillText, { color: aC.isDark ? '#F2F1F5' : '#032a69' }]}>{label}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        <FilterModal
+          visible={showFilter}
+          figma
+          onClose={() => setShowFilter(false)}
+          onApply={(filters) => {
+            onApply?.(filters);
+            setShowFilter(false);
+          }}
+        />
+      </>
+    );
+  }
 
   return (
     <>
@@ -106,6 +147,13 @@ export default function FilterBar({ onApply, activeFilters = {} }: Props) {
 }
 
 const styles = StyleSheet.create({
+  /* Figma (Buy Used Car) */
+  fContainer:  { flexDirection: "row", alignItems: "center", gap: 14, paddingVertical: 6 },
+  fIconButton: { flexDirection: "row", alignItems: "center", gap: 8 },
+  fIconText:   { fontSize: 14, fontFamily: "Poppins_400Regular" },
+  fPill:       { height: 32, paddingHorizontal: 20, borderRadius: 16, alignItems: "center", justifyContent: "center" },
+  fPillText:   { fontSize: 13, fontFamily: "Poppins_400Regular" },
+
   container: {
     flexDirection: "row",
     alignItems: "center",

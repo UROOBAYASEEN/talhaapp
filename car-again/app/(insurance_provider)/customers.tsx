@@ -17,19 +17,16 @@ import { useRouter } from 'expo-router';
 import { AppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { D, DHeader, FilterPills, GlowCard, SearchBar, Verified } from '@/components/dealer/DealerUI';
 
 const ORANGE = '#e2671b';
 const C = AppColors;
 
-const TABS = ['All', 'Chat'];
+const TABS = ['All', 'Chat'] as const;
 
 function CustomerCard({ item, onPress }: { item: any; onPress?: () => void }) {
   return (
-    <TouchableOpacity style={s.card} activeOpacity={0.8} onPress={onPress}>
-      <LinearGradient colors={['rgba(22,64,136,0.35)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.25 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-      <LinearGradient colors={['transparent', 'rgba(29,83,175,0.35)']} start={{ x: 0.5, y: 0.75 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-      <LinearGradient colors={['rgba(13,37,84,0.35)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.25, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-      <LinearGradient colors={['transparent', 'rgba(13,37,84,0.35)']} start={{ x: 0.75, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+    <GlowCard style={s.card} onPress={onPress} radius={20}>
 
       <View style={s.avatarWrap}>
         {item.img ? (
@@ -46,17 +43,13 @@ function CustomerCard({ item, onPress }: { item: any; onPress?: () => void }) {
         <View style={s.nameRow}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
             <Text style={s.name}>{item.name}</Text>
-            {item.verified && (
-              <View style={s.verifiedBadge}>
-                <Text style={{ color: '#fff', fontSize: 8 }}>✓</Text>
-              </View>
-            )}
+            {item.verified && <Verified size={18} />}
           </View>
           <Text style={s.time}>{item.time}</Text>
         </View>
         <Text style={s.message} numberOfLines={2}>{item.message}</Text>
       </View>
-    </TouchableOpacity>
+    </GlowCard>
   );
 }
 
@@ -72,7 +65,7 @@ function fmtTime(iso: string) {
 export default function CustomersScreen() {
   const router = useRouter();
   const { token } = useAuth();
-  const [activeTab,  setActiveTab]  = useState('All');
+  const [activeTab,  setActiveTab]  = useState<typeof TABS[number]>('All');
   const [search,     setSearch]     = useState('');
   const [convs,      setConvs]      = useState<any[]>([]);
   const [loading,    setLoading]    = useState(true);
@@ -119,42 +112,16 @@ export default function CustomersScreen() {
   return (
     <View style={s.root}>
       <SafeAreaView edges={['top']}>
-        <View style={s.header}>
-          <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
-            <ChevronLeft size={22} color={C.textPrimary} />
-          </TouchableOpacity>
-          <Text style={s.headerTitle}>Customers</Text>
-          <View style={{ width: 36 }} />
-        </View>
+        <DHeader title="Customers" center />
 
         {/* Search */}
         <View style={s.searchWrap}>
-          <LinearGradient colors={['rgba(22,64,136,0.5)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <LinearGradient colors={['rgba(13,37,84,0.5)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <LinearGradient colors={['transparent', 'rgba(29,83,175,0.5)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <Search size={16} color="#8f9cb5" />
-          <TextInput
-            style={s.searchInput}
-            placeholder="Search reservation by CNIC or ID"
-            placeholderTextColor={C.textPlaceholder}
-            value={search}
-            onChangeText={setSearch}
-          />
+          <SearchBar placeholder="Search reservation by CNIC or ID" value={search} onChangeText={setSearch} />
         </View>
 
         {/* Tabs */}
-        <Text style={s.sectionTitle}>Conversations</Text>
-        <View style={s.tabRow}>
-          {TABS.map(tab => (
-            <TouchableOpacity
-              key={tab}
-              style={[s.tab, activeTab === tab && s.tabActive]}
-              onPress={() => setActiveTab(tab)}
-            >
-              <Text style={[s.tabTxt, activeTab === tab && s.tabTxtActive]}>{tab}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+        <Text style={s.sectionTitle}>Requests</Text>
+        <FilterPills small items={TABS} value={activeTab} onChange={setActiveTab} style={s.tabRow} />
       </SafeAreaView>
 
       {loading ? (
@@ -185,37 +152,23 @@ export default function CustomersScreen() {
 }
 
 const s = StyleSheet.create({
-  root:        { flex: 1, backgroundColor: C.bg },
-  header:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12 },
-  backBtn:     { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { fontSize: 18, fontFamily: 'Poppins_600SemiBold', color: C.textPrimary },
+  root:        { flex: 1, backgroundColor: D.bg },
+  searchWrap:  { marginHorizontal: 16, marginBottom: 14 },
+  sectionTitle:{ fontSize: 16, fontFamily: 'Poppins_400Regular', color: D.muted, paddingHorizontal: 16, marginBottom: 12 },
+  tabRow:      { paddingHorizontal: 16, marginBottom: 20 },
 
-  searchWrap:  { flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: 16, marginBottom: 14, borderRadius: 30, paddingHorizontal: 14, paddingVertical: 11, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(100,160,255,0.5)', backgroundColor: C.bg },
-  searchInput: { flex: 1, fontSize: 13, fontFamily: 'Poppins_400Regular', color: C.textPrimary, padding: 0 },
+  list:        { paddingHorizontal: 22, paddingBottom: 100, gap: 16 },
 
-  sectionTitle:{ fontSize: 14, fontFamily: 'Poppins_600SemiBold', color: C.textPrimary, paddingHorizontal: 16, marginBottom: 10 },
-
-  tabRow:      { flexDirection: 'row', gap: 8, paddingHorizontal: 16, marginBottom: 14 },
-  tab:         { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 30, paddingVertical: 5, borderRadius: 30, backgroundColor: 'rgba(6,27,74,1)', borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.1)' },
-  tabActive:   { backgroundColor: 'rgba(6,27,74,1)', borderColor: ORANGE },
-  tabTxt:      { fontSize: 13, fontFamily: 'Poppins_500Medium', color: C.textSecondary },
-  tabTxtActive:{ color: ORANGE, fontFamily: 'Poppins_600SemiBold' },
-  badge:       { backgroundColor: ORANGE, borderRadius: 10, paddingHorizontal: 6, paddingVertical: 1 },
-  badgeTxt:    { fontSize: 10, fontFamily: 'Poppins_700Bold', color: '#fff' },
-
-  list:        { paddingHorizontal: 16, paddingBottom: 100, gap: 10 },
-
-  card:        { borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(100,160,255,0.5)', backgroundColor: 'rgba(1,6,20,1)', padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  card:        { padding: 12, flexDirection: 'row', alignItems: 'center', gap: 14 },
   avatarWrap:  { position: 'relative' },
-  avatar:      { width: 50, height: 50, borderRadius: 25, backgroundColor: '#1a2a4a' },
-  onlineDot:   { position: 'absolute', bottom: 1, right: 1, width: 12, height: 12, borderRadius: 6, backgroundColor: '#22c55e', borderWidth: 2, borderColor: 'rgba(1,6,20,1)' },
+  avatar:      { width: 66, height: 66, borderRadius: 33, backgroundColor: '#1a2a4a' },
+  onlineDot:   { position: 'absolute', bottom: 2, right: 0, width: 13, height: 13, borderRadius: 7, backgroundColor: '#22c55e', borderWidth: 2, borderColor: '#010A1F' },
   cardInfo:    { flex: 1 },
-  nameRow:     { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
-  name:        { fontSize: 14, fontFamily: 'Poppins_600SemiBold', color: C.textPrimary },
-  time:        { fontSize: 11, fontFamily: 'Poppins_400Regular', color: '#8f9cb5' },
-  message:     { fontSize: 12, fontFamily: 'Poppins_400Regular', color: C.textSecondary, lineHeight: 18 },
-  verifiedBadge:{ width: 14, height: 14, borderRadius: 7, backgroundColor: '#3b82f6', alignItems: 'center', justifyContent: 'center' },
+  nameRow:     { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 },
+  name:        { fontSize: 16, fontFamily: 'Poppins_500Medium', color: '#FFFFFF' },
+  time:        { fontSize: 13, fontFamily: 'Poppins_400Regular', color: '#E6E1E8' },
+  message:     { fontSize: 13, fontFamily: 'Poppins_400Regular', color: '#E6E1E8', lineHeight: 20 },
 
   empty:       { alignItems: 'center', paddingTop: 80 },
-  emptyTxt:    { fontSize: 14, fontFamily: 'Poppins_500Medium', color: C.textSecondary },
+  emptyTxt:    { fontSize: 14, fontFamily: 'Poppins_500Medium', color: D.muted },
 });

@@ -12,6 +12,8 @@ import { useRouter } from 'expo-router';
 import { AppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { DHeader } from '@/components/dealer/DealerUI';
+import { ReviewItem as SharedReviewItem } from '@/components/book/reviews';
 
 const ORANGE = '#e2671b';
 const C = AppColors;
@@ -79,6 +81,7 @@ export default function ReviewsScreen() {
           stars:   Math.round(r.rating ?? 0),
           time:    fmtTime(r.created_at || ''),
           text:    r.comment || '',
+          raw:     r,
         })));
       }
     } catch { /* offline */ }
@@ -116,13 +119,7 @@ export default function ReviewsScreen() {
   return (
     <View style={s.root}>
       <SafeAreaView edges={['top']}>
-        <View style={s.header}>
-          <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
-            <ChevronLeft size={22} color={C.textPrimary} />
-          </TouchableOpacity>
-          <Text style={s.headerTitle}>Reviews ({reviews.length})</Text>
-          <View style={{ width: 36 }} />
-        </View>
+        <DHeader title="Reviews" center />
       </SafeAreaView>
 
       {loading ? (
@@ -134,7 +131,8 @@ export default function ReviewsScreen() {
         contentContainerStyle={s.list}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchReviews(); }} tintColor={ORANGE} />}
-        renderItem={({ item }) => <ReviewItem item={item} />}
+        // Same review row as the Book-a-vehicle / dealer Reviews screens
+        renderItem={({ item, index }) => <SharedReviewItem r={item.raw} index={index} divider={index < reviews.length - 1} />}
         ListEmptyComponent={
           <Text style={{ color: '#8f9cb5', textAlign: 'center', marginTop: 60, fontFamily: 'Poppins_400Regular' }}>
             No reviews yet
@@ -146,7 +144,7 @@ export default function ReviewsScreen() {
       {/* Write Your Review Button */}
       <View style={s.bottomWrap}>
         <TouchableOpacity style={s.writeBtn} activeOpacity={0.85} onPress={() => setShowModal(true)}>
-          <LinearGradient colors={['#032a69', ORANGE]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+          <LinearGradient colors={['#0B3585', '#7E4F5C', '#E8702A']} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
           <Text style={s.writeBtnTxt}>Write Your Review</Text>
         </TouchableOpacity>
       </View>
@@ -223,8 +221,8 @@ const s = StyleSheet.create({
   reviewTxt:   { fontSize: 13, fontFamily: 'Poppins_400Regular', color: C.textSecondary, lineHeight: 20, marginBottom: 16 },
   divider:     { height: 1, backgroundColor: 'rgba(255,255,255,0.07)' },
 
-  bottomWrap:  { position: 'absolute', bottom: 70, left: 0, right: 0, paddingHorizontal: 20, paddingTop: 12, backgroundColor: 'transparent' },
-  writeBtn:    { borderRadius: 30, overflow: 'hidden', paddingVertical: 10, alignItems: 'center' },
+  bottomWrap:  { position: 'absolute', bottom: 28, left: 0, right: 0, paddingHorizontal: 20, paddingTop: 12, backgroundColor: 'transparent' },
+  writeBtn:    { borderRadius: 30, overflow: 'hidden', height: 52, justifyContent: 'center', alignItems: 'center', marginHorizontal: 10 },
   writeBtnTxt: { fontSize: 12, fontFamily: 'Poppins_600SemiBold', color: '#fff' },
 
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },

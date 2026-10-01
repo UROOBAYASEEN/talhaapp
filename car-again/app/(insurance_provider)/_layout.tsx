@@ -1,39 +1,20 @@
-import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
-import {
-  LayoutDashboard,
-  ShieldCheck,
-  FileText,
-  DollarSign,
-  User,
-} from 'lucide-react-native';
 import React, { useEffect } from 'react';
+import { Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
-import { StyleSheet, Text, View } from 'react-native';
+import { PillTabBarHost, PillTabIcon } from '@/components/shared/PillTabBar';
 
-const ORANGE = '#e2671b';
-
-function TabIcon({ Icon, label, focused }: { Icon: any; label: string; focused: boolean }) {
-  if (focused) {
-    return (
-      <LinearGradient
-        colors={['#032a69', 'rgba(3,42,105,0.36)', '#e2671b']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        style={styles.iconActive}
-      >
-        <Icon size={15} color="#fff" />
-        <Text style={styles.labelActive}>{label}</Text>
-      </LinearGradient>
-    );
-  }
-  return (
-    <View style={styles.iconInactive}>
-      <Icon size={15} color="#9ca8c0" />
-      <Text style={styles.label}>{label}</Text>
-    </View>
-  );
+// Same bottom bar design + colours as the customer / dealer side
+function mci(name: any) {
+  return function McIcon(c: string) { return <MaterialCommunityIcons name={name} size={18} color={c} />; };
+}
+function ion(name: any) {
+  return function IonIcon(c: string) { return <Ionicons name={name} size={17} color={c} />; };
+}
+function img(src: any) {
+  return function ImgIcon(c: string) { return <Image source={src} style={{ width: 18, height: 18, tintColor: c }} resizeMode="contain" />; };
 }
 
 export default function InsuranceProviderLayout() {
@@ -46,10 +27,10 @@ export default function InsuranceProviderLayout() {
   }, [user?.docs_status]);
   return (
     <Tabs
+      tabBar={props => <PillTabBarHost {...props} />}
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false,
-        tabBarStyle: styles.tabBar,
         sceneStyle: { backgroundColor: '#010a1f' },
       }}
     >
@@ -57,7 +38,7 @@ export default function InsuranceProviderLayout() {
         name="index"
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon Icon={LayoutDashboard} label="Home" focused={focused} />
+            <PillTabIcon label="Home" focused={focused} renderIcon={mci('view-dashboard')} />
           ),
         }}
       />
@@ -65,7 +46,7 @@ export default function InsuranceProviderLayout() {
         name="policies"
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon Icon={ShieldCheck} label="Policies" focused={focused} />
+            <PillTabIcon label="Policies" focused={focused} renderIcon={mci('shield-search')} />
           ),
         }}
       />
@@ -73,7 +54,7 @@ export default function InsuranceProviderLayout() {
         name="claims"
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon Icon={FileText} label="Claims" focused={focused} />
+            <PillTabIcon label="Claims" focused={focused} renderIcon={ion('document-text-outline')} />
           ),
         }}
       />
@@ -81,7 +62,7 @@ export default function InsuranceProviderLayout() {
         name="plan"
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon Icon={DollarSign} label="Plan" focused={focused} />
+            <PillTabIcon label="Plan" focused={focused} renderIcon={img(require('@/assets/DealerPanelIcons/planIcon.png'))} />
           ),
         }}
       />
@@ -89,7 +70,7 @@ export default function InsuranceProviderLayout() {
         name="profile"
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon Icon={User} label="Profile" focused={focused} />
+            <PillTabIcon label="Profile" focused={focused} renderIcon={ion('person-outline')} />
           ),
         }}
       />
@@ -107,39 +88,3 @@ export default function InsuranceProviderLayout() {
     </Tabs>
   );
 }
-
-const styles = StyleSheet.create({
-  tabBar: {
-    position: 'absolute',
-    backgroundColor: '#061B4A',
-    borderTopWidth: 0,
-    borderRadius: 32,
-    height: 60,
-    bottom: 18,
-    left: 10,
-    right: 10,
-    elevation: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 12,
-  },
-  iconActive: {
-    width: 48,
-    height: 47,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: ORANGE,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 2,
-  },
-  iconInactive: {
-    width: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 2,
-  },
-  labelActive: { fontSize: 7, color: '#fff', fontFamily: 'Poppins_500Medium' },
-  label: { fontSize: 8, color: '#9ca8c0', marginTop: 4, fontFamily: 'Poppins_500Medium' },
-});

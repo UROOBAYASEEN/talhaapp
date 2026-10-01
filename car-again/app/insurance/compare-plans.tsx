@@ -9,6 +9,8 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ChevronLeft, Share2, Heart, Star, ShieldCheck } from 'lucide-react-native';
 import { AppColors, useAppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { PRIMARY_BTN_COLORS, RingGlow, SavedCardEffect } from '@/components/shared/FigmaEffects';
 
 const ORANGE = '#e2671b';
 const NAVY   = '#032a69';
@@ -28,6 +30,7 @@ const ADDONS = [
 function AddonsModal({ visible, onClose, plan, claimId }: { visible: boolean; onClose: () => void; plan: any; claimId?: string }) {
   const aC = useAppColors();
   const router = useRouter();
+  const search = useLocalSearchParams<{ brand?: string; model?: string; year?: string; market_value?: string }>();
   const [selected, setSelected] = useState<number[]>([]);
 
   function toggleAddon(i: number) {
@@ -90,6 +93,8 @@ function AddonsModal({ visible, onClose, plan, claimId }: { visible: boolean; on
                 features: JSON.stringify(plan?.features || []),
                 has_tracker: String(hasTracker),
                 selected_addons: JSON.stringify(selectedNames),
+                car_model: [search.year, search.brand, search.model].filter(Boolean).join(' '),
+                market_value: search.market_value || '',
               },
             });
           }}>
@@ -154,7 +159,8 @@ function GlassInset() {
 export default function ComparePlansScreen() {
   const aC = useAppColors();
   const router = useRouter();
-  const { claimId } = useLocalSearchParams<{ claimId: string }>();
+  const searchParams = useLocalSearchParams<{ claimId: string; brand?: string; model?: string; year?: string; market_value?: string }>();
+  const { claimId } = searchParams;
   const [sortBy,      setSortBy]      = useState('lowest_premium');
   const [liked,       setLiked]       = useState<Record<string, boolean>>({});
   const [plans,       setPlans]       = useState<any[]>([]);
@@ -162,6 +168,54 @@ export default function ComparePlansScreen() {
   const [refreshing,  setRefreshing]  = useState(false);
   const [showAddons,  setShowAddons]  = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
+  // "Add Tracker" toggle per plan (Figma) — on by default
+  const [trackerOff,  setTrackerOff]  = useState<Record<string, boolean>>({});
+  // Plans picked for comparison (max 2 — picking a 3rd replaces the oldest)
+  const [compareIds,  setCompareIds]  = useState<string[]>([]);
+  const canCompare = compareIds.length === 2;
+
+  function toggleCompare(id: string) {
+    setCompareIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : prev.length < 2 ? [...prev, id] : [prev[1], id]);
+  }
+
+  // Select Plan → straight to plan details (addons now open from "Add Tracker")
+  function selectPlan(plan: any) {
+    router.push({
+      pathname: '/insurance/plan-details' as any,
+      params: {
+        planId:   plan?.id,
+        claimId:  claimId || '',
+        company:  plan?.company_name,
+        avatarUrl: plan?.avatar_url || '',
+        rating:   String(plan?.rating),
+        claims:   String(plan?.claim_percentage),
+        rate:     String(plan?.annual_rate),
+        premium:  String(plan?.annual_premium || 0),
+        badge:    plan?.badge || '',
+        features: JSON.stringify(plan?.features || []),
+        has_tracker: 'false',
+        selected_addons: JSON.stringify([]),
+        car_model: [searchParams.year, searchParams.brand, searchParams.model].filter(Boolean).join(' '),
+        market_value: searchParams.market_value || '',
+      },
+    });
+  }
+
+  function openCompare() {
+    if (!canCompare) return;
+    const [a, b] = compareIds.map(id => plans.find(pl => String(pl.id) === id)).filter(Boolean);
+    if (!a || !b) return;
+    router.push({
+      pathname: '/insurance/compare-insurance' as any,
+      params: {
+        aData: JSON.stringify(a),
+        bData: JSON.stringify(b),
+        claimId: claimId || '',
+        car_model: [searchParams.year, searchParams.brand, searchParams.model].filter(Boolean).join(' '),
+        market_value: searchParams.market_value || '',
+      },
+    });
+  }
 
   useEffect(() => { load(); }, [sortBy]);
 
@@ -210,32 +264,41 @@ export default function ComparePlansScreen() {
     <SafeAreaView style={[s.safe, { backgroundColor: aC.bg }]} edges={['top']}>
 
       {/* HEADER */}
-      <View style={[s.header, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderBottomWidth: aC.isDark ? 0 : 1, borderBottomColor: 'rgba(3,42,105,0.08)' }]}>
+      <View style={[s.header, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff' }]}>
         <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
-          <ChevronLeft size={24} color={aC.textPrimary} strokeWidth={2} />
+          <Ionicons name="chevron-back" size={26} color={aC.isDark ? '#C9C6D0' : '#010a1f'} />
         </TouchableOpacity>
-        <Text style={[s.headerTitle, { color: aC.textPrimary }]}>Compare Insurance Plans</Text>
-        <View style={{ width: 36 }} />
+        <Text style={[s.headerTitle, { color: aC.isDark ? '#F2F1F5' : '#010a1f' }]}>All Insurance Plans</Text>
+        <TouchableOpacity style={s.compareBtn} activeOpacity={0.8} disabled={!canCompare} onPress={openCompare}>
+          <MaterialCommunityIcons name="compare-horizontal" size={20} color={canCompare ? ORANGE : '#B4552A'} />
+          <Text style={[s.compareTxt, canCompare && { color: ORANGE, fontFamily: 'Poppins_600SemiBold' }]}>Compare</Text>
+        </TouchableOpacity>
       </View>
 
       <AddonsModal visible={showAddons} onClose={() => setShowAddons(false)} plan={selectedPlan} claimId={claimId} />
 
       {/* FILTER PILLS */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[s.filtersRow, { backgroundColor: aC.bg }]} style={{ flexGrow: 0, backgroundColor: aC.bg }}>
-        {FILTERS.map(f => (
-          <TouchableOpacity
-            key={f.key}
-            style={[
-              s.filterPill,
-              { backgroundColor: aC.isDark ? C.glassBg : '#ffffff', borderColor: aC.isDark ? 'rgba(255,255,255,0.15)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.06)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 },
-              sortBy === f.key && { borderColor: ORANGE, backgroundColor: aC.isDark ? C.glassBg : 'rgba(226,103,27,0.10)' },
-            ]}
-            onPress={() => setSortBy(f.key)} activeOpacity={0.8}
-          >
-            <Text style={[s.filterTxt, { color: sortBy === f.key ? ORANGE : (aC.isDark ? C.textSecondary : '#475569') }, sortBy === f.key && { fontFamily: 'Poppins_500Medium' }]}>{f.label}</Text>
-          </TouchableOpacity>
-        ))}
+        {FILTERS.map(f => {
+          const active = sortBy === f.key;
+          return (
+            <TouchableOpacity
+              key={f.key}
+              style={[
+                s.filterPill,
+                aC.isDark
+                  ? (active ? { backgroundColor: '#0A1838', borderColor: '#7E9FD6' } : { backgroundColor: '#0B1D4A', borderColor: 'transparent' })
+                  : { backgroundColor: active ? 'rgba(226,103,27,0.10)' : '#ffffff', borderColor: active ? ORANGE : 'rgba(3,42,105,0.12)' },
+              ]}
+              onPress={() => setSortBy(f.key)} activeOpacity={0.8}
+            >
+              {active && aC.isDark && <RingGlow radius={14} peak={0.5} rings={8} />}
+              <Text style={[s.filterTxt, { color: active ? ORANGE : (aC.isDark ? '#F2F1F5' : '#475569') }, active && { fontFamily: 'Poppins_600SemiBold' }]}>{f.label}</Text>
+            </TouchableOpacity>
+          );
+        })}
       </ScrollView>
+      <Text style={[s.pickTxt, { color: aC.isDark ? '#E6E4EA' : '#334155' }]}>Select Any 2 Plans to Compare</Text>
 
       {/* PLAN CARDS */}
       {loading ? (
@@ -258,70 +321,69 @@ export default function ComparePlansScreen() {
           }
           renderItem={({ item: p }) => {
             const initials = p.company_name.slice(0, 3).toUpperCase();
-            const rating   = p.rating ? p.rating.toFixed(1) : '—';
+            const rating   = p.rating ? Number(p.rating).toFixed(1) : '—';
+            const tracker  = !trackerOff[String(p.id)];
+            const picked   = compareIds.includes(String(p.id));
             return (
-              <View style={[s.card, { backgroundColor: aC.isDark ? 'rgba(1,6,20,1)' : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.4)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, shadowRadius: 10, elevation: aC.isDark ? 0 : 3 }]}>
-                <GlassInset />
+              <View style={[s.card, aC.isDark ? { backgroundColor: '#010A1F', borderColor: '#82a5d5', shadowColor: '#638ed0', shadowOpacity: 0.15, shadowRadius: 5, shadowOffset: { width: 0, height: 0 }, elevation: 2 } : { backgroundColor: '#ffffff', borderColor: 'rgba(3,42,105,0.12)', shadowColor: 'rgba(3,42,105,0.12)', shadowOpacity: 0.08, shadowRadius: 8, shadowOffset: { width: 0, height: 0 }, elevation: 3 }]}>
+                {aC.isDark ? <SavedCardEffect /> : <GlassInset />}
 
                 {/* Top row */}
                 <View style={s.cardTop}>
                   <TouchableOpacity style={s.providerLeft} onPress={() => router.push({ pathname: '/insurance/company-profile' as any, params: { id: String(p.id), company: p.company_name, rating: String(p.rating), claims: `Claim ${p.claim_percentage}%` } })} activeOpacity={0.8}>
                     {p.avatar_url ? (
-                      <Image source={{ uri: resolveUrl(p.avatar_url) }} style={[s.avatar, { overflow:'hidden', backgroundColor: aC.isDark ? 'rgba(19,34,66,1)' : '#eef2ff', borderColor: aC.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(3,42,105,0.12)' }]} />
+                      <Image source={{ uri: resolveUrl(p.avatar_url) }} style={[s.avatar, { overflow: 'hidden' }]} />
                     ) : (
-                      <View style={[s.avatar, { backgroundColor: aC.isDark ? 'rgba(19,34,66,1)' : '#eef2ff', borderColor: aC.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(3,42,105,0.12)' }]}>
-                        <Text style={[s.avatarTxt, { color: aC.isDark ? C.textPrimary : '#010a1f' }]}>{initials}</Text>
+                      <View style={s.avatar}>
+                        <Text style={s.avatarTxt}>{initials}</Text>
                       </View>
                     )}
                     <View style={{ flex: 1 }}>
-                      <Text style={[s.providerName, { color: aC.isDark ? C.textPrimary : '#010a1f' }]}>{p.company_name}</Text>
-                      <Text style={[s.providerTagline, { color: aC.isDark ? C.textSecondary : '#475569' }]} numberOfLines={1}>
-                        {p.badge || `Claim ${p.claim_percentage}% • Rate ${p.annual_rate}%`}
-                      </Text>
+                      <Text style={[s.providerName, { color: aC.isDark ? '#F2F1F5' : '#010a1f' }]} numberOfLines={1}>{p.company_name}</Text>
+                      <View style={s.ratingRow}>
+                        <Ionicons name="star" size={18} color={ORANGE} />
+                        <Text style={[s.providerTagline, { color: aC.isDark ? '#BAB6C4' : '#475569' }]} numberOfLines={1}>{rating} · Claim {p.claim_percentage}%</Text>
+                      </View>
                     </View>
                   </TouchableOpacity>
 
-                  <View style={s.cardRight}>
+                  <View style={{ alignItems: 'flex-end', gap: 6 }}>
+                    {/* Select for comparison */}
+                    <TouchableOpacity onPress={() => toggleCompare(String(p.id))} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                      <View style={[s.radioOuter, picked && s.radioOuterOn]}>
+                        {picked ? <View style={s.radioInner} /> : <View style={s.radioRing} />}
+                      </View>
+                    </TouchableOpacity>
                     <View style={s.iconRow}>
-                      <TouchableOpacity><Share2 size={16} color={aC.isDark ? C.textSecondary : '#64748b'} /></TouchableOpacity>
+                      <TouchableOpacity><Ionicons name="share-social-outline" size={19} color={ORANGE} /></TouchableOpacity>
                       <TouchableOpacity onPress={() => toggleLike(String(p.id))}>
-                        <Heart size={16} color={ORANGE} fill={liked[String(p.id)] ? ORANGE : 'transparent'} />
+                        <Ionicons name={liked[String(p.id)] ? 'heart' : 'heart-outline'} size={20} color={ORANGE} />
                       </TouchableOpacity>
                     </View>
-                    <View style={{ alignItems: 'flex-end' }}>
-                      <Text style={[s.yearlyLabel, { color: aC.isDark ? C.textSecondary : '#64748b' }]}>Annual</Text>
-                      <Text style={s.price}>PKR {Number(p.annual_premium).toLocaleString()}</Text>
-                    </View>
                   </View>
                 </View>
 
-                {/* Rating */}
-                <View style={s.ratingRow}>
-                  <Star size={14} color={ORANGE} fill={ORANGE} />
-                  <Text style={[s.ratingTxt, { color: aC.isDark ? C.textPrimary : '#010a1f' }]}>{rating}</Text>
+                {/* Rate / Total */}
+                <View style={[s.infoRow, s.infoBorder]}>
+                  <Text style={[s.infoLabel, { color: aC.isDark ? '#E6E4EA' : '#334155' }]}>Rate</Text>
+                  <Text style={[s.infoVal, { color: aC.isDark ? '#E6E4EA' : '#010a1f' }]}>{p.annual_rate}</Text>
+                </View>
+                <View style={[s.infoRow, s.infoBorder]}>
+                  <Text style={[s.infoLabel, { color: aC.isDark ? '#E6E4EA' : '#334155' }]}>Total</Text>
+                  <Text style={[s.infoVal, { color: aC.isDark ? '#E6E4EA' : '#010a1f' }]}>PKR {Number(p.annual_premium).toLocaleString()}/ Year</Text>
                 </View>
 
-                {/* Stats */}
-                <View style={s.statsRow}>
-                  <View style={s.statItem}>
-                    <Text style={[s.statLabel, { color: aC.isDark ? C.textSecondary : '#64748b' }]}>Annual Rate</Text>
-                    <Text style={[s.statValue, { color: aC.isDark ? C.textPrimary : '#010a1f' }]}>{p.annual_rate}%</Text>
+                {/* Add Tracker */}
+                <TouchableOpacity style={s.trackerRow} activeOpacity={0.8} onPress={() => { setSelectedPlan(p); setShowAddons(true); }}>
+                  <Text style={[s.trackerTxt, { color: aC.isDark ? '#E6E4EA' : '#334155' }]}>Add Tracker PKR 9,000  per Year</Text>
+                  <View style={[s.radioOuter, tracker && s.radioOuterOn]}>
+                    {tracker && <View style={s.radioInner} />}
                   </View>
-                  <View style={[s.statDiv, { backgroundColor: aC.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(3,42,105,0.12)' }]} />
-                  <View style={s.statItem}>
-                    <Text style={[s.statLabel, { color: aC.isDark ? C.textSecondary : '#64748b' }]}>Claim Rate</Text>
-                    <Text style={[s.statValue, { color: aC.isDark ? C.textPrimary : '#010a1f' }]}>{p.claim_percentage}%</Text>
-                  </View>
-                  <View style={[s.statDiv, { backgroundColor: aC.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(3,42,105,0.12)' }]} />
-                  <View style={s.statItem}>
-                    <Text style={[s.statLabel, { color: aC.isDark ? C.textSecondary : '#64748b' }]}>Coverage</Text>
-                    <Text style={[s.statValue, { color: aC.isDark ? C.textPrimary : '#010a1f' }]}>{p.features?.length || 0} Types</Text>
-                  </View>
-                </View>
+                </TouchableOpacity>
 
                 {/* Select Plan Button */}
-                <TouchableOpacity style={s.selectBtn} activeOpacity={0.85} onPress={() => { setSelectedPlan(p); setShowAddons(true); }}>
-                  <LinearGradient colors={[NAVY, ORANGE]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+                <TouchableOpacity style={s.selectBtn} activeOpacity={0.85} onPress={() => selectPlan(p)}>
+                  <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
                   <Text style={s.selectTxt}>Select Plan</Text>
                 </TouchableOpacity>
               </View>
@@ -335,33 +397,40 @@ export default function ComparePlansScreen() {
 
 const s = StyleSheet.create({
   safe:   { flex: 1, backgroundColor: C.bg },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, height: 56 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, height: 56 },
   backBtn:     { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { color: C.textPrimary, fontSize: 14, fontFamily: 'Poppins_600SemiBold', flex: 1, textAlign: 'center' },
-  filtersRow:      { paddingHorizontal: 20, gap: 10, paddingBottom: 16 },
-  filterPill:      { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 30, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', backgroundColor: C.glassBg },
-  filterPillActive:{ borderColor: ORANGE, backgroundColor: C.glassBg },
-  filterTxt:       { color: C.textSecondary, fontSize: 13, fontFamily: 'Poppins_400Regular' },
-  filterTxtActive: { color: ORANGE, fontFamily: 'Poppins_500Medium' },
-  list: { paddingHorizontal: 20, paddingBottom: 40, gap: 16 },
-  card: { borderRadius: 20, borderWidth: 1, borderColor: 'rgba(100,160,255,0.4)', backgroundColor: 'rgba(1,6,20,1)', padding: 16, overflow: 'hidden' },
-  cardTop:       { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
-  providerLeft:  { flexDirection: 'row', alignItems: 'flex-start', gap: 12, flex: 1 },
-  avatar:        { width: 42, height: 42, borderRadius: 21, backgroundColor: 'rgba(19,34,66,1)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  avatarTxt:     { color: C.textPrimary, fontSize: 10, fontFamily: 'Poppins_600SemiBold' },
-  providerName:  { color: C.textPrimary, fontSize: 14, fontFamily: 'Poppins_600SemiBold' },
-  providerTagline:{ color: C.textSecondary, fontSize: 11, fontFamily: 'Poppins_400Regular', marginTop: 2 },
-  cardRight:   { alignItems: 'flex-end', gap: 8, flexShrink: 0 },
-  iconRow:     { flexDirection: 'row', alignItems: 'center', gap: 14 },
-  yearlyLabel: { color: C.textSecondary, fontSize: 10, fontFamily: 'Poppins_400Regular' },
-  price:       { color: ORANGE, fontSize: 13, fontFamily: 'Poppins_600SemiBold' },
-  ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 12 },
-  ratingTxt: { color: C.textPrimary, fontSize: 13, fontFamily: 'Poppins_500Medium' },
-  statsRow:   { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
-  statItem:   { flex: 1 },
-  statLabel:  { color: C.textSecondary, fontSize: 10, fontFamily: 'Poppins_400Regular', marginBottom: 4 },
-  statValue:  { color: C.textPrimary, fontSize: 13, fontFamily: 'Poppins_500Medium' },
-  statDiv:    { width: 1, height: 32, backgroundColor: 'rgba(255,255,255,0.1)', marginHorizontal: 8 },
-  selectBtn:  { height: 48, borderRadius: 30, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
-  selectTxt:  { color: '#fff', fontSize: 14, fontFamily: 'Poppins_600SemiBold' },
+  headerTitle: { position: 'absolute', left: 0, right: 0, textAlign: 'center', fontSize: 17, fontFamily: 'Poppins_500Medium' },
+  compareBtn:  { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  compareTxt:  { color: '#6E6A7A', fontSize: 12.5, fontFamily: 'Poppins_400Regular' },
+
+  filtersRow:  { paddingHorizontal: 14, gap: 10, paddingBottom: 4 },
+  filterPill:  { height: 42, paddingHorizontal: 16, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  filterTxt:   { fontSize: 13, fontFamily: 'Poppins_400Regular' },
+  pickTxt:     { fontSize: 13, fontFamily: 'Poppins_400Regular', paddingHorizontal: 22, marginTop: 2, marginBottom: 8 },
+
+  list: { paddingHorizontal: 14, paddingBottom: 40, gap: 16 },
+  card: { borderRadius: 16, borderWidth: 1, paddingHorizontal: 12, paddingTop: 12, paddingBottom: 14, overflow: 'hidden' },
+  cardTop:       { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
+  providerLeft:  { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
+  avatar:        { width: 40, height: 40, borderRadius: 20, backgroundColor: '#12306A', borderWidth: 1, borderColor: '#8FAEE3', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  avatarTxt:     { color: '#F2F1F5', fontSize: 11, fontFamily: 'Poppins_500Medium' },
+  providerName:  { fontSize: 16, fontFamily: 'Poppins_500Medium' },
+  ratingRow:     { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 2 },
+  providerTagline:{ fontSize: 12, fontFamily: 'Poppins_400Regular' },
+  iconRow:     { flexDirection: 'row', alignItems: 'center', gap: 8 },
+
+  infoRow:    { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 5 },
+  infoBorder: { borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.12)' },
+  infoLabel:  { fontSize: 11.5, fontFamily: 'Poppins_400Regular' },
+  infoVal:    { fontSize: 11.5, fontFamily: 'Poppins_400Regular' },
+
+  trackerRow:  { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: 8, marginTop: 8, marginBottom: 10 },
+  trackerTxt:  { fontSize: 11.5, fontFamily: 'Poppins_400Regular' },
+  radioOuter:  { width: 20, height: 20, borderRadius: 10, borderWidth: 1.2, borderColor: 'rgba(220,230,247,0.6)', backgroundColor: '#12306A', alignItems: 'center', justifyContent: 'center' },
+  radioOuterOn:{ borderWidth: 2, borderColor: '#DCE6F7', shadowColor: '#8FAEE3', shadowOpacity: 0.8, shadowRadius: 5, shadowOffset: { width: 0, height: 0 }, elevation: 3 },
+  radioInner:  { width: 8, height: 8, borderRadius: 4, backgroundColor: '#ffffff' },
+  radioRing:   { width: 9, height: 9, borderRadius: 5, borderWidth: 1.5, borderColor: 'rgba(220,230,247,0.6)' },
+
+  selectBtn:  { height: 40, borderRadius: 20, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
+  selectTxt:  { color: '#EDEBF0', fontSize: 13, fontFamily: 'Poppins_500Medium' },
 });

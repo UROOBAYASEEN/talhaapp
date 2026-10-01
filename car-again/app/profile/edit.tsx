@@ -177,7 +177,20 @@ export default function EditProfileScreen() {
   return (
     <SafeAreaView style={[s.safe, { backgroundColor: aC.bg }]} edges={["top"]}>
 
-      {/* ── Header — same as profile ── */}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={0}
+        style={{ flex: 1 }}
+      >
+        <ScrollView
+          contentContainerStyle={s.scroll}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+          contentInsetAdjustmentBehavior="never"
+        >
+
+          {/* ── Header — same as profile ── */}
       <View style={s.header}>
         <TouchableOpacity style={s.iconBtn} onPress={() => router.back()}>
           <Ionicons name="arrow-back-outline" size={24} color={WHITE} />
@@ -196,12 +209,6 @@ export default function EditProfileScreen() {
           </TouchableOpacity>
         </View>
       </View>
-
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-        <ScrollView
-          contentContainerStyle={s.scroll}
-          showsVerticalScrollIndicator={false}
-        >
 
           {/* ── Avatar ── */}
           <View style={s.avatarSection}>
@@ -360,9 +367,20 @@ function EditField({
       <Text style={s.fieldLabel}>{label}</Text>
 
       <View style={[s.inputWrap, !editable && s.inputDisabled]}>
-        <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-        <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-        <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+        <LinearGradient
+          colors={['#16408880', '#16408850', 'transparent', 'transparent', '#16408850', '#16408880']}
+          locations={[0, 0.10, 0.22, 0.78, 0.90, 1]}
+          style={StyleSheet.absoluteFillObject}
+          pointerEvents="none"
+        />
+        <LinearGradient
+          colors={['#16408880', 'transparent', 'transparent', '#16408880']}
+          locations={[0, 0.05, 0.95, 1]}
+          start={{ x: 0, y: 0.5 }}
+          end={{ x: 1, y: 0.5 }}
+          style={StyleSheet.absoluteFillObject}
+          pointerEvents="none"
+        />
         <TextInput
           style={s.input}
           value={value}
@@ -384,8 +402,8 @@ const s = StyleSheet.create({
 
   // Header
   header: {
-    height: 100,
-    paddingHorizontal: 20,
+    height: 94,
+    paddingHorizontal: 0,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -402,7 +420,7 @@ const s = StyleSheet.create({
     position: "absolute",
     left: 0,
     right: 0,
-    top: 38,
+    top: 32,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -418,14 +436,15 @@ const s = StyleSheet.create({
   // Scroll
   scroll: {
     paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 20,
+    paddingTop: 0,
+    paddingBottom: 180,
     gap: 20,
   },
 
   // Avatar — Figma: 76×76, border 1.462px white, radius 51.154
   avatarSection: {
     alignItems: "center",
+    marginTop: -20,
   },
   avatarWrap: {
     position: "relative",
@@ -544,14 +563,19 @@ const s = StyleSheet.create({
     height: 48,
     borderRadius: 32,
     borderWidth: 1,
-    borderColor: 'rgba(100,160,255,0.5)',
-    backgroundColor: 'rgba(3,12,40,0.6)',
+    borderColor: 'rgba(130,165,213,0.82)',
+    backgroundColor: '#010A1F',
     justifyContent: "center",
     paddingHorizontal: 20,
     overflow: 'hidden',
+    shadowColor: '#638ed0',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.10,
+    shadowRadius: 4,
+    elevation: 2,
   },
   inputDisabled: {
-    borderColor: 'rgba(100,160,255,0.25)',
+    borderColor: 'rgba(130,165,213,0.82)',
   },
   input: {
     fontSize: 14,

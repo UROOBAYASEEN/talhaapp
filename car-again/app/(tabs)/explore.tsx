@@ -21,11 +21,11 @@ const CARD_W = (W - 40 - 16) / 2;
 const IMG_NEW_CAR   = require('@/screenshot/necar.png');
 const IMG_USED_CAR  = require('@/screenshot/usedcarh.png');
 const IMG_NEW_BIKE  = require('@/screenshot/newbike.png');
-const IMG_USED_BIKE = require('@/screenshot/usedbike.png');
+const IMG_USED_BIKE = require('@/assets/images/usedBikeInspected.png');
 const IMG_FINANCING = require('@/screenshot/smartcalculator.png');
 const IMG_INSURANCE = require('@/screenshot/insurance.png');
-const IMG_TRACKER   = require('@/screenshot/traker.png');
-const IMG_BOOK      = require('@/screenshot/bookyourvehcile.png');
+const IMG_TRACKER   = require('@/assets/images/trackerCarImage.png');
+const IMG_BOOK      = require('@/assets/images/bookVehicleImage.png');
 
 // ── Data ───────────────────────────────────────────────────────────────────
 const VEHICLES = [
@@ -85,7 +85,7 @@ const SERVICES = [
     img: IMG_BOOK,
     title: 'Book Your Vehicle',
     desc: 'Reserve your preferred vehicle before delivery.',
-    route: '/buy/new-car',
+    route: '/book',
     params: {},
   },
 ];
@@ -101,9 +101,10 @@ function ServiceCard({
     return (
       <TouchableOpacity onPress={onPress} activeOpacity={0.85} style={styles.cardWrap}>
         <LinearGradient
-          colors={['#061B4A', '#061B4A', 'rgba(226,103,27,0.35)']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
+          colors={['#051334', '#071A44', '#0A1D47', '#202543', '#4C343B', '#633B37']}
+          locations={[0, 0.33, 0.51, 0.62, 0.86, 1]}
+          start={{ x: 0.5, y: 0 }}
+          end={{ x: 0.5, y: 1 }}
           style={styles.card}
         >
           <View style={styles.cardImgWrap}>
@@ -112,7 +113,7 @@ function ServiceCard({
           <View style={styles.cardBottom}>
             <View style={styles.cardTitleRow}>
               <Text style={[styles.cardTitle, { color: aC.textPrimary }]} numberOfLines={2}>{title}</Text>
-              <Ionicons name="chevron-forward" size={14} color={AppColors.gradientEnd} />
+              <Ionicons name="chevron-forward" size={20} color={AppColors.gradientEnd} />
             </View>
             <Text style={[styles.cardDesc, { color: aC.textSecondary }]} numberOfLines={2}>{desc}</Text>
           </View>
@@ -152,7 +153,7 @@ export default function ExploreScreen() {
       {/* ── Header ── */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.iconBtn}>
-          <Ionicons name="arrow-back-outline" size={24} color={aC.textPrimary} />
+          <Ionicons name="chevron-back" size={28} color={aC.isDark ? '#BAACB6' : aC.textPrimary} />
         </TouchableOpacity>
 
         {aC.isDark ? (
@@ -172,14 +173,14 @@ export default function ExploreScreen() {
       </View>
 
       {/* ── Page title ── */}
-      <Text style={[styles.pageTitle, { color: aC.textPrimary }]}>Find your perfect Option</Text>
+      <Text style={[styles.pageTitle, { color: aC.isDark ? '#F2F1F5' : aC.textPrimary }]}>Find Your Perfect Option</Text>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scroll}
       >
         {/* VEHICLES */}
-        <Text style={[styles.sectionHeading, { color: aC.textSecondary }]}>VEHICLES</Text>
+        <Text style={[styles.sectionHeading, { color: aC.isDark ? '#E6E1E8' : aC.textSecondary }]}>VEHICLES</Text>
         <View style={styles.grid}>
           {VEHICLES.map((item) => (
             <ServiceCard
@@ -193,7 +194,7 @@ export default function ExploreScreen() {
         </View>
 
         {/* VEHICLE SERVICES */}
-        <Text style={[styles.sectionHeading, { color: aC.textSecondary }]}>VEHICLE SERVICES</Text>
+        <Text style={[styles.sectionHeading, { color: aC.isDark ? '#E6E1E8' : aC.textSecondary }]}>VEHICLE SERVICES</Text>
         <View style={styles.grid}>
           {SERVICES.map((item) => (
             <ServiceCard
@@ -222,20 +223,20 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 10,
-    paddingBottom: 10,
-    height: 52,
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 6,
+    height: 58,
   },
   iconBtn: {
-    width: 36,
-    height: 36,
+    width: 32,
+    height: 32,
     alignItems: 'center',
     justifyContent: 'center',
   },
   logo: {
     flex: 1,
-    height: 26,
+    height: 19,
   },
   logoTextLight: {
     flex: 1,
@@ -247,12 +248,11 @@ const styles = StyleSheet.create({
 
   pageTitle: {
     color: AppColors.textPrimary,
-    fontSize: 18,
+    fontSize: 22,
     fontFamily: 'Poppins_500Medium',
-    textTransform: 'capitalize',
     paddingHorizontal: 20,
-    marginTop: 8,
-    marginBottom: 16,
+    marginTop: 22,
+    marginBottom: 22,
   },
 
   scroll: {
@@ -263,30 +263,32 @@ const styles = StyleSheet.create({
     color: AppColors.textPrimary,
     fontSize: 12,
     fontFamily: 'Poppins_400Regular',
-    letterSpacing: 1.2,
+    letterSpacing: 2,
     textTransform: 'uppercase',
-    marginBottom: 12,
-    marginTop: 4,
+    marginBottom: 20,
+    marginTop: 2,
     paddingHorizontal: 8,
   },
 
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 16,
-    marginBottom: 20,
+    columnGap: 16,
+    rowGap: 17,
+    marginBottom: 24,
   },
 
   cardWrap: {
     width: CARD_W,
-    minHeight: 185,
-    borderRadius: 16,
+    height: 153,
+    borderRadius: 14,
     overflow: 'hidden',
   },
   card: {
     flex: 1,
-    padding: 10,
-    paddingTop: 8,
+    paddingHorizontal: 10,
+    paddingTop: 6,
+    paddingBottom: 12,
     flexDirection: 'column',
   },
   cardImgWrap: {
@@ -294,35 +296,34 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 4,
-    paddingHorizontal: 12,
   },
   cardImg: {
-    width: '78%',
-    height: 46,
+    width: '62%',
+    height: 60,
   },
   cardBottom: {
+    flex: 1,
     gap: 3,
-    paddingTop: 6,
+    paddingTop: 2,
+    justifyContent: 'flex-end',
   },
   cardTitleRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 4,
+    gap: 6,
   },
   cardTitle: {
     flex: 1,
     color: AppColors.textPrimary,
-    fontSize: 12,
-    fontFamily: 'Poppins_500Medium',
-    textTransform: 'capitalize',
-    lineHeight: 16,
+    fontSize: 15,
+    fontFamily: 'Poppins_400Regular',
+    lineHeight: 18,
   },
   cardDesc: {
     color: AppColors.textRole,
-    fontSize: 9,
+    fontSize: 11,
     fontFamily: 'Poppins_400Regular',
-    lineHeight: 13,
+    lineHeight: 15,
   },
 });

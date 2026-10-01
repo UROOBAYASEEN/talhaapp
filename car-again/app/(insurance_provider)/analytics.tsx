@@ -15,6 +15,8 @@ import Svg, { Path, Circle, Defs, LinearGradient as SvgGradient, Stop } from 're
 import { AppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { Ionicons } from '@expo/vector-icons';
+import { D, DHeader, GlowCard, OutlineCard } from '@/components/dealer/DealerUI';
 
 const ORANGE = '#e2671b';
 const C = AppColors;
@@ -69,8 +71,8 @@ function DonutChart({ approved = 24, pending = 6, reviewing = 12 }: { approved?:
 
   const segments = [
     { value: approved,  color: ORANGE    },
-    { value: reviewing, color: '#22c55e' },
-    { value: pending,   color: '#fff'    },
+    { value: reviewing, color: '#1BA35E' },
+    { value: pending,   color: '#E6E1E8' },
   ];
   const total = segments.reduce((acc, seg) => acc + seg.value, 0);
 
@@ -88,7 +90,7 @@ function DonutChart({ approved = 24, pending = 6, reviewing = 12 }: { approved?:
             cx={cx} cy={cy} r={r}
             fill="none"
             stroke={seg.color}
-            strokeWidth={16}
+            strokeWidth={10}
             strokeDasharray={[dash, gap]}
             strokeDashoffset={0}
             transform={`rotate(${rotation} ${cx} ${cy})`}
@@ -137,15 +139,12 @@ export default function AnalyticsScreen() {
   return (
     <View style={s.root}>
       <SafeAreaView edges={['top']}>
-        <View style={s.header}>
-          <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
-            <ChevronLeft size={22} color={C.textPrimary} />
-          </TouchableOpacity>
-          <Text style={s.headerTitle}>Profile Analytics</Text>
-          <TouchableOpacity style={s.bellBtn}>
-            <Bell size={20} color={C.textPrimary} />
-          </TouchableOpacity>
-        </View>
+        <DHeader
+          title="Profile Analytics"
+          center
+          titleStyle={{ fontFamily: 'Poppins_600SemiBold', fontSize: 19 }}
+          right={<TouchableOpacity style={s.bellBtn}><Bell size={24} color={ORANGE} /></TouchableOpacity>}
+        />
       </SafeAreaView>
 
       {loading ? (
@@ -154,8 +153,7 @@ export default function AnalyticsScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
 
         {/* Line Chart Card */}
-        <View style={s.chartCard}>
-          <CardShade />
+        <GlowCard style={s.chartCard}>
           <View style={s.chartTopRow}>
             <View>
               <Text style={s.chartSubLabel}>Total Followers</Text>
@@ -163,7 +161,7 @@ export default function AnalyticsScreen() {
             </View>
             <TouchableOpacity style={s.viewDropBtn} onPress={() => setShowDrop(v => !v)}>
               <Text style={s.viewDropTxt}>{viewMode} View</Text>
-              <Text style={s.downArrow}>⌄</Text>
+              <Ionicons name={showDrop ? 'chevron-up' : 'chevron-down'} size={16} color={ORANGE} />
             </TouchableOpacity>
           </View>
           {showDrop && (
@@ -183,35 +181,32 @@ export default function AnalyticsScreen() {
               <Text key={d} style={s.dayTxt}>{d}</Text>
             ))}
           </View>
-        </View>
+        </GlowCard>
 
         {/* Profile Views + Search Appearances */}
         <View style={s.statsRow}>
-          <View style={s.statCard}>
-            <CardShade />
+          <OutlineCard style={s.statCard}>
             <Text style={s.statCardLabel}>Profile Views</Text>
             <Text style={s.statCardNum}>{(data?.profile_views ?? 0).toLocaleString()}</Text>
             <View style={s.changeRow}>
-              <TrendingUp size={12} color="#22c55e" />
-              <Text style={[s.changeTxt, { color: '#22c55e' }]}>Live</Text>
+              <TrendingUp size={12} color={ORANGE} />
+              <Text style={[s.changeTxt, { color: ORANGE }]}>Live</Text>
             </View>
-          </View>
-          <View style={s.statCard}>
-            <CardShade />
+          </OutlineCard>
+          <OutlineCard style={s.statCard}>
             <Text style={s.statCardLabel}>Applications</Text>
             <Text style={s.statCardNum}>{(data?.search_appearances ?? 0).toLocaleString()}</Text>
             <View style={s.changeRow}>
-              <TrendingUp size={12} color="#22c55e" />
-              <Text style={[s.changeTxt, { color: '#22c55e' }]}>Total</Text>
+              <TrendingUp size={12} color={ORANGE} />
+              <Text style={[s.changeTxt, { color: ORANGE }]}>Total</Text>
             </View>
-          </View>
+          </OutlineCard>
         </View>
 
         {/* Engagement Details */}
         <View style={s.section}>
           <Text style={s.sectionTitle}>Engagement Details</Text>
           <View style={s.engageCard}>
-            <CardShade />
             {[
               { Icon: Heart,    label: 'Likes',  val: '4.2k', pct: 0.85 },
               { Icon: Share2,   label: 'Shares', val: '1.8k', pct: 0.45 },
@@ -224,11 +219,7 @@ export default function AnalyticsScreen() {
                   <Text style={s.engageVal}>{val}</Text>
                 </View>
                 <View style={s.barTrack}>
-                  <LinearGradient
-                    colors={[ORANGE, '#ff9a00']}
-                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                    style={[StyleSheet.absoluteFillObject, { width: `${pct * 100}%` as any, borderRadius: 4 }]}
-                  />
+                  <View style={{ height: '100%', width: `${pct * 100}%` as any, borderRadius: 5, backgroundColor: ORANGE }} />
                 </View>
               </View>
             ))}
@@ -237,9 +228,8 @@ export default function AnalyticsScreen() {
 
         {/* Sales Overview */}
         <View style={s.section}>
-          <View style={s.salesCard}>
-            <CardShade />
-            <Text style={s.sectionTitle}>Sales Overview</Text>
+          <GlowCard style={s.salesCard}>
+            <Text style={[s.sectionTitle, { fontSize: 22, fontFamily: 'Poppins_500Medium' }]}>Sales Overview</Text>
             <View style={s.salesBody}>
               <View style={s.donutWrap}>
                 <DonutChart approved={data?.approved} pending={data?.pending} reviewing={data?.reviewing} />
@@ -251,8 +241,8 @@ export default function AnalyticsScreen() {
               <View style={s.salesLegend}>
                 {[
                   { color: ORANGE,    label: 'Approved',  val: data?.approved  ?? 0 },
-                  { color: '#22c55e', label: 'Reviewing', val: data?.reviewing ?? 0 },
-                  { color: '#fff',    label: 'Pending',   val: data?.pending   ?? 0 },
+                  { color: '#1BA35E', label: 'Reviewing', val: data?.reviewing ?? 0 },
+                  { color: '#E6E1E8', label: 'Pending',   val: data?.pending   ?? 0 },
                 ].map(({ color, label, val }) => (
                   <View key={label} style={s.legendRow}>
                     <View style={[s.legendDot, { backgroundColor: color }]} />
@@ -262,13 +252,12 @@ export default function AnalyticsScreen() {
                 ))}
               </View>
             </View>
-          </View>
+          </GlowCard>
         </View>
 
         {/* Audience Demographics */}
         <View style={s.section}>
-          <View style={s.demoCard}>
-            <CardShade />
+          <OutlineCard style={s.demoCard}>
             <Text style={s.sectionTitle}>Audience Demographics</Text>
             <Text style={s.demoSub}>Top Locations</Text>
             <View style={s.chipsRow}>
@@ -278,14 +267,14 @@ export default function AnalyticsScreen() {
                 </View>
               ))}
             </View>
-          </View>
+          </OutlineCard>
         </View>
 
         {/* Share Button */}
         <View style={s.bottomWrap}>
           <TouchableOpacity style={s.shareBtn} activeOpacity={0.85}>
-            <LinearGradient colors={['#032a69', ORANGE]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
-            <Share size={18} color="#fff" />
+            <LinearGradient colors={['#0B3585', '#7E4F5C', '#E8702A']} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+            <Ionicons name="share-social" size={24} color="#fff" />
             <Text style={s.shareTxt}>Share</Text>
           </TouchableOpacity>
         </View>
@@ -297,64 +286,60 @@ export default function AnalyticsScreen() {
 }
 
 const s = StyleSheet.create({
-  root:   { flex: 1, backgroundColor: C.bg },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12 },
-  backBtn:{ width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+  root:   { flex: 1, backgroundColor: D.bg },
   bellBtn:{ width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { fontSize: 15, fontFamily: 'Poppins_600SemiBold', color: C.textPrimary },
 
   scroll: { paddingHorizontal: 16, paddingBottom: 100, paddingTop: 4 },
 
-  chartCard:    { borderRadius: 18, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(100,160,255,0.5)', backgroundColor: 'rgba(1,6,20,1)', padding: 16, marginBottom: 14 },
-  chartTopRow:  { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  chartSubLabel:{ fontSize: 10, fontFamily: 'Poppins_400Regular', color: C.textSecondary, marginBottom: 4 },
-  chartNum:     { fontSize: 22, fontFamily: 'Poppins_700Bold', color: C.textPrimary },
-  viewDropBtn:  { flexDirection: 'row', alignItems: 'center', gap: 4, borderWidth: 1, borderColor: 'rgba(100,160,255,0.4)', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 5 },
-  viewDropTxt:  { fontSize: 10, fontFamily: 'Poppins_500Medium', color: C.textSecondary },
-  downArrow:    { fontSize: 12, color: C.textSecondary },
-  dropdown:     { position: 'absolute', top: 46, right: 0, backgroundColor: 'rgba(6,18,52,0.98)', borderWidth: 1, borderColor: 'rgba(100,160,255,0.3)', borderRadius: 12, zIndex: 99, minWidth: 120 },
-  dropItem:     { paddingHorizontal: 12, paddingVertical: 8 },
+  chartCard:    { padding: 16, marginBottom: 16 },
+  chartTopRow:  { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', zIndex: 5 },
+  chartSubLabel:{ fontSize: 14, fontFamily: 'Poppins_600SemiBold', color: '#FFFFFF', marginBottom: 2 },
+  chartNum:     { fontSize: 28, fontFamily: 'Poppins_700Bold', color: '#FFFFFF' },
+  viewDropBtn:  { flexDirection: 'row', alignItems: 'center', gap: 8, paddingTop: 6 },
+  viewDropTxt:  { fontSize: 14, fontFamily: 'Poppins_400Regular', color: '#FFFFFF' },
+  dropdown:     { position: 'absolute', top: 40, right: 16, backgroundColor: '#061234', borderWidth: 1, borderColor: 'rgba(130,165,213,0.5)', borderRadius: 12, zIndex: 99, minWidth: 130, overflow: 'hidden' },
+  dropItem:     { paddingHorizontal: 14, paddingVertical: 9 },
   dropItemActive:{ backgroundColor: 'rgba(226,103,27,0.15)' },
-  dropTxt:      { fontSize: 11, fontFamily: 'Poppins_400Regular', color: C.textSecondary },
+  dropTxt:      { fontSize: 13, fontFamily: 'Poppins_400Regular', color: '#E6E1E8' },
   daysRow:      { flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 },
-  dayTxt:       { fontSize: 9, fontFamily: 'Poppins_400Regular', color: '#8f9cb5' },
+  dayTxt:       { fontSize: 12, fontFamily: 'Poppins_600SemiBold', color: 'rgba(230,225,232,0.85)' },
 
-  statsRow:     { flexDirection: 'row', gap: 12, marginBottom: 14 },
-  statCard:     { flex: 1, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(100,160,255,0.5)', backgroundColor: 'rgba(1,6,20,1)', padding: 12 },
-  statCardLabel:{ fontSize: 9, fontFamily: 'Poppins_400Regular', color: C.textSecondary, marginBottom: 4 },
-  statCardNum:  { fontSize: 20, fontFamily: 'Poppins_700Bold', color: C.textPrimary, marginBottom: 4 },
+  statsRow:     { flexDirection: 'row', gap: 16, marginBottom: 18 },
+  statCard:     { flex: 1, paddingVertical: 18, gap: 2 },
+  statCardLabel:{ fontSize: 14, fontFamily: 'Poppins_500Medium', color: '#FFFFFF' },
+  statCardNum:  { fontSize: 22, fontFamily: 'Poppins_600SemiBold', color: '#FFFFFF' },
   changeRow:    { flexDirection: 'row', alignItems: 'center', gap: 3 },
-  changeTxt:    { fontSize: 10, fontFamily: 'Poppins_500Medium' },
+  changeTxt:    { fontSize: 13, fontFamily: 'Poppins_500Medium' },
 
-  section:      { marginBottom: 14 },
-  sectionTitle: { fontSize: 13, fontFamily: 'Poppins_600SemiBold', color: C.textPrimary, marginBottom: 12 },
+  section:      { marginBottom: 18 },
+  sectionTitle: { fontSize: 18, fontFamily: 'Poppins_400Regular', color: '#FFFFFF', marginBottom: 14 },
 
-  engageCard:   { borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(100,160,255,0.5)', backgroundColor: 'rgba(1,6,20,1)', padding: 14, gap: 14 },
-  engageRow:    { gap: 6 },
-  engageLabelRow:{ flexDirection: 'row', alignItems: 'center', gap: 8 },
-  engageLabel:  { flex: 1, fontSize: 11, fontFamily: 'Poppins_500Medium', color: C.textPrimary },
-  engageVal:    { fontSize: 11, fontFamily: 'Poppins_600SemiBold', color: C.textPrimary },
-  barTrack:     { height: 7, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 4, overflow: 'hidden' },
+  engageCard:    { gap: 16, paddingHorizontal: 6 },
+  engageRow:     { gap: 8 },
+  engageLabelRow:{ flexDirection: 'row', alignItems: 'center', gap: 10 },
+  engageLabel:   { flex: 1, fontSize: 14, fontFamily: 'Poppins_500Medium', color: '#FFFFFF' },
+  engageVal:     { fontSize: 14, fontFamily: 'Poppins_500Medium', color: '#FFFFFF' },
+  barTrack:      { height: 10, backgroundColor: '#C9BDC4', borderRadius: 5, overflow: 'hidden' },
 
-  salesCard:    { borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(100,160,255,0.5)', backgroundColor: 'rgba(1,6,20,1)', padding: 14 },
-  salesBody:    { flexDirection: 'row', alignItems: 'center', gap: 16 },
-  donutWrap:    { width: 110, height: 110, alignItems: 'center', justifyContent: 'center' },
+  salesCard:    { padding: 20 },
+  salesBody:    { flexDirection: 'row', alignItems: 'center', gap: 24 },
+  donutWrap:    { width: 120, height: 120, alignItems: 'center', justifyContent: 'center' },
   donutCenter:  { position: 'absolute', alignItems: 'center' },
-  donutNum:     { fontSize: 18, fontFamily: 'Poppins_700Bold', color: C.textPrimary },
-  donutLabel:   { fontSize: 9, fontFamily: 'Poppins_400Regular', color: C.textSecondary },
-  salesLegend:  { flex: 1, gap: 10 },
-  legendRow:    { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  legendDot:    { width: 8, height: 8, borderRadius: 4 },
-  legendLabel:  { flex: 1, fontSize: 11, fontFamily: 'Poppins_400Regular', color: C.textPrimary },
-  legendVal:    { fontSize: 11, fontFamily: 'Poppins_600SemiBold', color: C.textPrimary },
+  donutNum:     { fontSize: 26, fontFamily: 'Poppins_600SemiBold', color: '#FFFFFF' },
+  donutLabel:   { fontSize: 13, fontFamily: 'Poppins_500Medium', color: '#FFFFFF' },
+  salesLegend:  { flex: 1, gap: 12 },
+  legendRow:    { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  legendDot:    { width: 10, height: 10, borderRadius: 5 },
+  legendLabel:  { flex: 1, fontSize: 16, fontFamily: 'Poppins_400Regular', color: '#FFFFFF' },
+  legendVal:    { fontSize: 14, fontFamily: 'Poppins_500Medium', color: '#FFFFFF' },
 
-  demoCard:     { borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(100,160,255,0.5)', backgroundColor: 'rgba(1,6,20,1)', padding: 14 },
-  demoSub:      { fontSize: 10, fontFamily: 'Poppins_400Regular', color: C.textSecondary, marginBottom: 10 },
-  chipsRow:     { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip:         { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 30, backgroundColor: ORANGE },
-  chipTxt:      { fontSize: 10, fontFamily: 'Poppins_500Medium', color: '#fff' },
+  demoCard:     { padding: 20 },
+  demoSub:      { fontSize: 14, fontFamily: 'Poppins_600SemiBold', color: '#FFFFFF', marginBottom: 12 },
+  chipsRow:     { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+  chip:         { paddingHorizontal: 12, paddingVertical: 4, borderRadius: 14, backgroundColor: ORANGE },
+  chipTxt:      { fontSize: 14, fontFamily: 'Poppins_600SemiBold', color: '#fff' },
 
   bottomWrap:   { marginTop: 8 },
-  shareBtn:     { borderRadius: 30, overflow: 'hidden', paddingVertical: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  shareTxt:     { fontSize: 13, fontFamily: 'Poppins_600SemiBold', color: '#fff' },
+  shareBtn:     { height: 58, borderRadius: 29, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12 },
+  shareTxt:     { fontSize: 19, fontFamily: 'Poppins_500Medium', color: '#fff' },
 });

@@ -5,10 +5,12 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as DocumentPicker from 'expo-document-picker';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
 import { AppColors, useAppColors } from '@/constants/theme';
+import { PRIMARY_BTN_COLORS, RingGlow, SavedCardEffect } from '@/components/shared/FigmaEffects';
+
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 import * as WebBrowser from 'expo-web-browser';
@@ -35,23 +37,32 @@ function StepIndicator({ activeStep }: { activeStep: number }) {
     <View style={si.row}>
       {STEPS.map((step, idx) => (
         <View key={step} style={si.item}>
-          <View style={[si.circle, { backgroundColor: aC.isDark ? '#0e1a3d' : '#ffffff', borderColor: aC.isDark ? '#1e3a8a' : 'rgba(3,42,105,0.12)' }, step === activeStep && { backgroundColor: aC.isDark ? '#173066' : '#f1f5f9', borderColor: aC.isDark ? '#3b6fe0' : '#032a69' }]}>
-            <Text style={[si.num, { color: aC.isDark ? '#cbd5e1' : '#64748b' }, step === activeStep && { color: aC.isDark ? '#fff' : '#010a1f' }]}>{step}</Text>
+          <View style={[
+            si.circle,
+            { backgroundColor: aC.isDark ? '#0B2A63' : '#ffffff', borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)' },
+            step === activeStep && { backgroundColor: aC.isDark ? '#010A1F' : 'rgba(226,103,27,0.10)', borderColor: aC.isDark ? '#82a5d5' : '#e2671b' },
+          ]}>
+            {step === activeStep && aC.isDark && <SavedCardEffect band={9} />}
+            <Text style={[
+              si.num,
+              { color: aC.isDark ? '#F2F1F5' : '#475569' },
+              step === activeStep && { color: aC.isDark ? '#fff' : '#e2671b' },
+            ]}>{step}</Text>
           </View>
-          {idx < STEPS.length - 1 && <View style={[si.line, { backgroundColor: aC.isDark ? '#1e3a8a' : 'rgba(3,42,105,0.12)' }]} />}
+          {idx < STEPS.length - 1 && <View style={[si.line, { backgroundColor: aC.isDark ? '#1E3F7C' : 'rgba(3,42,105,0.12)' }]} />}
         </View>
       ))}
     </View>
   );
 }
 const si = StyleSheet.create({
-  row:         { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16 },
+  row:         { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, gap: 0 },
   item:        { flexDirection: 'row', alignItems: 'center' },
-  circle:      { width: 36, height: 36, borderRadius: 18, borderWidth: 1, borderColor: '#1e3a8a', backgroundColor: '#0e1a3d', alignItems: 'center', justifyContent: 'center' },
+  circle:      { width: 36, height: 36, borderRadius: 18, borderWidth: 1, borderColor: '#1e3a8a', backgroundColor: '#0e1a3d', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   circleActive:{ borderColor: '#3b6fe0', backgroundColor: '#173066' },
-  num:         { color: '#cbd5e1', fontSize: 14, fontFamily: 'Poppins_600SemiBold' },
+  num:         { color: '#cbd5e1', fontSize: 14, fontFamily: 'Poppins_500Medium' },
   numActive:   { color: '#fff' },
-  line:        { width: 32, height: 1, backgroundColor: '#1e3a8a', marginHorizontal: 6 },
+  line:        { width: 44, height: 1, backgroundColor: '#1e3a8a' },
 });
 
 export default function FinancingApply4Screen() {
@@ -183,9 +194,9 @@ export default function FinancingApply4Screen() {
   return (
     <SafeAreaView style={[s.safe, { backgroundColor: aC.bg }]} edges={['top']}>
 
-      <View style={[s.header, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderBottomWidth: aC.isDark ? 0.5 : 1, borderBottomColor: aC.isDark ? 'rgba(49,95,173,0.4)' : 'rgba(3,42,105,0.08)' }]}>
-        <TouchableOpacity style={[s.backBtn, { backgroundColor: aC.isDark ? 'rgba(6,17,60,0.85)' : '#ffffff', borderWidth: aC.isDark ? 0 : 1, borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)' }]} onPress={() => router.back()} activeOpacity={0.75}>
-          <ChevronLeft size={26} color={aC.isDark ? WHITE : '#010a1f'} />
+      <View style={[s.header, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderBottomWidth: 0 }]}>
+        <TouchableOpacity style={s.backBtn} onPress={() => router.back()} activeOpacity={0.75}>
+          <ChevronLeft size={26} color={aC.isDark ? '#C9C6D0' : '#010a1f'} />
         </TouchableOpacity>
         <Text style={[s.headerTitle, { color: aC.isDark ? WHITE : '#010a1f' }]}>Apply</Text>
         <View style={{ width: 36 }} />
@@ -194,13 +205,9 @@ export default function FinancingApply4Screen() {
       <StepIndicator activeStep={4} />
 
       <View style={[s.container, { backgroundColor: aC.bg }]}>
-        <View style={[s.card, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.5)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, shadowRadius: 10, elevation: aC.isDark ? 0 : 3 }]}>
+        <View style={[s.card, aC.isDark ? { backgroundColor: '#010A1F', borderColor: '#82a5d5', shadowColor: '#638ed0', shadowOpacity: 0.15, shadowRadius: 5, shadowOffset: { width: 0, height: 0 }, elevation: 2 } : { backgroundColor: '#ffffff', borderColor: 'rgba(3,42,105,0.12)', shadowColor: 'rgba(3,42,105,0.12)', shadowOpacity: 0.08, shadowRadius: 10, elevation: 3 }]}>
           {aC.isDark ? (
-            <>
-              <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-            </>
+            <SavedCardEffect />
           ) : (
             <>
               <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
@@ -208,14 +215,16 @@ export default function FinancingApply4Screen() {
             </>
           )}
 
-          <Text style={[s.cardTitle, { color: aC.isDark ? WHITE : '#010a1f' }]}>Documents</Text>
+          <Text style={[s.cardTitle, { color: aC.isDark ? '#C9C6D0' : '#475569' }]}>Upload the documents required for {String(params.employmentType || 'salaried').toLowerCase()} applicants.</Text>
 
           {documents.map((doc, index) => {
             const isReady = !!(doc.file || doc.uploadedUrl);
             return (
-            <View key={doc.id} style={[s.row, { backgroundColor: aC.isDark ? 'rgba(6,17,60,0.6)' : '#ffffff', borderColor: aC.isDark ? 'rgba(49,95,173,0.3)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.06)', shadowOpacity: aC.isDark ? 0 : 0.04, elevation: aC.isDark ? 0 : 1 }, index === documents.length - 1 && { marginBottom: 0 }]}>
-              <View style={[s.iconWrap, { backgroundColor: aC.isDark ? BG : '#f1f5f9', borderColor: ORANGE }]}>
-                <Ionicons name={isReady ? 'checkmark-circle' : 'cloud-upload-outline'} size={20} color={isReady ? '#22c55e' : ORANGE} />
+            <View key={doc.id} style={[s.row, { backgroundColor: aC.isDark ? '#0B1D4A' : '#ffffff', borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.06)', shadowOpacity: aC.isDark ? 0 : 0.04, elevation: aC.isDark ? 0 : 1 }, index === documents.length - 1 && { marginBottom: 0 }]}>
+              <View style={[s.iconWrap, { backgroundColor: aC.isDark ? '#12306A' : '#f1f5f9', borderColor: isReady ? 'rgba(34,197,94,0.6)' : (aC.isDark ? '#7E9FD6' : ORANGE) }]}>
+                {isReady
+                  ? <Ionicons name="checkmark-circle" size={20} color="#22c55e" />
+                  : <MaterialCommunityIcons name="tray-arrow-up" size={22} color={ORANGE} />}
               </View>
               <View style={s.docInfo}>
                 <Text style={[s.docTitle, { color: aC.isDark ? WHITE : '#010a1f' }]} numberOfLines={1}>{doc.title}</Text>
@@ -247,7 +256,7 @@ export default function FinancingApply4Screen() {
                 )}
                 <TouchableOpacity
                   activeOpacity={0.8}
-                  style={[s.uploadBtn, { backgroundColor: aC.isDark ? BG : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.12)' }, isReady && s.uploadedBtn]}
+                  style={[s.uploadBtn, { backgroundColor: aC.isDark ? '#1B2E5C' : '#ffffff', borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)' }, isReady && s.uploadedBtn]}
                   onPress={() => pickDocument(doc.id)}
                 >
                   <Text style={[s.uploadBtnTxt, { color: aC.isDark ? WHITE : '#010a1f' }]}>{isReady ? 'Update' : 'Upload'}</Text>
@@ -259,10 +268,10 @@ export default function FinancingApply4Screen() {
 
         <View style={s.bottomWrap}>
           <TouchableOpacity activeOpacity={0.85} style={s.submitWrap} onPress={handleSubmit} disabled={uploading}>
-            <LinearGradient colors={['#1b3a8f', '#5a4a7b', '#d2621f']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.submitGradient}>
+            <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.submitGradient}>
               {uploading
                 ? <ActivityIndicator color={WHITE} size="small" />
-                : <Text style={s.submitTxt}>Submit Application</Text>
+                : <Text style={s.submitTxt}>Continue</Text>
               }
             </LinearGradient>
           </TouchableOpacity>
@@ -294,23 +303,23 @@ export default function FinancingApply4Screen() {
 
 const s = StyleSheet.create({
   safe:      { flex: 1, backgroundColor: BG },
-  header:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 6, paddingBottom: 4, borderBottomWidth: 0.5, borderBottomColor: 'rgba(49,95,173,0.4)' },
-  backBtn:   { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(6,17,60,0.85)', alignItems: 'center', justifyContent: 'center' },
-  headerTitle:{ fontSize: 18, fontFamily: 'Poppins_600SemiBold', color: WHITE },
-  container: { flex: 1, paddingHorizontal: 20 },
-  card: { marginTop: 20, backgroundColor: 'rgba(3,12,40,0.6)', borderWidth: 1, borderColor: 'rgba(100,160,255,0.5)', borderRadius: 16, padding: 12, overflow: 'hidden' },
-  cardTitle: { color: WHITE, fontSize: 18, fontFamily: 'Poppins_700Bold', marginBottom: 14, paddingHorizontal: 4 },
-  row:       { height: 56, backgroundColor: 'rgba(6,17,60,0.6)', borderRadius: 10, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, marginBottom: 10, borderWidth: 0.5, borderColor: 'rgba(49,95,173,0.3)' },
-  iconWrap:  { width: 36, height: 36, borderRadius: 8, backgroundColor: BG, borderWidth: 1, borderColor: ORANGE, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
+  header:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingTop: 6, paddingBottom: 0 },
+  backBtn:   { width: 36, height: 36, alignItems: 'flex-start', justifyContent: 'center' },
+  headerTitle:{ fontSize: 20, fontFamily: 'Poppins_500Medium', color: WHITE },
+  container: { flex: 1, paddingHorizontal: 14 },
+  card: { marginTop: 4, borderWidth: 1, borderRadius: 16, paddingHorizontal: 12, paddingTop: 12, paddingBottom: 12, overflow: 'hidden' },
+  cardTitle: { fontSize: 12.5, fontFamily: 'Poppins_400Regular', lineHeight: 19, marginBottom: 10 },
+  row:       { height: 58, borderRadius: 8, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, marginBottom: 10, borderWidth: 0.5 },
+  iconWrap:  { width: 40, height: 40, borderRadius: 8, borderWidth: 1, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
   docInfo:   { flex: 1, justifyContent: 'center', paddingRight: 8 },
-  docTitle:  { color: WHITE, fontSize: 13, fontFamily: 'Poppins_500Medium', marginBottom: 2 },
-  docSub:    { color: SUB, fontSize: 10, fontFamily: 'Poppins_400Regular' },
+  docTitle:  { color: WHITE, fontSize: 13, fontFamily: 'Poppins_500Medium', marginBottom: 1 },
+  docSub:    { color: SUB, fontSize: 10.5, fontFamily: 'Poppins_400Regular' },
   fileName:  { color: ORANGE, fontSize: 9, fontFamily: 'Poppins_400Regular' },
-  uploadBtn:     { minWidth: 64, height: 28, paddingHorizontal: 12, borderRadius: 14, backgroundColor: BG, borderWidth: 1, borderColor: BORDER, alignItems: 'center', justifyContent: 'center' },
+  uploadBtn:     { minWidth: 72, height: 30, paddingHorizontal: 14, borderRadius: 15, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   uploadedBtn:   { borderColor: ORANGE },
-  uploadBtnTxt:  { color: WHITE, fontSize: 10, fontFamily: 'Poppins_500Medium' },
+  uploadBtnTxt:  { color: WHITE, fontSize: 11, fontFamily: 'Poppins_500Medium' },
   bottomWrap:     { flex: 1, justifyContent: 'flex-end', paddingBottom: 40 },
-  submitWrap:     { height: 52, borderRadius: 30, overflow: 'hidden' },
+  submitWrap:     { height: 50, borderRadius: 26, overflow: 'hidden' },
   submitGradient: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  submitTxt:      { color: WHITE, fontSize: 15, fontFamily: 'Poppins_600SemiBold' },
+  submitTxt:      { color: '#EDEBF0', fontSize: 17, fontFamily: 'Poppins_600SemiBold' },
 });

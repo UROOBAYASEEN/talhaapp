@@ -49,19 +49,28 @@ const GLASS_SHADOW = {
   elevation: 8,
 };
 
+function formatVehiclePrice(value: unknown): string {
+  if (typeof value === 'string' && /\b(lac|lakh|crore)\b/i.test(value)) return value;
+  const amount = Number(String(value ?? '').replace(/[^\d.]/g, ''));
+  if (!Number.isFinite(amount) || amount <= 0) return '';
+  if (amount >= 10_000_000) return `PKR ${Number((amount / 10_000_000).toFixed(2))} Crore`;
+  if (amount >= 100_000) return `PKR ${Number((amount / 100_000).toFixed(2))} Lac`;
+  return `PKR ${amount.toLocaleString()}`;
+}
+
 
 function makeStyles(aC: ReturnType<typeof useAppColors>) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: aC.bg },
-    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 10, paddingBottom: 10 },
-    headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-    backBtn: { padding: 2 },
-    headerAvtWrap: { position: 'relative', width: 46, height: 46 },
-    headerAvt: { width: 46, height: 46, borderRadius: 23, backgroundColor: aC.gradientStart, alignItems: 'center', justifyContent: 'center' },
+    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: 76, paddingHorizontal: 20, backgroundColor: aC.isDark ? '#010a1f' : aC.bg },
+    headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
+    backBtn: { padding: 2, marginRight: 2 },
+    headerAvtWrap: { position: 'relative', width: 50, height: 50 },
+    headerAvt: { width: 50, height: 50, borderRadius: 25, backgroundColor: aC.gradientStart, alignItems: 'center', justifyContent: 'center' },
     headerAvtTxt: { fontSize: 14, fontFamily: 'Poppins_700Bold', color: '#f9fafc' },
-    headerOnlineDot: { position: 'absolute', bottom: 0, right: 0, width: 9, height: 9, borderRadius: 5, backgroundColor: '#34c759', borderWidth: 1, borderColor: aC.gradientStart },
-    headerName: { fontSize: 14, fontFamily: 'Poppins_500Medium', color: aC.textPrimary },
-    headerOnline: { fontSize: 10, fontFamily: 'Poppins_400Regular', color: '#34c759' },
+    headerOnlineDot: { position: 'absolute', bottom: 2, right: 1, width: 11, height: 11, borderRadius: 6, backgroundColor: '#26c77a', borderWidth: 1, borderColor: '#010a1f' },
+    headerName: { fontSize: 16, fontFamily: 'Poppins_500Medium', color: aC.textPrimary },
+    headerOnline: { fontSize: 11, fontFamily: 'Poppins_400Regular', color: '#26c77a', marginTop: 2 },
     callBtn: { padding: 4 },
     headerOffline: { fontSize: 10, fontFamily: 'Poppins_400Regular', color: aC.textSecondary },
     callOverlay: { flex: 1, backgroundColor: 'rgba(1,10,31,0.92)', alignItems: 'center', justifyContent: 'center' },
@@ -75,34 +84,34 @@ function makeStyles(aC: ReturnType<typeof useAppColors>) {
     callActions: { flexDirection: 'row', gap: 40, marginTop: 20 },
     declineBtn: { width: 64, height: 64, borderRadius: 32, backgroundColor: '#e53935', alignItems: 'center', justifyContent: 'center' },
     acceptBtn:  { width: 64, height: 64, borderRadius: 32, backgroundColor: '#34c759', alignItems: 'center', justifyContent: 'center' },
-    divider: { height: 1, backgroundColor: aC.divider, marginBottom: 0 },
+    divider: { height: 1, backgroundColor: aC.isDark ? '#173569' : aC.divider, marginBottom: 0 },
     vehicleCard: {
-      flexDirection: 'row', alignItems: 'center', gap: 8, height: 76,
-      borderRadius: 16, borderWidth: 1, borderColor: 'rgba(100,160,255,0.5)',
-      backgroundColor: 'rgba(3,12,40,0.6)', paddingHorizontal: 8, paddingVertical: 6,
-      marginHorizontal: 20, marginTop: 16, overflow: 'hidden',
+      flexDirection: 'row', alignItems: 'center', gap: 9, height: 70,
+      borderRadius: 16, borderWidth: 1, borderColor: 'rgba(220,232,255,0.68)',
+      backgroundColor: '#010a1f', paddingHorizontal: 7, paddingVertical: 6,
+      marginHorizontal: 16, marginTop: 16, overflow: 'hidden',
     },
-    vehicleImgPlaceholder: { width: 82, height: 58, borderRadius: 8, backgroundColor: aC.glassBg, alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' },
-    vehicleImg: { width: 82, height: 58, borderRadius: 8 },
-    vehicleInfo: { flex: 1, gap: 2, paddingTop: 6 },
-    vehicleTitle: { fontSize: 10, fontFamily: 'Poppins_500Medium', color: aC.textPrimary, marginTop: 4 },
+    vehicleImgPlaceholder: { width: 80, height: 56, borderRadius: 9, backgroundColor: aC.glassBg, alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' },
+    vehicleImg: { width: 80, height: 56, borderRadius: 9 },
+    vehicleInfo: { flex: 1, gap: 1 },
+    vehicleTitle: { fontSize: 12, fontFamily: 'Poppins_500Medium', color: aC.textPrimary },
     vehicleRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
-    vehicleMeta: { fontSize: 9, fontFamily: 'Poppins_400Regular', color: aC.textSecondary },
-    vehiclePrice: { fontSize: 11, fontFamily: 'Poppins_500Medium', color: '#e2671b' },
-    messageList: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 16, gap: 10, flexGrow: 1 },
-    todayWrap:  { alignItems: 'center', marginBottom: 16 },
-    todayBadge: { backgroundColor: aC.glassBg, borderRadius: 16, paddingHorizontal: 9, paddingVertical: 2 },
-    todayTxt: { fontSize: 10, fontFamily: 'Poppins_400Regular', color: aC.textPrimary },
-    msgRow:   { flexDirection: 'row', alignItems: 'flex-end', gap: 8 },
+    vehicleMeta: { fontSize: 11, fontFamily: 'Poppins_400Regular', color: aC.textSecondary },
+    vehiclePrice: { fontSize: 12, fontFamily: 'Poppins_600SemiBold', color: '#e2671b' },
+    messageList: { paddingHorizontal: 18, paddingTop: 12, paddingBottom: 16, gap: 22, flexGrow: 1 },
+    todayWrap:  { alignItems: 'center', marginBottom: 2 },
+    todayBadge: { backgroundColor: '#081f51', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 5 },
+    todayTxt: { fontSize: 11, fontFamily: 'Poppins_400Regular', color: aC.textPrimary },
+    msgRow:   { flexDirection: 'row', alignItems: 'center', gap: 12 },
     msgRowMe: { flexDirection: 'row-reverse' },
-    msgAvt: { width: 36, height: 36, borderRadius: 18, backgroundColor: aC.gradientStart, alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' },
+    msgAvt: { width: 28, height: 28, borderRadius: 14, backgroundColor: aC.gradientStart, alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' },
     msgAvtTxt: { fontSize: 11, fontFamily: 'Poppins_700Bold', color: '#f9fafc' },
-    msgAvtImg: { width: 36, height: 36, borderRadius: 18 },
-    bubble: { maxWidth: '55%', borderRadius: 10, paddingHorizontal: 12, paddingTop: 8, paddingBottom: 6, gap: 2, borderWidth: 1, borderColor: 'transparent', overflow: 'hidden' },
-    bubbleThem: { backgroundColor: '#032a69', borderColor: 'rgba(3,42,105,0.3)' },
-    bubbleMe:   { backgroundColor: '#e2671b', borderColor: 'rgba(226,103,27,0.35)' },
-    bubbleTxt: { fontSize: 12, fontFamily: 'Poppins_400Regular', color: '#f9fafc', lineHeight: 18 },
-    bubbleTime: { fontSize: 10, fontFamily: 'Poppins_400Regular', color: aC.textSecondary, alignSelf: 'flex-end' },
+    msgAvtImg: { width: 28, height: 28, borderRadius: 14 },
+    bubble: { maxWidth: '76%', minWidth: 150, borderRadius: 10, paddingHorizontal: 12, paddingTop: 9, paddingBottom: 7, gap: 2, borderWidth: 0, overflow: 'hidden' },
+    bubbleThem: { backgroundColor: '#081e50' },
+    bubbleMe:   { backgroundColor: '#078cff' },
+    bubbleTxt: { fontSize: 12, fontFamily: 'Poppins_400Regular', color: '#f9fafc', lineHeight: 19 },
+    bubbleTime: { fontSize: 8, fontFamily: 'Poppins_400Regular', color: '#aba9bc', alignSelf: 'flex-end' },
     bubbleTimeMe: { color: '#f9fafc' },
     msgImg: { width: 180, height: 140, borderRadius: 10 },
     imgBubble: { position: 'relative', borderRadius: 10, overflow: 'hidden', maxWidth: '55%' },
@@ -110,9 +119,10 @@ function makeStyles(aC: ReturnType<typeof useAppColors>) {
     previewOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', alignItems: 'center', justifyContent: 'center' },
     previewImg:     { width: SW, height: SH * 0.75 },
     previewClose:   { position: 'absolute', top: 50, right: 20, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' },
-    inputBar: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, paddingVertical: 10 },
-    inputIconBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: aC.glassBg, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-    inputField: { flex: 1, height: 34, backgroundColor: aC.glassBg, borderRadius: 17, borderWidth: 1, borderColor: 'rgba(91,152,213,0.5)', paddingHorizontal: 14, paddingVertical: 6, fontSize: 12, fontFamily: 'Poppins_400Regular', color: aC.textPrimary, maxHeight: 100 },
+    inputBar: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 18, paddingVertical: 10 },
+    inputIconBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: '#081f51', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+    inputFieldWrap: { flex: 1, minHeight: 34, maxHeight: 100, backgroundColor: '#081e50', borderRadius: 18, flexDirection: 'row', alignItems: 'center', paddingRight: 5 },
+    inputField: { flex: 1, minHeight: 34, maxHeight: 100, paddingHorizontal: 12, paddingVertical: 6, fontSize: 12, fontFamily: 'Poppins_400Regular', color: aC.textPrimary },
     emojiBtn: { padding: 4, flexShrink: 0 },
     recordingBar: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, paddingVertical: 6, backgroundColor: 'rgba(229,57,53,0.12)' },
     recordingDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#e53935' },
@@ -156,7 +166,7 @@ export default function ChatRoomScreen() {
   const [resolvedOtherId, setResolvedOtherId]  = useState<string>(otherId || '');
   const [isOnline,        setIsOnline]         = useState(false);
   const [lastSeenText,    setLastSeenText]      = useState<string>('');
-  const [convVehicle,     setConvVehicle]       = useState<{ id: string; title: string; price: string; city: string; year: string; image?: string } | null>(null);
+  const [convVehicle,     setConvVehicle]       = useState<{ id: string; title: string; price: string; city: string; year: string; transmission?: string; image?: string } | null>(null);
   const [otherPicture,    setOtherPicture]      = useState<string | null>(null);
   const [otherNameFetched, setOtherNameFetched] = useState<string>('');
   const [myPicture,       setMyPicture]         = useState<string | null>(null);
@@ -214,9 +224,10 @@ export default function ChatRoomScreen() {
               setConvVehicle({
                 id:    vid,
                 title: v.title || `${v.make} ${v.model}`,
-                price: v.price != null ? `PKR ${Number(v.price).toLocaleString()}` : '',
+                price: formatVehiclePrice(v.price),
                 city:  v.city  || '',
                 year:  v.year  ? String(v.year) : '',
+                transmission: v.transmission || v.variant || '',
                 image: imgUrl,
               });
             }
@@ -551,7 +562,7 @@ export default function ChatRoomScreen() {
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-            <Ionicons name="arrow-back-outline" size={24} color={aC.textPrimary} />
+            <Ionicons name="chevron-back" size={26} color={aC.isDark ? '#c7bfcc' : aC.textPrimary} />
           </TouchableOpacity>
           <View style={styles.headerAvtWrap}>
             {otherPicture ? (
@@ -574,7 +585,7 @@ export default function ChatRoomScreen() {
           </View>
         </View>
         <TouchableOpacity style={styles.callBtn} onPress={initiateCall}>
-          <Ionicons name="call-outline" size={24} color={isOnline ? '#34c759' : aC.textSecondary} />
+          <Ionicons name="call-outline" size={26} color={aC.isDark ? '#f9fafc' : aC.textPrimary} />
         </TouchableOpacity>
       </View>
 
@@ -640,22 +651,21 @@ export default function ChatRoomScreen() {
       >
         {(() => {
           const vTitle = vehicleTitle || convVehicle?.title;
-          const vPrice = vehiclePrice || convVehicle?.price;
+          const vPrice = formatVehiclePrice(vehiclePrice) || convVehicle?.price;
           const vCity  = vehicleCity  || convVehicle?.city;
           const vYear  = vehicleYear  || convVehicle?.year;
           const vId    = vehicleId    || convVehicle?.id;
           if (!vTitle) return null;
           return (
             <TouchableOpacity
-              style={[styles.vehicleCard, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.5)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, shadowRadius: 10, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }]}
+              style={[styles.vehicleCard, { backgroundColor: aC.isDark ? '#010a1f' : '#ffffff', borderColor: aC.isDark ? 'rgba(220,232,255,0.68)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? '#164088' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0.14 : 0.08, shadowRadius: 5, elevation: aC.isDark ? 2 : 3 }]}
               activeOpacity={0.85}
               onPress={() => vId && router.push({ pathname: '/vehicle/[id]', params: { id: vId } })}
             >
               {aC.isDark ? (
                 <>
-                  <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                  <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                  <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+                  <LinearGradient colors={['#16408880', '#0D255480', '#010a1f', '#010a1f', '#0D255480', '#16408880']} locations={[0, 0.06, 0.21, 0.79, 0.94, 1]} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+                  <LinearGradient colors={['rgba(22,64,136,0.45)', 'rgba(13,37,84,0.16)', 'transparent', 'transparent', 'rgba(13,37,84,0.16)', 'rgba(22,64,136,0.45)']} locations={[0, 0.06, 0.2, 0.8, 0.94, 1]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
                 </>
               ) : (
                 <>
@@ -666,16 +676,14 @@ export default function ChatRoomScreen() {
               {convVehicle?.image
                 ? <Image source={{ uri: convVehicle.image }} style={styles.vehicleImg} resizeMode="cover" />
                 : (
-                  <View style={[styles.vehicleImgPlaceholder, { backgroundColor: aC.isDark ? aC.glassBg : '#f1f5f9' }]}>
-                    <Ionicons name="car-sport-outline" size={28} color="#e2671b" />
-                  </View>
+                  <Image source={require('@/screenshot/featureCar1.png')} style={styles.vehicleImg} resizeMode="cover" />
                 )
               }
               <View style={styles.vehicleInfo}>
                 <Text style={[styles.vehicleTitle, { color: aC.isDark ? aC.textPrimary : '#010a1f' }]} numberOfLines={1}>{vTitle}</Text>
                 <View style={styles.vehicleRow}>
                   <Ionicons name="location-outline" size={12} color={aC.isDark ? aC.textSecondary : '#64748b'} />
-                  <Text style={[styles.vehicleMeta, { color: aC.isDark ? aC.textSecondary : '#64748b' }]}>{vCity} • {vYear}</Text>
+                  <Text style={[styles.vehicleMeta, { color: aC.isDark ? aC.textSecondary : '#64748b' }]} numberOfLines={1}>{[vCity, vYear, convVehicle?.transmission].filter(Boolean).join(' • ')}</Text>
                 </View>
                 <Text style={styles.vehiclePrice}>{vPrice}</Text>
               </View>
@@ -863,8 +871,9 @@ export default function ChatRoomScreen() {
         )}
         <View style={styles.inputBar}>
           <TouchableOpacity style={styles.inputIconBtn} onPress={pickAndSendImage} disabled={isRecording}>
-            <Ionicons name="image-outline" size={20} color={isRecording ? 'rgba(249,250,252,0.3)' : aC.textPrimary} />
+            <Ionicons name="add" size={26} color={isRecording ? 'rgba(249,250,252,0.3)' : aC.textPrimary} />
           </TouchableOpacity>
+          <View style={styles.inputFieldWrap}>
           <TextInput
             style={styles.inputField}
             placeholder={isRecording ? 'Recording...' : 'Type a message...'}
@@ -886,6 +895,7 @@ export default function ChatRoomScreen() {
               color={isRecording ? 'rgba(249,250,252,0.3)' : showEmojiPicker ? '#e2671b' : aC.textSecondary}
             />
           </TouchableOpacity>
+          </View>
           {input.trim() && !isRecording ? (
             <TouchableOpacity style={[styles.inputIconBtn, { backgroundColor: '#e2671b' }]} onPress={sendMessage} disabled={sending}>
               {sending ? <ActivityIndicator color="#fff" size="small" /> : <Ionicons name="send" size={16} color="#fff" />}

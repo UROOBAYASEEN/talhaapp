@@ -8,8 +8,12 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import * as WebBrowser from 'expo-web-browser';
 import PaymentSection from "@/components/shared/PaymentSection";
+import { Platform } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { WARM_CARD_COLORS, WARM_CARD_LOCATIONS } from "@/components/shared/FigmaEffects";
 import { API_BASE } from "@/constants/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { VehicleRowCard } from "@/components/dealer/DealerUI";
 import { useAppColors } from "@/constants/theme";
 
 const SERVER = API_BASE.replace("/api/v1", "");
@@ -21,8 +25,9 @@ function resolveUrl(url?: string | null) {
 
 export default function PaymentSummaryScreen() {
   const router = useRouter();
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const aC = useAppColors();
+  const insets = useSafeAreaInsets();
   const [loading, setLoading] = React.useState(false);
   const params = useLocalSearchParams<{
     type?: string; vehicle?: string; city?: string; center?: string;
@@ -33,6 +38,7 @@ export default function PaymentSummaryScreen() {
     planId?: string; fullName?: string; cnic?: string; email?: string;
     deviceImage?: string; avatarUrl?: string; pendingPayload?: string;
     addonsTotal?: string; selectedAddons?: string;
+    car_model?: string; badge?: string;
   }>();
 
   const isTracker       = params.type === 'tracker';
@@ -135,7 +141,7 @@ export default function PaymentSummaryScreen() {
           }),
         }).catch(() => {});
       }
-      router.replace({ pathname: '/vehicle/payment-success' as any, params: { kind: 'tracker', title: params.deviceName || params.providerName || 'Tracker Installation', price: String(amount), providerName: params.providerName || '', deviceName: params.deviceName || '', city: params.city || '', date: params.date || '' } });
+      router.replace({ pathname: '/vehicle/payment-success' as any, params: { kind: 'tracker', title: params.deviceName || params.providerName || 'Tracker Installation', price: String(amount), providerName: params.providerName || '', deviceName: params.deviceName || '', city: params.city || '', date: params.date || '', time: params.time || '', center: params.center || '' } });
       return;
     }
     if (!token) { Alert.alert('Login Required', 'Please login to pay.'); return; }
@@ -255,17 +261,17 @@ export default function PaymentSummaryScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: aC.bg }]}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: aC.bg, paddingTop: Platform.OS === 'android' ? insets.top : 0 }]}>
       <StatusBar barStyle={aC.isDark ? "light-content" : "dark-content"} backgroundColor={aC.bg} />
       <View style={[styles.container, { backgroundColor: aC.bg }]}>
 
         {/* Header */}
-        <View style={[styles.header, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderBottomColor: aC.isDark ? "rgba(255,255,255,0.08)" : "rgba(3,42,105,0.08)" }]}>
+        <View style={[styles.header, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderBottomColor: aC.isDark ? "rgba(255,255,255,0.08)" : "rgba(3,42,105,0.08)" }, (isInsurance || isTracker) && { borderBottomWidth: 0 }]}>
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <Ionicons name="chevron-back" size={23} color={aC.isDark ? "#f9fafc" : "#010a1f"} />
+            <Ionicons name="chevron-back" size={26} color={aC.isDark ? "#C9C6D0" : "#010a1f"} />
           </TouchableOpacity>
 
-          <Text style={[styles.headerTitle, { color: aC.isDark ? "#f9fafc" : "#010a1f" }]}>
+          <Text style={[styles.headerTitle, (isInsurance || isTracker) && styles.insHeaderTitle, { color: aC.isDark ? "#f9fafc" : "#010a1f" }]}>
             Payment Summary
           </Text>
 
@@ -278,7 +284,86 @@ export default function PaymentSummaryScreen() {
           style={{ backgroundColor: aC.bg }}
         >
 
-          {/* Summary Card */}
+          {/* Summary Card — insurance/tracker use the Figma card (orange top → blue bottom border) */}
+          {isTracker ? (
+            <LinearGradient
+              colors={aC.isDark ? ['#E2671B', '#8A5A55', '#2E4F8E'] : ['rgba(3,42,105,0.12)', 'rgba(3,42,105,0.12)']}
+              locations={aC.isDark ? [0, 0.5, 1] : undefined}
+              start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }}
+              style={styles.insBorder}
+            >
+              <View style={[styles.insCard, { backgroundColor: aC.isDark ? '#0B1D4A' : '#ffffff', paddingTop: 8 }]}>
+                {aC.isDark && <LinearGradient colors={WARM_CARD_COLORS as any} locations={WARM_CARD_LOCATIONS as any} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
+                {[
+                  { label: 'Tracker Provider',     value: params.providerName || '—' },
+                  { label: 'Selected Package',     value: params.deviceName || '—' },
+                  { label: 'Installation Fee',     value: `Rs ${installFee.toLocaleString()}` },
+                  { label: 'Monthly Subscription', value: `Rs ${monthlyFee.toLocaleString()}` },
+                  ...(addonsTotal > 0 ? [{ label: `Add-ons${params.selectedAddons ? ` (${String(params.selectedAddons).split(',').length})` : ''}`, value: `Rs ${addonsTotal.toLocaleString()}` }] : []),
+                ].map(row => (
+                  <View key={row.label} style={styles.insRow}>
+                    <Text style={[styles.insLabel, { color: aC.isDark ? "#E6E4EA" : "#64748b" }]}>{row.label}</Text>
+                    <Text style={[styles.insValue, { color: aC.isDark ? "#E6E4EA" : "#010a1f" }]} numberOfLines={1}>{row.value}</Text>
+                  </View>
+                ))}
+                <View style={[styles.insDivider, { backgroundColor: aC.isDark ? "rgba(255,255,255,0.22)" : "rgba(3,42,105,0.1)" }]} />
+                <View style={styles.insRow}>
+                  <Text style={[styles.insLabel, { color: aC.isDark ? "#E6E4EA" : "#64748b" }]}>Total Amount</Text>
+                  <Text style={styles.insTotal}>Rs {trackerTotal.toLocaleString()}</Text>
+                </View>
+              </View>
+            </LinearGradient>
+          ) : isDealerExtra ? (
+            // Figma dealer "Payment Summary": vehicle card + "Single ad  PKR 500"
+            <VehicleRowCard
+              v={{ title: params.vehicle || params.deviceName || 'Extra Vehicle Listing', color: (params as any).color, images: trackerImgUrl ? [trackerImgUrl] : [] }}
+              dealer={(user as any)?.full_name}
+              style={{ marginBottom: 6 }}
+            >
+              <View style={{ height: 1, backgroundColor: 'rgba(255,255,255,0.35)', marginTop: 14, marginBottom: 10 }} />
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Text style={{ color: '#C9BDC4', fontSize: 15, fontFamily: 'Poppins_400Regular' }}>Single ad</Text>
+                <Text style={{ color: '#E2671B', fontSize: 18, fontFamily: 'Poppins_500Medium' }}>PKR {dealerTotal.toLocaleString()}</Text>
+              </View>
+            </VehicleRowCard>
+          ) : isInsurance ? (
+            <LinearGradient
+              colors={aC.isDark ? ['#E2671B', '#8A5A55', '#2E4F8E'] : ['rgba(3,42,105,0.12)', 'rgba(3,42,105,0.12)']}
+              locations={aC.isDark ? [0, 0.5, 1] : undefined}
+              start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }}
+              style={styles.insBorder}
+            >
+              <View style={[styles.insCard, { backgroundColor: aC.isDark ? '#0B1D4A' : '#ffffff' }]}>
+                {aC.isDark && <LinearGradient colors={WARM_CARD_COLORS as any} locations={WARM_CARD_LOCATIONS as any} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
+                <View style={styles.companyRow}>
+                  <View style={styles.insLogo}>
+                    {avatarImgUrl
+                      ? <Image source={{ uri: avatarImgUrl }} style={{ width: 42, height: 42, borderRadius: 21 }} resizeMode="cover" />
+                      : <Text style={styles.insLogoTxt}>{logoText}</Text>}
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.insName, { color: aC.isDark ? "#F2F1F5" : "#010a1f" }]} numberOfLines={1}>{params.providerName || 'Insurance'}</Text>
+                    <Text style={[styles.insSub, { color: aC.isDark ? "#BAB6C4" : "#475569" }]} numberOfLines={1}>{params.badge || 'Comprehensive · Gold Plan'}</Text>
+                  </View>
+                </View>
+                {[
+                  { label: 'Vehicle',        value: params.car_model || '—' },
+                  { label: 'Annual Premium', value: `PKR ${insurancePremium.toLocaleString()}` },
+                  { label: 'Tax (13%)',      value: `PKR ${insuranceTax.toLocaleString()}` },
+                ].map(row => (
+                  <View key={row.label} style={styles.insRow}>
+                    <Text style={[styles.insLabel, { color: aC.isDark ? "#C9C6D0" : "#64748b" }]}>{row.label}</Text>
+                    <Text style={[styles.insValue, { color: aC.isDark ? "#F2F1F5" : "#010a1f" }]}>{row.value}</Text>
+                  </View>
+                ))}
+                <View style={[styles.insDivider, { backgroundColor: aC.isDark ? "rgba(255,255,255,0.22)" : "rgba(3,42,105,0.1)" }]} />
+                <View style={styles.insRow}>
+                  <Text style={[styles.insLabel, { color: aC.isDark ? "#C9C6D0" : "#64748b" }]}>Annual</Text>
+                  <Text style={styles.insTotal}>PKR {insuranceTotal.toLocaleString()}</Text>
+                </View>
+              </View>
+            </LinearGradient>
+          ) : (
           <View style={[styles.summaryCard, { backgroundColor: aC.isDark ? "rgba(3,12,40,0.6)" : "#ffffff", borderColor: aC.isDark ? '#e2671b' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, shadowRadius: 10, elevation: aC.isDark ? 0 : 3 }]}>
             {aC.isDark ? (
               <>
@@ -407,6 +492,7 @@ export default function PaymentSummaryScreen() {
               </Text>
             </View>
           </View>
+          )}
 
           {/* Payment Section */}
           <PaymentSection
@@ -418,6 +504,7 @@ export default function PaymentSummaryScreen() {
             }
             loading={loading}
             onPay={(method) => handlePay(method)}
+            payLabel={isInsurance || isTracker || isDealerExtra ? 'Pay Now' : undefined}
           />
 
         </ScrollView>
@@ -437,6 +524,20 @@ const styles = StyleSheet.create({
   },
   backButton:  { width: 35, height: 35, justifyContent: "center" },
   headerTitle: { color: "#f9fafc", fontSize: 17, fontFamily: "Poppins_600SemiBold" },
+
+  /* Insurance — Figma */
+  insHeaderTitle: { fontSize: 20, fontFamily: "Poppins_500Medium" },
+  insBorder:   { borderRadius: 16, padding: 1, marginBottom: 14 },
+  insCard:     { borderRadius: 15, paddingHorizontal: 14, paddingTop: 14, paddingBottom: 12, overflow: "hidden" },
+  insLogo:     { width: 42, height: 42, borderRadius: 21, backgroundColor: "#12306A", borderWidth: 1, borderColor: "#8FAEE3", justifyContent: "center", alignItems: "center", marginRight: 12, overflow: "hidden" },
+  insLogoTxt:  { color: "#F2F1F5", fontSize: 11, fontFamily: "Poppins_500Medium" },
+  insName:     { fontSize: 16, fontFamily: "Poppins_500Medium" },
+  insSub:      { fontSize: 12, fontFamily: "Poppins_400Regular", marginTop: 1 },
+  insRow:      { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 10 },
+  insLabel:    { fontSize: 13.5, fontFamily: "Poppins_400Regular" },
+  insValue:    { fontSize: 13.5, fontFamily: "Poppins_400Regular" },
+  insDivider:  { height: 1, marginTop: 12 },
+  insTotal:    { color: "#e2671b", fontSize: 17, fontFamily: "Poppins_500Medium" },
 
   scrollContent: { paddingBottom: 30, paddingTop: 16, gap: 0 },
 

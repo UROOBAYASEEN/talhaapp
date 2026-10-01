@@ -25,6 +25,7 @@ const SUB    = "#baacb6";
 const ORANGE = "#e2671b";
 const BORDER = "rgba(49,95,173,0.8)";
 const SHADOW = "#1D53AF";
+const uploadDocumentIcon = require("../../assets/Icons/uploadDocument.png");
 
 type DocumentItem = {
   id: string;
@@ -140,10 +141,33 @@ const Documents = () => {
         </View>
 
         {/* Documents Card */}
-        <View style={[s.card, { backgroundColor: aC.glassBg, borderColor: aC.isDark ? 'rgba(100,160,255,0.5)' : 'rgba(3,42,105,0.2)' }]}>
-          {aC.isDark && <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
-          {aC.isDark && <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
-          {aC.isDark && <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
+        <View style={[s.card, {
+          backgroundColor: aC.isDark ? '#030B1C' : aC.glassBg,
+          borderColor: aC.isDark ? '#667FA7' : 'rgba(3,42,105,0.2)',
+          shadowColor: aC.isDark ? '#2D63AD' : 'transparent',
+          shadowOpacity: aC.isDark ? 0.10 : 0,
+          shadowRadius: aC.isDark ? 5 : 0,
+          shadowOffset: { width: 0, height: 0 },
+          elevation: aC.isDark ? 3 : 0,
+        }]}>
+          {aC.isDark && (
+            <>
+              <LinearGradient
+                colors={['#12305E', '#08172F', '#030B1C', '#030B1C', '#08172F', '#12305E']}
+                locations={[0, 0.035, 0.085, 0.915, 0.965, 1]}
+                style={[StyleSheet.absoluteFillObject, { borderRadius: 15 }]}
+                pointerEvents="none"
+              />
+              <LinearGradient
+                colors={['#173A7045', 'transparent', 'transparent', '#173A7045']}
+                locations={[0, 0.045, 0.955, 1]}
+                start={{ x: 0, y: 0.5 }}
+                end={{ x: 1, y: 0.5 }}
+                style={[StyleSheet.absoluteFillObject, { borderRadius: 15 }]}
+                pointerEvents="none"
+              />
+            </>
+          )}
           {documents.map((doc, index) => (
             <View
               key={doc.id}
@@ -151,11 +175,11 @@ const Documents = () => {
             >
               {/* Icon */}
               <View style={[s.iconWrap, { backgroundColor: aC.isDark ? '#010a1f' : '#eef1ff' }]}>
-                <Ionicons
-                  name={doc.file ? "document-text" : "cloud-upload-outline"}
-                  size={20}
-                  color={ORANGE}
-                />
+                {doc.file ? (
+                  <Ionicons name="document-text" size={20} color={ORANGE} />
+                ) : (
+                  <Image source={uploadDocumentIcon} style={s.uploadDocumentIcon} resizeMode="contain" />
+                )}
               </View>
 
               {/* Text */}
@@ -273,8 +297,8 @@ const s = StyleSheet.create({
   card: {
     marginTop: 24,
     backgroundColor: 'rgba(3,12,40,0.6)',
-    borderWidth: 1,
-    borderColor: 'rgba(100,160,255,0.5)',
+    borderWidth: 1.15,
+    borderColor: '#667FA7',
     borderRadius: 16,
     padding: 12,
     overflow: 'hidden',
@@ -299,6 +323,8 @@ const s = StyleSheet.create({
     alignItems: "center", justifyContent: "center",
     marginRight: 10,
   },
+
+  uploadDocumentIcon: { width: 22, height: 22 },
 
   docInfo:  { flex: 1, justifyContent: "center", paddingRight: 8 },
   docTitle: { color: WHITE, fontSize: 13, fontFamily: "Poppins_500Medium", marginBottom: 2 },

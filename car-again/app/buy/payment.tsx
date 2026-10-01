@@ -13,6 +13,7 @@ import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 import PaymentSection from '@/components/shared/PaymentSection';
 import type { PayMethod } from '@/components/shared/PaymentSection';
+import { SavedCardEffect, SearchInputEffect, WARM_CARD_COLORS, WARM_CARD_LOCATIONS } from '@/components/shared/FigmaEffects';
 
 const BG     = '#010A1F';
 const ORANGE = '#e2671b';
@@ -105,7 +106,7 @@ export default function PaymentScreen() {
         await fetch(`${API_BASE}/admin/payments/reserver`, {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ amount, title: vehicle?.title || 'New Car Reservation', boost_weeks: 0, vehicle_id: params.id || '' }),
+          body: JSON.stringify({ amount, title: vehicle?.title || (vehicle?.category === 'bike' ? 'New Bike Reservation' : 'New Car Reservation'), boost_weeks: 0, vehicle_id: params.id || '' }),
         });
       } catch {}
 
@@ -145,19 +146,17 @@ export default function PaymentScreen() {
         {/* Header */}
         <View style={s.header}>
           <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-            <Ionicons name="chevron-back" size={22} color={WHITE} />
+            <Ionicons name="chevron-back" size={26} color="#C9C6D0" />
           </TouchableOpacity>
           <Text style={s.headerTitle}>Payment</Text>
           <View style={{ width: 36 }} />
         </View>
 
-        <ScrollView showsVerticalScrollIndicator={false} style={{ backgroundColor: BG }} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40, backgroundColor: BG }} keyboardShouldPersistTaps="handled">
+        <ScrollView showsVerticalScrollIndicator={false} style={{ backgroundColor: BG }} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40, backgroundColor: BG }} keyboardShouldPersistTaps="handled">
 
           {/* Car Summary Card */}
           <View style={s.carCard}>
-            <LinearGradient colors={['rgba(22,64,136,0.2)','transparent']} start={{x:0.5,y:0}} end={{x:0.5,y:0.6}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-            <LinearGradient colors={['rgba(13,37,84,0.18)','transparent']} start={{x:0,y:0.5}} end={{x:0.45,y:0.5}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-            <LinearGradient colors={['transparent','rgba(29,83,175,0.2)']} start={{x:0.5,y:0.4}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+            <SavedCardEffect />
             {carImg
               ? <Image source={{ uri: carImg }} style={s.carImg} resizeMode="cover" />
               : <View style={[s.carImg, { backgroundColor: '#0d1e3d', alignItems: 'center', justifyContent: 'center' }]}>
@@ -167,17 +166,18 @@ export default function PaymentScreen() {
             <View style={{ flex: 1 }}>
               <Text style={s.carName} numberOfLines={1}>{carName}</Text>
               <View style={s.carMeta}>
-                <Ionicons name="location-outline" size={12} color={MUTED} />
-                <Text style={s.carMetaTxt}>{carCity}  •  {carYear}  •  {carTrans}</Text>
+                <Ionicons name="location-outline" size={15} color="#BAB6C4" />
+                <Text style={s.carMetaTxt} numberOfLines={1}>{carCity} • {carYear} • {carTrans}</Text>
               </View>
               <Text style={s.carPrice}>{carPrice}</Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color={ORANGE} />
+            <Ionicons name="chevron-forward" size={24} color={ORANGE} />
           </View>
 
-          {/* Your Reservation */}
-          <LinearGradient colors={['#16213f', '#2a1c14']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={s.reserveCard}>
-            <LinearGradient colors={['transparent', 'rgba(226,103,27,0.15)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+          {/* Your Reservation — border: orange (top) → blue (bottom) */}
+          <LinearGradient colors={['#E2671B', '#8A5A55', '#2E4F8E']} locations={[0, 0.5, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={s.reserveBorder}>
+          <View style={s.reserveCard}>
+            <LinearGradient colors={WARM_CARD_COLORS as any} locations={WARM_CARD_LOCATIONS as any} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
             <Text style={s.reserveTitle}>Your Reservation</Text>
             <View style={[s.row, s.rowBorder]}>
               <Text style={s.rowLabel}>Reservation Date</Text>
@@ -187,14 +187,14 @@ export default function PaymentScreen() {
               <Text style={s.rowLabel}>Preferred Time</Text>
               <Text style={s.rowVal}>{preferredTime}</Text>
             </View>
+          </View>
           </LinearGradient>
 
           {/* Pay Amount */}
-          <View style={{ marginTop: 20 }}>
+          <View style={{ marginTop: 18 }}>
             <Text style={s.fieldLabel}>Pay Preservation Amount</Text>
             <View style={s.inputWrap}>
-              <LinearGradient colors={['rgba(22,64,136,0.2)','transparent']} start={{x:0.5,y:0}} end={{x:0.5,y:0.6}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <LinearGradient colors={['transparent','rgba(29,83,175,0.2)']} start={{x:0.5,y:0.4}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+              <SearchInputEffect />
               <TextInput
                 style={s.input}
                 value={`Rs. ${amount.toLocaleString()}`}
@@ -206,13 +206,12 @@ export default function PaymentScreen() {
           </View>
 
           {/* Select Time */}
-          <View style={{ marginTop: 20 }}>
+          <View style={{ marginTop: 16 }}>
             <Text style={s.fieldLabel}>Select Time</Text>
             <TouchableOpacity style={s.inputWrap} onPress={() => setTimeOpen(o => !o)} activeOpacity={0.85}>
-              <LinearGradient colors={['rgba(22,64,136,0.2)','transparent']} start={{x:0.5,y:0}} end={{x:0.5,y:0.6}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <LinearGradient colors={['transparent','rgba(29,83,175,0.2)']} start={{x:0.5,y:0.4}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <Text style={[s.input, { paddingTop: 14 }]}>{time}</Text>
-              <Ionicons name={timeOpen ? 'chevron-up' : 'chevron-down'} size={16} color={MUTED} style={{ position: 'absolute', right: 20, top: 16 }} />
+              <SearchInputEffect />
+              <Text style={s.input}>{time}</Text>
+              <Ionicons name={timeOpen ? 'chevron-up' : 'chevron-down'} size={20} color="#E6E4EA" style={{ position: 'absolute', right: 20 }} />
             </TouchableOpacity>
             {timeOpen && (
               <View style={s.dropdown}>
@@ -225,17 +224,28 @@ export default function PaymentScreen() {
             )}
           </View>
 
-          {/* Payment Section */}
-          <View style={{ marginTop: 24 }}>
+          {/* Payment Section — info note sits above the button, like Figma */}
+          <View style={{ marginTop: 20 }}>
             <PaymentSection
               price={amount}
               description="Reservation Deposit"
               loading={paying}
               onPay={handlePay}
+              payLabel="Proceed to Payment"
+              beforePayButton={
+                <View style={s.infoRow}>
+                  <View style={s.infoIcon}>
+                    <Ionicons name="bulb" size={16} color={ORANGE} />
+                  </View>
+                  <Text style={s.infoTxt}>
+                    Before reserving, please call the dealership to verify the vehicle's availability. Once confirmed, your reservation amount will be adjusted against the final purchase price.
+                  </Text>
+                </View>
+              }
             />
           </View>
 
-          {/* Info Note */}
+          {/* Info Note — moved above the button (kept for reference)
           <View style={s.infoRow}>
             <View style={s.infoIcon}>
               <Ionicons name="bulb-outline" size={14} color={ORANGE} />
@@ -244,6 +254,7 @@ export default function PaymentScreen() {
               Before reserving, please call the dealership to verify the vehicle's availability. Once confirmed, your reservation amount will be adjusted against the final purchase price.
             </Text>
           </View>
+          */}
 
         </ScrollView>
       </KeyboardAvoidingView>
@@ -253,33 +264,34 @@ export default function PaymentScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: BG },
-  header:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12 },
-  backBtn:     { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { color: WHITE, fontSize: 18, fontFamily: 'Poppins_700Bold' },
+  header:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, paddingTop: 8, paddingBottom: 12 },
+  backBtn:     { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+  headerTitle: { flex: 1, textAlign: 'center', color: '#F2F1F5', fontSize: 20, fontFamily: 'Poppins_500Medium' },
 
-  carCard:    { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: 'rgba(3,12,40,0.6)', borderWidth: 1, borderColor: BLUE_B, borderRadius: 14, padding: 10, marginTop: 8, overflow: 'hidden' },
-  carImg:     { width: 48, height: 38, borderRadius: 7 },
-  carName:    { color: WHITE, fontSize: 13, fontFamily: 'Poppins_700Bold' },
-  carMeta:    { flexDirection: 'row', alignItems: 'center', gap: 3 },
-  carMetaTxt: { color: MUTED, fontSize: 11, fontFamily: 'Poppins_400Regular' },
-  carPrice:   { color: ORANGE, fontSize: 13, fontFamily: 'Poppins_700Bold' },
+  carCard:    { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 8, paddingRight: 12, backgroundColor: '#010A1F', borderWidth: 1, borderColor: '#82a5d5', borderRadius: 16, overflow: 'hidden', shadowColor: '#638ed0', shadowOpacity: 0.15, shadowRadius: 5, shadowOffset: { width: 0, height: 0 }, elevation: 2 },
+  carImg:     { width: 90, height: 62, borderRadius: 10 },
+  carName:    { color: '#F2F1F5', fontSize: 13, fontFamily: 'Poppins_500Medium' },
+  carMeta:    { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 1 },
+  carMetaTxt: { color: '#BAB6C4', fontSize: 12.5, fontFamily: 'Poppins_400Regular', flexShrink: 1 },
+  carPrice:   { color: ORANGE, fontSize: 15, fontFamily: 'Poppins_600SemiBold', marginTop: 1 },
 
-  reserveCard:  { borderWidth: 1, borderColor: 'rgba(226,103,27,0.5)', borderRadius: 16, paddingHorizontal: 16, paddingTop: 14, paddingBottom: 4, marginTop: 14, overflow: 'hidden' },
-  reserveTitle: { color: WHITE, fontSize: 15, fontFamily: 'Poppins_700Bold', marginBottom: 6 },
-  row:          { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 11 },
-  rowBorder:    { borderBottomWidth: 1, borderColor: BORDER },
-  rowLabel:     { color: MUTED, fontSize: 13, fontFamily: 'Poppins_400Regular' },
-  rowVal:       { color: WHITE, fontSize: 13, fontFamily: 'Poppins_600SemiBold' },
+  reserveBorder:{ borderRadius: 16, padding: 1, marginTop: 14 },
+  reserveCard:  { borderRadius: 15, paddingHorizontal: 18, paddingTop: 20, paddingBottom: 8, overflow: 'hidden', backgroundColor: '#0B1D4A' },
+  reserveTitle: { color: '#F2F1F5', fontSize: 16, fontFamily: 'Poppins_500Medium', marginBottom: 6 },
+  row:          { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12 },
+  rowBorder:    { borderBottomWidth: 1, borderColor: 'rgba(255,255,255,0.10)' },
+  rowLabel:     { color: '#BAB6C4', fontSize: 14, fontFamily: 'Poppins_400Regular' },
+  rowVal:       { color: '#F2F1F5', fontSize: 14, fontFamily: 'Poppins_400Regular' },
 
-  fieldLabel: { color: '#cbd5e1', fontSize: 13, fontFamily: 'Poppins_400Regular', marginBottom: 8 },
-  inputWrap:  { height: 52, borderRadius: 30, borderWidth: 1, borderColor: BLUE_B, backgroundColor: 'rgba(3,12,40,0.6)', overflow: 'hidden', justifyContent: 'center' },
-  input:      { color: WHITE, fontSize: 14, fontFamily: 'Poppins_400Regular', paddingHorizontal: 20 },
+  fieldLabel: { color: '#D2CFD8', fontSize: 14.5, fontFamily: 'Poppins_400Regular', marginBottom: 8 },
+  inputWrap:  { height: 52, borderRadius: 32, borderWidth: 1, borderColor: '#829fd0', backgroundColor: 'rgba(3,12,40,0.6)', overflow: 'hidden', justifyContent: 'center' },
+  input:      { color: '#F2F1F5', fontSize: 14, fontFamily: 'Poppins_400Regular', paddingHorizontal: 20 },
 
   dropdown:      { marginTop: 6, backgroundColor: '#061b4a', borderRadius: 14, borderWidth: 1, borderColor: BORDER, overflow: 'hidden' },
   dropOption:    { paddingHorizontal: 20, paddingVertical: 12, borderBottomWidth: 1, borderColor: BORDER },
   dropOptionTxt: { color: WHITE, fontSize: 14, fontFamily: 'Poppins_400Regular' },
 
-  infoRow:  { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginTop: 16 },
-  infoIcon: { width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(226,103,27,0.15)', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 },
-  infoTxt:  { flex: 1, color: MUTED, fontSize: 12, fontFamily: 'Poppins_400Regular', lineHeight: 20 },
+  infoRow:  { flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginTop: 4, marginBottom: 8 },
+  infoIcon: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#0E2552', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 },
+  infoTxt:  { flex: 1, color: '#C9C6D0', fontSize: 12.5, fontFamily: 'Poppins_400Regular', lineHeight: 20 },
 });

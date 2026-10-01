@@ -6,11 +6,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import Svg, { Circle, Path } from 'react-native-svg';
-import {
-  ChevronLeft, Bell, ChevronDown,
-  Heart, Share2, Bookmark,
-} from 'lucide-react-native';
+import Svg, { Circle, Defs, Path, Stop, LinearGradient as SvgGrad } from 'react-native-svg';
+import { Ionicons } from '@expo/vector-icons';
+import { D, DHeader, GlowCard, OutlineCard } from '@/components/dealer/DealerUI';
+import { Heart, Share2, Bookmark } from 'lucide-react-native';
 import { AppColors } from '@/constants/theme';
 import { useAuth } from '@/contexts/AuthContext';
 import { API_BASE } from '@/constants/api';
@@ -56,60 +55,67 @@ function fmtDelta(d: number): string {
   return d >= 0 ? `↑ ${Math.abs(d)}%` : `↓ ${Math.abs(d)}%`;
 }
 
-/* ─── Custom Bar Chart ─── */
+/* ─── Custom Bar Chart (Figma: peach top + orange bottom) ─── */
 function BarChartView({ data }: { data: DayValue[] }) {
   const maxVal = Math.max(...data.map(d => d.value), 1);
-  const H = 150;
+  const H = 190;
   return (
     <View>
-      <View style={{ flexDirection: 'row', alignItems: 'flex-end', height: H, gap: 8, paddingHorizontal: 4 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'flex-end', height: H, gap: 18, paddingHorizontal: 6 }}>
         {data.map((d, i) => {
-          const darkH = Math.max(4, (d.value / maxVal) * H);
+          const orangeH = Math.max(6, (d.value / maxVal) * H * 0.62);
+          const totalH  = Math.min(H, orangeH + 40 + (H - orangeH) * 0.25);
           return (
-            <View key={i} style={{ flex: 1, height: H, borderRadius: 8, backgroundColor: 'rgba(226,103,27,0.18)', overflow: 'hidden', justifyContent: 'flex-end' }}>
-              <View style={{ height: darkH, borderRadius: 8, overflow: 'hidden' }}>
-                <LinearGradient
-                  colors={['#ff9a00', ORANGE]}
-                  start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }}
-                  style={StyleSheet.absoluteFillObject}
-                />
-              </View>
+            <View key={i} style={{ flex: 1, height: totalH, backgroundColor: '#EBC3A9', justifyContent: 'flex-end' }}>
+              <View style={{ height: orangeH, backgroundColor: ORANGE }} />
             </View>
           );
         })}
       </View>
-      <View style={{ flexDirection: 'row', marginTop: 8, paddingHorizontal: 4 }}>
+      <View style={{ flexDirection: 'row', marginTop: 12, paddingHorizontal: 6, gap: 18 }}>
         {data.map((d, i) => (
-          <Text key={i} style={{ flex: 1, textAlign: 'center', color: 'rgba(255,255,255,0.45)', fontSize: 12, fontFamily: 'Poppins_500Medium' }}>{d.day}</Text>
+          <Text key={i} style={{ flex: 1, textAlign: 'center', color: '#FFFFFF', fontSize: 14, fontFamily: 'Poppins_600SemiBold' }}>{String(d.day).charAt(0)}</Text>
         ))}
       </View>
     </View>
   );
 }
 
-/* ─── Custom Line Chart ─── */
+/* ─── Custom Line Chart (smooth curve + orange area fill) ─── */
 function LineChartView({ data }: { data: DayValue[] }) {
-  const H       = 90;
-  const W_CHART = width - 32 - 32;
+  const H       = 120;
+  const W_CHART = width - 32 - 2;
   const maxVal  = Math.max(...data.map(d => d.value), 1);
   const minVal  = Math.min(...data.map(d => d.value));
   const range   = maxVal - minVal || 1;
   const pts     = data.map((d, i) => ({
-    x: (i / (data.length - 1)) * W_CHART,
-    y: H - ((d.value - minVal) / range) * (H - 14) - 7,
+    x: data.length > 1 ? (i / (data.length - 1)) * W_CHART : 0,
+    y: H - ((d.value - minVal) / range) * (H - 24) - 12,
   }));
-  const pathD = pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
+  let line = pts.length ? `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}` : '';
+  for (let i = 1; i < pts.length; i++) {
+    const p0 = pts[i - 1], p1 = pts[i], cx = (p0.x + p1.x) / 2;
+    line += ` C ${cx.toFixed(1)} ${p0.y.toFixed(1)} ${cx.toFixed(1)} ${p1.y.toFixed(1)} ${p1.x.toFixed(1)} ${p1.y.toFixed(1)}`;
+  }
+  const area = pts.length ? `${line} L ${pts[pts.length - 1].x.toFixed(1)} ${H} L ${pts[0].x.toFixed(1)} ${H} Z` : '';
   return (
-    <View>
+    <View style={{ marginHorizontal: -16 }}>
       <Svg width={W_CHART} height={H}>
-        <Path d={pathD} stroke={ORANGE} strokeWidth={2.5} fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-        {pts.map((p, i) => (
+        <Defs>
+          <SvgGrad id="fArea" x1="0" y1="0" x2="0" y2="1">
+            <Stop offset="0" stopColor={ORANGE} stopOpacity="0.35" />
+            <Stop offset="1" stopColor={ORANGE} stopOpacity="0" />
+          </SvgGrad>
+        </Defs>
+        <Path d={area} fill="url(#fArea)" />
+        <Path d={line} stroke={ORANGE} strokeWidth={2.5} fill="none" strokeLinecap="round" />
+        {pts.filter((_, i) => i === 1 || i === 4).map((p, i) => (
           <Circle key={i} cx={p.x} cy={p.y} r={4} fill={ORANGE}/>
         ))}
       </Svg>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8, paddingHorizontal: 8 }}>
         {data.map((d, i) => (
-          <Text key={i} style={{ color: 'rgba(255,255,255,0.4)', fontSize: 9, fontFamily: 'Poppins_400Regular' }}>{d.day}</Text>
+          <Text key={i} style={{ color: 'rgba(230,225,232,0.85)', fontSize: 12, fontFamily: 'Poppins_600SemiBold', letterSpacing: 0.5 }}>{String(d.day).toUpperCase()}</Text>
         ))}
       </View>
     </View>
@@ -120,8 +126,8 @@ function LineChartView({ data }: { data: DayValue[] }) {
 function DonutChart({ total, confirmed, completed, pending }: {
   total: number; confirmed: number; completed: number; pending: number;
 }) {
-  const r            = 46;
-  const strokeWidth  = 12;
+  const r            = 52;
+  const strokeWidth  = 10;
   const circumference = 2 * Math.PI * r;
   const cx = 65, cy = 65;
   const safeTotal = total || 1;
@@ -132,19 +138,19 @@ function DonutChart({ total, confirmed, completed, pending }: {
   return (
     <View style={{ width: 130, height: 130 }}>
       <Svg width={130} height={130}>
-        <Circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth={strokeWidth}/>
+        <Circle cx={cx} cy={cy} r={r} fill="none" stroke="#E6E1E8" strokeWidth={strokeWidth}/>
         <Circle cx={cx} cy={cy} r={r} fill="none" stroke={ORANGE} strokeWidth={strokeWidth}
           strokeDasharray={`${confirmedLen} ${circumference}`}
           strokeLinecap="round"
           rotation={-90} originX={cx} originY={cy}
         />
-        <Circle cx={cx} cy={cy} r={r} fill="none" stroke="#22C55E" strokeWidth={strokeWidth}
+        <Circle cx={cx} cy={cy} r={r} fill="none" stroke="#1BA35E" strokeWidth={strokeWidth}
           strokeDasharray={`${completedLen} ${circumference}`}
           strokeDashoffset={-confirmedLen}
           strokeLinecap="round"
           rotation={-90} originX={cx} originY={cy}
         />
-        <Circle cx={cx} cy={cy} r={r} fill="none" stroke="#9CA3AF" strokeWidth={strokeWidth}
+        <Circle cx={cx} cy={cy} r={r} fill="none" stroke="#E6E1E8" strokeWidth={strokeWidth}
           strokeDasharray={`${pendingLen} ${circumference}`}
           strokeDashoffset={-(confirmedLen + completedLen)}
           strokeLinecap="round"
@@ -152,8 +158,8 @@ function DonutChart({ total, confirmed, completed, pending }: {
         />
       </Svg>
       <View style={{ position: 'absolute', width: 130, height: 130, alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ color: C.textPrimary, fontSize: 24, fontFamily: 'Poppins_700Bold' }}>{total}</Text>
-        <Text style={{ color: C.textSecondary, fontSize: 11, fontFamily: 'Poppins_400Regular' }}>Total</Text>
+        <Text style={{ color: '#FFFFFF', fontSize: 26, fontFamily: 'Poppins_600SemiBold' }}>{total}</Text>
+        <Text style={{ color: '#FFFFFF', fontSize: 13, fontFamily: 'Poppins_500Medium' }}>Total</Text>
       </View>
     </View>
   );
@@ -165,6 +171,7 @@ export default function ProfileAnalyticsScreen() {
   const { token } = useAuth();
   const [period,         setPeriod]         = useState('Weekly');
   const [followerPeriod, setFollowerPeriod] = useState('Weekly');
+  const [followerMenu,   setFollowerMenu]   = useState(false);
   const [loading, setLoading] = useState(true);
   const [data,    setData]    = useState<AnalyticsData | null>(null);
   const [error,   setError]   = useState<string | null>(null);
@@ -220,15 +227,16 @@ export default function ProfileAnalyticsScreen() {
       <View style={s.container}>
 
         {/* HEADER */}
-        <View style={s.header}>
-          <TouchableOpacity onPress={() => router.back()} style={s.iconBtn}>
-            <ChevronLeft size={24} color={ORANGE} strokeWidth={2}/>
-          </TouchableOpacity>
-          <Text style={s.headerTitle}>Profile Analytics</Text>
-          <TouchableOpacity style={s.iconBtn} onPress={() => router.push('/alert' as any)}>
-            <Bell size={20} color={ORANGE}/>
-          </TouchableOpacity>
-        </View>
+        <DHeader
+          title="Profile Analytics"
+          center
+          titleStyle={{ fontFamily: 'Poppins_600SemiBold', fontSize: 19 }}
+          right={
+            <TouchableOpacity style={s.iconBtn} onPress={() => router.push('/alert' as any)}>
+              <Ionicons name="notifications-outline" size={26} color={ORANGE} />
+            </TouchableOpacity>
+          }
+        />
 
         {loading ? (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
@@ -248,31 +256,20 @@ export default function ProfileAnalyticsScreen() {
             {/* ── UNIT SELLING ── */}
             <View style={s.section}>
               <View style={s.rowBetween}>
-                <Text style={s.sectionTitle}>Unit Selling</Text>
+                <Text style={[s.sectionTitle, { fontSize: 24, fontFamily: 'Poppins_600SemiBold' }]}>Unit selling</Text>
                 <View style={s.viewsDot}>
                   <View style={s.dot}/>
-                  <Text style={s.viewsTxt}>Impressions</Text>
+                  <Text style={s.viewsTxt}>Views</Text>
                 </View>
               </View>
 
               <View style={s.periodWrap}>
-                <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
                 {['Weekly', 'Monthly', 'Yearly'].map(p => (
                   <TouchableOpacity
                     key={p}
                     style={[s.periodBtn, period === p && s.periodBtnActive]}
                     onPress={() => setPeriod(p)}
                   >
-                    {period === p && (
-                      <>
-                        <LinearGradient colors={['rgba(100,160,255,0.35)', 'rgba(100,160,255,0.15)']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                        <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                        <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                        <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                      </>
-                    )}
                     <Text style={[s.periodTxt, period === p && s.periodTxtActive]}>{p}</Text>
                   </TouchableOpacity>
                 ))}
@@ -282,35 +279,27 @@ export default function ProfileAnalyticsScreen() {
             </View>
 
             {/* ── FOLLOWERS CARD ── */}
-            <View style={s.followCard}>
-              <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <View style={s.rowBetween}>
+            <GlowCard style={s.followCard}>
+              <View style={[s.rowBetween, { alignItems: 'flex-start', zIndex: 5 }]}>
                 <View>
                   <Text style={s.cardLabel}>Total Followers</Text>
                   <Text style={s.followCount}>{data.total_followers.toLocaleString()}</Text>
                 </View>
-                <View style={s.fPillRow}>
-                  {['Weekly', 'Monthly', 'Yearly'].map(p => (
-                    <TouchableOpacity
-                      key={p}
-                      style={[s.fPill, followerPeriod === p && s.fPillActive]}
-                      onPress={() => setFollowerPeriod(p)}
-                    >
-                      {followerPeriod === p && (
-                        <>
-                          <LinearGradient colors={['rgba(100,160,255,0.35)', 'rgba(100,160,255,0.15)']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                          <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                          <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                          <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                        </>
-                      )}
-                      <Text style={[s.fPillTxt, followerPeriod === p && s.fPillTxtActive]}>
-                        {p === 'Weekly' ? 'W' : p === 'Monthly' ? 'M' : 'Y'}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
+                {/* "Weekly View ⌄" — tap to switch Weekly / Monthly / Yearly */}
+                <View>
+                  <TouchableOpacity style={s.viewSel} onPress={() => setFollowerMenu(m => !m)}>
+                    <Text style={s.viewSelTxt}>{followerPeriod} View</Text>
+                    <Ionicons name={followerMenu ? 'chevron-up' : 'chevron-down'} size={16} color={ORANGE} />
+                  </TouchableOpacity>
+                  {followerMenu && (
+                    <View style={s.viewMenu}>
+                      {['Weekly', 'Monthly', 'Yearly'].map(p => (
+                        <TouchableOpacity key={p} style={s.viewMenuItem} onPress={() => { setFollowerPeriod(p); setFollowerMenu(false); }}>
+                          <Text style={[s.viewMenuTxt, followerPeriod === p && { color: ORANGE }]}>{p} View</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  )}
                 </View>
               </View>
               <LineChartView data={
@@ -318,54 +307,48 @@ export default function ProfileAnalyticsScreen() {
                 followerPeriod === 'Yearly'  ? data.followers_trend_yearly  :
                 data.followers_trend
               }/>
-            </View>
+            </GlowCard>
 
             {/* ── STAT CARDS ── */}
             <View style={s.statRow}>
-              <View style={s.statCard}>
+              <OutlineCard style={s.statCard}>
                 <Text style={s.statLabel}>Profile Views</Text>
                 <Text style={s.statValue}>{fmtNum(data.profile_views)}</Text>
-                <Text style={[s.statDelta, { color: data.profile_views_delta >= 0 ? ORANGE : '#f87171' }]}>
+                <Text style={[s.statDelta, { color: data.profile_views_delta >= 0 ? ORANGE : '#E0363A' }]}>
                   {fmtDelta(data.profile_views_delta)}
                 </Text>
-              </View>
-              <View style={s.statCard}>
+              </OutlineCard>
+              <OutlineCard style={s.statCard}>
                 <Text style={s.statLabel}>Search Appearances</Text>
                 <Text style={s.statValue}>{fmtNum(data.search_appearances)}</Text>
-                <Text style={[s.statDelta, { color: data.search_appearances_delta >= 0 ? ORANGE : '#f87171' }]}>
+                <Text style={[s.statDelta, { color: data.search_appearances_delta >= 0 ? ORANGE : '#E0363A' }]}>
                   {fmtDelta(data.search_appearances_delta)}
                 </Text>
-              </View>
+              </OutlineCard>
             </View>
 
             {/* ── ENGAGEMENT ── */}
             <View style={s.section}>
-              <Text style={s.sectionTitle}>Engagement Details</Text>
+              <Text style={[s.sectionTitle, { fontFamily: 'Poppins_400Regular' }]}>Engagement Details</Text>
               {engagement.map(e => (
                 <View key={e.label} style={s.engRow}>
                   <View style={s.rowBetween}>
                     <View style={s.engLeft}>
-                      <e.Icon size={14} color={ORANGE}/>
+                      <e.Icon size={18} color={ORANGE}/>
                       <Text style={s.engLabel}>{e.label}</Text>
                     </View>
                     <Text style={s.engValue}>{e.value}</Text>
                   </View>
                   <View style={s.progressTrack}>
-                    <View style={[s.progressFill, { width: `${e.pct}%` }]}>
-                      <LinearGradient colors={[NAVY, ORANGE]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject}/>
-                    </View>
+                    <View style={[s.progressFill, { width: `${e.pct}%` }]} />
                   </View>
                 </View>
               ))}
             </View>
 
             {/* ── RESERVATIONS DONUT ── */}
-            <View style={s.reservCard}>
-              <LinearGradient colors={['rgba(22,64,136,0.12)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.25 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <LinearGradient colors={['transparent', 'rgba(29,83,175,0.12)']} start={{ x: 0.5, y: 0.75 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <LinearGradient colors={['rgba(13,37,84,0.12)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.25, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <LinearGradient colors={['transparent', 'rgba(13,37,84,0.12)']} start={{ x: 0.75, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <Text style={[s.sectionTitle, { fontSize: 14 }]}>Reservations Overview</Text>
+            <GlowCard style={s.reservCard}>
+              <Text style={[s.sectionTitle, { fontSize: 22, fontFamily: 'Poppins_500Medium' }]}>Reservations Overview</Text>
               <View style={s.donutRow}>
                 <DonutChart
                   total={data.reservations_total}
@@ -376,8 +359,8 @@ export default function ProfileAnalyticsScreen() {
                 <View style={s.legendCol}>
                   {[
                     { label: 'Confirmed', count: data.reservations_confirmed, color: ORANGE    },
-                    { label: 'Completed', count: data.reservations_completed, color: '#22C55E' },
-                    { label: 'Pending',   count: data.reservations_pending,   color: '#9CA3AF' },
+                    { label: 'Completed', count: data.reservations_completed, color: '#1BA35E' },
+                    { label: 'Pending',   count: data.reservations_pending,   color: '#E6E1E8' },
                   ].map(l => (
                     <View key={l.label} style={s.legendRow}>
                       <View style={[s.legendDot, { backgroundColor: l.color }]}/>
@@ -387,11 +370,11 @@ export default function ProfileAnalyticsScreen() {
                   ))}
                 </View>
               </View>
-            </View>
+            </GlowCard>
 
             {/* ── AUDIENCE DEMOGRAPHICS ── */}
-            <View style={s.demoCard}>
-              <Text style={[s.sectionTitle, { fontSize: 14 }]}>Audience Demographics</Text>
+            <OutlineCard style={s.demoCard}>
+              <Text style={[s.sectionTitle, { fontSize: 17, fontFamily: 'Poppins_400Regular' }]}>Audience Demographics</Text>
               <Text style={s.demoSubtitle}>Top Locations</Text>
               <View style={s.chipsRow}>
                 {(data.top_locations.length > 0 ? data.top_locations : [
@@ -404,12 +387,12 @@ export default function ProfileAnalyticsScreen() {
                   </View>
                 ))}
               </View>
-            </View>
+            </OutlineCard>
 
             {/* ── SHARE BUTTON ── */}
             <TouchableOpacity style={s.shareBtn} activeOpacity={0.85} onPress={handleShare}>
-              <LinearGradient colors={[NAVY, ORANGE]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject}/>
-              <Share2 size={17} color="#fff"/>
+              <LinearGradient colors={['#0B3585', '#7E4F5C', '#E8702A']} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject}/>
+              <Ionicons name="share-social" size={26} color="#fff" />
               <Text style={s.shareTxt}>Share</Text>
             </TouchableOpacity>
 
@@ -422,73 +405,63 @@ export default function ProfileAnalyticsScreen() {
 }
 
 const s = StyleSheet.create({
-  safeArea:  { flex: 1, backgroundColor: C.bg },
-  container: { flex: 1, backgroundColor: C.bg },
+  safeArea:  { flex: 1, backgroundColor: D.bg },
+  container: { flex: 1, backgroundColor: D.bg },
 
-  header:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, height: 60 },
   iconBtn:     { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { color: C.textPrimary, fontSize: 17, fontFamily: 'Poppins_600SemiBold' },
 
-  scrollContent: { paddingHorizontal: 16, paddingTop: 4, gap: 16, paddingBottom: 20 },
+  scrollContent: { paddingHorizontal: 16, paddingTop: 4, gap: 18, paddingBottom: 20 },
 
   section:      { gap: 14 },
-  sectionTitle: { color: C.textPrimary, fontSize: 18, fontFamily: 'Poppins_700Bold' },
+  sectionTitle: { color: '#FFFFFF', fontSize: 18, fontFamily: 'Poppins_600SemiBold' },
   rowBetween:   { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
 
   viewsDot: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  dot:      { width: 7, height: 7, borderRadius: 4, backgroundColor: ORANGE },
-  viewsTxt: { color: ORANGE, fontSize: 12, fontFamily: 'Poppins_500Medium' },
+  dot:      { width: 8, height: 8, borderRadius: 4, backgroundColor: ORANGE },
+  viewsTxt: { color: ORANGE, fontSize: 14, fontFamily: 'Poppins_600SemiBold' },
 
-  periodWrap: {
-    flexDirection: 'row', borderRadius: 30, padding: 4,
-    borderWidth: 1, borderColor: AppColors.glassBorder,
-    overflow: 'hidden', backgroundColor: AppColors.glassBg,
-  },
-  periodBtn:       { flex: 1, paddingVertical: 9, borderRadius: 26, alignItems: 'center', overflow: 'hidden' },
-  periodBtnActive: {},
-  periodTxt:       { color: 'rgba(255,255,255,0.5)', fontSize: 13, fontFamily: 'Poppins_500Medium' },
-  periodTxtActive: { color: '#fff', fontFamily: 'Poppins_600SemiBold' },
+  periodWrap:      { flexDirection: 'row', borderRadius: 26, padding: 4, backgroundColor: D.navy },
+  periodBtn:       { flex: 1, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'transparent' },
+  periodBtnActive: { borderColor: 'rgba(200,210,230,0.7)', backgroundColor: '#0A1A45' },
+  periodTxt:       { color: '#FFFFFF', fontSize: 14, fontFamily: 'Poppins_600SemiBold' },
+  periodTxtActive: { color: '#BFC6DE', fontFamily: 'Poppins_500Medium' },
 
-  followCard: {
-    borderRadius: 20, borderWidth: 1, borderColor: C.glassBorder,
-    backgroundColor: '#010A1F', overflow: 'hidden', padding: 16, gap: 12,
-  },
-  cardLabel:   { color: 'rgba(255,255,255,0.5)', fontSize: 12, fontFamily: 'Poppins_400Regular' },
-  followCount: { color: C.textPrimary, fontSize: 26, fontFamily: 'Poppins_700Bold', marginTop: 2 },
+  followCard:  { padding: 16, gap: 10 },
+  cardLabel:   { color: '#FFFFFF', fontSize: 14, fontFamily: 'Poppins_600SemiBold' },
+  followCount: { color: '#FFFFFF', fontSize: 28, fontFamily: 'Poppins_700Bold', marginTop: 2 },
+  viewSel:     { flexDirection: 'row', alignItems: 'center', gap: 8, paddingTop: 6 },
+  viewSelTxt:  { color: '#FFFFFF', fontSize: 14, fontFamily: 'Poppins_400Regular' },
+  viewMenu:    { position: 'absolute', top: 32, right: 0, minWidth: 130, backgroundColor: '#061234', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(130,165,213,0.5)', zIndex: 20, overflow: 'hidden' },
+  viewMenuItem:{ paddingHorizontal: 14, paddingVertical: 9 },
+  viewMenuTxt: { color: '#E6E1E8', fontSize: 13, fontFamily: 'Poppins_400Regular' },
 
-  fPillRow:     { flexDirection: 'row', gap: 4, alignItems: 'center' },
-  fPill:        { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderWidth: 1, borderColor: AppColors.glassBorder, backgroundColor: AppColors.glassBg },
-  fPillActive:  { borderColor: 'transparent' },
-  fPillTxt:     { fontSize: 11, fontFamily: 'Poppins_600SemiBold', color: 'rgba(255,255,255,0.45)' },
-  fPillTxtActive: { color: '#fff' },
+  statRow:   { flexDirection: 'row', gap: 16 },
+  statCard:  { flex: 1, paddingVertical: 18, gap: 2 },
+  statLabel: { color: '#FFFFFF', fontSize: 14, fontFamily: 'Poppins_500Medium' },
+  statValue: { color: '#FFFFFF', fontSize: 22, fontFamily: 'Poppins_600SemiBold' },
+  statDelta: { fontSize: 13, fontFamily: 'Poppins_500Medium' },
 
-  statRow:   { flexDirection: 'row', gap: 12 },
-  statCard:  { flex: 1, borderRadius: 18, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', backgroundColor: '#010A1F', overflow: 'hidden', padding: 14, gap: 4 },
-  statLabel: { color: 'rgba(255,255,255,0.5)', fontSize: 12, fontFamily: 'Poppins_400Regular' },
-  statValue: { color: C.textPrimary, fontSize: 22, fontFamily: 'Poppins_700Bold' },
-  statDelta: { fontSize: 12, fontFamily: 'Poppins_500Medium' },
+  engRow:        { gap: 8 },
+  engLeft:       { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  engLabel:      { color: '#FFFFFF', fontSize: 14, fontFamily: 'Poppins_500Medium' },
+  engValue:      { color: '#FFFFFF', fontSize: 14, fontFamily: 'Poppins_500Medium' },
+  progressTrack: { height: 10, borderRadius: 5, backgroundColor: '#C9BDC4', overflow: 'hidden' },
+  progressFill:  { height: '100%', borderRadius: 5, backgroundColor: ORANGE },
 
-  engRow:      { gap: 8 },
-  engLeft:     { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  engLabel:    { color: 'rgba(255,255,255,0.8)', fontSize: 13, fontFamily: 'Poppins_400Regular' },
-  engValue:    { color: C.textPrimary, fontSize: 13, fontFamily: 'Poppins_600SemiBold' },
-  progressTrack: { height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.1)', overflow: 'hidden' },
-  progressFill:  { height: '100%', borderRadius: 3, overflow: 'hidden' },
+  reservCard: { padding: 20, gap: 16 },
+  donutRow:   { flexDirection: 'row', alignItems: 'center', gap: 24 },
+  legendCol:  { flex: 1, gap: 12 },
+  legendRow:  { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  legendDot:  { width: 10, height: 10, borderRadius: 5 },
+  legendLabel:{ color: '#FFFFFF', fontSize: 16, fontFamily: 'Poppins_400Regular', flex: 1 },
+  legendCount:{ color: '#FFFFFF', fontSize: 14, fontFamily: 'Poppins_500Medium' },
 
-  reservCard: { borderRadius: 16, borderWidth: 1, borderColor: 'rgba(100,160,255,0.5)', backgroundColor: '#010A1F', overflow: 'hidden', padding: 16, gap: 14 },
-  donutRow:   { flexDirection: 'row', alignItems: 'center', gap: 20 },
-  legendCol:  { flex: 1, gap: 14 },
-  legendRow:  { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  legendDot:  { width: 8, height: 8, borderRadius: 4 },
-  legendLabel:{ color: C.textPrimary, fontSize: 13, fontFamily: 'Poppins_400Regular', flex: 1 },
-  legendCount:{ color: C.textPrimary, fontSize: 13, fontFamily: 'Poppins_600SemiBold' },
+  demoCard:     { padding: 20, gap: 12 },
+  demoSubtitle: { color: '#FFFFFF', fontSize: 14, fontFamily: 'Poppins_600SemiBold', letterSpacing: 0.3 },
+  chipsRow:     { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+  locationChip: { paddingHorizontal: 12, paddingVertical: 4, borderRadius: 14, backgroundColor: ORANGE },
+  chipTxt:      { color: '#fff', fontSize: 14, fontFamily: 'Poppins_600SemiBold' },
 
-  demoCard:     { borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', backgroundColor: '#010A1F', overflow: 'hidden', padding: 16, gap: 12 },
-  demoSubtitle: { color: C.textPrimary, fontSize: 11, fontFamily: 'Poppins_700Bold' },
-  chipsRow:     { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  locationChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 30, backgroundColor: ORANGE },
-  chipTxt:      { color: '#fff', fontSize: 10, fontFamily: 'Poppins_700Bold' },
-
-  shareBtn: { height: 52, borderRadius: 30, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  shareTxt: { color: '#fff', fontSize: 15, fontFamily: 'Poppins_600SemiBold' },
+  shareBtn: { height: 58, borderRadius: 29, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12 },
+  shareTxt: { color: '#fff', fontSize: 19, fontFamily: 'Poppins_500Medium' },
 });

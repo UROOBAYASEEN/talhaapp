@@ -8,11 +8,11 @@ import { useRouter } from 'expo-router';
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   ActivityIndicator,
-  Dimensions,
   FlatList,
   Image,
   Pressable,
   RefreshControl,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -23,12 +23,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAppColors } from '@/constants/theme';
-
-const { width: W } = Dimensions.get('window');
-
-const FILTER_W = W - 40;
-const TAB_ALL  = Math.round(FILTER_W * (66 / 350));
-const TAB_REST = Math.round((FILTER_W - TAB_ALL) / 4);
 
 const FILTER_TABS = ['All', 'Call', 'Message', 'Ads', 'Support'];
 const SERVER = API_BASE.replace('/api/v1', '');
@@ -43,34 +37,32 @@ function makeStyles(aC: ReturnType<typeof useAppColors>) {
     title: { fontSize: 20, fontFamily: 'Poppins_500Medium', color: aC.textPrimary, marginTop: 8, marginBottom: 12, paddingHorizontal: 20 },
     searchBar: {
       flexDirection: 'row', alignItems: 'center', gap: 12, height: 48,
-      borderRadius: 32, borderWidth: 1, borderColor: border,
-      backgroundColor: glassBg, paddingHorizontal: 20,
+      borderRadius: 32, borderWidth: 1, borderColor: aC.isDark ? '#829fd0' : border,
+      backgroundColor: glassBg, paddingHorizontal: 20, overflow: 'hidden',
       marginHorizontal: 20, marginBottom: 20,
-      shadowColor: '#1D53AF', shadowOffset: { width: 0, height: 7 },
-      shadowOpacity: 0.5, shadowRadius: 14, elevation: 8,
     },
     searchPh:    { fontSize: 12, fontFamily: 'Poppins_400Regular', color: aC.textSecondary },
     searchInput: { flex: 1, fontSize: 12, fontFamily: 'Poppins_400Regular', color: aC.textPrimary, padding: 0 },
     filterWrap: {
-      flexDirection: 'row', backgroundColor: 'transparent',
-      marginHorizontal: 20, marginBottom: 20, gap: 6,
+      flexDirection: 'row', alignItems: 'center', gap: 12,
+      paddingHorizontal: 20, paddingBottom: 20,
     },
     filterTab: {
-      flex: 1, height: 40, alignItems: 'center', justifyContent: 'center',
-      borderRadius: 12, borderWidth: 1,
-      borderColor: aC.isDark ? 'rgba(100,160,255,0.3)' : 'rgba(3,42,105,0.2)',
+      height: 44, alignItems: 'center', justifyContent: 'center',
+      borderRadius: 14, borderWidth: 0, overflow: 'hidden',
+      borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.2)',
       backgroundColor: aC.isDark ? '#061B4A' : '#d8e4ff',
     },
     filterTabActive: {
-      borderColor: aC.isDark ? 'rgba(100,160,255,0.9)' : 'rgba(3,42,105,0.5)',
+      borderWidth: 1, borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.5)',
       backgroundColor: aC.isDark ? 'rgba(6,27,74,0.9)' : 'rgba(196,215,255,0.9)',
     },
-    filterTxtActive:    { fontSize: 10, fontFamily: 'Poppins_700Bold',   color: '#e2671b' },
-    filterTxtInactive:  { fontSize: 10, fontFamily: 'Poppins_500Medium', color: aC.textPrimary },
+    filterTxtActive:    { fontSize: 12, fontFamily: 'Poppins_600SemiBold', color: '#e2671b' },
+    filterTxtInactive:  { fontSize: 12, fontFamily: 'Poppins_500Medium', color: aC.textPrimary },
     listContent:        { paddingHorizontal: 20, gap: 12, paddingBottom: 90 },
     convCard: {
       flexDirection: 'row', alignItems: 'center', gap: 10, height: 70,
-      borderRadius: 16, borderWidth: 1,
+      borderRadius: 18, borderWidth: 1,
       borderColor: aC.isDark ? 'rgba(100,160,255,0.5)' : 'rgba(3,42,105,0.2)',
       backgroundColor: aC.glassBg,
       paddingHorizontal: 15, paddingVertical: 11,
@@ -151,6 +143,7 @@ export default function ChatListScreen() {
       <Text style={styles.title}>Chat</Text>
 
       <View style={styles.searchBar}>
+        {aC.isDark && <LinearGradient colors={['#1a3b70', '#061124', '#102650']} locations={[0, 0.48, 1]} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
         <Ionicons name="search-outline" size={20} color={aC.textSecondary} />
         <TextInput
           style={styles.searchInput}
@@ -167,21 +160,22 @@ export default function ChatListScreen() {
         )}
       </View>
 
-      <View style={styles.filterWrap}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0 }} contentContainerStyle={styles.filterWrap}>
         {FILTER_TABS.map(tab => {
           const active = activeTab === tab;
           return (
             <Pressable
               key={tab}
               android_ripple={null}
-              style={[styles.filterTab, { width: tab === 'All' ? TAB_ALL : TAB_REST }, active && styles.filterTabActive]}
+              style={[styles.filterTab, { width: tab === 'All' ? 66 : tab === 'Support' ? 78 : 72 }, active && styles.filterTabActive]}
               onPress={() => setActiveTab(tab)}
             >
+              {active && aC.isDark && <LinearGradient colors={['#1a3b70', '#061124', '#102650']} locations={[0, 0.48, 1]} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
               <Text style={active ? styles.filterTxtActive : styles.filterTxtInactive}>{tab}</Text>
             </Pressable>
           );
         })}
-      </View>
+      </ScrollView>
 
       {loading ? (
         <ActivityIndicator color="#e2671b" style={{ flex: 1 }} />
@@ -206,21 +200,19 @@ export default function ChatListScreen() {
             const unread  = item.unread || item.unread_count || 0;
             return (
               <LinearGradient
-                colors={aC.isDark ? ['rgba(100,160,255,0.5)', 'rgba(100,160,255,0.5)'] : ['#032a69', '#e2671b']}
+                colors={aC.isDark ? ['#829fd0', '#829fd0'] : ['#032a69', '#e2671b']}
                 start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                style={{ borderRadius: 16, padding: 1, shadowColor: aC.isDark ? 'rgba(0,0,0,0.25)' : 'rgba(3,42,105,0.12)', shadowOffset: { width: 0, height: 4 }, shadowOpacity: aC.isDark ? 0.2 : 0.08, shadowRadius: 10, elevation: 3 }}
+                style={{ borderRadius: 18, padding: 1 }}
               >
                 <TouchableOpacity
-                  style={[styles.convCard, { backgroundColor: aC.isDark ? 'rgba(1,6,20,1)' : '#ffffff', borderWidth: 0, overflow: 'hidden' }]}
+                  style={[styles.convCard, { backgroundColor: aC.isDark ? '#010b1e' : '#ffffff', borderWidth: 0, overflow: 'hidden' }]}
                   onPress={() => router.push({ pathname: '/chat-room/[id]', params: { id: item.id, name, otherId: item.participant_info?.[0]?.id ?? '' } })}
                   activeOpacity={0.92}
                 >
                   {aC.isDark ? (
                     <>
-                      <LinearGradient colors={['rgba(22,64,136,0.35)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.25 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                      <LinearGradient colors={['transparent', 'rgba(29,83,175,0.35)']} start={{ x: 0.5, y: 0.75 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                      <LinearGradient colors={['rgba(13,37,84,0.35)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.25, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                      <LinearGradient colors={['transparent', 'rgba(13,37,84,0.35)']} start={{ x: 0.75, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+                      <LinearGradient colors={['#173668', '#010b1e', '#071a3a']} locations={[0, 0.35, 1]} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+                      <LinearGradient colors={['rgba(35,81,157,0.12)', 'transparent', 'transparent', 'rgba(35,81,157,0.12)']} locations={[0, 0.1, 0.9, 1]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
                     </>
                   ) : (
                     <>

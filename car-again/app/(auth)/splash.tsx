@@ -9,15 +9,15 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAppColors } from '@/constants/theme';
+import AuthGlowBackground from '@/components/auth/AuthGlowBackground';
 
-const WORDS = ['BUY.', 'FINANCE.', 'INSURE.', 'TRACK.', 'DRIVE'];
+
+const WORDS = ['Buy.', 'Finance.', 'Insure.', 'Track.', 'Drive.'];
 const STAY_MS = 6000;
 const { width: SCREEN_W } = Dimensions.get('window');
 
 export default function SplashScreen() {
   const router = useRouter();
-  const C = useAppColors();
 
   const spinAnim    = useRef(new Animated.Value(0)).current;
   const iconScale   = useRef(new Animated.Value(0.6)).current;
@@ -80,7 +80,8 @@ export default function SplashScreen() {
   });
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: C.bg }]}>
+    <AuthGlowBackground>
+    <SafeAreaView style={styles.container}>
       <View style={styles.content}>
 
         <Animated.Image
@@ -92,26 +93,14 @@ export default function SplashScreen() {
           resizeMode="contain"
         />
 
-        {C.isDark ? (
-          <Animated.Image
-            source={require('@/assets/images/autowizor-logo-text.png')}
-            style={[
-              styles.textLogo,
-              { opacity: textOpacity, transform: [{ scale: textScale }] },
-            ]}
-            resizeMode="contain"
-          />
-        ) : (
-          <Animated.Text
-            style={[
-              styles.textLogoLight,
-              { opacity: textOpacity, transform: [{ scale: textScale }] },
-            ]}
-          >
-            <Text style={{ color: '#032a69' }}>Auto</Text>
-            <Text style={{ color: '#e2671b' }}>wizor</Text>
-          </Animated.Text>
-        )}
+        <Animated.Image
+          source={require('@/assets/images/autowizor-logo-text.png')}
+          style={[
+            styles.textLogo,
+            { opacity: textOpacity, transform: [{ scale: textScale }] },
+          ]}
+          resizeMode="contain"
+        />
 
         <View style={styles.taglineRow}>
           {WORDS.map((word, i) => {
@@ -124,7 +113,7 @@ export default function SplashScreen() {
                 key={word}
                 style={[
                   styles.word,
-                  { color: C.textPrimary, opacity: wordAnims[i], transform: [{ scale }] },
+                  { opacity: wordAnims[i], transform: [{ scale }] },
                 ]}
               >
                 {word}
@@ -135,6 +124,7 @@ export default function SplashScreen() {
 
       </View>
     </SafeAreaView>
+    </AuthGlowBackground>
   );
 }
 
@@ -146,34 +136,29 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 20,
+    gap: 22,
   },
   icon: {
-    width: 210,
-    height: 210,
+    width: 162,
+    height: 162,
   },
   textLogo: {
-    width: 112,
-    height: 21,
-  },
-  textLogoLight: {
-    fontSize: 20,
-    fontFamily: 'Poppins_700Bold',
-    letterSpacing: 0.5,
-    textAlign: 'center',
+    width: 196,
+    height: 37,
+    marginTop: 4,
   },
   taglineRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
+    gap: 5,
     paddingHorizontal: 16,
     marginTop: -10,
   },
   word: {
-    fontSize: 14,
-    fontFamily: 'Poppins_700Bold',
-    letterSpacing: 1.5,
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontFamily: 'Poppins_500Medium',
   },
 });

@@ -6,13 +6,13 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { ChevronLeft, Plus, Lightbulb, CheckCircle } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { DHeader, FilterPills, GlowCard, StatusPill, TipBanner, Verified } from '@/components/dealer/DealerUI';
 import { AppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 
 const ORANGE = AppColors.gradientEnd;
-const NAVY   = AppColors.gradientStart;
 const C      = AppColors;
 
 type TabType = 'All' | 'Active' | 'Expired';
@@ -87,31 +87,15 @@ export default function PromoteVehicleScreen() {
       <View style={s.container}>
 
         {/* HEADER */}
-        <View style={s.header}>
-          <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-            <ChevronLeft size={27} color={C.textSecondary} strokeWidth={2}/>
-          </TouchableOpacity>
-          <Text style={s.headerTitle}>Vehicle Promotion Analytics</Text>
-        </View>
+        <DHeader title="Vehicle Promotion Analytics" />
 
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={s.scrollContent}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefresh(true); load(); }} tintColor={ORANGE}/>}
         >
-          {/* INFO BANNER — AGENTS.md 4-side shade + bg #010A1F */}
-          <View style={[s.infoCard, { backgroundColor: 'rgba(1,6,20,1)', borderColor: 'rgba(100,160,255,0.5)' }]}>
-            <LinearGradient colors={['rgba(22,64,136,0.35)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.25 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <LinearGradient colors={['transparent', 'rgba(29,83,175,0.35)']} start={{ x: 0.5, y: 0.75 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <LinearGradient colors={['rgba(13,37,84,0.35)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.25, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <LinearGradient colors={['transparent', 'rgba(13,37,84,0.35)']} start={{ x: 0.75, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <View style={s.lightIconWrap}>
-              <Lightbulb size={28} color="#FFD400" fill="#FFD400" strokeWidth={1.5}/>
-            </View>
-            <Text style={s.infoText}>
-              Promote Vehicle is ideal for getting your listing in front of more buyers for Increased visibility & faster buyer discovery.
-            </Text>
-          </View>
+          {/* INFO BANNER */}
+          <TipBanner style={{ marginBottom: 18 }} text="Promote Vehicle is ideal for getting your listing in front of more buyers for Increased visibility & faster buyer discovery." />
 
           {/* PROMOTE NEW LISTING BUTTON */}
           <TouchableOpacity
@@ -120,26 +104,17 @@ export default function PromoteVehicleScreen() {
             onPress={() => router.push('/dealer-panel/promote-new' as any)}
           >
             <LinearGradient
-              colors={[NAVY, ORANGE]}
+              colors={['#0B3585', '#7E4F5C', '#E8702A']}
+              locations={[0, 0.5, 1]}
               start={{x:0,y:0}} end={{x:1,y:0}}
               style={StyleSheet.absoluteFillObject}
             />
-            <Plus size={22} color="#fff" strokeWidth={2.5}/>
-            <Text style={s.promoteNewText}>Promote New Listing</Text>
+            <Ionicons name="add" size={26} color="#fff" />
+            <Text style={s.promoteNewText}>Promote New listing</Text>
           </TouchableOpacity>
 
           {/* TABS */}
-          <View style={s.tabsRow}>
-            {(['All','Active','Expired'] as TabType[]).map(tab => (
-              <TouchableOpacity
-                key={tab}
-                style={[s.tab, activeTab === tab && s.tabActive]}
-                onPress={() => setActiveTab(tab)}
-              >
-                <Text style={[s.tabText, activeTab === tab && s.tabTextActive]}>{tab}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          <FilterPills items={['All', 'Active', 'Expired'] as TabType[]} value={activeTab} onChange={setActiveTab} style={s.tabsRow} />
 
           {/* CONTENT */}
           {loading ? (
@@ -147,7 +122,7 @@ export default function PromoteVehicleScreen() {
           ) : filtered().length === 0 ? (
             <View style={s.empty}>
               <Text style={s.emptyText}>No promotions found</Text>
-              <Text style={s.emptySubText}>Tap "Promote New Listing" to get started</Text>
+              <Text style={s.emptySubText}>{'Tap "Promote New listing" to get started'}</Text>
             </View>
           ) : (
             filtered().map(promo => (
@@ -189,11 +164,7 @@ function PromoCard({ promo, vehicle, onViewAd }: { promo: Promo; vehicle: any; o
   ];
 
   return (
-    <View style={[pc.card, { backgroundColor: 'rgba(1,6,20,1)', borderColor: 'rgba(100,160,255,0.5)' }]}>
-      <LinearGradient colors={['rgba(22,64,136,0.35)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.25 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-      <LinearGradient colors={['transparent', 'rgba(29,83,175,0.35)']} start={{ x: 0.5, y: 0.75 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-      <LinearGradient colors={['rgba(13,37,84,0.35)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.25, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-      <LinearGradient colors={['transparent', 'rgba(13,37,84,0.35)']} start={{ x: 0.75, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+    <GlowCard style={pc.card} radius={24}>
 
       {/* TOP */}
       <View style={pc.top}>
@@ -211,20 +182,14 @@ function PromoCard({ promo, vehicle, onViewAd }: { promo: Promo; vehicle: any; o
 
         {/* Details */}
         <View style={pc.details}>
-          <View style={pc.titleRow}>
-            <Text style={pc.vehicleTitle} numberOfLines={2}>{title}</Text>
-            <View style={[pc.statusBadge, active ? pc.activeBadge : pc.expiredBadge]}>
-              <Text style={[pc.statusText, active ? pc.activeText : pc.expiredText]}>
-                {active ? 'Active' : 'Expired'}
-              </Text>
-            </View>
-          </View>
+          <StatusPill label={active ? 'Active' : 'Expired'} tone={active ? 'orange' : 'red'} style={{ alignSelf: 'flex-end', marginBottom: 4 }} />
+          <Text style={pc.vehicleTitle} numberOfLines={1}>{title}</Text>
 
           {!!color && <Text style={pc.colorText}>{color}</Text>}
 
           <View style={pc.dealerRow}>
             <Text style={pc.dealerName} numberOfLines={1}>{dealer}</Text>
-            <CheckCircle size={14} color="#008EFF" fill="#008EFF" style={{ marginLeft: 4 }}/>
+            <Verified size={18} />
           </View>
         </View>
       </View>
@@ -249,7 +214,7 @@ function PromoCard({ promo, vehicle, onViewAd }: { promo: Promo; vehicle: any; o
           <Text style={pc.viewAd}>VIEW AD</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </GlowCard>
   );
 }
 
@@ -267,13 +232,6 @@ function StatBox({ label, value }: { label: string; value: string }) {
 const s = StyleSheet.create({
   safeArea:  { flex: 1, backgroundColor: C.bg },
   container: { flex: 1, backgroundColor: C.bg },
-
-  header: {
-    height: 60, paddingHorizontal: 18,
-    flexDirection: 'row', alignItems: 'center', gap: 10,
-  },
-  backBtn:     { width: 36, height: 36, justifyContent: 'center', alignItems: 'flex-start' },
-  headerTitle: { color: C.textPrimary, fontSize: 17, fontFamily: 'Poppins_600SemiBold' },
 
   scrollContent: { paddingHorizontal: 18, paddingTop: 4, paddingBottom: 40 },
 
@@ -295,19 +253,10 @@ const s = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center',
     justifyContent: 'center', gap: 10, marginBottom: 22,
   },
-  promoteNewText: { color: '#fff', fontSize: 16, fontFamily: 'Poppins_700Bold' },
+  promoteNewText: { color: '#fff', fontSize: 18, fontFamily: 'Poppins_600SemiBold' },
 
   /* TABS */
-  tabsRow: { flexDirection: 'row', gap: 10, marginBottom: 20 },
-  tab: {
-    height: 44, minWidth: 76, paddingHorizontal: 18,
-    borderRadius: 14, backgroundColor: NAVY,
-    alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: 'transparent',
-  },
-  tabActive:     { borderColor: 'rgba(99,148,214,0.7)', backgroundColor: 'rgba(3,42,105,0.8)' },
-  tabText:       { color: C.textPrimary, fontSize: 13, fontFamily: 'Poppins_500Medium' },
-  tabTextActive: { color: ORANGE, fontFamily: 'Poppins_700Bold' },
+  tabsRow: { marginBottom: 20 },
 
   /* EMPTY */
   empty:       { alignItems: 'center', paddingTop: 60, gap: 8 },
@@ -316,24 +265,19 @@ const s = StyleSheet.create({
 });
 
 const pc = StyleSheet.create({
-  card: {
-    borderRadius: 18, borderWidth: 1,
-    borderColor: 'rgba(99,148,214,0.5)',
-    backgroundColor: C.bg,
-    overflow: 'hidden', marginBottom: 16,
-  },
+  card: { marginBottom: 16 },
 
   /* TOP */
-  top:     { flexDirection: 'row', padding: 14, paddingBottom: 10 },
-  imgWrap: { width: 130, height: 105, borderRadius: 12, overflow: 'hidden', position: 'relative' },
+  top:     { flexDirection: 'row', padding: 16, paddingBottom: 14 },
+  imgWrap: { width: 128, height: 104, borderRadius: 12, overflow: 'hidden', position: 'relative' },
   img:     { width: '100%', height: '100%' },
   imgFb:   { backgroundColor: 'rgba(3,12,40,0.8)' },
-  promotedBadge: { position: 'absolute', left: 4, top: 5, backgroundColor: ORANGE, borderRadius: 8, paddingHorizontal: 7, paddingVertical: 3 },
-  promotedText:  { color: '#fff', fontSize: 9, fontFamily: 'Poppins_700Bold' },
+  promotedBadge: { position: 'absolute', left: 0, top: 6, backgroundColor: ORANGE, borderTopRightRadius: 10, borderBottomRightRadius: 10, paddingHorizontal: 8, paddingVertical: 2 },
+  promotedText:  { color: '#fff', fontSize: 11, fontFamily: 'Poppins_500Medium' },
 
   details:   { flex: 1, marginLeft: 12, paddingTop: 4 },
   titleRow:  { flexDirection: 'row', alignItems: 'flex-start', gap: 6 },
-  vehicleTitle: { flex: 1, color: C.textPrimary, fontSize: 14, fontFamily: 'Poppins_600SemiBold', lineHeight: 20 },
+  vehicleTitle: { color: '#F2F1F5', fontSize: 15, fontFamily: 'Poppins_500Medium' },
 
   statusBadge:  { borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3 },
   activeBadge:  { backgroundColor: 'rgba(0,208,132,0.15)', borderWidth: 1, borderColor: 'rgba(0,208,132,0.4)' },
@@ -342,25 +286,25 @@ const pc = StyleSheet.create({
   activeText:   { color: '#00d084' },
   expiredText:  { color: '#ff4050' },
 
-  colorText:  { color: C.textPrimary, fontSize: 13, fontFamily: 'Poppins_400Regular', marginTop: 3 },
-  dealerRow:  { flexDirection: 'row', alignItems: 'center', marginTop: 8 },
-  dealerName: { color: C.textSecondary, fontSize: 11, fontFamily: 'Poppins_400Regular', flex: 1 },
+  colorText:  { color: '#F2F1F5', fontSize: 13, fontFamily: 'Poppins_500Medium', marginTop: 6 },
+  dealerRow:  { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
+  dealerName: { color: '#F2F1F5', fontSize: 13, fontFamily: 'Poppins_500Medium', flexShrink: 1 },
 
   /* ANALYTICS */
   analyticsWrap: { paddingHorizontal: 14, paddingBottom: 6 },
   analyticsRow:  { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 14 },
   statBox:   { flex: 1, alignItems: 'center' },
-  statLabel: { color: C.textSecondary, fontSize: 11, fontFamily: 'Poppins_400Regular', marginBottom: 5 },
-  statValue: { color: C.textPrimary, fontSize: 17, fontFamily: 'Poppins_700Bold' },
+  statLabel: { color: '#E6E1E8', fontSize: 12, fontFamily: 'Poppins_400Regular', marginBottom: 2 },
+  statValue: { color: '#FFFFFF', fontSize: 18, fontFamily: 'Poppins_600SemiBold' },
 
   /* BOTTOM */
   bottom: {
-    borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.07)',
-    minHeight: 68, paddingHorizontal: 20,
+    borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.18)',
+    marginHorizontal: 16, minHeight: 68, paddingHorizontal: 0,
     flexDirection: 'row', alignItems: 'center',
     justifyContent: 'space-between',
   },
-  price:    { color: C.textPrimary, fontSize: 16, fontFamily: 'Poppins_700Bold' },
-  daysLeft: { color: C.textSecondary, fontSize: 11, fontFamily: 'Poppins_400Regular', marginTop: 2 },
-  viewAd:   { color: ORANGE, fontSize: 13, fontFamily: 'Poppins_700Bold' },
+  price:    { color: '#FFFFFF', fontSize: 17, fontFamily: 'Poppins_600SemiBold' },
+  daysLeft: { color: '#E6E1E8', fontSize: 12, fontFamily: 'Poppins_400Regular' },
+  viewAd:   { color: ORANGE, fontSize: 14, fontFamily: 'Poppins_600SemiBold', letterSpacing: 0.5 },
 });

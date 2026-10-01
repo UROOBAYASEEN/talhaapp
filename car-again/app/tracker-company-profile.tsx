@@ -13,7 +13,8 @@ import {
   MessageSquare, ShieldCheck, Share2, Heart,
   Wrench, Car, Scale, ClipboardCheck, Check,
 } from 'lucide-react-native';
-import { FontAwesome } from '@expo/vector-icons';
+import { FontAwesome, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { PRIMARY_BTN_COLORS, RingGlow } from '@/components/shared/FigmaEffects';
 import { AppColors, useAppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
@@ -235,14 +236,17 @@ export default function TrackerCompanyProfileScreen() {
           <View style={s.banner}>
             {coverUrl
               ? <Image source={{ uri: coverUrl }} style={StyleSheet.absoluteFillObject} resizeMode="cover"/>
-              : null
+              : (
+                <>
+                  <LinearGradient colors={['#0b2d6e', '#0e4d8a', '#0b9da0']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFillObject}/>
+                  <View style={s.bannerOverlay}/>
+                  <View style={s.bannerTextWrap}>
+                    <Text style={s.bannerBig}>GPS</Text>
+                    <Text style={s.bannerSub}>TRACKER</Text>
+                  </View>
+                </>
+              )
             }
-            <LinearGradient colors={['#0b2d6e', '#0e4d8a', '#0b9da0']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFillObject}/>
-            <View style={s.bannerOverlay}/>
-            <View style={s.bannerTextWrap}>
-              <Text style={s.bannerBig}>GPS</Text>
-              <Text style={s.bannerSub}>TRACKER</Text>
-            </View>
           </View>
 
           {/* ── PROFILE SECTION ── */}
@@ -277,9 +281,7 @@ export default function TrackerCompanyProfileScreen() {
                 <View style={s.nameRow}>
                   <Text style={[s.providerName, { color: aC.isDark ? C.textPrimary : '#010a1f' }]} numberOfLines={1}>{name}</Text>
                   {isVerified && (
-                    <View style={s.verifiedBadge}>
-                      <Check size={11} color="#fff" strokeWidth={3.5} />
-                    </View>
+                    <MaterialCommunityIcons name="check-decagram" size={18} color="#1d8cf8" />
                   )}
                 </View>
                 <Text style={[s.officialLabel, { color: aC.isDark ? C.textSecondary : '#475569' }]}>Official Tracker Partner</Text>
@@ -289,8 +291,9 @@ export default function TrackerCompanyProfileScreen() {
                   <Text style={[s.ratingCount, { color: aC.isDark ? C.textSecondary : '#475569' }]}>({reviewCount}+ Reviews)</Text>
                 </View>
               </View>
-              <TouchableOpacity style={[s.followBtn, { backgroundColor: aC.isDark ? '#082150' : '#ffffff', borderColor: aC.isDark ? '#4779ba' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]} onPress={toggleFollow}>
-                <Text style={[s.followTxt, { color: aC.isDark ? '#fff' : '#032a69' }]}>{following ? '✓ Following' : 'Follow'}</Text>
+              <TouchableOpacity style={[s.followBtn, { backgroundColor: aC.isDark ? '#132C5E' : '#ffffff', borderColor: aC.isDark ? '#7E9FD6' : 'rgba(3,42,105,0.12)' }]} onPress={toggleFollow}>
+                {aC.isDark && <LinearGradient colors={['#1E3F7C', '#132C5E', '#0F2653']} locations={[0, 0.5, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
+                <Text style={[s.followTxt, { color: aC.isDark ? '#D9D6DF' : '#032a69' }]}>{following ? '✓ Following' : 'Follow'}</Text>
               </TouchableOpacity>
             </View>
 
@@ -298,17 +301,17 @@ export default function TrackerCompanyProfileScreen() {
             <View style={[s.statsRow, { borderTopColor: aC.isDark ? 'rgba(255,255,255,0.08)' : 'rgba(3,42,105,0.08)' }]}>
               <View style={s.statCol}>
                 <Locate size={18} color={ORANGE}/>
-                <Text style={[s.statTxt, { color: aC.isDark ? C.textSecondary : '#475569' }]}>{devices.length > 0 ? `${devices.length}+` : '—'} Plans</Text>
+                <Text style={[s.statTxt, { color: aC.isDark ? '#E6E4EA' : '#475569' }]}>{devices.length > 0 ? `${devices.length}+` : '—'} Plans</Text>
               </View>
               <View style={[s.statDivider, { backgroundColor: aC.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(3,42,105,0.12)' }]}/>
               <View style={s.statCol}>
                 <Users size={18} color={ORANGE}/>
-                <Text style={[s.statTxt, { color: aC.isDark ? C.textSecondary : '#475569' }]}>{customers > 0 ? `${customers}+` : '—'} Customers</Text>
+                <Text style={[s.statTxt, { color: aC.isDark ? '#E6E4EA' : '#475569' }]}>{customers > 0 ? `${customers}+` : '—'} Customers</Text>
               </View>
               <View style={[s.statDivider, { backgroundColor: aC.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(3,42,105,0.12)' }]}/>
               <View style={s.statCol}>
                 <Award size={18} color={ORANGE}/>
-                <Text style={[s.statTxt, { color: aC.isDark ? C.textSecondary : '#475569' }]}>{estYear ? `Since ${estYear}` : '—'}</Text>
+                <Text style={[s.statTxt, { color: aC.isDark ? '#E6E4EA' : '#475569' }]}>{estYear ? `Since ${estYear}` : '—'}</Text>
               </View>
             </View>
           </View>
@@ -343,10 +346,10 @@ export default function TrackerCompanyProfileScreen() {
             <Text style={[s.sectionTitle, { color: aC.isDark ? C.textPrimary : '#010a1f' }]}>Ancillary Services</Text>
             <View style={s.servicesGrid}>
               {ANCILLARY.map((item, i) => (
-                <View key={i} style={[s.serviceCard, { backgroundColor: aC.isDark ? '#010A1F' : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.5)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }]}>
-                  {aC.isDark ? <><LinearGradient colors={['rgba(22,64,136,0.35)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.25 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/><LinearGradient colors={['transparent', 'rgba(29,83,175,0.35)']} start={{ x: 0.5, y: 0.75 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/><LinearGradient colors={['rgba(13,37,84,0.35)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.25, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/><LinearGradient colors={['transparent', 'rgba(13,37,84,0.35)']} start={{ x: 0.75, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/></> : <><LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/><LinearGradient colors={['transparent', 'rgba(226,103,27,0.06)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/></>}
+                <View key={i} style={[s.serviceCard, { backgroundColor: aC.isDark ? '#0A1838' : '#ffffff', borderColor: aC.isDark ? '#7E9FD6' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }]}>
+                  {aC.isDark ? <RingGlow radius={16} /> : <><LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/><LinearGradient colors={['transparent', 'rgba(226,103,27,0.06)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/></>}
                   {item.icon}
-                  <Text style={[s.serviceLabel, { color: aC.isDark ? '#eee' : '#010a1f' }]}>{item.label}</Text>
+                  <Text style={[s.serviceLabel, { color: aC.isDark ? '#E6E4EA' : '#010a1f' }]}>{item.label}</Text>
                 </View>
               ))}
             </View>
@@ -362,7 +365,7 @@ export default function TrackerCompanyProfileScreen() {
                   <View key={star} style={s.barRow}>
                     <Text style={[s.barNum, { color: aC.isDark ? C.textPrimary : '#010a1f' }]}>{star}</Text>
                     <Star size={11} color={ORANGE} fill={ORANGE}/>
-                    <View style={[s.barBg, { backgroundColor: aC.isDark ? 'rgba(255,255,255,0.15)' : 'rgba(3,42,105,0.08)' }]}>
+                    <View style={[s.barBg, { backgroundColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)' }]}>
                       <View style={[s.barFill, { width: barW }]}/>
                     </View>
                   </View>
@@ -383,7 +386,7 @@ export default function TrackerCompanyProfileScreen() {
           {/* ── COMMENT INPUT ── */}
           <View style={s.commentWrap}>
             <TextInput
-              style={[s.commentInput, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderColor: aC.isDark ? '#ddd' : 'rgba(3,42,105,0.12)', color: aC.isDark ? C.textPrimary : '#010a1f', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.06)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]}
+              style={[s.commentInput, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderColor: aC.isDark ? 'rgba(255,255,255,0.75)' : 'rgba(3,42,105,0.12)', color: aC.isDark ? C.textPrimary : '#010a1f', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.06)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]}
               placeholder="Add a comment"
               placeholderTextColor={aC.isDark ? C.textPlaceholder : '#94a3b8'}
               value={comment}
@@ -396,9 +399,7 @@ export default function TrackerCompanyProfileScreen() {
             ? <Text style={{ color: aC.isDark ? C.textSecondary : '#475569', textAlign: 'center', paddingVertical: 16, fontSize: 13, fontFamily: 'Poppins_400Regular' }}>No reviews yet</Text>
             : reviews.map((r, i) => (
                 <View key={i} style={[s.review, { borderBottomColor: aC.isDark ? 'rgba(38,48,71,1)' : 'rgba(3,42,105,0.08)' }]}>
-                  <View style={[s.reviewAvatar, { backgroundColor: i === 0 ? ORANGE : (aC.isDark ? C.textSecondary : '#94a3b8') }]}>
-                    <Text style={s.reviewInitial}>{(r.reviewer_name || 'U')[0].toUpperCase()}</Text>
-                  </View>
+                  <View style={[s.reviewAvatar, { backgroundColor: i % 2 === 0 ? ORANGE : '#C3BCC8' }]} />
                   <View style={s.reviewContent}>
                     <View style={s.reviewNameRow}>
                       <Text style={[s.reviewName, { color: aC.isDark ? '#bbb' : '#010a1f' }]}>{r.reviewer_name || 'User'}</Text>
@@ -406,7 +407,7 @@ export default function TrackerCompanyProfileScreen() {
                     </View>
                     <View style={s.reviewStarsRow}>
                       {[1,2,3,4,5].map(j => (
-                        <Star key={j} size={13} color={ORANGE} fill={j <= r.rating ? ORANGE : 'transparent'}/>
+                        <Star key={j} size={14} color={j <= r.rating ? ORANGE : '#C3BCC8'} fill={j <= r.rating ? ORANGE : '#C3BCC8'}/>
                       ))}
                       <Text style={[s.reviewTime, { color: aC.isDark ? '#bbb' : '#64748b' }]}>
                         {r.created_at ? new Date(r.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) : ''}
@@ -425,28 +426,26 @@ export default function TrackerCompanyProfileScreen() {
         </ScrollView>
 
         {/* ── FIXED BOTTOM BAR ── */}
-        <View style={[s.bottomBar, { backgroundColor: aC.isDark ? 'rgba(16,28,53,0.97)' : '#ffffff', borderTopColor: aC.isDark ? '#30415e' : 'rgba(3,42,105,0.08)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 8 }]}>
+        <View style={[s.bottomBar, { backgroundColor: aC.isDark ? 'rgba(10,22,48,0.96)' : '#ffffff', borderTopColor: aC.isDark ? 'rgba(126,159,214,0.35)' : 'rgba(3,42,105,0.08)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 8 }]}>
           <TouchableOpacity style={s.viewTrackerBtn} activeOpacity={0.85} onPress={() => setShowDevices(true)}>
-            <LinearGradient colors={[NAVY, ORANGE]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject}/>
+            <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject}/>
             <Text style={s.viewTrackerTxt}>View Available Tracker</Text>
           </TouchableOpacity>
 
           <View style={s.bottomActions}>
             <TouchableOpacity style={s.actionBtn} onPress={handleCall}>
               <Phone size={22} color={ORANGE} strokeWidth={2}/>
-              <Text style={[s.actionTxt, { color: aC.isDark ? '#fff' : '#010a1f' }]}>Call</Text>
+              <Text style={[s.actionTxt, { color: aC.isDark ? '#E6E4EA' : '#010a1f' }]}>Call</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={s.actionBtn} onPress={openChat} disabled={chatting}>
               <MessageSquare size={20} color={ORANGE} strokeWidth={1.8}/>
-              <Text style={[s.actionTxt, { color: aC.isDark ? '#fff' : '#010a1f' }]}>{chatting ? '...' : 'Chat'}</Text>
+              <Text style={[s.actionTxt, { color: aC.isDark ? '#E6E4EA' : '#010a1f' }]}>{chatting ? '...' : 'Chat'}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={s.actionBtn} onPress={handleWhatsApp}>
-              <View style={s.whatsappCircle}>
-                <FontAwesome name="whatsapp" size={18} color="#fff"/>
-              </View>
-              <Text style={[s.actionTxt, { color: aC.isDark ? '#fff' : '#010a1f' }]}>WhatsApp</Text>
+              <Ionicons name="logo-whatsapp" size={24} color="#25D366" />
+              <Text style={[s.actionTxt, { color: aC.isDark ? '#E6E4EA' : '#010a1f' }]}>WhatsApp</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -489,14 +488,14 @@ const s = StyleSheet.create({
   ratingTxt:     { color: C.textPrimary, fontSize: 12, fontFamily: 'Poppins_600SemiBold' },
   ratingCount:   { color: C.textSecondary, fontSize: 11, fontFamily: 'Poppins_400Regular' },
 
-  followBtn:     { height: 35, paddingHorizontal: 22, borderRadius: 20, borderWidth: 1, borderColor: '#4779ba', backgroundColor: '#082150', alignItems: 'center', justifyContent: 'center', marginTop: 6 },
+  followBtn:     { height: 34, minWidth: 86, paddingHorizontal: 20, borderRadius: 17, borderWidth: 1, borderColor: '#7E9FD6', backgroundColor: '#132C5E', alignItems: 'center', justifyContent: 'center', marginTop: 10, overflow: 'hidden', shadowColor: '#4F7FD0', shadowOpacity: 0.35, shadowRadius: 6, shadowOffset: { width: 0, height: 0 }, elevation: 3 },
   followTxt:     { color: '#fff', fontSize: 13, fontFamily: 'Poppins_500Medium' },
 
   /* Stats */
-  statsRow:     { flexDirection: 'row', alignItems: 'center', marginTop: 18, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)', paddingTop: 14, paddingBottom: 6 },
-  statCol:      { flex: 1, alignItems: 'center', gap: 4 },
-  statTxt:      { color: C.textSecondary, fontSize: 11, fontFamily: 'Poppins_400Regular', textAlign: 'center' },
-  statDivider:  { width: 1, height: 28, backgroundColor: 'rgba(255,255,255,0.1)' },
+  statsRow:     { flexDirection: 'row', alignItems: 'center', marginTop: 16, paddingTop: 6, paddingBottom: 6 },
+  statCol:      { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
+  statTxt:      { fontSize: 12, fontFamily: 'Poppins_400Regular', textAlign: 'center' },
+  statDivider:  { width: 1, height: 24, backgroundColor: 'rgba(255,255,255,0.3)' },
 
   /* Sections */
   section:      { paddingHorizontal: 20, marginTop: 20 },
@@ -511,7 +510,7 @@ const s = StyleSheet.create({
 
   /* Ancillary Services */
   servicesGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  serviceCard:  { width: (width - 52) / 2, height: 70, borderRadius: 16, borderWidth: 1, borderColor: '#3767a7', overflow: 'hidden', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, gap: 12, backgroundColor: '#09265a' },
+  serviceCard:  { width: (width - 52) / 2, height: 64, borderRadius: 16, borderWidth: 1, borderColor: '#7E9FD6', overflow: 'hidden', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, gap: 14, backgroundColor: '#0A1838' },
   serviceLabel: { color: '#eee', fontSize: 13, fontFamily: 'Poppins_400Regular', lineHeight: 18, flex: 1 },
 
   /* Review Summary */
@@ -519,7 +518,7 @@ const s = StyleSheet.create({
   barsWrap:      { flex: 1, justifyContent: 'space-between' },
   barRow:        { flexDirection: 'row', alignItems: 'center', height: 26 },
   barNum:        { width: 14, color: C.textPrimary, fontSize: 12, fontFamily: 'Poppins_400Regular' },
-  barBg:         { height: 6, flex: 1, backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 5, marginLeft: 5, overflow: 'hidden' },
+  barBg:         { height: 6, flex: 1, backgroundColor: 'transparent', borderRadius: 5, marginLeft: 8, overflow: 'hidden' },
   barFill:       { height: '100%', backgroundColor: '#b9b3c7', borderRadius: 5 },
   scoreWrap:     { width: 100, alignItems: 'center', justifyContent: 'center' },
   bigScore:      { color: '#bbb2c2', fontSize: 42, fontFamily: 'Poppins_700Bold' },
@@ -547,10 +546,10 @@ const s = StyleSheet.create({
   /* Bottom Bar */
   bottomBar:      { position: 'absolute', bottom: 18, left: 0, right: 0, backgroundColor: 'rgba(16,28,53,0.97)', borderTopWidth: 1, borderTopColor: '#30415e', paddingHorizontal: 20, paddingTop: 14, paddingBottom: 14 },
   viewTrackerBtn: { height: 49, borderRadius: 28, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
-  viewTrackerTxt: { color: '#fff', fontSize: 16, fontFamily: 'Poppins_700Bold' },
+  viewTrackerTxt: { color: '#F2F1F5', fontSize: 16, fontFamily: 'Poppins_600SemiBold' },
   bottomActions:  { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center' },
   actionBtn:      { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  actionTxt:      { color: '#fff', fontSize: 15, fontFamily: 'Poppins_300Light' },
+  actionTxt:      { color: '#fff', fontSize: 15, fontFamily: 'Poppins_400Regular' },
   whatsappCircle: { width: 26, height: 26, borderRadius: 13, backgroundColor: '#25D366', alignItems: 'center', justifyContent: 'center' },
 
   /* Devices Modal */

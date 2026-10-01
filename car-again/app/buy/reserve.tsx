@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { SavedCardEffect, SearchInputEffect, savedCardOuter } from '@/components/shared/FigmaEffects';
 
 const BG      = '#010A1F';
 const CARD    = '#131d38';
@@ -113,9 +114,7 @@ export default function ReserveScreen() {
 
           {/* Car Summary Card */}
           <TouchableOpacity style={s.carCard} activeOpacity={0.85} onPress={() => router.back()}>
-            <LinearGradient colors={['rgba(22,64,136,0.08)','transparent']} start={{x:0.5,y:0}} end={{x:0.5,y:0.6}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-            <LinearGradient colors={['rgba(13,37,84,0.07)','transparent']} start={{x:0,y:0.5}} end={{x:0.45,y:0.5}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-            <LinearGradient colors={['transparent','rgba(29,83,175,0.08)']} start={{x:0.5,y:0.4}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+            <SavedCardEffect />
             {carImg
               ? <Image source={{ uri: carImg }} style={s.carImg} resizeMode="cover" />
               : <View style={[s.carImg, { backgroundColor: '#0d1e3d', alignItems: 'center', justifyContent: 'center' }]}>
@@ -130,7 +129,7 @@ export default function ReserveScreen() {
               </View>
               <Text style={s.carPrice}>{carPrice}</Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color={MUTED} />
+            <Ionicons name="chevron-forward" size={18} color={ORANGE} />
           </TouchableOpacity>
 
           {/* Form */}
@@ -138,24 +137,21 @@ export default function ReserveScreen() {
 
             <Field label="Full Name">
               <View style={s.inputWrap}>
-                <LinearGradient colors={['rgba(22,64,136,0.2)','transparent']} start={{x:0.5,y:0}} end={{x:0.5,y:0.6}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                <LinearGradient colors={['transparent','rgba(29,83,175,0.2)']} start={{x:0.5,y:0.4}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+                <SearchInputEffect />
                 <TextInput style={s.input} value={form.fullName} onChangeText={set('fullName')} placeholder="Enter your full name" placeholderTextColor={MUTED} />
               </View>
             </Field>
 
             <Field label="Phone Number">
               <View style={s.inputWrap}>
-                <LinearGradient colors={['rgba(22,64,136,0.2)','transparent']} start={{x:0.5,y:0}} end={{x:0.5,y:0.6}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                <LinearGradient colors={['transparent','rgba(29,83,175,0.2)']} start={{x:0.5,y:0.4}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+                <SearchInputEffect />
                 <TextInput style={s.input} value={form.phone} onChangeText={set('phone')} placeholder="+92 3XX XXXXXXX" placeholderTextColor={MUTED} keyboardType="phone-pad" />
               </View>
             </Field>
 
             <Field label="City">
               <TouchableOpacity style={s.inputWrap} onPress={() => setCityOpen(o => !o)} activeOpacity={0.85}>
-                <LinearGradient colors={['rgba(22,64,136,0.2)','transparent']} start={{x:0.5,y:0}} end={{x:0.5,y:0.6}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                <LinearGradient colors={['transparent','rgba(29,83,175,0.2)']} start={{x:0.5,y:0.4}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+                <SearchInputEffect />
                 <Text style={[s.input, { paddingTop: 14 }]}>{form.city}</Text>
                 <Ionicons name={cityOpen ? 'chevron-up' : 'chevron-down'} size={16} color={MUTED} style={{ position: 'absolute', right: 20, top: 14 }} />
               </TouchableOpacity>
@@ -172,16 +168,14 @@ export default function ReserveScreen() {
 
             <Field label="CNIC">
               <View style={s.inputWrap}>
-                <LinearGradient colors={['rgba(22,64,136,0.2)','transparent']} start={{x:0.5,y:0}} end={{x:0.5,y:0.6}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                <LinearGradient colors={['transparent','rgba(29,83,175,0.2)']} start={{x:0.5,y:0.4}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+                <SearchInputEffect />
                 <TextInput style={s.input} value={form.cnic} onChangeText={set('cnic')} placeholder="XXXXX-XXXXXXX-X" placeholderTextColor={MUTED} keyboardType="numeric" />
               </View>
             </Field>
 
             <Field label="Reservation Notes (Optional)">
-              <View style={[s.inputWrap, s.textareaWrap]}>
-                <LinearGradient colors={['rgba(22,64,136,0.2)','transparent']} start={{x:0.5,y:0}} end={{x:0.5,y:0.6}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                <LinearGradient colors={['transparent','rgba(29,83,175,0.2)']} start={{x:0.5,y:0.4}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+              <View style={[s.inputWrap, s.textareaWrap, s.notesCard]}>
+                <SavedCardEffect />
                 <TextInput
                   style={[s.input, s.textarea]}
                   value={form.notes}
@@ -216,7 +210,7 @@ const s = StyleSheet.create({
   backBtn:     { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center' },
   headerTitle: { color: WHITE, fontSize: 18, fontFamily: 'Poppins_700Bold' },
 
-  carCard:   { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#010A1F', borderWidth: 1, borderColor: 'rgba(100,160,255,0.4)', borderRadius: 14, padding: 8, marginTop: 8, overflow: 'hidden' },
+  carCard:   { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 8, marginTop: 8, backgroundColor: '#010A1F', borderWidth: 1, borderColor: '#82a5d5', borderRadius: 16, overflow: 'hidden', shadowColor: '#638ed0', shadowOpacity: 0.15, shadowRadius: 5, shadowOffset: { width: 0, height: 0 }, elevation: 2 },
   carImg:    { width: 48, height: 38, borderRadius: 7 },
   carName:   { color: WHITE, fontSize: 13, fontFamily: 'Poppins_700Bold' },
   carMeta:   { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 0 },
@@ -226,10 +220,11 @@ const s = StyleSheet.create({
   fieldWrap:  { gap: 8 },
   fieldLabel: { color: '#cbd5e1', fontSize: 13, fontFamily: 'Poppins_400Regular' },
 
-  inputWrap:  { height: 52, borderRadius: 30, borderWidth: 1, borderColor: BLUE_B, backgroundColor: 'rgba(3,12,40,0.6)', overflow: 'hidden', justifyContent: 'center' },
+  inputWrap:  { height: 52, borderRadius: 32, borderWidth: 1, borderColor: '#829fd0', backgroundColor: 'rgba(3,12,40,0.6)', overflow: 'hidden', justifyContent: 'center' },
   input:      { color: WHITE, fontSize: 14, fontFamily: 'Poppins_400Regular', paddingHorizontal: 20 },
 
   textareaWrap:{ height: 110, borderRadius: 16 },
+  notesCard:   { ...savedCardOuter },
   textarea:    { height: 100, paddingTop: 14 },
 
   cityDropdown:  { marginTop: 6, backgroundColor: '#061b4a', borderRadius: 14, borderWidth: 1, borderColor: BORDER, overflow: 'hidden' },

@@ -1,3 +1,4 @@
+import { useAppColors } from '@/constants/theme';
 import React from 'react';
 import {
   Image,
@@ -7,7 +8,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useAppColors } from '@/constants/theme';
 
 const VIDEOS = [
   { id: '1', image: 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=800', duration: '0:11' },
@@ -85,5 +85,5 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   playIcon: { color: '#fff', fontSize: 9 },
-  duration:  { color: '#fff', fontSize: 11, fontFamily: 'Poppins_500Medium' },
+  duration: { color: '#fff', fontSize: 11, fontFamily: 'Poppins_500Medium' },
 });
