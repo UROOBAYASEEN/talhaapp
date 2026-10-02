@@ -21,6 +21,7 @@ import {
 import { GlassButton, GradientButton } from '@/components/shared/GlowUI';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { GlowPublishButton, GlowDraftButton } from "@/components/shared/ActionFooterGlow";
 
 const ORANGE = AppColors.gradientEnd;
 const NAVY   = AppColors.gradientStart;
@@ -387,10 +388,10 @@ export default function InsuranceSpecialOfferScreen() {
         </ScrollView>
 
         {/* FOOTER */}
-        <BottomActions>
-          <GradientButton title="Publish Banner" loadingTitle="Publishing..." height={50} fontSize={17} loading={publishing}
+        <BottomActions fx>
+          <GlowPublishButton title="Publish Banner" loadingTitle="Publishing..." loading={publishing}
             style={!agreed ? { opacity: 0.6 } : undefined} onPress={handlePublish} />
-          <GlassButton title="Save as Draft" height={48} fontSize={16} color="#E6E1E8" />
+          <GlowDraftButton title="Save as Draft" />
         </BottomActions>
       </KeyboardAvoidingView>
 

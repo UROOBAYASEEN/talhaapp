@@ -27,6 +27,10 @@ import {
 import { AppColors, useAppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { BottomActions, Chip as DChip, D, DField, DHeader, DSelect, SaveDraftAction, TermsRow, UploadBox, dk } from '@/components/dealer/DealerUI';
+import { GlassButton, GradientButton } from '@/components/shared/GlowUI';
+import { savedCardOuter, SavedCardEffect } from '@/components/shared/FigmaEffects';
+import { GlowPublishButton, GlowDraftButton } from "@/components/shared/ActionFooterGlow";
 
 const ORANGE = '#e2671b';
 
@@ -219,30 +223,17 @@ export default function NewTrackerScreen() {
   }
 
   return (
-    <View style={[s.root, { backgroundColor: aC.bg }]}>
-      <SafeAreaView edges={['top']} style={{ backgroundColor: aC.bg }}>
-        <View style={[s.header, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderBottomWidth: aC.isDark ? 0 : 1, borderBottomColor: 'rgba(3,42,105,0.08)' }]}>
-          <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
-            <ChevronLeft size={22} color={aC.textPrimary} />
-          </TouchableOpacity>
-          <Text style={[s.headerTitle, { color: aC.textPrimary }]}>New Tracker Details</Text>
-          <TouchableOpacity style={s.saveDraft} onPress={() => submitTracker(false)} disabled={loading}>
-            <Save size={16} color={ORANGE} strokeWidth={1.8} />
-            <Text style={s.saveDraftText}>{'Save\nDraft'}</Text>
-          </TouchableOpacity>
-        </View>
+    <View style={s.root}>
+      <SafeAreaView edges={['top']}>
+        <DHeader title="New Tracker Details" center right={<SaveDraftAction onPress={() => !loading && submitTracker(false)} />} />
       </SafeAreaView>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[s.scroll, { backgroundColor: aC.bg }]}>
-        <Text style={[s.subtitle, { color: aC.isDark ? '#94a3b8' : '#475569' }]}>Add a tracker product for customers</Text>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
+        <Text style={s.subtitle}>Add a tracker product for customers</Text>
 
         {/* Image Upload */}
         {images.length === 0 ? (
-          <TouchableOpacity style={[s.uploadArea, { backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "rgba(255,255,255,0.2)" : "rgba(3,42,105,0.12)" }, errors.images && s.uploadAreaError]} activeOpacity={0.8} onPress={pickImages}>
-            <UploadCloud size={24} color={errors.images ? '#f87171' : ORANGE} strokeWidth={1.8} />
-            <Text style={[s.uploadTitle, errors.images && { color: '#f87171' }]}>+ Add Tracker Image</Text>
-            <Text style={s.uploadSub}>Tap to browse. Up to 6 images.</Text>
-          </TouchableOpacity>
+          <UploadBox title="+ Add Tracker Image" sub="Drag & drop or click to browse. Recommended 1:1 ratio." onPress={pickImages} />
         ) : (
           <View style={s.imageGrid}>
             {images.map((uri, i) => (
@@ -259,122 +250,92 @@ export default function NewTrackerScreen() {
               </View>
             ))}
             {images.length < 6 && (
-              <TouchableOpacity style={[s.addMoreBtn, { backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "rgba(255,255,255,0.2)" : "rgba(3,42,105,0.12)" }]} onPress={pickImages} activeOpacity={0.8}>
+              <TouchableOpacity style={s.addMoreBtn} onPress={pickImages} activeOpacity={0.8}>
                 <Plus size={22} color={ORANGE} strokeWidth={2} />
                 <Text style={s.addMoreText}>Add</Text>
               </TouchableOpacity>
             )}
           </View>
         )}
-        {errors.images && <Text style={s.errText}>{errors.images}</Text>}
+        {errors.images ? <Text style={s.errText}>{errors.images}</Text> : null}
 
         {/* Tracker Name */}
-        <Text style={[s.label, { color: aC.isDark ? "#e2e8f0" : "#010a1f" }]}>Tracker name</Text>
-        <View style={[s.inputWrap, { backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "rgba(255,255,255,0.15)" : "rgba(3,42,105,0.12)" }, errors.trackerName && s.inputError]}>
-          <GlassInset />
-          <TextInput
-            style={[s.input, { color: aC.isDark ? "#e2e8f0" : "#010a1f" }]}
-            value={trackerName}
-            onChangeText={v => { setTrackerName(v); setErrors(p => ({ ...p, trackerName: '' })); }}
-            placeholder="e.g AutoTrack Pro"
-            placeholderTextColor={aC.isDark ? "#6f7f9c" : "#94a3b8"}
-          />
-        </View>
-        {errors.trackerName && <Text style={s.errText}>{errors.trackerName}</Text>}
+        <Text style={dk.label}>Tracker name</Text>
+        <DField
+          value={trackerName}
+          onChangeText={v => { setTrackerName(v); setErrors(p => ({ ...p, trackerName: '' })); }}
+          placeholder="e.g AutoTrack Pro"
+        />
+        {errors.trackerName ? <Text style={s.errText}>{errors.trackerName}</Text> : null}
 
         {/* Serial Number */}
-        <Text style={[s.label, { color: aC.isDark ? "#e2e8f0" : "#010a1f" }]}>Serial Number</Text>
-        <View style={[s.inputWrap, { backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "rgba(255,255,255,0.15)" : "rgba(3,42,105,0.12)" }, errors.serialNo && s.inputError]}>
-          <GlassInset />
-          <TextInput
-            style={[s.input, { color: aC.isDark ? "#e2e8f0" : "#010a1f" }]}
-            value={serialNo}
-            onChangeText={v => { setSerialNo(v); setErrors(p => ({ ...p, serialNo: '' })); }}
-            placeholder="e.g AT500"
-            placeholderTextColor={aC.isDark ? "#6f7f9c" : "#94a3b8"}
-          />
-        </View>
-        {errors.serialNo && <Text style={s.errText}>{errors.serialNo}</Text>}
+        <Text style={dk.label}>Serial Number</Text>
+        <DField
+          value={serialNo}
+          onChangeText={v => { setSerialNo(v); setErrors(p => ({ ...p, serialNo: '' })); }}
+          placeholder="e.g. AT500"
+        />
+        {errors.serialNo ? <Text style={s.errText}>{errors.serialNo}</Text> : null}
 
         {/* Features */}
-        <Text style={[s.label, { color: aC.isDark ? "#e2e8f0" : "#010a1f" }]}>Features Included</Text>
+        <Text style={[dk.label, { marginTop: 24 }]}>Features Included</Text>
         <View style={s.chipsWrap}>
           {features.map(f => (
-            <TouchableOpacity
-              key={f.id}
-              style={[s.chip, { backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "rgba(255,255,255,0.1)" : "rgba(3,42,105,0.12)" }, f.included && s.chipActive]}
-              onPress={() => toggleFeature(f.id)}
-              activeOpacity={0.8}
-            >
+            <TouchableOpacity key={f.id} style={[s.chip, f.included ? s.chipActive : s.chipOff]} onPress={() => toggleFeature(f.id)} activeOpacity={0.8}>
               {f.included
-                ? <Check size={13} color={ORANGE} strokeWidth={2.4} />
-                : <Plus  size={13} color="#94a3b8" strokeWidth={2.4} />
-              }
-              <Text style={[s.chipText, { color: aC.isDark ? "#94a3b8" : "#475569" }, f.included && s.chipTextActive]}>{f.label}</Text>
+                ? <Check size={14} color={ORANGE} strokeWidth={2.4} />
+                : <Plus  size={14} color="#FFFFFF" strokeWidth={2.4} />}
+              <Text style={[s.chipText, f.included && s.chipTextActive]}>{f.label}</Text>
             </TouchableOpacity>
           ))}
-          <TouchableOpacity style={s.chip} activeOpacity={0.8}>
-            <Plus size={13} color="#94a3b8" strokeWidth={2.4} />
+          <TouchableOpacity style={[s.chip, s.chipOff]} activeOpacity={0.8}>
+            <Plus size={14} color="#FFFFFF" strokeWidth={2.4} />
             <Text style={s.chipText}>Custom</Text>
           </TouchableOpacity>
         </View>
 
         {/* Price */}
-        <Text style={[s.label, { color: aC.isDark ? "#e2e8f0" : "#010a1f" }]}>Price</Text>
-        <View style={[s.inputWrap, { backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "rgba(255,255,255,0.15)" : "rgba(3,42,105,0.12)" }, errors.price && s.inputError]}>
-          <GlassInset />
-          <Text style={s.pkrPrefix}>PKR</Text>
-          <TextInput
-            style={[s.input, { color: aC.isDark ? "#e2e8f0" : "#010a1f" }]}
-            value={price}
-            onChangeText={v => { setPrice(v); setErrors(p => ({ ...p, price: '' })); }}
-            placeholder="0.00"
-            placeholderTextColor={aC.isDark ? "#6f7f9c" : "#94a3b8"}
-            keyboardType="numeric"
-          />
-        </View>
-        {errors.price && <Text style={s.errText}>{errors.price}</Text>}
+        <Text style={dk.label}>Price</Text>
+        <DField
+          left={<Text style={s.pkrPrefix}>PKR</Text>}
+          value={price}
+          onChangeText={v => { setPrice(v); setErrors(p => ({ ...p, price: '' })); }}
+          placeholder="0.00"
+          keyboardType="numeric"
+          style={{ paddingLeft: 10 }}
+        />
+        {errors.price ? <Text style={s.errText}>{errors.price}</Text> : null}
 
         {/* Installation + Monthly Fee */}
         <View style={s.rowFields}>
           <View style={{ flex: 1 }}>
-            <Text style={[s.label, { color: aC.isDark ? "#e2e8f0" : "#010a1f" }]}>Installation Fee</Text>
-            <View style={[s.inputWrap, { backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "rgba(255,255,255,0.15)" : "rgba(3,42,105,0.12)" }, errors.installFee && s.inputError]}>
-              <GlassInset />
-              <TextInput
-                style={s.input}
-                value={installFee}
-                onChangeText={v => { setInstallFee(v); setErrors(p => ({ ...p, installFee: '' })); }}
-                placeholder="0"
-                placeholderTextColor={aC.isDark ? "#6f7f9c" : "#94a3b8"}
-                keyboardType="numeric"
-              />
-            </View>
-            {errors.installFee && <Text style={s.errText}>{errors.installFee}</Text>}
+            <Text style={dk.label}>Installation Fee</Text>
+            <DField
+              value={installFee}
+              onChangeText={v => { setInstallFee(v); setErrors(p => ({ ...p, installFee: '' })); }}
+              placeholder="0"
+              keyboardType="numeric"
+            />
+            {errors.installFee ? <Text style={s.errText}>{errors.installFee}</Text> : null}
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={[s.label, { color: aC.isDark ? "#e2e8f0" : "#010a1f" }]}>Monthly Fee</Text>
-            <View style={[s.inputWrap, { backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "rgba(255,255,255,0.15)" : "rgba(3,42,105,0.12)" }, errors.monthlyFee && s.inputError]}>
-              <GlassInset />
-              <TextInput
-                style={s.input}
-                value={monthlyFee}
-                onChangeText={v => { setMonthlyFee(v); setErrors(p => ({ ...p, monthlyFee: '' })); }}
-                placeholder="0"
-                placeholderTextColor={aC.isDark ? "#6f7f9c" : "#94a3b8"}
-                keyboardType="numeric"
-              />
-            </View>
-            {errors.monthlyFee && <Text style={s.errText}>{errors.monthlyFee}</Text>}
+            <Text style={dk.label}>Monthly Fee</Text>
+            <DField
+              value={monthlyFee}
+              onChangeText={v => { setMonthlyFee(v); setErrors(p => ({ ...p, monthlyFee: '' })); }}
+              placeholder="0"
+              keyboardType="numeric"
+            />
+            {errors.monthlyFee ? <Text style={s.errText}>{errors.monthlyFee}</Text> : null}
           </View>
         </View>
 
         {/* Installation Available Toggle */}
-        <View style={[s.toggleCard, { backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "rgba(255,255,255,0.1)" : "rgba(3,42,105,0.12)", shadowColor: aC.isDark ? "transparent" : "rgba(3,42,105,0.06)", shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]}>
+        <View style={s.toggleCard}>
           <View style={s.toggleRow}>
             <View style={{ flex: 1 }}>
-              <Text style={[s.toggleTitle, { color: aC.isDark ? "#fff" : "#010a1f" }]}>Installation Available</Text>
-              <Text style={[s.toggleSub, { color: aC.isDark ? "#64748b" : "#475569" }]}>Offer professional installation to customers</Text>
+              <Text style={s.toggleTitle}>Installation Available</Text>
+              <Text style={s.toggleSub}>Offer professional installation to customers</Text>
             </View>
             <Switch
               value={installationOn}
@@ -386,115 +347,56 @@ export default function NewTrackerScreen() {
 
           {installationOn && (
             <>
-              <Text style={[s.label, { marginTop: 14, color: aC.isDark ? "#e2e8f0" : "#010a1f" }]}>Available Cities</Text>
+              <Text style={s.subLabel}>Available Cities</Text>
               <View style={s.chipsWrap}>
                 {CITIES.map(c => (
-                  <TouchableOpacity
-                    key={c}
-                    style={[s.chip, activeCities.includes(c) && s.chipActive]}
-                    onPress={() => toggleCity(c)}
-                    activeOpacity={0.8}
-                  >
-                    {activeCities.includes(c) && <Check size={13} color={ORANGE} strokeWidth={2.4} />}
-                    <Text style={[s.chipText, { color: aC.isDark ? "#94a3b8" : "#475569" }, activeCities.includes(c) && s.chipTextActive]}>{c}</Text>
-                  </TouchableOpacity>
+                  <DChip key={c} small label={c} selected={activeCities.includes(c)} onPress={() => toggleCity(c)} />
                 ))}
-                <TouchableOpacity style={s.chip} activeOpacity={0.8}>
-                  <Plus size={13} color="#94a3b8" strokeWidth={2.4} />
-                  <Text style={s.chipText}>Cities</Text>
-                </TouchableOpacity>
+                <DChip small label="+ Cities" />
               </View>
-              {errors.cities && <Text style={s.errText}>{errors.cities}</Text>}
+              {errors.cities ? <Text style={s.errText}>{errors.cities}</Text> : null}
 
-              <Text style={[s.label, { marginTop: 14, color: aC.isDark ? "#e2e8f0" : "#010a1f" }]}>Coverage</Text>
-              <View style={[s.inputWrap, { backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "rgba(255,255,255,0.15)" : "rgba(3,42,105,0.12)" }]}>
-                <GlassInset />
-                <Text style={[s.input, { color: aC.isDark ? "#e2e8f0" : "#010a1f" }]}>Pakistan</Text>
-                <ChevronDown size={16} color="#6f7f9c" />
-              </View>
+              <Text style={[dk.label, { fontFamily: 'Poppins_500Medium' }]}>Coverage</Text>
+              <DSelect value="Pakistan" />
             </>
           )}
         </View>
 
         {/* Description */}
-        <Text style={[s.label, { color: aC.isDark ? "#e2e8f0" : "#010a1f" }]}>Short Tracker Description</Text>
-        <View style={[s.textAreaWrap, { backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "rgba(255,255,255,0.15)" : "rgba(3,42,105,0.12)" }]}>
-          <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <TextInput
-            style={[s.textArea, { color: aC.isDark ? "#e2e8f0" : "#010a1f" }]}
-            value={description}
-            onChangeText={v => { setDescription(v); setErrors(p => ({ ...p, description: '' })); }}
-            placeholder="Enter product details, specifications, and warranty info..."
-            placeholderTextColor={aC.isDark ? "#6f7f9c" : "#94a3b8"}
-            multiline
-            numberOfLines={4}
-            textAlignVertical="top"
-          />
-        </View>
-        {errors.description && <Text style={s.errText}>{errors.description}</Text>}
+        <Text style={dk.label}>Short Tracker Description</Text>
+        <DField
+          value={description}
+          onChangeText={v => { setDescription(v); setErrors(p => ({ ...p, description: '' })); }}
+          placeholder="Enter product details, specifications, and warranty info..."
+          multiline
+        />
+        {errors.description ? <Text style={s.errText}>{errors.description}</Text> : null}
 
         {/* Terms */}
-        <TouchableOpacity style={s.checkRow} onPress={() => { setAgreed(v => !v); setErrors(p => ({ ...p, agreed: '' })); }} activeOpacity={0.8}>
-          <View style={[s.checkbox, agreed && s.checkboxActive]}>
-            {agreed && <Check size={11} color="#fff" strokeWidth={3} />}
-          </View>
-          <Text style={[s.checkText, { color: aC.isDark ? "#94a3b8" : "#475569" }]}>
-            I confirm that I have read and accept the terms and conditions and privacy policy.
-          </Text>
-        </TouchableOpacity>
-        {errors.agreed && <Text style={s.errText}>{errors.agreed}</Text>}
+        <TermsRow checked={agreed} onToggle={() => { setAgreed(v => !v); setErrors(p => ({ ...p, agreed: '' })); }} />
+        {errors.agreed ? <Text style={s.errText}>{errors.agreed}</Text> : null}
 
-        <View style={{ height: 200 }} />
+        <View style={{ height: 220 }} />
       </ScrollView>
 
-      {/* Bottom Sheet */}
-      <View style={[s.bottomSheet, { backgroundColor: aC.isDark ? "rgba(10,18,32,0.98)" : "#ffffff", borderColor: aC.isDark ? "rgba(255,255,255,0.1)" : "rgba(3,42,105,0.12)" }]}>
-        <LinearGradient colors={['rgba(10,18,32,0.6)', 'rgba(10,18,32,0.98)']} style={StyleSheet.absoluteFillObject} />
+      {/* Bottom panel */}
+      <BottomActions fx>
         <View style={s.infoRow}>
-          <Info size={14} color="#94a3b8" />
-          <Text style={[s.infoText, { color: aC.isDark ? "#94a3b8" : "#475569" }]}>Tracker listings are reviewed before being published.</Text>
+          <Info size={15} color="#E6E1E8" />
+          <Text style={s.infoText}>Tracker listings are reviewed before being published.</Text>
         </View>
-        <TouchableOpacity
-          style={[s.publishWrap, loading && { opacity: 0.6 }]}
-          activeOpacity={0.85}
-          disabled={loading}
-          onPress={() => submitTracker(true)}
-        >
-          <LinearGradient colors={['#1b3a63', ORANGE]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={[StyleSheet.absoluteFillObject, { borderRadius: 30 }]} />
-          <Text style={s.publishText}>{loading ? 'Publishing...' : 'Publish Tracker'}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[s.draftBtn, { backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "rgba(255,255,255,0.15)" : "rgba(3,42,105,0.12)" }]}
-          activeOpacity={0.85}
-          disabled={loading}
-          onPress={() => submitTracker(false)}
-        >
-          <Text style={[s.draftText, { color: aC.isDark ? "#e2e8f0" : "#010a1f" }]}>Save as Draft</Text>
-        </TouchableOpacity>
-      </View>
+        <GlowPublishButton title="Publish Tracker" loadingTitle="Publishing..." loading={loading} onPress={() => submitTracker(true)} />
+        <GlowDraftButton title="Save as Draft" onPress={() => !loading && submitTracker(false)} />
+      </BottomActions>
     </View>
   );
 }
 
 const s = StyleSheet.create({
-  root:   { flex: 1, backgroundColor: AppColors.bg },
+  root:   { flex: 1, backgroundColor: D.bg },
   scroll: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 20 },
 
-  /* HEADER */
-  header:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12 },
-  backBtn:       { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  headerTitle:   { fontSize: 16, fontFamily: 'Poppins_600SemiBold', color: AppColors.textPrimary },
-  saveDraft:     { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  saveDraftText: { color: ORANGE, fontSize: 10, fontFamily: 'Poppins_600SemiBold', textAlign: 'center' },
-
-  subtitle: { fontSize: 13, fontFamily: 'Poppins_400Regular', color: '#94a3b8', marginBottom: 14 },
-
-  /* UPLOAD */
-  uploadArea:  { borderRadius: 18, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.2)', borderStyle: 'dashed', paddingVertical: 32, alignItems: 'center', marginBottom: 4, backgroundColor: '#010A1F' },
-  uploadTitle: { fontSize: 14, fontFamily: 'Poppins_600SemiBold', color: ORANGE, marginTop: 8 },
-  uploadSub:   { fontSize: 11, fontFamily: 'Poppins_400Regular', color: '#64748b', marginTop: 4, textAlign: 'center', paddingHorizontal: 20 },
+  subtitle: { fontSize: 14, fontFamily: 'Poppins_400Regular', color: '#E6E1E8', marginBottom: 14 },
 
   /* IMAGE GRID */
   imageGrid:    { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 4 },
@@ -503,50 +405,31 @@ const s = StyleSheet.create({
   removeBtn:    { position: 'absolute', top: 5, right: 5, width: 20, height: 20, borderRadius: 10, backgroundColor: 'rgba(0,0,0,0.65)', alignItems: 'center', justifyContent: 'center' },
   mainBadge:    { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(226,103,27,0.85)', paddingVertical: 3, alignItems: 'center' },
   mainBadgeText:{ fontSize: 9, fontFamily: 'Poppins_600SemiBold', color: '#fff' },
-  addMoreBtn:   { width: 96, height: 96, borderRadius: 14, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.2)', borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', gap: 4, backgroundColor: '#010A1F' },
+  addMoreBtn:   { width: 96, height: 96, borderRadius: 14, borderWidth: 1.5, borderColor: 'rgba(226,103,27,0.6)', borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', gap: 4 },
   addMoreText:  { fontSize: 11, fontFamily: 'Poppins_500Medium', color: ORANGE },
 
-  /* INPUTS */
-  label:      { fontSize: 13, fontFamily: 'Poppins_600SemiBold', color: '#e2e8f0', marginTop: 16, marginBottom: 8 },
-  inputWrap:  { flexDirection: 'row', alignItems: 'center', height: 48, borderRadius: 30, paddingHorizontal: 18, backgroundColor: AppColors.bg, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', overflow: 'hidden' },
-  input:      { flex: 1, fontSize: 13, fontFamily: 'Poppins_400Regular', color: '#e2e8f0', padding: 0 },
-  pkrPrefix:  { fontSize: 13, fontFamily: 'Poppins_400Regular', color: '#64748b', marginRight: 8 },
+  pkrPrefix:  { fontSize: 15, fontFamily: 'Poppins_600SemiBold', color: '#FFFFFF' },
   rowFields:  { flexDirection: 'row', gap: 12 },
 
   /* CHIPS */
-  chipsWrap:     { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip:          { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 30, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.1)', backgroundColor: AppColors.bg },
-  chipActive:    { borderColor: 'rgba(226,103,27,0.6)', backgroundColor: 'rgba(226,103,27,0.1)' },
-  chipText:      { fontSize: 12, fontFamily: 'Poppins_500Medium', color: '#94a3b8' },
+  chipsWrap:     { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  chip:          { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, height: 34, borderRadius: 17, borderWidth: 1 },
+  chipOff:       { backgroundColor: '#0B2358', borderColor: 'rgba(127,152,196,0.5)' },
+  chipActive:    { borderColor: ORANGE, backgroundColor: '#3A2420' },
+  chipText:      { fontSize: 13, fontFamily: 'Poppins_500Medium', color: '#FFFFFF' },
   chipTextActive:{ color: ORANGE },
 
   /* TOGGLE CARD */
-  toggleCard:  { marginTop: 16, borderRadius: 18, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', backgroundColor: '#010A1F', padding: 16 },
+  toggleCard:  { marginTop: 22, borderRadius: 18, borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)', padding: 18 },
   toggleRow:   { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
-  toggleTitle: { fontSize: 13, fontFamily: 'Poppins_600SemiBold', color: '#fff' },
-  toggleSub:   { fontSize: 11, fontFamily: 'Poppins_400Regular', color: '#64748b', marginTop: 2 },
-
-  /* TEXTAREA */
-  textAreaWrap: { borderRadius: 18, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 12, backgroundColor: '#010A1F', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', overflow: 'hidden' },
-  textArea:     { fontSize: 13, fontFamily: 'Poppins_400Regular', color: '#e2e8f0', minHeight: 96 },
-
-  /* CHECKBOX */
-  checkRow:      { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginTop: 18 },
-  checkbox:      { width: 20, height: 20, borderRadius: 10, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.3)', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 },
-  checkboxActive:{ backgroundColor: ORANGE, borderColor: ORANGE },
-  checkText:     { flex: 1, fontSize: 12, fontFamily: 'Poppins_400Regular', color: '#94a3b8', lineHeight: 18 },
+  toggleTitle: { fontSize: 15, fontFamily: 'Poppins_600SemiBold', color: '#fff' },
+  toggleSub:   { fontSize: 11, fontFamily: 'Poppins_400Regular', color: '#E6E1E8', marginTop: 2 },
+  subLabel:    { fontSize: 12, fontFamily: 'Poppins_400Regular', color: '#FFFFFF', marginTop: 16, marginBottom: 10 },
 
   /* ERRORS */
   errText:      { fontSize: 11, fontFamily: 'Poppins_400Regular', color: '#f87171', marginTop: 4, marginLeft: 4 },
-  inputError:   { borderColor: 'rgba(248,113,113,0.6)' },
-  uploadAreaError: { borderColor: 'rgba(248,113,113,0.6)' },
 
-  /* BOTTOM SHEET */
-  bottomSheet:  { position: 'absolute', bottom: 0, left: 0, right: 0, borderTopLeftRadius: 24, borderTopRightRadius: 24, borderTopWidth: 1, borderColor: 'rgba(255,255,255,0.1)', paddingHorizontal: 20, paddingTop: 16, paddingBottom: 32, gap: 10 },
-  infoRow:      { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 4 },
-  infoText:     { flex: 1, fontSize: 12, fontFamily: 'Poppins_400Regular', color: '#94a3b8' },
-  publishWrap:  { borderRadius: 30, overflow: 'hidden', paddingVertical: 14, alignItems: 'center' },
-  publishText:  { fontSize: 15, fontFamily: 'Poppins_600SemiBold', color: '#fff' },
-  draftBtn:     { borderRadius: 30, paddingVertical: 14, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', backgroundColor: AppColors.bg },
-  draftText:    { fontSize: 14, fontFamily: 'Poppins_500Medium', color: '#e2e8f0' },
+  /* BOTTOM */
+  infoRow:      { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  infoText:     { flex: 1, fontSize: 12, fontFamily: 'Poppins_400Regular', color: '#E6E1E8' },
 });

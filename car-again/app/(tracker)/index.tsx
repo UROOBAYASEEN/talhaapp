@@ -7,32 +7,19 @@ import {
   TouchableOpacity,
   Image,
   RefreshControl,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import {
-  Bell,
-  Settings,
-  CheckCircle2,
-  AlertTriangle,
-  MapPin,
-  Users,
-  Crown,
-  Plus,
-  Video,
-  Megaphone,
-  CalendarCheck,
-  MessageCircle,
-  ChevronRight,
-  TrendingUp,
-  TrendingDown,
-  Activity,
-} from 'lucide-react-native';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import Svg, { Polyline } from 'react-native-svg';
+import { D, DICON, DIcon, GlowCard, Verified } from '@/components/dealer/DealerUI';
 import { AppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 import Chatbot from '@/components/shared/Chatbot';
+import WelcomeBanner from '@/components/shared/WelcomeBanner';
 
 const SERVER = API_BASE.replace('/api/v1', '');
 function resolveUrl(url?: string | null) {
@@ -41,28 +28,18 @@ function resolveUrl(url?: string | null) {
   return `${SERVER}${url}`;
 }
 
-const ORANGE     = '#e2671b';
-const DARK_BLUE  = '#061B4A';
-const BLUE_BORDER = 'rgba(255,255,255,0.15)';
+const ORANGE = '#e2671b';
 
 const QUICK_ACTIONS = [
-  { title: 'New\nTracker',      Icon: Plus,          route: '/(tracker)/new-tracker' },
-  { title: 'Clients',           Icon: Users,         route: '/(tracker)/clients' },
-  { title: 'Subscription',      Icon: Crown,         route: '/(tracker)/plan' },
-  { title: 'Add Special\nOffer',Icon: Plus,          route: '/(tracker)/special-offer' },
-  { title: 'Add Video',         Icon: Video,         route: '/(tracker)/video-ads' },
-  { title: 'Advertisement',     Icon: Megaphone,     route: '/(tracker)/advertisement' },
+  { title: 'New Tracker',        icon: <Ionicons name="add" size={30} color={ORANGE} />,     route: '/(tracker)/new-tracker' },
+  { title: 'New Special\nOffer', icon: <Ionicons name="add" size={30} color={ORANGE} />,     route: '/(tracker)/special-offer' },
+  { title: 'Add Video',          icon: <Ionicons name="add" size={30} color={ORANGE} />,     route: '/(tracker)/video-ads' },
+  { title: 'Advertisement',      icon: <DIcon src={DICON.advertisement} size={26} />,        route: '/(tracker)/advertisement' },
+  { title: 'Subscription',       icon: <DIcon src={DICON.subscription} size={24} />,         route: '/(tracker)/plan' },
+  { title: 'Clients',            icon: <DIcon src={DICON.customers} size={24} />,            route: '/(tracker)/clients' },
 ];
 
-function GlassInset() {
-  return (
-    <>
-      <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-      <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-      <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-    </>
-  );
-}
+const TILE_W = (Dimensions.get('window').width - 32 - 24) / 4;
 
 const MAX_BAR_H = 112;
 
@@ -164,11 +141,29 @@ export default function TrackerHomeScreen() {
   const activeGrowth   = stats?.active_growth   ?? 0;
   const alertsChange   = stats?.alerts_change   ?? 0;
 
-  const ACTIVITIES = activity.map((a: any) => ({
-    title:    a.title    || a.message     || 'Activity',
-    subtitle: a.subtitle || a.description || '',
-    Icon: MessageCircle,
-  }));
+  const ACTIVITIES = activity.length > 0
+    ? activity.map((a: any) => ({
+        title:    a.title    || a.message     || 'Activity',
+        subtitle: a.subtitle || a.description || '',
+        icon: <Ionicons name="chatbubbles-outline" size={24} color={ORANGE} />,
+      }))
+    : [
+        { title: 'New tracker application received', subtitle: 'Honda Civic RS 2026 • Black', icon: <DIcon src={DICON.activeReservations} size={24} /> },
+        { title: 'New enquiry',                      subtitle: 'Yamaha YBR 125 • Blue',       icon: <Ionicons name="chatbubbles-outline" size={24} color={ORANGE} /> },
+        { title: 'Advertisement approved',           subtitle: 'Homepage Banner • 7 Days',    icon: <DIcon src={DICON.advertisement} size={22} /> },
+      ];
+
+  // Bar chart + trend line (Figma) — same data as before
+  const barData = buildBarData(bookings, viewMode);
+  const CHART_H = 150;
+  const maxH = Math.max(...barData.map(b => b.h), 1);
+  const bars = barData.map(b => ({ ...b, pct: (b.h / maxH) * 100 }));
+  const [chartW, setChartW] = useState(0);
+  const barGap = 8;
+  const barW = chartW ? (chartW - barGap * (bars.length - 1)) / bars.length : 0;
+  const scale = CHART_H / 100;
+  const linePts = chartW ? bars.map((b, i) => `${i * (barW + barGap) + barW / 2},${CHART_H - b.pct * scale - 8}`).join(' ') : '';
+
 
   return (
     <SafeAreaView style={s.safeArea} edges={['top']}>
@@ -188,22 +183,20 @@ export default function TrackerHomeScreen() {
                 <Text style={s.avatarLetter}>{companyName[0]?.toUpperCase()}</Text>
               </View>
             )}
-            <View style={{ marginLeft: 12 }}>
+            <View style={{ marginLeft: 14, flexShrink: 1 }}>
               <View style={s.nameRow}>
-                <Text style={s.companyName}>{companyName}</Text>
-                <View style={s.verifiedBadge}>
-                  <Text style={s.verifiedTick}>✓</Text>
-                </View>
+                <Text style={s.companyName} numberOfLines={1}>{companyName}</Text>
+                <Verified size={20} />
               </View>
               <View style={s.planRow}>
-                <MapPin size={11} color={ORANGE} />
+                <Ionicons name="ribbon-outline" size={16} color={ORANGE} />
                 <Text style={s.planText}>Premium Plan</Text>
               </View>
             </View>
           </View>
           <View style={s.headerIcons}>
             <TouchableOpacity onPress={() => router.push('/alert' as any)} style={{ position: 'relative' }}>
-              <Bell size={20} color={AppColors.textPrimary} />
+              <Ionicons name="notifications-outline" size={24} color="#FFFFFF" />
               {unreadCount > 0 && (
                 <View style={s.notifBadge}>
                   <Text style={s.notifBadgeTxt}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
@@ -211,54 +204,38 @@ export default function TrackerHomeScreen() {
               )}
             </TouchableOpacity>
             <TouchableOpacity onPress={() => router.push('/(tracker)/profile' as any)}>
-              <Settings size={20} color={AppColors.textPrimary} />
+              <Ionicons name="settings-outline" size={24} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
         </View>
 
         {/* ── WELCOME BANNER ── */}
-        <View style={s.welcomeCard}>
-          <View style={s.welcomeText}>
-            <Text style={s.welcomeSub}>Welcome Back,</Text>
-            <Text style={s.welcomeTitle}>
-              Monitor. Protect. Track{'\n'}with Autowizor!
-            </Text>
-          </View>
-          <Image
-            source={{ uri: 'https://images.unsplash.com/photo-1553440569-bcc63803a83d?auto=format&fit=crop&w=400&q=80' }}
-            style={s.carImage}
-            resizeMode="contain"
-          />
-        </View>
+        <WelcomeBanner style={{ marginTop: 4 }} />
 
         {/* ── OVERVIEW HEADER ── */}
         <View style={s.sectionHeader}>
-          <Text style={s.sectionTitle}>Overview</Text>
+          <Text style={s.sectionTitleInline}>Overview</Text>
           <TouchableOpacity onPress={() => router.push('/(tracker)/analytics' as any)}>
             <Text style={s.analyticsLink}>Analytics</Text>
           </TouchableOpacity>
         </View>
 
-        {/* ── DEVICES CHART CARD ── */}
-        <View style={s.chartCard}>
-          <GlassInset />
-
+        {/* ── TRACKER SELL CHART CARD ── */}
+        <GlowCard style={s.chartCard}>
           <View style={s.chartTopRow}>
             <View>
-              <Text style={s.chartLabel}>TOTAL DEVICES</Text>
+              <Text style={s.chartLabel}>TOTAL TRACKER SELL</Text>
               <Text style={s.chartNumber}>{Number(totalDevices).toLocaleString()}</Text>
             </View>
             <View style={s.chartTopRight}>
               <View style={s.percentBadge}>
+                <Ionicons name="trending-up" size={14} color="#C9713F" />
                 <Text style={s.percentText}>+{weeklyGrowth}%</Text>
               </View>
-              <View style={{ position: 'relative' }}>
-                <TouchableOpacity
-                  style={s.weekButton}
-                  onPress={() => setShowViewDrop(v => !v)}
-                >
+              <View>
+                <TouchableOpacity style={s.weekButton} onPress={() => setShowViewDrop(v => !v)}>
                   <Text style={s.weekText}>{viewMode} View</Text>
-                  <Text style={s.downArrow}>⌄</Text>
+                  <Ionicons name={showViewDrop ? 'chevron-up' : 'chevron-down'} size={16} color="#E6E1E8" />
                 </TouchableOpacity>
                 {showViewDrop && (
                   <View style={s.viewDropdown}>
@@ -268,9 +245,7 @@ export default function TrackerHomeScreen() {
                         style={[s.viewDropItem, viewMode === opt && s.viewDropItemActive]}
                         onPress={() => { setViewMode(opt); setShowViewDrop(false); }}
                       >
-                        <Text style={[s.viewDropText, viewMode === opt && s.viewDropTextActive]}>
-                          {opt} View
-                        </Text>
+                        <Text style={[s.viewDropText, viewMode === opt && s.viewDropTextActive]}>{opt} View</Text>
                       </TouchableOpacity>
                     ))}
                   </View>
@@ -279,66 +254,56 @@ export default function TrackerHomeScreen() {
             </View>
           </View>
 
-          {(() => {
-            const barData = buildBarData(bookings, viewMode);
-            return (
-              <>
-                <View style={s.chartArea}>
-                  {barData.map((bar, i) => (
-                    <View key={i} style={s.barCol}>
-                      <Text style={s.barCount}>{bar.count > 0 ? bar.count : ''}</Text>
-                      <View style={[s.bar, { height: bar.h }]}>
-                        <LinearGradient
-                          colors={bar.opacity === 1
-                            ? ['#e2671b', '#ff9a00']
-                            : [`rgba(226,103,27,${bar.opacity})`, `rgba(226,103,27,${bar.opacity * 0.7})`]
-                          }
-                          start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }}
-                          style={[StyleSheet.absoluteFillObject, { borderRadius: 3 }]}
-                        />
-                      </View>
-                    </View>
-                  ))}
+          <View style={[s.chartArea, { height: CHART_H }]} onLayout={e => setChartW(e.nativeEvent.layout.width)}>
+            {bars.map((b, i) => {
+              const t = bars.length > 1 ? i / (bars.length - 1) : 1;
+              return (
+                <View key={i} style={{ width: barW || undefined, flex: barW ? undefined : 1, height: b.pct * scale, marginLeft: i ? barGap : 0, overflow: 'hidden' }}>
+                  <LinearGradient
+                    colors={[`rgba(226,103,27,${(0.12 + t * 0.88).toFixed(2)})`, `rgba(226,103,27,${(0.08 + t * 0.8).toFixed(2)})`]}
+                    start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }}
+                    style={StyleSheet.absoluteFillObject}
+                  />
                 </View>
-                <View style={s.chartDates}>
-                  {barData.map((bar, i) => (
-                    <Text key={i} style={[s.chartDateText, (bar.label === 'Today' || bar.label === 'This Wk') && s.chartDateToday]}>
-                      {bar.label}
-                    </Text>
-                  ))}
-                </View>
-              </>
-            );
-          })()}
-        </View>
+              );
+            })}
+            {chartW > 0 && (
+              <Svg style={StyleSheet.absoluteFill} width={chartW} height={CHART_H} pointerEvents="none">
+                <Polyline points={linePts} fill="none" stroke="rgba(160,72,30,0.9)" strokeWidth={3} strokeLinejoin="round" />
+              </Svg>
+            )}
+          </View>
+          <View style={s.chartDates}>
+            {bars.map((b, i) => (
+              <Text key={i} style={[s.chartDateText, { width: barW || undefined, marginLeft: i ? barGap : 0 }]} numberOfLines={1}>{b.label}</Text>
+            ))}
+          </View>
+        </GlowCard>
 
-        {/* ── ACTIVE / ALERTS STATS ── */}
+        {/* ── ACTIVE / PENDING STATS ── */}
         <View style={s.statsRow}>
-          <View style={s.statCard}>
-            <GlassInset />
+          <GlowCard style={s.statCard}>
             <View style={s.statTop}>
-              <CheckCircle2 size={17} color={ORANGE} />
+              <Ionicons name="checkmark-circle-outline" size={20} color={ORANGE} />
               <Text style={s.statNumber}>{Number(activeDevices).toLocaleString()}</Text>
             </View>
             <Text style={s.statLabel}>Active</Text>
             <View style={s.statChange}>
-              <TrendingUp size={12} color="#009759" />
-              <Text style={[s.statChangeText, { color: '#009759' }]}>+{activeGrowth}%</Text>
+              <Ionicons name="arrow-up" size={14} color="#2ECC71" />
+              <Text style={[s.statChangeText, { color: '#2ECC71' }]}>+{activeGrowth}%</Text>
             </View>
-          </View>
-
-          <View style={s.statCard}>
-            <GlassInset />
+          </GlowCard>
+          <GlowCard style={s.statCard}>
             <View style={s.statTop}>
-              <AlertTriangle size={16} color={ORANGE} />
+              <MaterialCommunityIcons name="monitor-dashboard" size={20} color="#E0363A" />
               <Text style={s.statNumber}>{alertsCount}</Text>
             </View>
-            <Text style={s.statLabel}>Alerts</Text>
+            <Text style={s.statLabel}>Pending</Text>
             <View style={s.statChange}>
-              <TrendingDown size={12} color="#ba1a1a" />
-              <Text style={[s.statChangeText, { color: '#ba1a1a' }]}>{alertsChange}%</Text>
+              <Ionicons name="arrow-up" size={14} color="#E0363A" />
+              <Text style={[s.statChangeText, { color: '#E0363A' }]}>{alertsChange}%</Text>
             </View>
-          </View>
+          </GlowCard>
         </View>
 
         {/* ── QUICK ACTIONS ── */}
@@ -352,12 +317,7 @@ export default function TrackerHomeScreen() {
                 activeOpacity={0.75}
                 onPress={() => action.route && router.push(action.route as any)}
               >
-                {/* CLAUDE.md 4-side glass shade */}
-                <LinearGradient colors={['rgba(22,64,136,0.35)','transparent']} start={{x:0.5,y:0}} end={{x:0.5,y:0.25}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                <LinearGradient colors={['transparent','rgba(29,83,175,0.35)']} start={{x:0.5,y:0.75}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                <LinearGradient colors={['rgba(13,37,84,0.35)','transparent']} start={{x:0,y:0.5}} end={{x:0.25,y:0.5}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                <LinearGradient colors={['transparent','rgba(13,37,84,0.35)']} start={{x:0.75,y:0.5}} end={{x:1,y:0.5}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                <action.Icon size={22} color={ORANGE} />
+                {action.icon}
                 <Text style={s.actionText}>{action.title}</Text>
               </TouchableOpacity>
             ))}
@@ -367,26 +327,16 @@ export default function TrackerHomeScreen() {
         {/* ── RECENT ACTIVITY ── */}
         <View style={s.activitySection}>
           <Text style={s.sectionTitle}>Recent Activity</Text>
-          {ACTIVITIES.length === 0 ? (
-            <View style={s.emptyBox}>
-              <Activity size={32} color={AppColors.textSecondary} />
-              <Text style={s.emptyTxt}>No recent activity</Text>
-            </View>
-          ) : (
-            ACTIVITIES.map((item, i) => (
-              <TouchableOpacity key={i} style={s.activityCard} activeOpacity={0.8}>
-                <GlassInset />
-                <View style={s.activityIconWrap}>
-                  <item.Icon size={20} color={ORANGE} />
-                </View>
-                <View style={s.activityInfo}>
-                  <Text style={s.activityTitle}>{item.title}</Text>
-                  <Text style={s.activitySub}>{item.subtitle}</Text>
-                </View>
-                <ChevronRight size={18} color={ORANGE} />
-              </TouchableOpacity>
-            ))
-          )}
+          {ACTIVITIES.map((item, i) => (
+            <GlowCard key={i} style={s.activityCard} onPress={() => {}}>
+              <View style={s.activityIconWrap}>{item.icon}</View>
+              <View style={s.activityInfo}>
+                <Text style={s.activityTitle} numberOfLines={1}>{item.title}</Text>
+                <Text style={s.activitySub} numberOfLines={1}>{item.subtitle}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={26} color={ORANGE} />
+            </GlowCard>
+          ))}
         </View>
 
         <View style={{ height: 100 }} />
@@ -397,84 +347,69 @@ export default function TrackerHomeScreen() {
 }
 
 const s = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: AppColors.bg },
+  safeArea: { flex: 1, backgroundColor: D.bg },
   scroll:   { flex: 1 },
-  content:  { paddingHorizontal: 16, paddingTop: 6 },
+  content:  { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 120 },
 
-  /* HEADER */
-  header:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10 },
-  profileRow:    { flexDirection: 'row', alignItems: 'center' },
-  avatar:        { width: 58, height: 58, borderRadius: 29, borderWidth: 1.2, borderColor: '#fff' },
-  avatarFallback:{ width: 58, height: 58, borderRadius: 29, borderWidth: 1.2, borderColor: '#fff', backgroundColor: '#d71920', alignItems: 'center', justifyContent: 'center' },
-  avatarLetter:  { color: '#fff', fontSize: 24, fontFamily: 'Poppins_700Bold' },
-  nameRow:       { flexDirection: 'row', alignItems: 'center' },
-  companyName:   { color: AppColors.textPrimary, fontSize: 15, fontFamily: 'Poppins_500Medium' },
-  verifiedBadge: { width: 15, height: 15, borderRadius: 8, backgroundColor: '#1686f7', marginLeft: 6, alignItems: 'center', justifyContent: 'center' },
-  verifiedTick:  { color: '#fff', fontSize: 8, fontWeight: 'bold' },
-  planRow:       { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
-  planText:      { color: ORANGE, fontSize: 11, marginLeft: 4, fontFamily: 'Poppins_400Regular' },
-  headerIcons:   { flexDirection: 'row', gap: 14 },
+  header:        { height: 84, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  profileRow:    { flexDirection: 'row', alignItems: 'center', flexShrink: 1 },
+  avatar:        { width: 62, height: 62, borderRadius: 31, borderWidth: 2, borderColor: '#FFFFFF' },
+  avatarFallback:{ width: 62, height: 62, borderRadius: 31, borderWidth: 2, borderColor: '#FFFFFF', backgroundColor: '#C8102E', justifyContent: 'center', alignItems: 'center' },
+  avatarLetter:  { color: '#fff', fontSize: 28, fontFamily: 'Poppins_700Bold' },
+  nameRow:       { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  companyName:   { color: D.white, fontSize: 18, lineHeight: 26, fontFamily: 'Poppins_500Medium', flexShrink: 1 },
+  planRow:       { flexDirection: 'row', alignItems: 'center', marginTop: 0, gap: 6 },
+  planText:      { color: ORANGE, fontSize: 14, fontFamily: 'Poppins_400Regular' },
+  headerIcons:   { flexDirection: 'row', gap: 18, marginBottom: 24 },
   notifBadge:    { position: 'absolute', top: -4, right: -6, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 },
   notifBadgeTxt: { fontSize: 9, fontFamily: 'Poppins_700Bold', color: '#fff' },
 
-  /* WELCOME BANNER */
-  welcomeCard:  { backgroundColor: '#061B4A', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', overflow: 'hidden', minHeight: 90, marginBottom: 16 },
+  welcomeCard:  { minHeight: 94, backgroundColor: D.navy, borderRadius: 20, paddingLeft: 18, paddingRight: 8, paddingVertical: 14, flexDirection: 'row', alignItems: 'center', marginTop: 4 },
   welcomeText:  { flex: 1 },
-  welcomeSub:   { color: 'rgba(255,255,255,0.7)', fontSize: 11, fontFamily: 'Poppins_400Regular', marginBottom: 4 },
-  welcomeTitle: { color: '#fff', fontSize: 12, lineHeight: 18, fontFamily: 'Poppins_700Bold' },
-  carImage:     { width: 110, height: 68 },
+  welcomeSub:   { color: '#FFFFFF', fontSize: 11, marginBottom: 6, fontFamily: 'Poppins_400Regular' },
+  welcomeTitle: { color: '#FFFFFF', fontSize: 13, lineHeight: 20, fontFamily: 'Poppins_600SemiBold' },
+  carImage:     { width: 116, height: 70 },
 
-  /* SECTION HEADER */
-  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  sectionTitle:  { color: AppColors.textPrimary, fontSize: 15, fontFamily: 'Poppins_500Medium' },
-  analyticsLink: { color: ORANGE, fontSize: 12, fontFamily: 'Poppins_500Medium' },
+  sectionHeader:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, marginBottom: 6 },
+  sectionTitle:       { color: D.white, fontSize: 18, fontFamily: 'Poppins_500Medium', marginBottom: 14 },
+  sectionTitleInline: { color: D.white, fontSize: 18, fontFamily: 'Poppins_500Medium' },
+  analyticsLink:      { color: ORANGE, fontSize: 14, fontFamily: 'Poppins_400Regular' },
 
-  /* CHART CARD */
-  chartCard:     { backgroundColor: '#010A1F', borderWidth: 1, borderColor: 'rgba(100,160,255,0.5)', borderRadius: 16, padding: 12, overflow: 'hidden', marginBottom: 12 },
-  chartTopRow:   { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 },
-  chartLabel:    { color: AppColors.textSecondary, fontSize: 10, letterSpacing: 0.6, fontFamily: 'Poppins_400Regular', textTransform: 'uppercase' },
-  chartNumber:   { color: AppColors.textPrimary, fontSize: 24, fontFamily: 'Poppins_600SemiBold', marginTop: 2 },
+  chartCard:     { marginTop: 8, padding: 14 },
+  chartTopRow:   { flexDirection: 'row', justifyContent: 'space-between', zIndex: 5 },
+  chartLabel:    { color: '#FFFFFF', fontSize: 12, letterSpacing: 1.2, fontFamily: 'Poppins_400Regular' },
+  chartNumber:   { color: '#FFFFFF', fontSize: 24, marginTop: 6, fontFamily: 'Poppins_600SemiBold' },
   chartTopRight: { alignItems: 'flex-end', gap: 8 },
-  percentBadge:  { backgroundColor: 'rgba(226,103,27,0.3)', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 2 },
-  percentText:   { color: ORANGE, fontSize: 11, fontFamily: 'Poppins_400Regular' },
-  weekButton:    { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: AppColors.textSecondary, borderRadius: 16, paddingHorizontal: 9, paddingVertical: 4 },
-  weekText:      { color: AppColors.textSecondary, fontSize: 11, fontFamily: 'Poppins_400Regular' },
-  downArrow:     { color: AppColors.textSecondary, fontSize: 14, marginLeft: 3 },
-  viewDropdown:  { position: 'absolute', top: 36, right: 0, backgroundColor: 'rgba(6,18,52,0.98)', borderWidth: 1, borderColor: BLUE_BORDER, borderRadius: 12, zIndex: 99, minWidth: 120 },
-  viewDropItem:  { paddingHorizontal: 14, paddingVertical: 10 },
-  viewDropItemActive: { backgroundColor: 'rgba(226,103,27,0.15)' },
-  viewDropText:  { color: AppColors.textSecondary, fontSize: 12, fontFamily: 'Poppins_400Regular' },
-  viewDropTextActive: { color: ORANGE, fontFamily: 'Poppins_600SemiBold' },
-  chartArea:     { flexDirection: 'row', alignItems: 'flex-end', height: 130, gap: 6 },
-  barCol:        { flex: 1, alignItems: 'center', justifyContent: 'flex-end' },
-  bar:           { width: '100%', borderRadius: 3, overflow: 'hidden' },
-  barCount:      { fontSize: 9, fontFamily: 'Poppins_600SemiBold', color: ORANGE, marginBottom: 3 },
-  chartDates:    { flexDirection: 'row', justifyContent: 'space-between', marginTop: 8, paddingHorizontal: 2 },
-  chartDateText: { color: 'rgba(255,255,255,0.4)', fontSize: 9, fontFamily: 'Poppins_400Regular' },
-  chartDateToday:{ color: 'rgba(255,255,255,0.8)' },
+  percentBadge:  { backgroundColor: '#3A2420', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 2, flexDirection: 'row', alignItems: 'center', gap: 4 },
+  percentText:   { color: '#C9713F', fontSize: 12, fontFamily: 'Poppins_400Regular' },
+  weekButton:    { borderWidth: 1, borderColor: 'rgba(230,225,232,0.8)', borderRadius: 16, paddingHorizontal: 10, paddingVertical: 4, flexDirection: 'row', alignItems: 'center', gap: 4 },
+  weekText:      { color: '#E6E1E8', fontSize: 13, fontFamily: 'Poppins_400Regular' },
+  viewDropdown:      { position: 'absolute', top: 34, right: 0, backgroundColor: 'rgba(6,18,52,0.98)', borderWidth: 1, borderColor: 'rgba(130,165,213,0.5)', borderRadius: 12, zIndex: 99, minWidth: 120, overflow: 'hidden' },
+  viewDropItem:      { paddingHorizontal: 14, paddingVertical: 10 },
+  viewDropItemActive:{ backgroundColor: 'rgba(226,103,27,0.15)' },
+  viewDropText:      { color: D.muted, fontSize: 12, fontFamily: 'Poppins_400Regular' },
+  viewDropTextActive:{ color: ORANGE, fontFamily: 'Poppins_600SemiBold' },
+  chartArea:     { marginTop: 18, flexDirection: 'row', alignItems: 'flex-end' },
+  chartDates:    { flexDirection: 'row', marginTop: 6 },
+  chartDateText: { color: 'rgba(230,225,232,0.45)', fontSize: 10, fontFamily: 'Poppins_400Regular', textAlign: 'center' },
 
-  /* STAT CARDS */
-  statsRow:      { flexDirection: 'row', gap: 10, marginBottom: 20 },
-  statCard:      { flex: 1, backgroundColor: '#010A1F', borderWidth: 1, borderColor: BLUE_BORDER, borderRadius: 16, alignItems: 'center', paddingVertical: 12, overflow: 'hidden', gap: 4 },
-  statTop:       { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  statNumber:    { color: AppColors.textSecondary, fontSize: 20, fontFamily: 'Poppins_600SemiBold' },
-  statLabel:     { color: AppColors.textSecondary, fontSize: 10, fontFamily: 'Poppins_400Regular' },
-  statChange:    { flexDirection: 'row', alignItems: 'center', gap: 3 },
-  statChangeText:{ fontSize: 11, fontFamily: 'Poppins_400Regular' },
+  statsRow:       { flexDirection: 'row', gap: 14, marginTop: 12 },
+  statCard:       { flex: 1, alignItems: 'center', paddingVertical: 12 },
+  statTop:        { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  statNumber:     { color: '#C9BDC4', fontSize: 20, fontFamily: 'Poppins_600SemiBold' },
+  statLabel:      { color: '#C9BDC4', fontSize: 12, fontFamily: 'Poppins_400Regular' },
+  statChange:     { flexDirection: 'row', alignItems: 'center', gap: 2 },
+  statChangeText: { fontSize: 12, fontFamily: 'Poppins_400Regular' },
 
-  /* QUICK ACTIONS */
-  quickSection:  { marginBottom: 20 },
-  actionsGrid:   { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 12 },
-  actionCard:    { width: '22%', flexGrow: 1, minWidth: 78, height: 100, backgroundColor: '#061B4A', borderRadius: 15, alignItems: 'center', justifyContent: 'center', gap: 6, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(100,160,255,0.2)', paddingHorizontal: 4 },
-  actionText:    { color: '#ffffff', fontSize: 9, textAlign: 'center', lineHeight: 13, fontFamily: 'Poppins_400Regular', width: '100%', paddingHorizontal: 4 },
+  quickSection: { marginTop: 22 },
+  actionsGrid:  { flexDirection: 'row', flexWrap: 'wrap', columnGap: 8, rowGap: 8 },
+  actionCard:   { width: TILE_W, height: 92, borderRadius: 16, backgroundColor: D.navy, alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 2 },
+  actionText:   { color: '#C9BDC4', fontSize: 11, textAlign: 'center', lineHeight: 14, fontFamily: 'Poppins_400Regular' },
 
-  /* RECENT ACTIVITY */
-  activitySection:  { marginBottom: 10 },
-  activityCard:     { flexDirection: 'row', alignItems: 'center', backgroundColor: '#010A1F', borderWidth: 1, borderColor: BLUE_BORDER, borderRadius: 16, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 10, overflow: 'hidden' },
-  activityIconWrap: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#010A1F', alignItems: 'center', justifyContent: 'center', marginRight: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' },
-  activityInfo:     { flex: 1 },
-  activityTitle:    { color: AppColors.textPrimary, fontSize: 12, fontFamily: 'Poppins_500Medium' },
-  activitySub:      { color: AppColors.textSecondary, fontSize: 8, marginTop: 2, fontFamily: 'Poppins_400Regular' },
-  emptyBox:         { alignItems: 'center', paddingVertical: 28, gap: 8 },
-  emptyTxt:         { color: AppColors.textSecondary, fontSize: 13, fontFamily: 'Poppins_400Regular' },
+  activitySection:  { marginTop: 26 },
+  activityCard:     { minHeight: 60, marginBottom: 12, paddingHorizontal: 10, paddingVertical: 8, flexDirection: 'row', alignItems: 'center' },
+  activityIconWrap: { width: 42, height: 42, borderRadius: 21, backgroundColor: '#0B2358', alignItems: 'center', justifyContent: 'center' },
+  activityInfo:     { flex: 1, marginLeft: 10 },
+  activityTitle:    { color: '#FFFFFF', fontSize: 14, fontFamily: 'Poppins_500Medium' },
+  activitySub:      { color: D.muted, fontSize: 10, marginTop: 2, fontFamily: 'Poppins_400Regular' },
 });

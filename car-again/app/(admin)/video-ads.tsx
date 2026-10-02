@@ -3,7 +3,7 @@ import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   TextInput, Alert, KeyboardAvoidingView, Platform, ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
@@ -15,6 +15,14 @@ import { AppColors, useAppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 import AdminFooter from '@/components/admin/AdminFooter';
+import {
+  AddChip, BottomActions, Chip as DChip, DField, DHeader, DSelect, SaveDraftAction, TermsRow, UploadBox, dk,
+} from '@/components/dealer/DealerUI';
+import { GlassButton, GradientButton } from '@/components/shared/GlowUI';
+
+const VIDEO_TYPES = ['Discover', 'latest Review', 'Homepage Hero'];
+import { SavedCardEffect } from "@/components/shared/FigmaEffects";
+import { ActionFooter, GlowPublishButton, GlowDraftButton } from "@/components/shared/ActionFooterGlow";
 
 const ORANGE = AppColors.gradientEnd;
 const NAVY   = AppColors.gradientStart;
@@ -26,15 +34,7 @@ const PARTNERS       = ['Autowizor (Default)', 'PakWheels', 'OLX Autos'];
 
 function GlassInset() {
   const aC = useAppColors();
-  if (aC.isDark) {
-    return (
-      <>
-        <LinearGradient colors={['rgba(22,64,136,0.2)','transparent']} start={{x:0.5,y:0}} end={{x:0.5,y:0.6}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-        <LinearGradient colors={['rgba(13,37,84,0.18)','transparent']} start={{x:0,y:0.5}} end={{x:0.45,y:0.5}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-        <LinearGradient colors={['transparent','rgba(29,83,175,0.2)']} start={{x:0.5,y:0.4}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-      </>
-    );
-  }
+  if (aC.isDark) return <SavedCardEffect band={12} />;
   return (
     <>
       <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
@@ -45,6 +45,7 @@ function GlassInset() {
 
 export default function AdminVideoAdsScreen() {
   const router    = useRouter();
+  const insets    = useSafeAreaInsets();
   const { token } = useAuth();
   const aC = useAppColors();
 
@@ -58,6 +59,7 @@ export default function AdminVideoAdsScreen() {
   const [publishing,   setPublishing]   = useState(false);
   const [locOpen,      setLocOpen]      = useState(false);
   const [partnerOpen,  setPartnerOpen]  = useState(false);
+  const [videoType,    setVideoType]    = useState('Discover');
 
   async function pickMedia() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -129,214 +131,95 @@ export default function AdminVideoAdsScreen() {
     <View style={[s.container, { backgroundColor: aC.bg }]}>
       <SafeAreaView style={[s.safeArea, { backgroundColor: aC.bg }]} edges={['top']}>
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-
-          {/* HEADER */}
-          <View style={[s.header, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderBottomWidth: aC.isDark ? 0 : 1, borderBottomColor: 'rgba(3,42,105,0.08)' }]}>
-            <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-              <ChevronLeft size={24} color={aC.isDark ? AppColors.textPrimary : '#010a1f'} strokeWidth={2}/>
-            </TouchableOpacity>
-            <Text style={[s.headerTitle, { color: aC.isDark ? AppColors.textPrimary : '#010a1f' }]}>Video Ads</Text>
-            <TouchableOpacity style={s.draftTopBtn}>
-              <Bookmark size={18} color={ORANGE} fill={ORANGE}/>
-              <Text style={s.draftTopTxt}>Save Draft</Text>
-            </TouchableOpacity>
-          </View>
-
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scrollContent}>
 
-            {/* RECOMMENDATION */}
-            <View style={[s.recCard, { backgroundColor: aC.isDark ? AppColors.bg : '#ffffff', borderColor: aC.isDark ? 'rgba(226,103,27,0.4)' : 'rgba(3,42,105,0.12)' }]}>
-              <LinearGradient colors={['transparent','rgba(226,103,27,0.35)']} start={{x:0.5,y:0.5}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <View style={s.recIconWrap}>
-                <Lightbulb size={16} color={ORANGE} fill={'rgba(226,103,27,0.3)'}/>
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={[s.recTitle, { color: aC.isDark ? AppColors.textPrimary : '#010a1f' }]}>Recommendation</Text>
-                <Text style={[s.recText, { color: aC.isDark ? AppColors.textSecondary : '#475569' }]}>Video Ads are best for showcasing vehicles directly to interested buyers. Best for: Higher engagement & vehicle showcase</Text>
-              </View>
+            {/* HEADER */}
+            <View style={{ marginHorizontal: -16 }}>
+              <DHeader title="Video Ads" center right={<SaveDraftAction onPress={() => Alert.alert('Saved', 'Video Ad saved as draft.')} />} />
             </View>
 
             {/* UPLOAD */}
-            <TouchableOpacity style={[s.uploadBox, { backgroundColor: aC.isDark ? AppColors.glassBg : '#ffffff', borderColor: aC.isDark ? 'rgba(255,255,255,0.15)' : 'rgba(3,42,105,0.12)' }]} onPress={pickMedia} activeOpacity={0.8}>
-              <Upload size={26} color={ORANGE}/>
-              <Text style={[s.uploadTitle, { color: aC.isDark ? AppColors.textPrimary : '#010a1f' }]}>{uploadedFile ? '✓ File selected' : '+ Upload video/img'}</Text>
-              <Text style={[s.uploadSub, { color: aC.isDark ? AppColors.textSecondary : '#475569' }]}>{uploadedFile ? uploadedFile.split('/').pop() : 'Tap to browse. Recommended 16:9 ratio.'}</Text>
-            </TouchableOpacity>
-
-            {/* VIDEO TITLE */}
-            <Text style={[s.label, { color: aC.isDark ? AppColors.textPrimary : '#010a1f' }]}>Video Title</Text>
-            <View style={[s.inputBox, { backgroundColor: aC.isDark ? AppColors.glassBg : '#ffffff', borderColor: aC.isDark ? 'rgba(99,148,214,0.4)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.06)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 1 }]}>
-              <GlassInset/>
-              <TextInput
-                style={[s.input, { color: aC.isDark ? AppColors.textPrimary : '#010a1f' }]}
-                placeholder="e.g. Summer Auto Sale"
-                placeholderTextColor={aC.isDark ? AppColors.textPlaceholder : "#94a3b8"}
-                value={videoTitle}
-                onChangeText={setVideoTitle}
-              />
+            <View style={{ marginTop: 8, alignItems: 'center' }}>
+              <View style={{ width: '88%' }}>
+                <UploadBox title="+ Upload video/img" sub="Drag & drop or click to browse. Recommended 16:9 / 9:16 ratio." onPress={pickMedia}>
+                  {uploadedFile ? (
+                    <View style={{ alignItems: 'center', gap: 8 }}>
+                      <Text style={{ color: '#22c55e', fontSize: 13, fontFamily: 'Poppins_500Medium' }}>✓ File selected</Text>
+                      <Text style={{ color: '#BAACB6', fontSize: 11, fontFamily: 'Poppins_400Regular' }} numberOfLines={1}>{uploadedFile.split('/').pop()}</Text>
+                    </View>
+                  ) : undefined}
+                </UploadBox>
+              </View>
             </View>
 
-            {/* DISPLAY LOCATION */}
-            <Text style={[s.label, { color: aC.isDark ? AppColors.textPrimary : '#010a1f' }]}>Display Location</Text>
-            <TouchableOpacity style={[s.dropdownBox, { backgroundColor: aC.isDark ? AppColors.glassBg : '#ffffff', borderColor: aC.isDark ? 'rgba(99,148,214,0.4)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.06)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 1 }]} onPress={() => { setLocOpen(v => !v); setPartnerOpen(false); }} activeOpacity={0.8}>
-              <GlassInset/>
-              <Text style={[s.dropdownText, { color: aC.isDark ? AppColors.textSecondary : '#475569' }]}>{location}</Text>
-              <ChevronDown size={16} color={aC.isDark ? AppColors.textSecondary : "#475569"}/>
-            </TouchableOpacity>
+            <Text style={dk.label}>Video Type</Text>
+            <View style={s.chipsRow}>
+              {VIDEO_TYPES.map(t => <DChip key={t} small label={t} selected={videoType === t} onPress={() => setVideoType(t)} />)}
+            </View>
+
+            <Text style={dk.label}>Video Title</Text>
+            <DField value={videoTitle} onChangeText={setVideoTitle} placeholder="e.g. Summer Auto Sale" />
+
+            <Text style={dk.label}>Display Location</Text>
+            <DSelect value={location} onPress={() => { setLocOpen(v => !v); setPartnerOpen(false); }} />
             {locOpen && (
-              <View style={[s.dropMenu, { backgroundColor: aC.isDark ? '#0D1E3F' : '#ffffff', borderColor: aC.isDark ? 'rgba(80,123,182,0.4)' : 'rgba(3,42,105,0.12)' }]}>
+              <View style={s.dropMenu}>
                 {LOCATIONS.map(opt => (
-                  <TouchableOpacity key={opt} style={[s.dropItem, { borderBottomColor: aC.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(3,42,105,0.06)' }]} onPress={() => { setLocation(opt); setLocOpen(false); }}>
-                    <Text style={[s.dropItemTxt, { color: opt === location ? ORANGE : (aC.isDark ? '#C8D3E8' : '#475569') }]}>{opt}</Text>
+                  <TouchableOpacity key={opt} style={s.dropItem} onPress={() => { setLocation(opt); setLocOpen(false); }}>
+                    <Text style={[s.dropItemTxt, opt === location && { color: ORANGE }]}>{opt}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
             )}
 
-            {/* PARTNER */}
-            <Text style={[s.label, { color: aC.isDark ? AppColors.textPrimary : '#010a1f' }]}>Partner Selection</Text>
-            <TouchableOpacity style={[s.dropdownBox, { backgroundColor: aC.isDark ? AppColors.glassBg : '#ffffff', borderColor: aC.isDark ? 'rgba(99,148,214,0.4)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.06)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 1 }]} onPress={() => { setPartnerOpen(v => !v); setLocOpen(false); }} activeOpacity={0.8}>
-              <GlassInset/>
-              <Text style={[s.dropdownText, { color: aC.isDark ? AppColors.textSecondary : '#475569' }]}>{partner}</Text>
-              <ChevronDown size={16} color={aC.isDark ? AppColors.textSecondary : "#475569"}/>
-            </TouchableOpacity>
+            <Text style={dk.label}>Partner Selection</Text>
+            <DSelect value={partner} onPress={() => { setPartnerOpen(v => !v); setLocOpen(false); }} />
             {partnerOpen && (
-              <View style={[s.dropMenu, { backgroundColor: aC.isDark ? '#0D1E3F' : '#ffffff', borderColor: aC.isDark ? 'rgba(80,123,182,0.4)' : 'rgba(3,42,105,0.12)' }]}>
+              <View style={s.dropMenu}>
                 {PARTNERS.map(opt => (
-                  <TouchableOpacity key={opt} style={[s.dropItem, { borderBottomColor: aC.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(3,42,105,0.06)' }]} onPress={() => { setPartner(opt); setPartnerOpen(false); }}>
-                    <Text style={[s.dropItemTxt, { color: opt === partner ? ORANGE : (aC.isDark ? '#C8D3E8' : '#475569') }]}>{opt}</Text>
+                  <TouchableOpacity key={opt} style={s.dropItem} onPress={() => { setPartner(opt); setPartnerOpen(false); }}>
+                    <Text style={[s.dropItemTxt, opt === partner && { color: ORANGE }]}>{opt}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
             )}
 
-            {/* USER TYPE */}
-            <Text style={[s.label, { color: aC.isDark ? AppColors.textPrimary : '#010a1f' }]}>User Type</Text>
+            <Text style={dk.label}>Audience Targeting</Text>
+            <Text style={s.subLabel}>User Type</Text>
             <View style={s.chipsRow}>
-              {USER_TYPES.map(t => (
-                <TouchableOpacity key={t} style={[s.chip, { backgroundColor: aC.isDark ? AppColors.glassBg : (userType === t ? 'rgba(226,103,27,0.08)' : '#ffffff'), borderColor: aC.isDark ? 'rgba(255,255,255,0.1)' : (userType === t ? ORANGE : 'rgba(3,42,105,0.12)') }, userType === t && s.chipActive]} onPress={() => setUserType(t)}>
-                  <Text style={[s.chipText, { color: userType === t ? ORANGE : (aC.isDark ? AppColors.textSecondary : '#475569') }, userType === t && s.chipTextActive]}>{t}</Text>
-                </TouchableOpacity>
-              ))}
+              {USER_TYPES.map(t => <DChip key={t} small label={t} selected={userType === t} onPress={() => setUserType(t)} />)}
+              <AddChip small />
+            </View>
+            <Text style={[s.subLabel, { marginTop: 12 }]}>Cities</Text>
+            <View style={s.chipsRow}>
+              {CITIES.map(c => <DChip key={c} small label={c} selected={city === c} onPress={() => setCity(c)} />)}
+              <AddChip small />
             </View>
 
-            {/* CITIES */}
-            <Text style={[s.label, { color: aC.isDark ? AppColors.textPrimary : '#010a1f' }]}>Cities</Text>
-            <View style={s.chipsRow}>
-              {CITIES.map(c => (
-                <TouchableOpacity key={c} style={[s.chip, { backgroundColor: aC.isDark ? AppColors.glassBg : (city === c ? 'rgba(226,103,27,0.08)' : '#ffffff'), borderColor: aC.isDark ? 'rgba(255,255,255,0.1)' : (city === c ? ORANGE : 'rgba(3,42,105,0.12)') }, city === c && s.chipActive]} onPress={() => setCity(c)}>
-                  <Text style={[s.chipText, { color: city === c ? ORANGE : (aC.isDark ? AppColors.textSecondary : '#475569') }, city === c && s.chipTextActive]}>{c}</Text>
-                </TouchableOpacity>
-              ))}
-              <TouchableOpacity style={[s.chipPlus, { backgroundColor: aC.isDark ? AppColors.glassBg : '#ffffff', borderColor: aC.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(3,42,105,0.12)' }]}>
-                <Plus size={14} color={aC.isDark ? AppColors.textSecondary : "#475569"}/>
-              </TouchableOpacity>
-            </View>
+            <TermsRow checked={agreed} onToggle={() => setAgreed(v => !v)} />
 
-            {/* TERMS */}
-            <TouchableOpacity style={s.termsRow} onPress={() => setAgreed(v => !v)}>
-              {agreed
-                ? <CheckCircle2 size={20} color={ORANGE} fill={ORANGE}/>
-                : <Circle size={20} color={aC.isDark ? AppColors.textSecondary : "#475569"}/>
-              }
-              <Text style={[s.termsText, { color: aC.isDark ? AppColors.textSecondary : '#475569' }]}>I confirm that I have read and accept the terms and conditions and privacy policy.</Text>
-            </TouchableOpacity>
-
-            <View style={{ height: 140 }}/>
+            <View style={{ height: 190 }} />
           </ScrollView>
 
-          {/* BOTTOM BUTTONS */}
-          <View style={[s.bottomBar, { backgroundColor: aC.isDark ? 'rgba(1,10,31,0.96)' : '#ffffff', borderTopColor: aC.isDark ? 'rgba(255,255,255,0.07)' : 'rgba(3,42,105,0.08)' }]}>
-            <GlassInset/>
-            <TouchableOpacity
-              style={[s.publishBtn, (!agreed || publishing) && { opacity: 0.6 }]}
-              onPress={handlePublish}
-              disabled={publishing}
-              activeOpacity={0.85}
-            >
-              <LinearGradient
-                colors={['#c44e00', '#ff6900', '#ff9a00']}
-                start={{x:0,y:0}} end={{x:1,y:0}}
-                style={StyleSheet.absoluteFillObject}
-              />
-              <LinearGradient
-                colors={['rgba(3,42,105,0.95)','rgba(3,42,105,0.65)','rgba(3,42,105,0.15)']}
-                start={{x:0,y:0}} end={{x:1,y:0}}
-                style={StyleSheet.absoluteFillObject}
-                pointerEvents="none"
-              />
-              {publishing
-                ? <><ActivityIndicator color="#fff" size="small"/><Text style={[s.publishTxt,{marginLeft:8}]}>{uploadedFile ? 'Uploading...' : 'Publishing...'}</Text></>
-                : <Text style={s.publishTxt}>Publish Video Ad</Text>
-              }
-            </TouchableOpacity>
-
-            <TouchableOpacity style={[s.draftBtn, { backgroundColor: aC.isDark ? AppColors.glassBg : '#ffffff', borderColor: aC.isDark ? 'rgba(99,148,214,0.5)' : 'rgba(3,42,105,0.12)' }]} activeOpacity={0.8}>
-              <GlassInset/>
-              <Text style={[s.draftTxt, { color: aC.isDark ? AppColors.textPrimary : '#010a1f' }]}>Save as Draft</Text>
-            </TouchableOpacity>
-          </View>
-
+          {/* FOOTER BUTTONS */}
+          <ActionFooter style={{ position: 'absolute', left: 0, right: 0, bottom: 0, paddingBottom: Math.max(insets.bottom + 12, 22) }}>
+            <GlowPublishButton title="Publish  Reel" loadingTitle={uploadedFile ? 'Uploading...' : 'Publishing...'}
+              loading={publishing} onPress={handlePublish} />
+            <GlowDraftButton title="Save as Draft" onPress={() => Alert.alert('Saved', 'Video Ad saved as draft.')} />
+          </ActionFooter>
         </KeyboardAvoidingView>
       </SafeAreaView>
-
-      <AdminFooter active="home" />
     </View>
   );
 }
 
 const s = StyleSheet.create({
-  container:  { flex: 1, backgroundColor: AppColors.bg },
-  safeArea:   { flex: 1, backgroundColor: AppColors.bg },
-
-  header:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, height: 60 },
-  backBtn:     { width: 36, height: 36, justifyContent: 'center', alignItems: 'flex-start' },
-  headerTitle: { color: AppColors.textPrimary, fontSize: 17, fontFamily: 'Poppins_600SemiBold' },
-  draftTopBtn: { alignItems: 'center', gap: 2 },
-  draftTopTxt: { color: ORANGE, fontSize: 10, fontFamily: 'Poppins_500Medium' },
-
-  scrollContent: { paddingHorizontal: 18, paddingTop: 4, gap: 14, paddingBottom: 20 },
-
-  recCard: {
-    flexDirection: 'row', gap: 12,
-    borderRadius: 18, borderWidth: 1, borderColor: 'rgba(226,103,27,0.4)',
-    backgroundColor: AppColors.bg, padding: 14, overflow: 'hidden',
-  },
-  recIconWrap: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(226,103,27,0.2)', alignItems: 'center', justifyContent: 'center', marginTop: 2, flexShrink: 0 },
-  recTitle:    { color: AppColors.textPrimary, fontSize: 13, fontFamily: 'Poppins_600SemiBold', marginBottom: 3 },
-  recText:     { color: AppColors.textSecondary, fontSize: 12, fontFamily: 'Poppins_400Regular', lineHeight: 18 },
-
-  uploadBox: {
-    borderRadius: 18, borderWidth: 1.5, borderStyle: 'dashed',
-    borderColor: 'rgba(255,255,255,0.15)', paddingVertical: 32,
-    paddingHorizontal: 20, alignItems: 'center', gap: 10, backgroundColor: AppColors.glassBg,
-  },
-  uploadTitle: { color: AppColors.textPrimary, fontSize: 14, fontFamily: 'Poppins_500Medium' },
-  uploadSub:   { color: AppColors.textSecondary, fontSize: 12, fontFamily: 'Poppins_400Regular', textAlign: 'center' },
-
-  label:       { color: AppColors.textPrimary, fontSize: 13, fontFamily: 'Poppins_500Medium' },
-  inputBox:    { borderRadius: 30, borderWidth: 1, borderColor: 'rgba(99,148,214,0.4)', backgroundColor: AppColors.glassBg, overflow: 'hidden', paddingHorizontal: 18, paddingVertical: 2 },
-  input:       { height: 46, color: AppColors.textPrimary, fontSize: 13, fontFamily: 'Poppins_400Regular' },
-  dropdownBox: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderRadius: 30, borderWidth: 1, borderColor: 'rgba(99,148,214,0.4)', backgroundColor: AppColors.glassBg, overflow: 'hidden', paddingHorizontal: 18, paddingVertical: 14 },
-  dropdownText:{ color: AppColors.textSecondary, fontSize: 13, fontFamily: 'Poppins_400Regular' },
-
-  dropMenu: { marginTop: -8, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(80,123,182,0.4)', backgroundColor: '#0D1E3F', overflow: 'hidden', marginBottom: 4 },
-  dropItem:  { paddingHorizontal: 18, paddingVertical: 13, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.05)' },
-  dropItemTxt: { color: '#C8D3E8', fontSize: 13, fontFamily: 'Poppins_400Regular' },
-
-  chipsRow:      { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip:          { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 30, backgroundColor: AppColors.glassBg, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
-  chipActive:    { backgroundColor: 'rgba(226,103,27,0.15)', borderColor: ORANGE },
-  chipText:      { color: AppColors.textSecondary, fontSize: 12, fontFamily: 'Poppins_500Medium' },
-  chipTextActive:{ color: ORANGE },
-  chipPlus:      { width: 34, height: 34, borderRadius: 17, backgroundColor: AppColors.glassBg, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
-
-  termsRow:  { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
-  termsText: { flex: 1, color: AppColors.textSecondary, fontSize: 12, fontFamily: 'Poppins_400Regular', lineHeight: 18 },
-
-  bottomBar:  { position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: 18, paddingTop: 14, paddingBottom: 28, backgroundColor: 'rgba(1,10,31,0.96)', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.07)', overflow: 'hidden', gap: 10 },
-  publishBtn: { height: 50, borderRadius: 25, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', flexDirection: 'row' },
-  publishTxt: { color: '#fff', fontSize: 15, fontFamily: 'Poppins_700Bold' },
-  draftBtn:   { height: 50, borderRadius: 25, borderWidth: 1, borderColor: 'rgba(99,148,214,0.5)', overflow: 'hidden', alignItems: 'center', justifyContent: 'center', backgroundColor: AppColors.glassBg },
-  draftTxt:   { color: AppColors.textPrimary, fontSize: 13, fontFamily: 'Poppins_600SemiBold' },
+  container:     { flex: 1, backgroundColor: AppColors.bg },
+  safeArea:      { flex: 1, backgroundColor: AppColors.bg },
+  scrollContent: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 20 },
+  subLabel:      { color: '#FFFFFF', fontSize: 13, fontFamily: 'Poppins_400Regular', marginBottom: 8 },
+  chipsRow:      { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  dropMenu:      { marginTop: 4, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(80,123,182,0.4)', backgroundColor: '#0D1E3F', overflow: 'hidden', marginBottom: 4 },
+  dropItem:      { paddingHorizontal: 18, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.05)' },
+  dropItemTxt:   { color: '#C8D3E8', fontSize: 13, fontFamily: 'Poppins_400Regular' },
 });

@@ -63,7 +63,7 @@ export default function ComparePlansScreen() {
             <View key={i}>
               <View style={s.row}>
                 <View style={s.featureCol}>
-                  {row.icon ? <Ionicons name={row.icon} size={18} color="#FFFFFF" /> : <View style={{ width: 18 }} />}
+                  {row.icon ? <Ionicons name={row.icon} size={16} color="#FFFFFF" /> : <View style={{ width: 16 }} />}
                   <Text style={s.featureLabel}>{row.label}</Text>
                 </View>
                 <Cell value={row.basic}      highlight={false}/>
@@ -83,15 +83,15 @@ const s = StyleSheet.create({
   safeArea:  { flex: 1, backgroundColor: D.bg },
   container: { flex: 1, backgroundColor: D.bg },
   scroll:    { paddingHorizontal: 16, paddingBottom: 40 },
-  title:     { color: '#FFFFFF', fontSize: 20, fontFamily: 'Poppins_600SemiBold', marginTop: 2 },
+  title:     { color: '#FFFFFF', fontSize: 18, fontFamily: 'Poppins_600SemiBold', marginTop: 2 },
   row:       { flexDirection: 'row', alignItems: 'center', minHeight: 64, paddingVertical: 10 },
   rowDivider:{ height: 1, backgroundColor: 'rgba(255,255,255,0.14)' },
   featureCol:  { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 14, paddingRight: 6, paddingLeft: 4 },
-  featureLabel:{ flex: 1, color: '#FFFFFF', fontSize: 15, fontFamily: 'Poppins_600SemiBold', lineHeight: 21 },
+  featureLabel:{ flex: 1, color: '#FFFFFF', fontSize: 13, fontFamily: 'Poppins_600SemiBold', lineHeight: 18 },
 });
 
 const ct = StyleSheet.create({
-  colLabel: { width: COL + 8, color: '#FFFFFF', fontSize: 15, fontFamily: 'Poppins_400Regular', textAlign: 'center' },
+  colLabel: { width: COL + 8, color: '#FFFFFF', fontSize: 13, fontFamily: 'Poppins_400Regular', textAlign: 'center' },
   cell:     { width: COL + 8, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 2 },
-  cellTxt:  { color: '#FFFFFF', fontSize: 15, fontFamily: 'Poppins_400Regular', textAlign: 'center', lineHeight: 21 },
+  cellTxt:  { color: '#FFFFFF', fontSize: 13, fontFamily: 'Poppins_400Regular', textAlign: 'center', lineHeight: 18 },
 });

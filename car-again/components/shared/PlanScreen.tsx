@@ -10,7 +10,7 @@ import { AppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'expo-router';
-import { D, DHeader, DICON, DIcon, SegTabs, WarmCard } from '@/components/dealer/DealerUI';
+import { D, DHeader, DICON, DIcon, PillGlow, SegTabs, WarmCard } from '@/components/dealer/DealerUI';
 import { Image } from 'react-native';
 
 const ORANGE = AppColors.gradientEnd;
@@ -41,20 +41,20 @@ function fmt(price: number) {
 }
 
 /* ── Feature Row ── */
-function Feature({ text, color }: { text: string; color: string }) {
+function Feature({ text, color, dc }: { text: string; color: string; dc?: boolean }) {
   return (
     <View style={s.feature}>
-      <View style={[s.checkCircle, { backgroundColor: ORANGE }]}>
+      <View style={[s.checkCircle, { backgroundColor: dc ? D.orange : ORANGE }]}>
         <Check size={12} color="#fff" strokeWidth={3} />
       </View>
-      <Text style={s.featureText}>{text}</Text>
+      <Text style={[s.featureText, dc && { color: '#C9BDC4', fontSize: 15 }]}>{text}</Text>
     </View>
   );
 }
 
 /* ── Plan Card ── */
-function PlanCard({ plan, billing, isCurrent, onChoose, figma }: {
-  plan: Plan; billing: 'monthly' | 'yearly'; isCurrent: boolean; onChoose: () => void; figma?: boolean;
+function PlanCard({ plan, billing, isCurrent, onChoose, figma, dc }: {
+  plan: Plan; billing: 'monthly' | 'yearly'; isCurrent: boolean; onChoose: () => void; figma?: boolean; dc?: boolean;
 }) {
   const price    = billing === 'monthly' ? plan.monthly_price : (plan.yearly_price ?? plan.monthly_price);
   const priceStr = fmt(price);
@@ -94,10 +94,12 @@ function PlanCard({ plan, billing, isCurrent, onChoose, figma }: {
   }
 
   return (
-    <View style={[pc.card, isCurrent && { borderColor: plan.color }]}>
+    <View style={[pc.card, dc && dcs.card, isCurrent && { borderColor: dc ? D.orange : plan.color }]}>
+      {!dc && <>
       <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
       <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
       <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+      </>}
 
       {plan.is_popular && (
         <View style={[pc.popularBadge, { backgroundColor: ORANGE }]}>
@@ -105,36 +107,36 @@ function PlanCard({ plan, billing, isCurrent, onChoose, figma }: {
         </View>
       )}
       {isCurrent && (
-        <View style={[pc.currentBadge, { borderColor: plan.color }]}>
-          <Text style={[pc.currentTxt, { color: plan.color }]}>Current Plan</Text>
+        <View style={[pc.currentBadge, { borderColor: plan.color }, dc && fc.current]}>
+          <Text style={[pc.currentTxt, { color: plan.color }, dc && fc.currentTxt]}>Current Plan</Text>
         </View>
       )}
 
-      <Text style={[pc.planName, { color: plan.color }]}>{plan.name}</Text>
-      {plan.tagline ? <Text style={pc.tagline}>{plan.tagline}</Text> : null}
-      <Text style={pc.planDesc}>{plan.description}</Text>
+      <Text style={[pc.planName, { color: plan.color }, dc && fc.name]}>{plan.name}</Text>
+      {plan.tagline ? <Text style={[pc.tagline, dc && { color: '#C9BDC4' }]}>{plan.tagline}</Text> : null}
+      <Text style={[pc.planDesc, dc && fc.desc]}>{plan.description}</Text>
 
-      <View style={[pc.planIconWrap, { backgroundColor: isCurrent ? ORANGE : `${plan.color}22` }]}>
-        <PlanIcon size={30} color={isCurrent ? '#fff' : plan.color} fill={isCurrent ? '#fff' : plan.color} strokeWidth={1} />
+      <View style={[pc.planIconWrap, { backgroundColor: isCurrent ? ORANGE : `${plan.color}22` }, dc && fc.iconCircle]}>
+        <PlanIcon size={30} color={dc ? D.orange : isCurrent ? '#fff' : plan.color} fill={dc ? D.orange : isCurrent ? '#fff' : plan.color} strokeWidth={1} />
       </View>
 
-      <Text style={pc.price}>{priceStr}</Text>
-      {perLabel ? <Text style={pc.perLabel}>{perLabel}</Text> : null}
+      <Text style={[pc.price, dc && fc.price]}>{priceStr}</Text>
+      {perLabel ? <Text style={[pc.perLabel, dc && fc.per]}>{perLabel}</Text> : null}
 
-      <View style={pc.divider} />
+      <View style={[pc.divider, dc && { backgroundColor: 'rgba(230,225,232,0.18)' }]} />
 
-      {plan.features.map((f, i) => <Feature key={i} text={f} color={plan.color} />)}
+      {plan.features.map((f, i) => <Feature key={i} text={f} color={plan.color} dc={dc} />)}
 
       <TouchableOpacity
-        style={[pc.btn, { overflow: 'hidden', borderColor: isCurrent ? plan.color : 'transparent' }]}
+        style={[pc.btn, { overflow: 'hidden', borderColor: isCurrent ? (dc ? D.orange : plan.color) : 'transparent' }, dc && { borderRadius: 24, marginTop: 22 }]}
         disabled={isCurrent}
         activeOpacity={0.8}
         onPress={onChoose}
       >
         {!isCurrent && (
-          <LinearGradient colors={[NAVY, ORANGE]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+          <LinearGradient colors={(dc ? ['#0B3585', '#7E4F5C', '#E8702A'] : [NAVY, ORANGE]) as any} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
         )}
-        <Text style={[pc.btnTxt, isCurrent && { color: plan.color }]}>
+        <Text style={[pc.btnTxt, dc && fc.btnTxt, isCurrent && { color: dc ? D.orange : plan.color }]}>
           {isCurrent ? 'Current Plan' : priceStr === 'Custom' ? 'Contact Us' : `Choose ${plan.name}`}
         </Text>
       </TouchableOpacity>
@@ -149,9 +151,12 @@ type Props = {
   promoDesc:  string;
   /** Figma dealer-panel look (only the dealer Plan tab sets this) */
   figma?:     boolean;
+  /** Dealer colours / borders / backgrounds only — keeps this layout's icons & text (Seller Plan tab) */
+  dealerColors?: boolean;
 };
 
-export default function PlanScreen({ role, promoTitle, promoDesc, figma }: Props) {
+export default function PlanScreen({ role, promoTitle, promoDesc, figma, dealerColors }: Props) {
+  const dc = !!dealerColors && !figma;
   const { token } = useAuth();
   const router    = useRouter();
   const [billing,     setBilling]     = useState<'monthly' | 'yearly'>('monthly');
@@ -185,8 +190,8 @@ export default function PlanScreen({ role, promoTitle, promoDesc, figma }: Props
   }
 
   return (
-    <SafeAreaView style={s.safeArea} edges={['top']}>
-      <View style={s.container}>
+    <SafeAreaView style={[s.safeArea, dc && { backgroundColor: D.bg }]} edges={['top']}>
+      <View style={[s.container, dc && { backgroundColor: D.bg }]}>
 
         {figma ? (
           <>
@@ -212,9 +217,9 @@ export default function PlanScreen({ role, promoTitle, promoDesc, figma }: Props
         {/* HEADER */}
         <View style={s.header}>
           <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
-            <ChevronLeft size={24} color={C.textPrimary} strokeWidth={2} />
+            <ChevronLeft size={24} color={dc ? D.muted : C.textPrimary} strokeWidth={2} />
           </TouchableOpacity>
-          <Text style={s.headerTitle}>Subscription Plans</Text>
+          <Text style={[s.headerTitle, dc && { color: '#FFFFFF', fontSize: 18, fontFamily: 'Poppins_500Medium' }]}>Subscription Plans</Text>
           <TouchableOpacity onPress={() => router.push('/compare-plans' as any)}>
             <Text style={s.compareTxt}>Compare Plans</Text>
           </TouchableOpacity>
@@ -223,8 +228,9 @@ export default function PlanScreen({ role, promoTitle, promoDesc, figma }: Props
         {/* BILLING TABS */}
         <View style={s.tabsWrapper}>
           {(['monthly', 'yearly'] as const).map(b => (
-            <TouchableOpacity key={b} onPress={() => setBilling(b)} style={[s.tab, billing === b && s.activeTab]}>
-              <Text style={[s.tabText, billing === b && s.activeTabText]}>
+            <TouchableOpacity key={b} onPress={() => setBilling(b)} style={[s.tab, billing === b && s.activeTab, dc && billing === b && dcs.tabOn]}>
+              {dc && billing === b && <PillGlow />}
+              <Text style={[s.tabText, dc && { color: '#E6E1E8', fontSize: 16 }, billing === b && s.activeTabText, dc && billing === b && { color: D.orange }]}>
                 {b === 'monthly' ? 'Monthly' : 'Yearly'}
               </Text>
               {b === 'yearly' && <Text style={s.saveText}>(save 20%)</Text>}
@@ -232,7 +238,7 @@ export default function PlanScreen({ role, promoTitle, promoDesc, figma }: Props
           ))}
         </View>
 
-        <View style={s.separator} />
+        <View style={[s.separator, dc && { backgroundColor: 'rgba(255,255,255,0.14)' }]} />
         </>)}
 
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scrollContent}>
@@ -262,34 +268,38 @@ export default function PlanScreen({ role, promoTitle, promoDesc, figma }: Props
               </View>
             </WarmCard>
           ) : (
-          <View style={s.promoCard}>
+          <View style={[s.promoCard, dc && dcs.promoCard]}>
+            {dc ? (
+              <LinearGradient colors={['#0A1A45', '#0E1E45', '#2C2A45', '#5A3A36']} locations={[0, 0.45, 0.75, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+            ) : (<>
             <LinearGradient colors={['rgba(22,64,136,0.25)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
             <LinearGradient colors={['transparent', 'rgba(226,103,27,0.15)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+            </>)}
             <View style={s.promoLeft}>
               <Crown size={32} color={ORANGE} fill={ORANGE} strokeWidth={1.5} />
-              <Text style={s.promoTitle}>{promoTitle}</Text>
-              <Text style={s.promoDescription}>{promoDesc}</Text>
+              <Text style={[s.promoTitle, dc && fc.promoTitle]}>{promoTitle}</Text>
+              <Text style={[s.promoDescription, dc && fc.promoDesc]}>{promoDesc}</Text>
             </View>
             <View style={s.promoRight}>
               <View style={s.promoItem}>
                 <View style={s.promoIcon}><Car size={17} color={ORANGE} /></View>
                 <View style={s.promoTextContainer}>
-                  <Text style={s.promoItemTitle}>Increase Visibility</Text>
-                  <Text style={s.promoItemText}>{'Your ads reach thousands\nof serious buyers'}</Text>
+                  <Text style={[s.promoItemTitle, dc && fc.promoItemTitle]}>Increase Visibility</Text>
+                  <Text style={[s.promoItemText, dc && fc.promoItemText]}>{'Your ads reach thousands\nof serious buyers'}</Text>
                 </View>
               </View>
               <View style={s.promoItem}>
                 <View style={s.promoIcon}><TrendingUp size={17} color={ORANGE} /></View>
                 <View style={s.promoTextContainer}>
-                  <Text style={s.promoItemTitle}>Generate More Leads</Text>
-                  <Text style={s.promoItemText}>{'Get more enquiries and\nreservation requests'}</Text>
+                  <Text style={[s.promoItemTitle, dc && fc.promoItemTitle]}>Generate More Leads</Text>
+                  <Text style={[s.promoItemText, dc && fc.promoItemText]}>{'Get more enquiries and\nreservation requests'}</Text>
                 </View>
               </View>
               <View style={s.promoItem}>
                 <View style={s.promoIcon}><Crown size={17} color={ORANGE} /></View>
                 <View style={s.promoTextContainer}>
-                  <Text style={s.promoItemTitle}>Build Trust</Text>
-                  <Text style={s.promoItemText}>{'Verified partners get\nmore trust and sales'}</Text>
+                  <Text style={[s.promoItemTitle, dc && fc.promoItemTitle]}>Build Trust</Text>
+                  <Text style={[s.promoItemText, dc && fc.promoItemText]}>{'Verified partners get\nmore trust and sales'}</Text>
                 </View>
               </View>
             </View>
@@ -315,6 +325,7 @@ export default function PlanScreen({ role, promoTitle, promoDesc, figma }: Props
                 plan={plan}
                 billing={billing}
                 figma={figma}
+                dc={dc}
                 isCurrent={currentPlan === plan.id}
                 onChoose={async () => {
                   if (subStatus?.active) {
@@ -440,4 +451,11 @@ const pc = StyleSheet.create({
 
   btn:    { height: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginTop: 18, borderWidth: 1 },
   btnTxt: { color: '#fff', fontSize: 14, fontFamily: 'Poppins_600SemiBold' },
+});
+
+// Dealer colours for the standard layout (dealerColors prop)
+const dcs = StyleSheet.create({
+  card:      { backgroundColor: 'transparent', borderRadius: 30, borderColor: 'rgba(230,225,232,0.3)', paddingTop: 24, paddingBottom: 24, marginBottom: 18 },
+  tabOn:     { backgroundColor: '#05122A', borderColor: '#7F98C4', overflow: 'hidden' },
+  promoCard: { borderRadius: 26, borderWidth: 1.2, borderColor: '#B0603A', backgroundColor: 'transparent', marginBottom: 20 },
 });

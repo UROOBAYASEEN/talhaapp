@@ -235,7 +235,7 @@ export default function DealerProfileScreen() {
           </View>
 
           {/* ── ACHIEVEMENTS ── */}
-          {(info?.achievements?.length > 0 || avgRating > 0 || since) && (
+          {(info?.achievements?.length > 0 || avgRating > 0 || !!since) && (
             <>
               <Text style={s.achievementTitle}>Achievements</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.achievementRow}>

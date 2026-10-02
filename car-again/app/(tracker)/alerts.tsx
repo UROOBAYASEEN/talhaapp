@@ -10,6 +10,8 @@ import { useRouter } from 'expo-router';
 import { AppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { D, DHeader, GlowCard } from '@/components/dealer/DealerUI';
 
 const ORANGE = '#e2671b';
 const C = AppColors;
@@ -43,27 +45,23 @@ function NotifIcon({ type }: { type: string }) {
 function AlertCard({ item, onPress }: { item: any; onPress: () => void }) {
   const color = notifColor(item.type);
   return (
-    <TouchableOpacity style={s.card} onPress={onPress} activeOpacity={0.8}>
-      <LinearGradient colors={['rgba(22,64,136,0.35)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.25 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-      <LinearGradient colors={['transparent', 'rgba(29,83,175,0.35)']} start={{ x: 0.5, y: 0.75 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-      <LinearGradient colors={['rgba(13,37,84,0.35)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.25, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-      <LinearGradient colors={['transparent', 'rgba(13,37,84,0.35)']} start={{ x: 0.75, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-
+    <GlowCard onPress={onPress} style={s.card} radius={20}>
       {!item.is_read && <View style={[s.unreadDot, { backgroundColor: color }]} />}
-
       <View style={s.cardRow}>
-        <View style={[s.iconWrap, { backgroundColor: color }]}>
-          <NotifIcon type={item.type} />
+        <View style={s.iconWrap}>
+          {item.type === 'tracker_approved' || item.type === 'tracker_rejected' || item.type === 'tracker_request'
+            ? <Ionicons name="document-text" size={26} color={ORANGE} />
+            : <MaterialCommunityIcons name="clipboard-alert" size={26} color={ORANGE} />}
         </View>
         <View style={{ flex: 1 }}>
           <View style={s.titleRow}>
-            <Text style={[s.alertTitle, !item.is_read && { color: '#fff' }]}>{item.title}</Text>
+            <Text style={s.alertTitle}>{item.title}</Text>
             <Text style={s.alertTime}>{timeAgo(item.created_at)}</Text>
           </View>
           <Text style={s.alertMsg}>{item.body}</Text>
         </View>
       </View>
-    </TouchableOpacity>
+    </GlowCard>
   );
 }
 
@@ -121,25 +119,16 @@ export default function TrackerAlertsScreen() {
   return (
     <View style={s.root}>
       <SafeAreaView edges={['top']}>
-        <View style={s.header}>
-          <View style={s.headerLeft}>
-            <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
-              <ChevronLeft size={22} color={C.textPrimary} />
-            </TouchableOpacity>
-            <Text style={s.headerTitle}>Notifications</Text>
-            {unread > 0 && (
-              <View style={s.badge}>
-                <Text style={s.badgeTxt}>{unread}</Text>
-              </View>
-            )}
-          </View>
-          {unread > 0 && (
+        <DHeader
+          title="System Alerts"
+          titleStyle={{ fontSize: 19 }}
+          right={
             <TouchableOpacity style={s.markAllBtn} onPress={markAllRead}>
-              <CheckCheck size={13} color={ORANGE} />
-              <Text style={s.markAllTxt}>Mark all read</Text>
+              <CheckCheck size={16} color={ORANGE} />
+              <Text style={s.markAllTxt}>Mark all as read</Text>
             </TouchableOpacity>
-          )}
-        </View>
+          }
+        />
       </SafeAreaView>
 
       {loading ? (
@@ -167,27 +156,21 @@ export default function TrackerAlertsScreen() {
 }
 
 const s = StyleSheet.create({
-  root:        { flex: 1, backgroundColor: C.bg },
-  header:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12 },
-  headerLeft:  { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  backBtn:     { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { fontSize: 15, fontFamily: 'Poppins_700Bold', color: C.textPrimary },
-  badge:       { backgroundColor: ORANGE, borderRadius: 10, minWidth: 20, height: 20, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 5 },
-  badgeTxt:    { fontSize: 11, fontFamily: 'Poppins_700Bold', color: '#fff' },
-  markAllBtn:  { flexDirection: 'row', alignItems: 'center', gap: 4, borderWidth: 1, borderColor: ORANGE, borderRadius: 30, paddingHorizontal: 9, paddingVertical: 4 },
-  markAllTxt:  { fontSize: 9, fontFamily: 'Poppins_600SemiBold', color: ORANGE },
+  root:        { flex: 1, backgroundColor: D.bg },
+  markAllBtn:  { flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, borderColor: ORANGE, borderRadius: 12, paddingHorizontal: 12, height: 36 },
+  markAllTxt:  { fontSize: 12, fontFamily: 'Poppins_500Medium', color: ORANGE },
 
-  list: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 100, gap: 12 },
+  list:        { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 100, gap: 18 },
 
-  card:       { borderRadius: 14, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(100,160,255,0.5)', backgroundColor: '#010A1F', padding: 10, position: 'relative' },
-  unreadDot:  { position: 'absolute', top: 10, right: 10, width: 7, height: 7, borderRadius: 4 },
-  cardRow:    { flexDirection: 'row', gap: 10 },
-  iconWrap:   { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  titleRow:   { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 6, marginBottom: 4 },
-  alertTitle: { fontSize: 11, fontFamily: 'Poppins_700Bold', color: C.textSecondary, flex: 1 },
-  alertTime:  { fontSize: 9, fontFamily: 'Poppins_400Regular', color: '#8f9cb5', flexShrink: 0 },
-  alertMsg:   { fontSize: 10, fontFamily: 'Poppins_400Regular', color: C.textSecondary, lineHeight: 15, paddingRight: 12 },
+  card:        { padding: 18, paddingTop: 16 },
+  unreadDot:   { position: 'absolute', top: 20, right: 16, width: 8, height: 8, borderRadius: 4 },
+  cardRow:     { flexDirection: 'row', gap: 12 },
+  iconWrap:    { width: 30, alignItems: 'center', paddingTop: 4 },
+  titleRow:    { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 6, marginBottom: 4, paddingRight: 14 },
+  alertTitle:  { fontSize: 17, fontFamily: 'Poppins_500Medium', color: '#FFFFFF', flex: 1 },
+  alertTime:   { fontSize: 11, fontFamily: 'Poppins_400Regular', color: D.muted, flexShrink: 0, paddingTop: 4 },
+  alertMsg:    { fontSize: 12, fontFamily: 'Poppins_400Regular', color: D.muted, lineHeight: 19, paddingRight: 10 },
 
   empty:    { alignItems: 'center', paddingTop: 80, gap: 12 },
-  emptyTxt: { fontSize: 14, fontFamily: 'Poppins_500Medium', color: C.textSecondary },
+  emptyTxt: { fontSize: 14, fontFamily: 'Poppins_500Medium', color: D.muted },
 });

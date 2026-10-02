@@ -15,6 +15,10 @@ import { Clipboard } from 'react-native';
 import { AppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { Ionicons } from '@expo/vector-icons';
+import { Linking, Modal, Pressable } from 'react-native';
+import { BottomActions, D, DHeader, OutlineCard, StatusPill, WarmCard } from '@/components/dealer/DealerUI';
+import { GlassButton, GradientButton } from '@/components/shared/GlowUI';
 
 const ORANGE = '#e2671b';
 const BG     = '#010A1F';
@@ -36,16 +40,22 @@ function GlassInset() {
   );
 }
 
-function InfoRow({ Icon, label, value, last }: { Icon?: any; label: string; value: string; last?: boolean }) {
+function InfoRow({ Icon, label, value, last, bold }: { Icon?: any; label: string; value: string; last?: boolean; bold?: boolean }) {
   return (
     <View style={[s.infoRow, !last && s.infoRowBorder]}>
       <View style={s.infoLeft}>
         {Icon && <Icon size={15} color={ORANGE} />}
         <Text style={s.infoLabel}>{label}</Text>
       </View>
-      <Text style={s.infoValue} numberOfLines={2}>{value || '—'}</Text>
+      <Text style={[s.infoValue, bold && { fontFamily: 'Poppins_600SemiBold' }]} numberOfLines={2}>{value || '—'}</Text>
     </View>
   );
+}
+
+// Full amount, e.g. PKR 1,200,000 (Figma financing table)
+function pkr(v: number) {
+  if (!v) return '—';
+  return `PKR ${Number(v).toLocaleString()}`;
 }
 
 function fmt(v: number) {
@@ -71,6 +81,7 @@ export default function BankCaseDetail() {
   const [docs,     setDocs]     = useState<any[]>([]);
   const [loading,  setLoading]  = useState(true);
   const [updating, setUpdating] = useState(false);
+  const [showDocs, setShowDocs] = useState(false);
 
   const DUMMY_DATA: Record<string, any> = {
     '1': { id: '1', reference_no: 'AWZ-2025-08421', full_name: 'Ahmed Raza',   vehicle_type: 'car', condition: 'new',  brand: 'Honda',   car_model: 'City',     variant: 'Aspire CVT', color: 'White',  year: '2024', city: 'Karachi',    vehicle_price: 4500000, down_payment: 1000000, loan_amount: 3500000, monthly_installment: 58300, tenure_years: 5, markup_rate: 13.9, rate_type: 'variable', employment_type: 'Salaried',    monthly_income: 150000, cnic: '42101-1234567-1', bank_name: 'Meezan', bank_product: 'Car Ijarah', status: 'submitted',  documents: [] },
@@ -141,306 +152,270 @@ export default function BankCaseDetail() {
   }
 
   const sColor = statusColor(app.status);
+  const statusLabel = app.status === 'reviewing' ? 'Under Review' : app.status === 'submitted' ? 'New' : String(app.status || '');
+  const tone: any = app.status === 'approved' ? 'green' : app.status === 'rejected' ? 'red' : app.status === 'reviewing' ? 'green' : 'orange';
+
+  // All documents (uploaded docs first, then files attached to the application)
+  const allDocs: { uri: string; label: string }[] = [
+    ...docs.map((d: any) => ({ uri: resolveUrl(d.file_url) || d.file_url, label: d.doc_type || 'Document' })),
+    ...(((app as any).documents || []) as string[]).map((u, i) => ({ uri: resolveUrl(u) || u, label: `Document ${i + 1}` })),
+  ];
 
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.content} style={{ marginBottom: 140 }}>
-
-        {/* HEADER */}
-        <View style={s.header}>
-          <View style={s.headerLeft}>
-            <TouchableOpacity onPress={() => router.back()}>
-              <ChevronLeft size={24} color={AppColors.textPrimary} />
-            </TouchableOpacity>
-            <Text style={s.heading}>Case Details</Text>
-          </View>
-        </View>
+      <DHeader title="Case Details" center right={<Ionicons name="print-outline" size={26} color={ORANGE} />} />
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.content}>
 
         {/* SUMMARY CARD */}
-        <View style={s.summaryOuter}>
-          <LinearGradient colors={[ORANGE, 'rgba(226,103,27,0.4)', 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFillObject} />
-          <View style={s.summaryInner}>
-            <LinearGradient colors={['#010A1F', '#010A1F']} style={StyleSheet.absoluteFillObject} />
-            <LinearGradient colors={['transparent', 'rgba(226,103,27,0.18)']} start={{ x: 0.5, y: 0.5 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-
-            <View style={s.avatarRow}>
-              <View style={s.avatarWrap}>
-                {(() => {
-                  const avatarUrl = resolveUrl((app as any).applicant_avatar || (app as any).avatar_url);
-                  return avatarUrl ? (
-                    <Image source={{ uri: avatarUrl }} style={s.avatarImage} resizeMode="cover" />
-                  ) : (
-                    <View style={s.avatarInitial}>
-                      <Text style={s.avatarInitialTxt}>{(app.full_name || 'U').charAt(0).toUpperCase()}</Text>
-                    </View>
-                  );
-                })()}
-                <View style={s.shieldBadge}>
-                  <ShieldCheck size={11} color="#fff" />
-                </View>
-              </View>
-              <View style={s.customerMeta}>
-                <View style={s.nameRow}>
-                  <Text style={s.customerName}>{app.full_name || '—'}</Text>
-                  <View style={[s.statusBadge, { backgroundColor: sColor + '22', borderColor: sColor + '55' }]}>
-                    <Text style={[s.statusText, { color: sColor }]}>{app.status}</Text>
+        <WarmCard style={s.summary}>
+          <View style={s.avatarRow}>
+            <View style={s.avatarWrap}>
+              {(() => {
+                const avatarUrl = resolveUrl((app as any).applicant_avatar || (app as any).avatar_url);
+                return avatarUrl ? (
+                  <Image source={{ uri: avatarUrl }} style={s.avatarImage} resizeMode="cover" />
+                ) : (
+                  <View style={s.avatarInitial}>
+                    <Text style={s.avatarInitialTxt}>{(app.full_name || 'U').charAt(0).toUpperCase()}</Text>
                   </View>
-                </View>
-                <View style={s.contactRow}>
-                  <MapPin size={12} color="rgba(255,255,255,0.7)" />
-                  <Text style={s.contactText}>{app.city || '—'}</Text>
-                </View>
-                <View style={s.contactRow}>
-                  <CreditCard size={12} color="rgba(255,255,255,0.7)" />
-                  <Text style={s.contactText}>{app.cnic || '—'}</Text>
-                </View>
-                {(app as any).applicant_phone || (app as any).applicant_email ? (
-                  <>
-                    {(app as any).applicant_phone ? (
-                      <View style={s.contactRow}>
-                        <Phone size={12} color="rgba(255,255,255,0.7)" />
-                        <Text style={s.contactText}>{(app as any).applicant_phone}</Text>
-                      </View>
-                    ) : null}
-                    {(app as any).applicant_email ? (
-                      <View style={s.contactRow}>
-                        <Mail size={12} color="rgba(255,255,255,0.7)" />
-                        <Text style={s.contactText}>{(app as any).applicant_email}</Text>
-                      </View>
-                    ) : null}
-                  </>
-                ) : null}
+                );
+              })()}
+              <View style={s.shieldBadge}>
+                <ShieldCheck size={12} color="#fff" />
               </View>
             </View>
-
-            <View style={s.caseIdRow}>
-              <Text style={s.caseIdLabel}>REFERENCE #</Text>
-              <View style={s.caseIdValueRow}>
-                <Text style={s.caseIdValue}>{app.reference_no}</Text>
-                <TouchableOpacity onPress={() => Clipboard.setString(app.reference_no)}>
-                  <Copy size={14} color="rgba(255,255,255,0.5)" />
-                </TouchableOpacity>
+            <View style={s.customerMeta}>
+              <View style={s.nameRow}>
+                <Text style={s.customerName} numberOfLines={1}>{app.full_name || '—'}</Text>
+                <StatusPill label={statusLabel} tone={tone} style={{ paddingHorizontal: 10, paddingVertical: 2 }} />
+              </View>
+              {(app as any).applicant_phone ? (
+                <View style={s.contactRow}>
+                  <Phone size={15} color="#fff" />
+                  <Text style={s.contactText}>{(app as any).applicant_phone}</Text>
+                </View>
+              ) : null}
+              {(app as any).applicant_email ? (
+                <View style={s.contactRow}>
+                  <Mail size={15} color="#fff" />
+                  <Text style={s.contactText} numberOfLines={1}>{(app as any).applicant_email}</Text>
+                </View>
+              ) : null}
+              <View style={s.contactRow}>
+                <MapPin size={15} color="#fff" />
+                <Text style={s.contactText}>{app.city || '—'}</Text>
               </View>
             </View>
           </View>
-        </View>
 
-        {/* VEHICLE IMAGE */}
-        {(() => {
-          const vImg = resolveUrl((app as any).vehicle_image);
-          return vImg ? (
-            <View style={s.vehicleImageCard}>
-              <Text style={s.sectionTitle}>Vehicle</Text>
+          <Text style={s.caseIdLabel}>CASE ID #</Text>
+          <View style={s.caseIdValueRow}>
+            <Text style={s.caseIdValue}>{app.reference_no}</Text>
+            <TouchableOpacity onPress={() => Clipboard.setString(app.reference_no)}>
+              <Copy size={16} color="#E6E1E8" />
+            </TouchableOpacity>
+          </View>
+        </WarmCard>
+
+        {/* CUSTOMER INFORMATION */}
+        <OutlineCard style={s.section}>
+          <Text style={s.sectionTitle}>Customer Information</Text>
+          <InfoRow Icon={User}       label="Customer Name"   value={app.full_name} />
+          <InfoRow Icon={CreditCard} label="CNIC Number"     value={app.cnic} />
+          <InfoRow Icon={Phone}      label="Mobile Number"   value={(app as any).applicant_phone || (app as any).phone} />
+          <InfoRow Icon={Mail}       label="Email Address"   value={(app as any).applicant_email || (app as any).email} />
+          <InfoRow Icon={MapPin}     label="City"            value={app.city} />
+          <InfoRow Icon={Smartphone} label="Employment Type" value={app.employment_type} />
+          <InfoRow                   label="Monthly Income"  value={fmt(app.monthly_income)} last />
+        </OutlineCard>
+
+        {/* VEHICLE INFORMATION */}
+        <OutlineCard style={s.section}>
+          <Text style={s.sectionTitle}>Vehicle Information</Text>
+          {(() => {
+            const vImg = resolveUrl((app as any).vehicle_image);
+            return vImg ? (
               <Image source={{ uri: vImg }} style={s.vehicleImage} resizeMode="cover" />
-              <Text style={s.vehicleImageLabel}>{[app.brand, app.car_model, app.variant].filter(Boolean).join(' ') || 'Vehicle'} • {app.year || ''} • {app.color || ''}</Text>
-            </View>
-          ) : (
-            <View style={s.vehicleImageCard}>
-              <Text style={s.sectionTitle}>Vehicle</Text>
+            ) : (
               <View style={s.vehiclePlaceholder}>
                 <Text style={s.vehiclePlaceholderTxt}>{(app.brand || 'V').charAt(0).toUpperCase()}</Text>
               </View>
-              <Text style={s.vehicleImageLabel}>{[app.brand, app.car_model, app.variant].filter(Boolean).join(' ') || 'Vehicle'} • {app.year || ''}</Text>
+            );
+          })()}
+          <InfoRow label="Brand/Model" value={[app.brand, app.car_model, app.variant].filter(Boolean).join(' ')} />
+          <InfoRow label="Variant"     value={app.variant} />
+          <InfoRow label="Year"        value={app.year} />
+          <View style={[s.infoRow, s.infoRowBorder]}>
+            <View style={s.infoLeft}><Text style={s.infoLabel}>Color</Text></View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              {app.color ? <View style={[s.colorDot, { backgroundColor: String(app.color).toLowerCase() }]} /> : null}
+              <Text style={s.infoValue}>{app.color || '—'}</Text>
             </View>
-          );
-        })()}
-
-        {/* CUSTOMER INFORMATION */}
-        <View style={s.section}>
-          <Text style={s.sectionTitle}>Customer Information</Text>
-          <InfoRow Icon={User}       label="Full Name"        value={app.full_name} />
-          <InfoRow Icon={CreditCard} label="CNIC"             value={app.cnic} />
-          <InfoRow Icon={MapPin}     label="City"             value={app.city} />
-          <InfoRow Icon={Smartphone} label="Employment Type"  value={app.employment_type} />
-          <InfoRow                   label="Monthly Income"   value={fmt(app.monthly_income)} last />
-        </View>
-
-        {/* VEHICLE INFORMATION */}
-        <View style={s.section}>
-          <Text style={s.sectionTitle}>Vehicle Information</Text>
-          <InfoRow label="Type"      value={app.vehicle_type + ' · ' + app.condition} />
-          <InfoRow label="Brand"     value={app.brand} />
-          <InfoRow label="Model"     value={app.car_model} />
-          <InfoRow label="Variant"   value={app.variant} />
-          <InfoRow label="Year"      value={app.year} />
-          <InfoRow label="Color"     value={app.color} last />
-        </View>
+          </View>
+          <InfoRow label="Fuel Type"   value={(app as any).fuel_type} />
+          <InfoRow label="Type"        value={app.vehicle_type + ' · ' + app.condition} last />
+        </OutlineCard>
 
         {/* FINANCING DETAILS */}
-        <View style={s.section}>
+        <OutlineCard style={s.section}>
           <Text style={s.sectionTitle}>Financing Details</Text>
-          <InfoRow label="Bank"               value={app.bank_name + ' · ' + app.bank_product} />
-          <InfoRow label="Vehicle Price"      value={fmt(app.vehicle_price)} />
-          <InfoRow label="Down Payment"       value={fmt(app.down_payment)} />
-          <InfoRow label="Loan Amount"        value={fmt(app.loan_amount)} />
-          <InfoRow label="Monthly Installment" value={fmt(app.monthly_installment)} />
-          <InfoRow label="Tenure"             value={`${app.tenure_years} Years`} />
-          <InfoRow label="Markup Rate"        value={`${app.markup_rate}%`} />
-          <InfoRow label="Rate Type"          value={app.rate_type} last />
-        </View>
+          <InfoRow bold label="Down Payment"        value={pkr(app.down_payment)} />
+          <InfoRow bold label="Financed Amount"     value={pkr(app.loan_amount)} />
+          <InfoRow bold label="Markup Rate"         value={`${app.markup_rate}%`} />
+          <InfoRow bold label="Monthly Installment" value={pkr(app.monthly_installment)} />
+          <InfoRow bold label="Financing Period"    value={`${app.tenure_years} Years`} />
+          <InfoRow bold label="Processing Fee"      value={(app as any).processing_fee != null ? pkr((app as any).processing_fee) : '—'} />
+          <InfoRow bold label="Vehicle Price"       value={pkr(app.vehicle_price)} />
+          <InfoRow bold label="Bank"                value={app.bank_name + ' · ' + app.bank_product} />
+          <InfoRow bold label="Rate Type"           value={app.rate_type} last />
+        </OutlineCard>
 
         {/* DOCUMENT GALLERY */}
         <View style={s.docHeader}>
-          <Text style={s.sectionTitle}>Documents ({docs.length})</Text>
+          <Text style={s.docTitle}>Document Gallery</Text>
+          <TouchableOpacity onPress={() => setShowDocs(true)}><Text style={s.viewAll}>View All</Text></TouchableOpacity>
         </View>
-        {docs.length === 0 ? (
+        {allDocs.length === 0 ? (
           <View style={s.emptyDocs}>
-            <FileText size={32} color={AppColors.textSecondary} />
+            <FileText size={32} color={D.muted} />
             <Text style={s.emptyDocsTxt}>No documents uploaded</Text>
-            {(app as any).documents?.length > 0 ? (
-              <View style={s.docGrid}>
-                {(app as any).documents.map((url: string, i: number) => {
-                  const resolved = resolveUrl(url) || url;
-                  const isImg = resolved?.match(/\.(jpg|jpeg|png|webp)$/i);
-                  return (
-                    <View key={`appdoc-${i}`} style={s.docItem}>
-                      {isImg ? (
-                        <Image source={{ uri: resolved! }} style={s.docImg} resizeMode="cover" />
-                      ) : (
-                        <View style={[s.docImg, s.docFile]}>
-                          <FileText size={24} color={ORANGE} />
-                        </View>
-                      )}
-                      <Text style={s.docLabel}>Document {i + 1}</Text>
-                    </View>
-                  );
-                })}
-              </View>
-            ) : null}
           </View>
         ) : (
-          <View style={s.docGrid}>
-            {docs.map((doc, i) => {
-              const resolved = resolveUrl(doc.file_url) || doc.file_url;
-              const isImg = resolved?.match(/\.(jpg|jpeg|png|webp)$/i);
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }} style={{ marginBottom: 20 }}>
+            {allDocs.map((d, i) => {
+              const isImg = d.uri?.match(/\.(jpg|jpeg|png|webp)$/i);
               return (
-                <View key={i} style={s.docItem}>
+                <TouchableOpacity key={i} style={s.docItem} activeOpacity={0.85} onPress={() => d.uri && Linking.openURL(d.uri)}>
                   {isImg ? (
-                    <Image source={{ uri: resolved! }} style={s.docImg} resizeMode="cover" />
+                    <Image source={{ uri: d.uri }} style={s.docImg} resizeMode="cover" />
                   ) : (
                     <View style={[s.docImg, s.docFile]}>
                       <FileText size={24} color={ORANGE} />
                     </View>
                   )}
-                  <Text style={s.docLabel}>{doc.doc_type}</Text>
-                </View>
+                  <Text style={s.docLabel} numberOfLines={1}>{d.label}</Text>
+                </TouchableOpacity>
               );
             })}
-          </View>
+          </ScrollView>
         )}
 
-        <View style={{ height: 20 }} />
-      </ScrollView>
+        <GradientButton title="View Customer Documents" height={52} fontSize={17} onPress={() => setShowDocs(true)} />
 
-      {/* FIXED FOOTER */}
-      <BlurView intensity={60} tint="dark" style={s.footer}>
-        <LinearGradient colors={['rgba(3,12,40,0.85)', 'rgba(3,12,40,0.95)']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-        <LinearGradient colors={['rgba(22,64,136,0.4)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-        <LinearGradient colors={['rgba(13,37,84,0.3)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-        <LinearGradient colors={['transparent', 'rgba(29,83,175,0.3)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-        <View style={s.actionBox}>
+        {/* ACTIONS — at the end of the page (Figma) */}
+        <View style={s.actionPanel}>
+          <LinearGradient colors={['rgba(23,52,110,0.92)', 'rgba(12,30,70,0.96)']} style={StyleSheet.absoluteFillObject} />
           {app.status !== 'approved' && (
-            <TouchableOpacity
-              style={s.approveWrap}
-              activeOpacity={0.85}
-              disabled={updating}
+            <GradientButton
+              title="Approve Financing"
+              height={50}
+              fontSize={17}
+              loading={updating}
               onPress={() => Alert.alert('Approve', 'Approve this financing application?', [
                 { text: 'Cancel', style: 'cancel' },
                 { text: 'Approve', onPress: () => updateStatus('approved') },
               ])}
-            >
-              <LinearGradient colors={['#1B2A63', ORANGE]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.approveGrad}>
-                {updating ? <ActivityIndicator color="#fff" size="small" /> : <Text style={s.approveText}>Approve Financing</Text>}
-              </LinearGradient>
-            </TouchableOpacity>
+            />
           )}
           {app.status !== 'rejected' && (
-            <TouchableOpacity
-              style={s.rejectBtn}
-              activeOpacity={0.8}
-              disabled={updating}
-              onPress={() => Alert.alert('Reject', 'Reject this financing application?', [
+            <GlassButton
+              title="Reject Financing"
+              height={46}
+              fontSize={15}
+              color="#E6E1E8"
+              onPress={() => !updating && Alert.alert('Reject', 'Reject this financing application?', [
                 { text: 'Cancel', style: 'cancel' },
                 { text: 'Reject', style: 'destructive', onPress: () => updateStatus('rejected') },
               ])}
-            >
-              <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <Text style={s.rejectText}>Reject Financing</Text>
-            </TouchableOpacity>
+            />
           )}
           {app.status === 'submitted' && (
-            <TouchableOpacity
-              style={[s.rejectBtn, { borderColor: '#60a5fa55' }]}
-              disabled={updating}
-              onPress={() => updateStatus('reviewing')}
-            >
-              <Text style={[s.rejectText, { color: '#60a5fa' }]}>Mark Under Review</Text>
-            </TouchableOpacity>
+            <GlassButton title="Mark Under Review" height={46} fontSize={15} color="#60a5fa" onPress={() => !updating && updateStatus('reviewing')} />
           )}
-        </View>
-      </BlurView>
+      </View>
+
+        <View style={{ height: 40 }} />
+      </ScrollView>
+
+      {/* CUSTOMER DOCUMENTS POPUP */}
+      <Modal visible={showDocs} transparent animationType="fade" onRequestClose={() => setShowDocs(false)}>
+        <Pressable style={s.docOverlay} onPress={() => setShowDocs(false)}>
+          <Pressable style={s.docSheet}>
+            <LinearGradient colors={['#0A1B44', '#030B1F']} style={StyleSheet.absoluteFillObject} />
+            <View style={s.docSheetHead}>
+              <Text style={s.docSheetTitle}>Customer Documents</Text>
+              <TouchableOpacity onPress={() => setShowDocs(false)}><Ionicons name="close" size={28} color={ORANGE} /></TouchableOpacity>
+            </View>
+            {allDocs.length === 0 ? (
+              <Text style={s.emptyDocsTxt}>No documents uploaded</Text>
+            ) : allDocs.map((d, i) => (
+              <View key={i} style={s.docRow}>
+                <View style={s.docRowIcon}><Ionicons name="document-text-outline" size={24} color={ORANGE} /></View>
+                <Text style={s.docRowTxt} numberOfLines={1}>{d.label}</Text>
+                <TouchableOpacity style={s.docViewBtn} onPress={() => d.uri && Linking.openURL(d.uri)}>
+                  <Text style={s.docViewTxt}>View</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }
 
 const s = StyleSheet.create({
-  safe:    { flex: 1, backgroundColor: BG },
-  content: { paddingHorizontal: 20, paddingTop: 4 },
+  safe:    { flex: 1, backgroundColor: D.bg },
+  content: { paddingHorizontal: 16, paddingTop: 4 },
 
-  header:     { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12 },
-  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  heading:    { color: AppColors.textPrimary, fontSize: 18, fontFamily: 'Poppins_600SemiBold' },
-
-  summaryOuter: { borderRadius: 24, padding: 1.5, overflow: 'hidden', marginBottom: 20, marginTop: 4 },
-  summaryInner: { borderRadius: 23, padding: 20, overflow: 'hidden' },
+  summary:      { padding: 18, borderRadius: 20, marginBottom: 18, marginTop: 4 },
   avatarRow:    { flexDirection: 'row', gap: 16, alignItems: 'flex-start' },
-  avatarWrap:   { position: 'relative', width: 64, height: 64 },
-  avatarInitial:{ width: 64, height: 64, borderRadius: 32, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'rgba(255,255,255,0.2)' },
-  avatarInitialTxt: { color: '#fff', fontSize: 26, fontFamily: 'Poppins_700Bold' },
-  avatarImage:  { width: 64, height: 64, borderRadius: 32, borderWidth: 2, borderColor: 'rgba(255,255,255,0.2)', backgroundColor: '#061B4A' },
-  shieldBadge:  { position: 'absolute', bottom: -4, right: -4, width: 22, height: 22, borderRadius: 11, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#1a1530' },
-  vehicleImageCard: { backgroundColor: '#010A1F', borderRadius: 20, padding: 16, marginBottom: 16, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
-  vehicleImage: { width: '100%', height: 180, borderRadius: 14, marginTop: 8, backgroundColor: '#061B4A' },
-  vehicleImageLabel: { color: 'rgba(255,255,255,0.7)', fontSize: 12, fontFamily: 'Poppins_500Medium', marginTop: 8, textAlign: 'center' },
-  vehiclePlaceholder: { width: '100%', height: 140, borderRadius: 14, marginTop: 8, backgroundColor: '#061B4A', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' },
-  vehiclePlaceholderTxt: { color: ORANGE, fontSize: 36, fontFamily: 'Poppins_700Bold' },
+  avatarWrap:   { position: 'relative', width: 84, height: 84 },
+  avatarInitial:{ width: 84, height: 84, borderRadius: 42, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#E6E1E8' },
+  avatarInitialTxt: { color: '#fff', fontSize: 30, fontFamily: 'Poppins_700Bold' },
+  avatarImage:  { width: 84, height: 84, borderRadius: 42, borderWidth: 2, borderColor: '#E6E1E8', backgroundColor: '#061B4A' },
+  shieldBadge:  { position: 'absolute', bottom: 0, right: -2, width: 26, height: 26, borderRadius: 13, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#fff' },
   customerMeta: { flex: 1 },
-  nameRow:      { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
-  customerName: { color: AppColors.textPrimary, fontSize: 17, fontFamily: 'Poppins_600SemiBold' },
-  statusBadge:  { borderRadius: 20, paddingHorizontal: 10, paddingVertical: 3, borderWidth: 1 },
-  statusText:   { fontSize: 10, fontFamily: 'Poppins_600SemiBold', textTransform: 'capitalize' },
-  contactRow:   { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 6 },
-  contactText:  { color: 'rgba(255,255,255,0.7)', fontSize: 12, fontFamily: 'Poppins_400Regular', flex: 1 },
-  caseIdRow:    { marginTop: 16, paddingTop: 16, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.1)' },
-  caseIdLabel:  { color: ORANGE, fontSize: 10, fontFamily: 'Poppins_600SemiBold', letterSpacing: 1 },
-  caseIdValueRow:{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 4 },
-  caseIdValue:  { color: AppColors.textPrimary, fontSize: 15, fontFamily: 'Poppins_600SemiBold' },
+  nameRow:      { flexDirection: 'row', alignItems: 'center', gap: 8, justifyContent: 'space-between' },
+  customerName: { color: '#FFFFFF', fontSize: 20, fontFamily: 'Poppins_600SemiBold', flexShrink: 1 },
+  contactRow:   { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 },
+  contactText:  { color: '#FFFFFF', fontSize: 14, fontFamily: 'Poppins_400Regular', flex: 1 },
+  caseIdLabel:  { marginTop: 16, color: '#D9C6F0', fontSize: 13, fontFamily: 'Poppins_600SemiBold' },
+  caseIdValueRow:{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 2 },
+  caseIdValue:  { color: '#FFFFFF', fontSize: 20, fontFamily: 'Poppins_700Bold' },
 
-  section:      { backgroundColor: '#010A1F', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 16, marginBottom: 16, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
-  sectionTitle: { color: AppColors.textPrimary, fontSize: 14, fontFamily: 'Poppins_600SemiBold', marginBottom: 4 },
+  section:      { paddingHorizontal: 16, paddingVertical: 16, marginBottom: 18 },
+  sectionTitle: { color: '#FFFFFF', fontSize: 17, fontFamily: 'Poppins_500Medium', marginBottom: 6 },
+
+  vehicleImage: { width: '100%', height: 170, borderRadius: 12, marginTop: 6, marginBottom: 6, backgroundColor: '#061B4A' },
+  vehiclePlaceholder: { width: '100%', height: 130, borderRadius: 12, marginTop: 6, marginBottom: 6, backgroundColor: '#061B4A', alignItems: 'center', justifyContent: 'center' },
+  vehiclePlaceholderTxt: { color: ORANGE, fontSize: 36, fontFamily: 'Poppins_700Bold' },
 
   infoRow:       { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 11 },
-  infoRowBorder: { borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.07)' },
-  infoLeft:      { flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 },
-  infoLabel:     { color: 'rgba(255,255,255,0.6)', fontSize: 11, fontFamily: 'Poppins_400Regular' },
-  infoValue:     { color: AppColors.textPrimary, fontSize: 11, fontFamily: 'Poppins_600SemiBold', textAlign: 'right', maxWidth: '50%' },
+  infoRowBorder: { borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.14)' },
+  infoLeft:      { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
+  infoLabel:     { color: '#E6E1E8', fontSize: 13, fontFamily: 'Poppins_400Regular' },
+  infoValue:     { color: '#FFFFFF', fontSize: 13, fontFamily: 'Poppins_400Regular', textAlign: 'right', maxWidth: '55%', textTransform: 'none' },
 
-  docHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  docGrid:   { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 20 },
-  docItem:   { width: '30%', alignItems: 'center' },
-  docImg:    { width: '100%', aspectRatio: 1, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
-  docFile:   { backgroundColor: '#010A1F', alignItems: 'center', justifyContent: 'center' },
-  docLabel:  { color: 'rgba(255,255,255,0.6)', fontSize: 9, fontFamily: 'Poppins_500Medium', marginTop: 5, textAlign: 'center', textTransform: 'uppercase' },
+  docHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, marginBottom: 14 },
+  docTitle:  { color: '#FFFFFF', fontSize: 22, fontFamily: 'Poppins_600SemiBold' },
+  viewAll:   { color: ORANGE, fontSize: 14, fontFamily: 'Poppins_600SemiBold' },
+  docItem:   { width: 110, alignItems: 'center' },
+  docImg:    { width: 110, height: 110, borderRadius: 12, borderWidth: 1, borderColor: '#E6E1E8' },
+  docFile:   { backgroundColor: '#061B4A', alignItems: 'center', justifyContent: 'center' },
+  docLabel:  { color: D.muted, fontSize: 10, fontFamily: 'Poppins_600SemiBold', marginTop: 6, textAlign: 'center', textTransform: 'uppercase' },
   emptyDocs: { alignItems: 'center', paddingVertical: 24, gap: 8, marginBottom: 16 },
-  emptyDocsTxt:{ color: AppColors.textSecondary, fontSize: 12, fontFamily: 'Poppins_400Regular' },
+  colorDot:  { width: 14, height: 14, borderRadius: 7, borderWidth: 1, borderColor: 'rgba(255,255,255,0.4)' },
+  actionPanel: { marginTop: 22, marginHorizontal: -16, paddingHorizontal: 20, paddingVertical: 18, gap: 12, overflow: 'hidden', borderTopWidth: 1, borderBottomWidth: 1, borderColor: 'rgba(130,165,213,0.35)' },
+  emptyDocsTxt:{ color: D.muted, fontSize: 12, fontFamily: 'Poppins_400Regular' },
 
-  footer:      { position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: 20, paddingBottom: 32, paddingTop: 14 },
-  actionBox:   { gap: 10, borderRadius: 24, borderWidth: 1, borderColor: 'rgba(100,160,255,0.2)', backgroundColor: 'rgba(3,12,40,0.6)', padding: 14, overflow: 'hidden' },
-  approveWrap: { borderRadius: 30, overflow: 'hidden' },
-  approveGrad: { paddingVertical: 14, alignItems: 'center' },
-  approveText: { color: '#fff', fontSize: 14, fontFamily: 'Poppins_700Bold' },
-  rejectBtn:   { paddingVertical: 12, alignItems: 'center', borderRadius: 30, borderWidth: 1, borderColor: 'rgba(100,160,255,0.25)', backgroundColor: 'rgba(3,42,105,0.2)', overflow: 'hidden' },
-  rejectText:  { color: '#ffffff', fontSize: 13, fontFamily: 'Poppins_500Medium' },
+  docOverlay:    { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', paddingHorizontal: 20 },
+  docSheet:      { borderRadius: 20, overflow: 'hidden', padding: 20, borderWidth: 1, borderColor: 'rgba(127,152,196,0.35)', gap: 14 },
+  docSheetHead:  { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
+  docSheetTitle: { color: '#FFFFFF', fontSize: 19, fontFamily: 'Poppins_600SemiBold' },
+  docRow:        { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  docRowIcon:    { width: 46, height: 46, borderRadius: 10, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' },
+  docRowTxt:     { flex: 1, color: '#FFFFFF', fontSize: 15, fontFamily: 'Poppins_400Regular' },
+  docViewBtn:    { borderRadius: 10, borderWidth: 1, borderColor: 'rgba(230,225,232,0.35)', backgroundColor: 'rgba(255,255,255,0.06)', paddingHorizontal: 14, paddingVertical: 6 },
+  docViewTxt:    { color: ORANGE, fontSize: 13, fontFamily: 'Poppins_600SemiBold' },
 });

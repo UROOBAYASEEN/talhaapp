@@ -1,41 +1,20 @@
-import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
-import {
-  LayoutDashboard,
-  FileText,
-  WalletCards,
-  User,
-} from 'lucide-react-native';
 import React, { useEffect } from 'react';
+import { Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
-import { StyleSheet, Text, View } from 'react-native';
+import { PillTabBarHost, PillTabIcon } from '@/components/shared/PillTabBar';
 
-const BLUE   = '#1D53AF';
-const ORANGE = '#e2671b';
-
-function TabIcon({ Icon, label, focused }: { Icon: any; label: string; focused: boolean }) {
-  if (focused) {
-    return (
-      <LinearGradient
-        colors={['#032a69', 'rgba(3,42,105,0.36)', '#e2671b']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        style={styles.iconActive}
-      >
-        <Icon size={15} color="#fff" />
-        <Text style={styles.labelActive}>{label}</Text>
-      </LinearGradient>
-    );
-  }
-  return (
-    <View style={styles.iconWrap}>
-      <View style={styles.iconInactive}>
-        <Icon size={15} color="#9ca8c0" />
-        <Text style={styles.label}>{label}</Text>
-      </View>
-    </View>
-  );
+// Same bottom bar design + colours as the customer / dealer / insurance side
+function mci(name: any) {
+  return function McIcon(c: string) { return <MaterialCommunityIcons name={name} size={18} color={c} />; };
+}
+function img(src: any) {
+  return function ImgIcon(c: string) { return <Image source={src} style={{ width: 20, height: 20, tintColor: c }} resizeMode="contain" />; };
+}
+function ion(name: any) {
+  return function IonIcon(c: string) { return <Ionicons name={name} size={17} color={c} />; };
 }
 
 export default function BankLayout() {
@@ -48,10 +27,10 @@ export default function BankLayout() {
   }, [user?.docs_status]);
   return (
     <Tabs
+      tabBar={props => <PillTabBarHost {...props} />}
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false,
-        tabBarStyle: styles.tabBar,
         sceneStyle: { backgroundColor: '#010a1f' },
       }}
     >
@@ -59,7 +38,7 @@ export default function BankLayout() {
         name="index"
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon Icon={LayoutDashboard} label="Home" focused={focused} />
+            <PillTabIcon label="Home" focused={focused} renderIcon={mci('view-dashboard')} />
           ),
         }}
       />
@@ -67,7 +46,7 @@ export default function BankLayout() {
         name="inventory"
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon Icon={FileText} label="Inventory" focused={focused} />
+            <PillTabIcon label="Cases" focused={focused} renderIcon={ion('document-text-outline')} />
           ),
         }}
       />
@@ -75,7 +54,7 @@ export default function BankLayout() {
         name="plan"
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon Icon={WalletCards} label="Plan" focused={focused} />
+            <PillTabIcon label="Plans" focused={focused} renderIcon={img(require('@/assets/BankIcons/plans.png'))} />
           ),
         }}
       />
@@ -83,54 +62,12 @@ export default function BankLayout() {
         name="profile"
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon Icon={User} label="Profile" focused={focused} />
+            <PillTabIcon label="Profile" focused={focused} renderIcon={ion('person-outline')} />
           ),
         }}
       />
-      <Tabs.Screen name="chat"         options={{ href: null }} />
+      <Tabs.Screen name="chat" options={{ href: null }} />
       <Tabs.Screen name="applications" options={{ href: null }} />
     </Tabs>
   );
 }
-
-const styles = StyleSheet.create({
-  tabBar: {
-    position: 'absolute',
-    backgroundColor: '#061B4A',
-    borderTopWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 30,
-    height: 59,
-    bottom: 18,
-    left: 18,
-    right: 18,
-    elevation: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 12,
-  },
-  iconActive: {
-    width: 47,
-    height: 47,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: ORANGE,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 2,
-  },
-  iconWrap: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  iconInactive: {
-    width: 48,
-    height: 47,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 2,
-  },
-  labelActive: { fontSize: 7, color: '#fff', fontFamily: 'Poppins_500Medium' },
-  label: { fontSize: 8, color: '#9ca8c0', marginTop: 4, fontFamily: 'Poppins_500Medium' },
-});

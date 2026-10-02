@@ -10,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { AppColors } from '@/constants/theme';
 import { useRouter } from 'expo-router';
 import { API_BASE } from '@/constants/api';
+import { GlowCard } from '@/components/dealer/DealerUI';
 
 const ORANGE = '#e8703a';
 const BG     = '#010A1F';
@@ -108,17 +109,15 @@ export default function BankProfileScreen() {
         {/* STATS */}
         <View style={s.statsRow}>
           {statCards.map(item => (
-            <View key={item.label} style={s.statCard}>
-              <GlassInset />
+            <GlowCard key={item.label} style={s.statCard} radius={14}>
               <Text style={s.statLabel}>{item.label}</Text>
               <Text style={s.statValue}>{item.value}</Text>
-            </View>
+            </GlowCard>
           ))}
         </View>
 
         {/* INFO CARD */}
         <View style={s.infoCard}>
-          <GlassInset />
           {infoRows.map((row, i) => (
             <View key={row.label} style={[s.infoRow, i !== infoRows.length - 1 && s.infoRowBorder]}>
               <row.Icon size={20} color={ORANGE} style={{ flexShrink: 0 }} />
@@ -131,11 +130,9 @@ export default function BankProfileScreen() {
         </View>
 
         {/* EDIT PROFILE */}
-        <TouchableOpacity style={s.editWrap} activeOpacity={0.85} onPress={() => router.push('/bank-edit-profile' as any)}>
-          <GlassInset />
-          <Edit2 size={14} color="#fff" />
+        <GlowCard style={s.editWrap} radius={26} onPress={() => router.push('/bank-edit-profile' as any)}>
           <Text style={s.editText}>Edit Profile</Text>
-        </TouchableOpacity>
+        </GlowCard>
 
 
       </ScrollView>
@@ -148,23 +145,23 @@ const s = StyleSheet.create({
 
   hero:       { height: 300, alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 22 },
   logoCircle: { position: 'absolute', top: 72, width: 100, height: 100, borderRadius: 50, backgroundColor: '#f4ede3', borderWidth: 4, borderColor: ORANGE, alignItems: 'center', justifyContent: 'center' },
-  bankName:   { color: '#fff', fontSize: 22, fontFamily: 'Poppins_700Bold', marginTop: 34 },
-  bankSub:    { color: '#b7c2d6', fontSize: 13, fontFamily: 'Poppins_400Regular', marginTop: 4 },
+  bankName:   { color: '#fff', fontSize: 24, fontFamily: 'Poppins_600SemiBold', marginTop: 34 },
+  bankSub:    { color: '#C9BDC4', fontSize: 15, fontFamily: 'Poppins_400Regular', marginTop: 4 },
 
   statsRow:  { flexDirection: 'row', gap: 10, paddingHorizontal: 16, paddingTop: 18, paddingBottom: 4 },
-  statCard:  { flex: 1, borderRadius: 16, padding: 14, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(100,160,255,0.4)' },
-  statLabel: { color: '#ffffff', fontSize: 11, fontFamily: 'Poppins_400Regular', marginBottom: 10, lineHeight: 15 },
-  statValue: { color: '#ffffff', fontSize: 18, fontFamily: 'Poppins_700Bold' },
+  statCard:  { flex: 1, padding: 14, minHeight: 92 },
+  statLabel: { color: '#E6E1E8', fontSize: 13, fontFamily: 'Poppins_400Regular', marginBottom: 4, lineHeight: 17 },
+  statValue: { color: '#ffffff', fontSize: 20, fontFamily: 'Poppins_600SemiBold' },
 
-  infoCard:      { marginHorizontal: 16, marginTop: 16, borderRadius: 20, paddingHorizontal: 18, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(100,160,255,0.4)', backgroundColor: BG },
-  infoRow:       { flexDirection: 'row', alignItems: 'flex-start', gap: 14, paddingVertical: 16 },
-  infoRowBorder: { borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' },
+  infoCard:      { marginHorizontal: 16, marginTop: 22, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)', backgroundColor: BG },
+  infoRow:       { flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingVertical: 20 },
+  infoRowBorder: { borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.14)' },
   infoTexts:     { flex: 1, flexDirection: 'row', justifyContent: 'space-between', flexWrap: 'wrap', gap: 4 },
-  infoLabel:     { color: '#b7c2d6', fontSize: 11, fontFamily: 'Poppins_400Regular' },
-  infoValue:     { color: '#fff', fontSize: 11, fontFamily: 'Poppins_600SemiBold', textAlign: 'right', flex: 1, minWidth: 100 },
+  infoLabel:     { color: '#9C96A2', fontSize: 16, fontFamily: 'Poppins_400Regular' },
+  infoValue:     { color: '#fff', fontSize: 13, fontFamily: 'Poppins_400Regular', textAlign: 'right', flex: 1, minWidth: 100, lineHeight: 20 },
 
-  editWrap: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginHorizontal: 16, marginTop: 20, borderRadius: 30, paddingVertical: 12, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(100,160,255,0.5)', backgroundColor: BG },
-  editText: { color: '#fff', fontSize: 13, fontFamily: 'Poppins_600SemiBold' },
+  editWrap: { alignItems: 'center', justifyContent: 'center', marginHorizontal: 26, marginTop: 26, height: 52 },
+  editText: { color: '#fff', fontSize: 15, fontFamily: 'Poppins_500Medium' },
 
   logoutBtn:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginHorizontal: 16, marginTop: 12, borderWidth: 1, borderColor: 'rgba(248,113,113,0.4)', borderRadius: 30, paddingVertical: 12 },
   logoutText: { color: '#f87171', fontSize: 14, fontFamily: 'Poppins_600SemiBold' },

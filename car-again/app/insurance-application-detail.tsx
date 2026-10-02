@@ -10,6 +10,7 @@ import { AppColors, useAppColors } from '@/constants/theme';
 import { BottomActions, D, DHeader, TermsRow, WarmCard } from '@/components/dealer/DealerUI';
 import { GlassButton, GradientButton } from '@/components/shared/GlowUI';
 import { ApplicantCard, DocGallery, InfoTable, StatusBand, Timeline } from '@/components/insurance/AppDetailUI';
+import { GlowPublishButton, GlowDraftButton } from "@/components/shared/ActionFooterGlow";
 
 const BG = AppColors.bg;
 const ORANGE = AppColors.gradientEnd;
@@ -175,9 +176,10 @@ export default function ApplicationDetailScreen() {
     <SafeAreaView style={[s.safe, { backgroundColor: D.bg }]} edges={['top', 'bottom']}>
       <DHeader title="Applications Details" />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 200 }}>
-        <StatusBand label={statusUpper === 'SUBMITTED' ? 'PENDING REVIEW' : statusUpper} date={appliedDate} />
+        <StatusBand compact label={statusUpper === 'SUBMITTED' ? 'PENDING REVIEW' : statusUpper} date={appliedDate} />
 
         <ApplicantCard
+          compact
           name={app.customer || app.name || 'Hamza'}
           phone={app.phone || '0300 1234567'}
           email={app.email || 'hamza@example.pk'}
@@ -227,7 +229,7 @@ export default function ApplicationDetailScreen() {
         <DocGallery docs={galleryDocs} onViewAll={() => setDocsModal(true)} onOpen={uri => setPreviewUri(uri)} />
 
         <View style={{ marginHorizontal: 22 }}>
-          <Timeline steps={[
+          <Timeline compact steps={[
             { title: 'Application Submitted', sub: `${appliedDate}, 09:45 AM • by ${app.customer || 'Usama'}` },
             { title: 'Documents Verified',    sub: `${appliedDate}, 11:20 AM • by System Auto-check` },
             { title: 'Awaiting Admin Approval', sub: 'Assigned to: Usman Khan (Senior Manager)', current: true },
@@ -237,17 +239,15 @@ export default function ApplicationDetailScreen() {
       </ScrollView>
 
       {/* Footer — Approve / Reject / Document */}
-      <BottomActions>
-        <GradientButton title="Approve Policy" height={50} fontSize={17} loading={actionLoading === 'approved'} disabled={!!actionLoading} onPress={() => handleAction('approved')} />
+      <BottomActions fx>
+        <GlowPublishButton title="Approve Policy" height={50} loading={actionLoading === 'approved'} disabled={!!actionLoading} onPress={() => handleAction('approved')} />
         <View style={s.actionRow}>
           <TouchableOpacity style={s.rejectBtn} activeOpacity={0.85} onPress={() => handleAction('rejected')} disabled={!!actionLoading}>
             {actionLoading === 'rejected' ? <ActivityIndicator color="#E0363A" size="small" /> : <Text style={s.rejectTxt}>Reject</Text>}
           </TouchableOpacity>
-          <GlassButton
+          <GlowDraftButton
             title="Document"
             height={50}
-            fontSize={16}
-            color="#C9BDC4"
             radius={14}
             style={{ flex: 1 }}
             onPress={() => {
@@ -272,18 +272,18 @@ const s = StyleSheet.create({
 
   premiumCard:       { marginHorizontal: 16, marginTop: 20, padding: 22, borderRadius: 20 },
   premiumHeader:     { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
-  premiumTitle:      { color: '#FFFFFF', fontSize: 22, fontFamily: 'Poppins_600SemiBold' },
-  pendingPill:       { backgroundColor: ORANGE, paddingHorizontal: 14, paddingVertical: 4, borderRadius: 16 },
-  pendingTxt:        { color: '#fff', fontSize: 13, fontFamily: 'Poppins_600SemiBold' },
+  premiumTitle:      { color: '#FFFFFF', fontSize: 18, fontFamily: 'Poppins_600SemiBold' },
+  pendingPill:       { backgroundColor: ORANGE, paddingHorizontal: 12, paddingVertical: 3, borderRadius: 14 },
+  pendingTxt:        { color: '#fff', fontSize: 11, fontFamily: 'Poppins_600SemiBold' },
   premiumRow:        { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6 },
-  premiumLabel:      { color: '#E6E1E8', fontSize: 15, fontFamily: 'Poppins_400Regular' },
-  premiumVal:        { color: '#E6E1E8', fontSize: 14, fontFamily: 'Poppins_400Regular' },
+  premiumLabel:      { color: '#E6E1E8', fontSize: 13, fontFamily: 'Poppins_400Regular' },
+  premiumVal:        { color: '#E6E1E8', fontSize: 13, fontFamily: 'Poppins_400Regular' },
   premiumTotal:      { flexDirection: 'row', justifyContent: 'space-between', paddingTop: 14, marginTop: 8, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.14)', alignItems: 'center' },
-  premiumTotalLabel: { color: D.muted, fontSize: 13, fontFamily: 'Poppins_500Medium', letterSpacing: 0.5, textTransform: 'uppercase' },
-  premiumTotalVal:   { color: '#FFFFFF', fontSize: 20, fontFamily: 'Poppins_700Bold' },
+  premiumTotalLabel: { color: D.muted, fontSize: 11, fontFamily: 'Poppins_500Medium', letterSpacing: 0.5, textTransform: 'uppercase' },
+  premiumTotalVal:   { color: '#FFFFFF', fontSize: 17, fontFamily: 'Poppins_700Bold' },
   paymentBox:        { marginTop: 18, flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: '#0B2358', borderRadius: 12, padding: 14 },
-  pLabel:            { color: D.muted, fontSize: 13, fontFamily: 'Poppins_400Regular' },
-  pVal:              { color: '#FFFFFF', fontSize: 14, fontFamily: 'Poppins_600SemiBold', marginTop: 1 },
+  pLabel:            { color: D.muted, fontSize: 12, fontFamily: 'Poppins_400Regular' },
+  pVal:              { color: '#FFFFFF', fontSize: 13, fontFamily: 'Poppins_600SemiBold', marginTop: 1 },
 
   actionRow: { flexDirection: 'row', gap: 16 },
   rejectBtn: { flex: 1, height: 50, borderRadius: 14, borderWidth: 1.5, borderColor: '#E0363A', alignItems: 'center', justifyContent: 'center', backgroundColor: '#050A18' },

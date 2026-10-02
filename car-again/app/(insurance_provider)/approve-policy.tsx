@@ -13,6 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { AppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { GlowPublishButton, GlowDraftButton } from "@/components/shared/ActionFooterGlow";
 
 const C      = AppColors;
 const ORANGE = '#e2671b';
@@ -176,9 +177,10 @@ export default function ApprovePolicyScreen() {
 
         {/* CONTENT */}
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 210 }}>
-          <StatusBand label={status} date={dateStr} />
+          <StatusBand compact label={status} date={dateStr} />
 
           <ApplicantCard
+            compact
             name={name}
             phone={phone}
             email={email}
@@ -275,7 +277,7 @@ export default function ApprovePolicyScreen() {
 
           {/* TIMELINE */}
           <View style={{ marginHorizontal: 22 }}>
-            <Timeline steps={[
+            <Timeline compact steps={[
               { title: 'Claim Submitted', sub: `${dateStr} • by ${name}` },
               { title: 'Documents Verified', sub: docs.length > 0 ? `${docs.length} documents attached` : 'Pending verification', current: !docsDone },
               { title: status === 'APPROVED' ? 'Approved' : status === 'REJECTED' ? 'Rejected' : 'In Review',
@@ -286,13 +288,13 @@ export default function ApprovePolicyScreen() {
         </ScrollView>
 
         {/* BOTTOM ACTION BAR */}
-        <BottomActions>
-          <GradientButton title={updating ? 'Updating...' : 'Approve Claim'} height={50} fontSize={17} disabled={updating} onPress={approvePolicy} />
+        <BottomActions fx>
+          <GlowPublishButton title={updating ? 'Updating...' : 'Approve Claim'} height={50} disabled={updating} onPress={approvePolicy} />
           <View style={s.bottomButtonsRow}>
             <TouchableOpacity style={s.rejectButton} onPress={rejectPolicy} activeOpacity={0.8} disabled={updating}>
               <Text style={s.rejectText}>Reject</Text>
             </TouchableOpacity>
-            <GlassButton title="Update Status" height={46} fontSize={15} color="#E6E1E8" style={{ flex: 1 }} onPress={() => { if (!updating) updateClaimStatus(); }} />
+            <GlowDraftButton title="Update Status" height={46} style={{ flex: 1 }} onPress={() => { if (!updating) updateClaimStatus(); }} />
           </View>
         </BottomActions>
 

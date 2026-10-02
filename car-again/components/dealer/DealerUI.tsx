@@ -7,7 +7,8 @@ import {
   Image, StyleProp, StyleSheet, Text, TextInput, TextInputProps, TouchableOpacity, View, ViewStyle,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { InsetGlow, SavedCardEffect, savedCardOuter } from '@/components/shared/FigmaEffects';
+import { InsetGlow, SavedCardEffect, savedCardOuter, ActionPanelGlass, SearchInputEffect } from '@/components/shared/FigmaEffects';
+import { ActionPanelBg } from '@/components/shared/ActionFooterGlow';
 import { API_BASE } from '@/constants/api';
 
 export const D = {
@@ -143,7 +144,7 @@ export function TipBanner({ text, title, onPress, style }: { text: string; title
 
 // Selected-pill glow (Figma): soft blue fading in from all four sides, leaving a
 // squarish (rounded-rect) dark navy area around the text. Kept light and soft.
-function PillGlow() {
+export function PillGlow() {
   // Figma: blue #133368 right at the border, fading into the dark #05122A centre
   const blue = 'rgba(19,51,104,1)';
   return (
@@ -201,11 +202,12 @@ export function SegTabs<T extends string>({ items, value, onChange }: { items: r
 }
 
 // ── Glass search field (+ optional orange "Sort") ──
-export function SearchBar({ onSort, sortLabel = 'Sort', ...props }: TextInputProps & { onSort?: () => void; sortLabel?: string }) {
+// `savedSearch` = the exact search-input effect from the Saved screen
+export function SearchBar({ onSort, sortLabel = 'Sort', savedSearch, ...props }: TextInputProps & { onSort?: () => void; sortLabel?: string; savedSearch?: boolean }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-      <View style={[savedCardOuter, k.search]}>
-        <SavedCardEffect band={10} />
+      <View style={savedSearch ? [k.search, k.savedSearch] : [savedCardOuter, k.search]}>
+        {savedSearch ? <SearchInputEffect radius={32} /> : <SavedCardEffect band={10} />}
         <Ionicons name="search-outline" size={22} color="#C9C6D0" style={{ marginLeft: 16 }} />
         <TextInput placeholderTextColor="#9C96A2" {...props} style={[k.searchInput, props.style]} />
       </View>
@@ -221,13 +223,14 @@ export function SearchBar({ onSort, sortLabel = 'Sort', ...props }: TextInputPro
 
 // ── Glass text input / select pill ──
 export function DField({
-  label, right, multiline, containerStyle, ...props
-}: TextInputProps & { label?: string; right?: React.ReactNode; containerStyle?: StyleProp<ViewStyle> }) {
+  label, right, left, multiline, containerStyle, ...props
+}: TextInputProps & { label?: string; right?: React.ReactNode; left?: React.ReactNode; containerStyle?: StyleProp<ViewStyle> }) {
   return (
     <View style={containerStyle}>
       {label ? <Text style={k.label}>{label}</Text> : null}
       <View style={[savedCardOuter, k.field, multiline && k.fieldMulti]}>
         <SavedCardEffect band={10} />
+        {left ? <View style={{ paddingLeft: 18 }}>{left}</View> : null}
         <TextInput placeholderTextColor="#9C96A2" multiline={multiline} {...props}
           style={[k.fieldInput, multiline && { textAlignVertical: 'top', paddingTop: 14, height: '100%' }, props.style]} />
         {right ? <View style={{ paddingRight: 16 }}>{right}</View> : null}
@@ -309,11 +312,17 @@ export function Radio({ on, size = 22 }: { on: boolean; size?: number }) {
 }
 
 // ── Fixed bottom glass panel (Publish / Save as Draft) ──
-export function BottomActions({ children }: { children: React.ReactNode }) {
+// `glass` = reusable ActionPanelGlass background (navy centre, blue glowing edges)
+// `fx` = "Publish Banner / Save as Draft" panel effect (components/shared/ActionFooterGlow)
+export function BottomActions({ children, glass, fx }: { children: React.ReactNode; glass?: boolean; fx?: boolean }) {
   const insets = useSafeAreaInsets();
   return (
-    <View style={[k.bottom, { paddingBottom: Math.max(insets.bottom, 10) + 6 }]}>
-      <LinearGradient colors={['rgba(23,52,110,0.92)', 'rgba(12,30,70,0.96)']} style={StyleSheet.absoluteFillObject} />
+    <View style={[k.bottom, { paddingBottom: Math.max(insets.bottom, 10) + 6 }, fx && { paddingHorizontal: 32, paddingTop: 12, gap: 11, paddingBottom: Math.max(insets.bottom + 12, 22), borderTopWidth: 0, backgroundColor: '#0A1838' }]}>
+      {fx
+        ? <ActionPanelBg />
+        : glass
+        ? <ActionPanelGlass />
+        : <LinearGradient colors={['rgba(23,52,110,0.92)', 'rgba(12,30,70,0.96)']} style={StyleSheet.absoluteFillObject} />}
       {children}
     </View>
   );
@@ -420,6 +429,7 @@ const k = StyleSheet.create({
   segOff:  { borderWidth: 1, borderColor: 'transparent' },
 
   search:      { flex: 1, height: 46, borderRadius: 23, flexDirection: 'row', alignItems: 'center' },
+  savedSearch: { height: 48, borderRadius: 32, borderWidth: 1, borderColor: '#829fd0', overflow: 'hidden', backgroundColor: '#061124' },
   searchInput: { flex: 1, height: '100%', paddingHorizontal: 12, color: D.white, fontSize: 14, fontFamily: 'Poppins_400Regular' },
   sort:        { flexDirection: 'row', alignItems: 'center', gap: 6 },
   sortTxt:     { color: D.white, fontSize: 18, fontFamily: 'Poppins_400Regular' },

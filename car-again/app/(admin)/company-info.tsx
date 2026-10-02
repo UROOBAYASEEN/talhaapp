@@ -22,6 +22,7 @@ import * as SecureStore from 'expo-secure-store';
 import { ChevronLeft, X, Plus, FileText, CheckCircle2 } from 'lucide-react-native';
 import { API_BASE } from '@/constants/api';
 import { useAppColors } from '@/constants/theme';
+import { SavedCardEffect } from "@/components/shared/FigmaEffects";
 
 const WHITE = '#F5F5F7';
 const ORANGE = '#FF6B00';
@@ -298,11 +299,7 @@ function InputField({ label, placeholder, value, onChangeText, keyboardType, sec
       <Text style={[styles.inputLabel, { color: aC.isDark ? WHITE : '#010a1f' }]}>{label}</Text>
       <View style={[styles.inputWrapper, { overflow: 'hidden', backgroundColor: aC.isDark ? '#010A1F' : '#ffffff', borderColor: aC.isDark ? 'rgba(80,123,182,0.5)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]}>
         {aC.isDark ? (
-          <>
-            <LinearGradient colors={['rgba(22,64,136,0.1)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <LinearGradient colors={['rgba(13,37,84,0.08)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <LinearGradient colors={['transparent', 'rgba(29,83,175,0.1)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          </>
+          <SavedCardEffect band={12} />
         ) : (
           <>
             <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />

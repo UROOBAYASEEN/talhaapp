@@ -5,8 +5,9 @@ export default function BankPlanScreen() {
   return (
     <PlanScreen
       role="bank"
-      promoTitle={'Expand Your\nBank\'s Reach\nwith AutoWizor'}
-      promoDesc={'Choose the best plan to\nreach more customers and\ngrow your auto finance\nbusiness.'}
+      figma
+      promoTitle={'Grow Your\nDealership\nwith AutoWizor'}
+      promoDesc={'Choose the best plan to list\nmore vehicles, get more\nleads and grow your\nbusiness.'}
     />
   );
 }

@@ -160,6 +160,8 @@ export default function UploadDocumentsScreen() {
       setLoading(false);
       setUploadStep('');
     }
+    // Seller: no verification screen — straight to the success screen
+    if (role === 'individual_seller') { router.replace('/(auth)/account-created' as any); return; }
     router.push({ pathname: '/(auth)/verification-status', params: { role: role || '', access_token: access_token || '', refresh_token: refresh_token || '' } });
   }
 
@@ -176,7 +178,7 @@ export default function UploadDocumentsScreen() {
         <DocRow title="CNIC (Back)"           hint="Upload back side of CNIC *required*"         uri={cnicBack}   onPick={() => pickDoc(setCnicBack)}/>
         <DocRow title="License"               hint="Upload driving / business license (optional)" uri={license}    onPick={() => pickDoc(setLicense)}/>
         <DocRow title="Business Registration" hint="Upload business reg. certificate (optional)"  uri={bizReg}     onPick={() => pickDoc(setBizReg)}/>
-        <DocRow title="Store / Office Photo"  hint="Upload a photo of your store or office"       uri={storePhoto} onPick={() => pickDoc(setStorePhoto)}/>
+        <DocRow title={role === 'individual_seller' ? 'Profile Photo' : 'Store / Office Photo'}  hint={role === 'individual_seller' ? 'Upload your profile photo' : 'Upload a photo of your store or office'}       uri={storePhoto} onPick={() => pickDoc(setStorePhoto)}/>
 
         <View style={[s.secNote, { backgroundColor: 'rgba(22,64,136,0.12)', borderColor: 'rgba(100,160,255,0.2)' }]}>
           <ShieldCheck size={18} color="rgba(100,160,255,0.7)"/>

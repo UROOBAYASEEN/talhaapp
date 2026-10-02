@@ -17,6 +17,7 @@ import {
   AddChip, BottomActions, Chip as DChip, DField, DHeader, DSelect, PlanOption, PromoCard, SaveDraftAction, TermsRow, TipBanner, UploadBox, dk,
 } from '@/components/dealer/DealerUI';
 import { GlassButton, GradientButton } from '@/components/shared/GlowUI';
+import { GlowPublishButton, GlowDraftButton } from "@/components/shared/ActionFooterGlow";
 
 const ORANGE = '#e2671b';
 const BG     = '#010A1F';
@@ -255,10 +256,10 @@ export default function InsuranceVideoAdsScreen() {
       </ScrollView>
 
       {/* FOOTER BUTTONS */}
-      <BottomActions>
-        <GradientButton title="Publish  Reel" loadingTitle={uploadedFile ? 'Uploading...' : 'Publishing...'} height={50} fontSize={17}
+      <BottomActions fx>
+        <GlowPublishButton title="Publish  Reel" loadingTitle={uploadedFile ? 'Uploading...' : 'Publishing...'}
           loading={publishing} style={!agreed ? { opacity: 0.6 } : undefined} onPress={handlePublish} />
-        <GlassButton title="Save as Draft" height={48} fontSize={16} color="#E6E1E8" />
+        <GlowDraftButton title="Save as Draft" />
       </BottomActions>
 
       {/* Pay Now modal — paid-first, no free publish */}

@@ -5,8 +5,9 @@ export default function TrackerPlanScreen() {
   return (
     <PlanScreen
       role="tracker"
-      promoTitle={'Expand Your\nTracker\nBusiness'}
-      promoDesc={'Choose the best plan to\nlist more devices and\nreach more customers\nacross Pakistan.'}
+      figma
+      promoTitle={'Grow Your\nDealership\nwith AutoWizor'}
+      promoDesc={'Choose the best plan to list\nmore vehicles, get more\nleads and grow your\nbusiness.'}
     />
   );
 }

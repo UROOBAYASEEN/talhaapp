@@ -11,63 +11,26 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import {
-  Bell,
-  Settings,
-  MapPin,
-  Lightbulb,
-  Car,
-  CalendarCheck,
-  MessageCircle,
-  Eye,
-  User,
-  ChevronRight,
-  Plus,
-  Crown,
-  Megaphone,
-} from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
+import Svg, { Polyline } from 'react-native-svg';
 import { AppColors } from '@/constants/theme';
+import { D, DICON, DIcon, GlowCard, TipBanner, Verified } from '@/components/dealer/DealerUI';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 import Chatbot from '@/components/shared/Chatbot';
 
-const ORANGE  = '#ff6900';
-const GREEN   = '#00d084';
-const BLUE    = 'rgba(100,160,255,0.5)';
-const CARD_BG = 'rgba(3,12,40,0.6)';
+const GREEN   = '#2ECC71';
 
+// Figma order (same routes as before)
 const QUICK_ACTIONS = [
-  { title: 'Add Vehicle',       Icon: Car,           route: '/dealer-panel/add-vehicle' },
-  { title: 'Reservations',      Icon: CalendarCheck, route: '/dealer-panel/reservations' },
-  { title: 'Customers',         Icon: User,          route: '/(seller)/leads' },
-  { title: 'Subscription',      Icon: Crown,         route: '/dealer-panel/subscription' },
-  { title: 'Add Video Ads',     Icon: Plus,          route: '/dealer-panel/video-ads' },
-  { title: 'Add special offer', Icon: Plus,          route: '/dealer-panel/special-offer' },
-  { title: 'Advertisement',     Icon: Megaphone,     route: '/dealer-panel/advertisement' },
-  { title: 'Promote Vehicle',   Icon: Megaphone,     route: '/dealer-panel/promote-vehicle' },
+  { title: 'Add Vehicle',       icon: DICON.add,            route: '/dealer-panel/add-vehicle' },
+  { title: 'Customers',         icon: DICON.customers,      route: '/(seller)/leads' },
+  { title: 'Subscription',      icon: DICON.subscription,   route: '/dealer-panel/subscription' },
+  { title: 'Add special offer', icon: DICON.addVideoAdd,    route: '/dealer-panel/special-offer' },
+  { title: 'Add Video',         icon: DICON.addVideoAdd,    route: '/dealer-panel/video-ads' },
+  { title: 'Advertisement',     icon: DICON.advertisement,  route: '/dealer-panel/advertisement' },
+  { title: 'Promote Vehicle',   icon: DICON.promoteVehicle, route: '/dealer-panel/promote-vehicle' },
 ];
-
-function GlassInset() {
-  return (
-    <>
-      <LinearGradient
-        colors={['rgba(22,64,136,0.2)', 'transparent']}
-        start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }}
-        style={StyleSheet.absoluteFillObject} pointerEvents="none"
-      />
-      <LinearGradient
-        colors={['rgba(13,37,84,0.18)', 'transparent']}
-        start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }}
-        style={StyleSheet.absoluteFillObject} pointerEvents="none"
-      />
-      <LinearGradient
-        colors={['transparent', 'rgba(29,83,175,0.2)']}
-        start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }}
-        style={StyleSheet.absoluteFillObject} pointerEvents="none"
-      />
-    </>
-  );
-}
 
 export default function SellerHomeScreen() {
   const { user, token } = useAuth();
@@ -154,31 +117,46 @@ export default function SellerHomeScreen() {
   async function onRefresh() { setRef(true); await Promise.all([load(), loadChart(viewMode)]); setRef(false); }
 
   const sellerName     = user?.full_name || 'Seller';
-  const totalListings  = stats?.total_listings  ?? 5;
-  const totalViews     = stats?.total_views     ?? 320;
-  const totalEnquiries = stats?.total_enquiries ?? 14;
-  const totalSold      = stats?.total_sold      ?? 2;
-  const weeklyGrowth   = stats?.weekly_growth   ?? 4.5;
-  const totalLeads     = stats?.total_leads     ?? 8;
-  const profileViews   = stats?.profile_views   ?? 1200;
+  const totalListings  = stats?.total_listings  ?? 42;
+  const activeReservations = stats?.active_reservations ?? 18;
+  const totalEnquiries = stats?.total_enquiries ?? 37;
+  const totalSold      = stats?.total_sold      ?? 1248;
+  const weeklyGrowth   = stats?.weekly_growth   ?? 8.2;
+  const totalLeads     = stats?.total_leads     ?? 23;
+  const profileViews   = stats?.profile_views   ?? 8600;
 
   const STATS_DATA = [
-    { title: 'My Listings',  value: String(totalListings),  change: 'Active ads',      Icon: Car },
-    { title: 'Enquiries',    value: String(totalEnquiries), change: '3 this week',     Icon: MessageCircle },
-    { title: 'Total Views',  value: String(totalViews),     change: 'This month',      Icon: Eye },
+    { title: 'Total Vehicles',      value: String(totalListings),      change: '2 this month',  icon: DICON.totalVehicles },
+    { title: 'Active Reservations', value: String(activeReservations), change: '10 this month', icon: DICON.activeReservations },
+    { title: 'Customer Enquiries',  value: String(totalEnquiries),     change: '8 this month',  icon: DICON.chat },
   ];
 
-  const ACTIVITIES = activity.length > 0
+  const ACTIVITIES: { title: string; subtitle: string; icon: React.ReactNode }[] = activity.length > 0
     ? activity.map((a: any) => ({
         title: a.title || a.message || 'Activity',
         subtitle: a.subtitle || a.description || '',
-        Icon: MessageCircle,
+        icon: <Ionicons name="chatbubbles-outline" size={24} color={D.orange} />,
       }))
     : [
-        { title: 'New enquiry received',      subtitle: 'Toyota Corolla 2022 • White',  Icon: MessageCircle },
-        { title: 'Ad viewed 12 times today',  subtitle: 'Honda City 2021 • Silver',     Icon: Eye },
-        { title: 'Price update suggested',    subtitle: 'Suzuki Swift 2020 • Red',      Icon: Megaphone },
+        { title: 'Latest call',            subtitle: 'Honda Civic RS 2026 • Black', icon: <DIcon src={DICON.activeReservations} size={24} /> },
+        { title: 'New enquiry',            subtitle: 'Yamaha YBR 125 • Blue',       icon: <Ionicons name="chatbubbles-outline" size={24} color={D.orange} /> },
+        { title: 'Advertisement approved', subtitle: 'Homepage Banner • 7 Days',    icon: <DIcon src={DICON.advertisement} size={22} /> },
       ];
+
+  // Figma chart (dark → orange bars + trend line)
+  const bars = [
+    { h: 38, label: '1 May' }, { h: 56, label: '' }, { h: 51, label: '3 May' },
+    { h: 77, label: '' }, { h: 65, label: '5 May' }, { h: 91, label: '' },
+    { h: 95, label: 'Today' },
+  ];
+  const CHART_H = 150;
+  const [chartW, setChartW] = useState(0);
+  const barGap = 8;
+  const barW = chartW ? (chartW - barGap * (bars.length - 1)) / bars.length : 0;
+  const scale = CHART_H / 100;
+  const linePts = chartW
+    ? bars.map((b, i) => `${i * (barW + barGap) + barW / 2},${CHART_H - b.h * scale - 8}`).join(' ')
+    : '';
 
   return (
     <SafeAreaView style={s.safeArea} edges={['top']}>
@@ -186,76 +164,57 @@ export default function SellerHomeScreen() {
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={s.scrollContent}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={ORANGE} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={D.orange} />}
         >
 
           {/* ── HEADER ── */}
           <View style={s.header}>
             <View style={s.profileRow}>
               {user?.avatar_url ? (
-                <Image source={{ uri: user.avatar_url }} style={s.avatarCircle} />
+                <Image source={{ uri: user.avatar_url }} style={s.avatarCircle} resizeMode="cover" />
               ) : (
                 <View style={s.avatarFallback}>
                   <Text style={s.avatarLetter}>{sellerName[0]?.toUpperCase()}</Text>
                 </View>
               )}
-              <View style={{ marginLeft: 12 }}>
+              <View style={{ marginLeft: 14 }}>
                 <View style={s.nameRow}>
-                  <Text style={s.sellerName}>{sellerName}</Text>
-                  <View style={s.verifiedBadge}><Text style={s.verifiedTick}>✓</Text></View>
+                  <Text style={s.sellerName} numberOfLines={1}>{sellerName}</Text>
+                  <Verified size={20} />
                 </View>
                 <View style={s.planRow}>
-                  <MapPin size={13} color={ORANGE} />
-                  <Text style={s.planText}>Individual Seller</Text>
+                  <Ionicons name="ribbon-outline" size={16} color={D.orange} />
+                  <Text style={s.planText}>Premium Plan</Text>
                 </View>
               </View>
             </View>
             <View style={s.headerIcons}>
               <TouchableOpacity onPress={() => router.push('/alert' as any)}>
-                <Bell size={21} color={AppColors.textPrimary} />
+                <Ionicons name="notifications-outline" size={24} color="#FFFFFF" />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => router.push('/(seller)/profile' as any)}>
-                <Settings size={21} color={AppColors.textPrimary} />
+                <Ionicons name="settings-outline" size={24} color="#FFFFFF" />
               </TouchableOpacity>
             </View>
           </View>
 
           {/* ── WELCOME BANNER ── */}
           <View style={s.welcomeCard}>
-            <GlassInset />
             <View style={s.welcomeText}>
               <Text style={s.smallWelcome}>Welcome Back,</Text>
               <Text style={s.welcomeTitle}>
-                Sell your car faster{'\n'}today with Autowizor!
+                {"Let's grow your dealership\ntoday with Autowizor!"}
               </Text>
             </View>
-            <Image
-              source={{ uri: 'https://images.unsplash.com/photo-1553440569-bcc63803a83d?auto=format&fit=crop&w=400&q=80' }}
-              style={s.carImage}
-            />
+            <Image source={DICON.dealershipCar} style={s.carImage} />
           </View>
 
           {/* ── PROMOTION CARD ── */}
           <View style={s.promotionWrapper}>
-            <TouchableOpacity
-              style={s.promotionCard}
-              onPress={() => router.push('/vehicle/create' as any)}
-            >
-              <GlassInset />
-              <LinearGradient
-                colors={['transparent', 'rgba(255,105,0,0.35)']}
-                start={{ x: 0.5, y: 0.4 }}
-                end={{ x: 0.5, y: 1 }}
-                style={StyleSheet.absoluteFillObject}
-                pointerEvents="none"
-              />
-              <View style={s.lightIcon}>
-                <Lightbulb size={22} color="#ffd000" fill="#ffd000" />
-              </View>
-              <Text style={s.promotionText}>
-                Post your car ad for free and reach thousands of buyers. Add clear photos and a fair price to sell faster!
-              </Text>
-            </TouchableOpacity>
+            <TipBanner
+              onPress={() => router.push('/dealer-panel/promote-vehicle' as any)}
+              text="Promote Vehicle is ideal for getting your listing in front of more buyers for Increased visibility & faster buyer discovery."
+            />
           </View>
 
           {/* ── OVERVIEW HEADER ── */}
@@ -269,26 +228,24 @@ export default function SellerHomeScreen() {
           {/* ── STAT CARDS ── */}
           <View style={s.statsRow}>
             {STATS_DATA.map((item, i) => (
-              <View key={i} style={s.statCard}>
-                <GlassInset />
-                <item.Icon size={20} color={ORANGE} />
+              <GlowCard key={i} style={s.statCard}>
+                <DIcon src={item.icon} size={26} />
                 <Text style={s.statValue}>{item.value}</Text>
-                <Text style={s.statTitle}>{item.title}</Text>
+                <Text style={s.statTitle} numberOfLines={1}>{item.title}</Text>
                 <View style={s.changeBadge}>
-                  <Text style={s.arrowUp}>↑</Text>
+                  <Ionicons name="arrow-up" size={14} color={GREEN} />
                   <Text style={s.changeText}>{item.change}</Text>
                 </View>
-              </View>
+              </GlowCard>
             ))}
           </View>
 
           {/* ── CHART CARD ── */}
-          <View style={s.chartCard}>
-            <GlassInset />
+          <GlowCard style={s.chartCard}>
             <View style={s.chartHeader}>
               <View>
-                <Text style={s.chartLabel}>TOTAL CARS SOLD</Text>
-                <Text style={s.chartNumber}>{totalSold}</Text>
+                <Text style={s.chartLabel}>TOTAL  UNITS SOLD</Text>
+                <Text style={s.chartNumber}>{Number(totalSold).toLocaleString()}</Text>
               </View>
               <View style={s.chartRight}>
                 <View style={s.percentBadge}>
@@ -300,7 +257,7 @@ export default function SellerHomeScreen() {
                     onPress={() => setShowViewDrop(v => !v)}
                   >
                     <Text style={s.weekText}>{viewMode} View</Text>
-                    <Text style={[s.downArrow, showViewDrop && { transform: [{ rotate: '180deg' }] }]}>⌄</Text>
+                    <Ionicons name={showViewDrop ? 'chevron-up' : 'chevron-down'} size={16} color={D.muted} />
                   </TouchableOpacity>
                   {showViewDrop && (
                     <View style={s.viewDropdown}>
@@ -321,71 +278,60 @@ export default function SellerHomeScreen() {
               </View>
             </View>
 
-            <View style={s.chartArea}>
-              {[
-                { h: 30, label: '25' },
-                { h: 45, label: '26' },
-                { h: 38, label: '27' },
-                { h: 60, label: '28' },
-                { h: 52, label: '29' },
-                { h: 75, label: '30' },
-                { h: 80, label: 'Today' },
-              ].map((item, i) => {
-                const isToday = i === 6;
-                const alpha   = i < 3 ? 0.35 : i < 5 ? 0.6 : 1;
+            <View style={[s.chartArea, { height: CHART_H }]} onLayout={e => setChartW(e.nativeEvent.layout.width)}>
+              {bars.map((item, i) => {
+                const t = bars.length > 1 ? i / (bars.length - 1) : 1;
+                const from = `rgba(226,103,27,${(0.12 + t * 0.88).toFixed(2)})`;
                 return (
-                  <View key={i} style={s.barCol}>
-                    <Text style={[s.barTopVal, { opacity: alpha }]}>{item.h}</Text>
-                    <View style={[s.barWrapper, { height: item.h }]}>
-                      <LinearGradient
-                        colors={
-                          isToday
-                            ? ['#ff6900', '#ff9a00']
-                            : ['rgba(255,105,0,0.8)', 'rgba(255,154,0,0.6)']
-                        }
-                        start={{ x: 0.5, y: 0 }}
-                        end={{ x: 0.5, y: 1 }}
-                        style={[StyleSheet.absoluteFillObject, { borderRadius: 4 }]}
-                      />
-                    </View>
-                    <Text style={[s.chartDate, { opacity: isToday ? 1 : 0.6 }]}>{item.label}</Text>
+                  <View key={i} style={[s.barWrapper, { width: barW || undefined, height: item.h * scale, marginLeft: i ? barGap : 0 }]}>
+                    <LinearGradient
+                      colors={[from, `rgba(226,103,27,${(0.08 + t * 0.8).toFixed(2)})`]}
+                      start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }}
+                      style={StyleSheet.absoluteFillObject}
+                    />
                   </View>
                 );
               })}
+              {chartW > 0 && (
+                <Svg style={StyleSheet.absoluteFill} width={chartW} height={CHART_H} pointerEvents="none">
+                  <Polyline points={linePts} fill="none" stroke="rgba(160,72,30,0.9)" strokeWidth={3} strokeLinejoin="round" />
+                </Svg>
+              )}
             </View>
-          </View>
+            <View style={s.dateRow}>
+              {bars.map((item, i) => (
+                <Text key={i} style={[s.chartDate, { width: barW || undefined, marginLeft: i ? barGap : 0 }]} numberOfLines={1}>{item.label}</Text>
+              ))}
+            </View>
+          </GlowCard>
 
           {/* ── SECONDARY STATS ── */}
           <View style={s.secondaryRow}>
-            <View style={s.secondaryCard}>
-              <GlassInset />
-              <Bell size={24} color={ORANGE} />
+            <GlowCard style={s.secondaryCard}>
+              <Ionicons name="call-outline" size={26} color={D.orange} />
               <Text style={s.secondaryNumber}>{totalLeads}</Text>
-              <Text style={s.secondaryText}>New Leads</Text>
-            </View>
-            <View style={s.secondaryCard}>
-              <GlassInset />
-              <Eye size={24} color={ORANGE} />
+              <Text style={s.secondaryText}>Total Calls</Text>
+            </GlowCard>
+            <GlowCard style={s.secondaryCard}>
+              <DIcon src={DICON.impressions} size={30} />
               <Text style={s.secondaryNumber}>
                 {profileViews >= 1000 ? `${(profileViews / 1000).toFixed(1)}K` : profileViews}
               </Text>
-              <Text style={s.secondaryText}>Profile Views</Text>
-            </View>
+              <Text style={s.secondaryText}>Profile View</Text>
+            </GlowCard>
           </View>
 
           {/* ── QUICK ACTIONS ── */}
           <View style={s.quickSection}>
-            <Text style={s.sectionTitle}>Quick Actions</Text>
             <View style={s.actionsGrid}>
               {QUICK_ACTIONS.map((action, i) => (
                 <TouchableOpacity
                   key={i}
-                  style={s.actionCard}
+                  style={[s.actionCard, i % 4 !== 3 && { marginRight: '2.66%' }]}
                   activeOpacity={0.75}
                   onPress={() => router.push(action.route as any)}
                 >
-                  <GlassInset />
-                  <action.Icon size={22} color={ORANGE} />
+                  <DIcon src={action.icon} size={22} />
                   <Text style={s.actionText}>{action.title}</Text>
                 </TouchableOpacity>
               ))}
@@ -396,21 +342,18 @@ export default function SellerHomeScreen() {
           <View style={s.activitySection}>
             <Text style={s.sectionTitle}>Recent Activity</Text>
             {ACTIVITIES.map((item, i) => (
-              <TouchableOpacity key={i} style={s.activityCard}>
-                <GlassInset />
-                <View style={s.activityIconWrap}>
-                  <item.Icon size={20} color={ORANGE} />
-                </View>
+              <GlowCard key={i} style={s.activityCard}>
+                <View style={s.activityIconWrap}>{item.icon}</View>
                 <View style={s.activityInfo}>
-                  <Text style={s.activityMain}>{item.title}</Text>
-                  <Text style={s.activitySub}>{item.subtitle}</Text>
+                  <Text style={s.activityMain} numberOfLines={1}>{item.title}</Text>
+                  <Text style={s.activitySub} numberOfLines={1}>{item.subtitle}</Text>
                 </View>
-                <ChevronRight size={22} color={ORANGE} />
-              </TouchableOpacity>
+                <Ionicons name="chevron-forward" size={26} color={D.orange} />
+              </GlowCard>
             ))}
           </View>
 
-          <View style={{ height: 100 }} />
+          <View style={{ height: 110 }} />
         </ScrollView>
       </View>
       <Chatbot />
@@ -419,91 +362,83 @@ export default function SellerHomeScreen() {
 }
 
 const s = StyleSheet.create({
-  safeArea:      { flex: 1, backgroundColor: AppColors.bg },
-  container:     { flex: 1, backgroundColor: AppColors.bg },
-  scrollContent: { paddingHorizontal: 14, paddingTop: 8, marginTop: 10 },
+  safeArea:      { flex: 1, backgroundColor: D.bg },
+  container:     { flex: 1, backgroundColor: D.bg },
+  scrollContent: { paddingHorizontal: 16, paddingTop: 8 },
 
   /* HEADER */
-  header:        { height: 72, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  profileRow:    { flexDirection: 'row', alignItems: 'center' },
-  avatarCircle:  { width: 54, height: 54, borderRadius: 27, borderWidth: 1, borderColor: AppColors.glassBorder },
-  avatarFallback:{ width: 54, height: 54, borderRadius: 27, borderWidth: 1, borderColor: AppColors.glassBorder, backgroundColor: '#1a56db', justifyContent: 'center', alignItems: 'center' },
-  avatarLetter:  { color: '#fff', fontSize: 26, fontWeight: '900', fontFamily: 'Poppins_700Bold' },
-  nameRow:       { flexDirection: 'row', alignItems: 'center' },
-  sellerName:    { color: AppColors.textPrimary, fontSize: 16, fontWeight: '600', fontFamily: 'Poppins_600SemiBold' },
-  verifiedBadge: { width: 16, height: 16, borderRadius: 8, backgroundColor: '#1686f7', marginLeft: 6, alignItems: 'center', justifyContent: 'center' },
-  verifiedTick:  { color: '#fff', fontSize: 9, fontWeight: 'bold' },
-  planRow:       { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
-  planText:      { color: ORANGE, fontSize: 11, marginLeft: 3, fontFamily: 'Poppins_500Medium' },
-  headerIcons:   { flexDirection: 'row', gap: 16 },
+  header:        { height: 84, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  profileRow:    { flexDirection: 'row', alignItems: 'center', flexShrink: 1 },
+  avatarCircle:  { width: 62, height: 62, borderRadius: 31, borderWidth: 2, borderColor: '#FFFFFF' },
+  avatarFallback:{ width: 62, height: 62, borderRadius: 31, borderWidth: 2, borderColor: '#FFFFFF', backgroundColor: '#C8102E', justifyContent: 'center', alignItems: 'center' },
+  avatarLetter:  { color: '#fff', fontSize: 28, fontFamily: 'Poppins_700Bold' },
+  nameRow:       { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  sellerName:    { color: D.white, fontSize: 18, fontFamily: 'Poppins_500Medium', flexShrink: 1 },
+  planRow:       { flexDirection: 'row', alignItems: 'center', marginTop: 4, gap: 6 },
+  planText:      { color: D.orange, fontSize: 14, fontFamily: 'Poppins_400Regular' },
+  headerIcons:   { flexDirection: 'row', gap: 18 },
 
   /* WELCOME BANNER */
-  welcomeCard:  { minHeight: 92, backgroundColor: 'rgba(6,27,74,1)', borderWidth: 1, borderColor: AppColors.glassBorder, borderRadius: 20, paddingHorizontal: 17, flexDirection: 'row', alignItems: 'center', overflow: 'hidden' },
+  welcomeCard:  { minHeight: 94, backgroundColor: D.navy, borderRadius: 20, paddingLeft: 18, paddingRight: 8, paddingVertical: 14, flexDirection: 'row', alignItems: 'center', marginTop: 4 },
   welcomeText:  { flex: 1 },
-  smallWelcome: { color: AppColors.textSecondary, fontSize: 9, marginBottom: 4, fontFamily: 'Poppins_400Regular' },
-  welcomeTitle: { color: AppColors.textPrimary, fontSize: 11, lineHeight: 17, fontWeight: '700', fontFamily: 'Poppins_700Bold' },
-  carImage:     { width: 90, height: 55, resizeMode: 'contain' },
+  smallWelcome: { color: '#FFFFFF', fontSize: 11, marginBottom: 6, fontFamily: 'Poppins_400Regular' },
+  welcomeTitle: { color: '#FFFFFF', fontSize: 13, lineHeight: 20, fontFamily: 'Poppins_600SemiBold' },
+  carImage:     { width: 116, height: 70, resizeMode: 'contain' },
 
   /* PROMOTION */
   promotionWrapper: { marginTop: 12 },
-  promotionCard:    { minHeight: 58, backgroundColor: CARD_BG, borderWidth: 1, borderColor: ORANGE, borderRadius: 16, paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', overflow: 'hidden' },
-  lightIcon:        { width: 38, alignItems: 'center' },
-  promotionText:    { flex: 1, color: AppColors.textPrimary, fontSize: 9, lineHeight: 14, fontFamily: 'Poppins_400Regular' },
 
   /* SECTION */
-  sectionHeader:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 16, marginBottom: 12, paddingHorizontal: 4 },
-  sectionTitle:       { color: AppColors.textPrimary, fontSize: 15, fontWeight: '600', fontFamily: 'Poppins_600SemiBold', marginLeft: 4, marginBottom: 12 },
-  sectionTitleInline: { color: AppColors.textPrimary, fontSize: 15, fontWeight: '600', fontFamily: 'Poppins_600SemiBold' },
-  analyticsLink:      { color: ORANGE, fontSize: 12, fontFamily: 'Poppins_500Medium' },
+  sectionHeader:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, marginBottom: 6 },
+  sectionTitle:       { color: D.white, fontSize: 18, fontFamily: 'Poppins_500Medium', marginBottom: 14 },
+  sectionTitleInline: { color: D.white, fontSize: 18, fontFamily: 'Poppins_500Medium' },
+  analyticsLink:      { color: D.orange, fontSize: 14, fontFamily: 'Poppins_400Regular' },
 
   /* STAT CARDS */
-  statsRow:    { flexDirection: 'row', gap: 8 },
-  statCard:    { flex: 1, borderRadius: 16, backgroundColor: CARD_BG, borderWidth: 1, borderColor: BLUE, alignItems: 'center', paddingTop: 12, paddingBottom: 12, paddingHorizontal: 4, overflow: 'hidden' },
-  statValue:   { color: AppColors.textPrimary, fontSize: 16, fontWeight: '700', marginTop: 3, fontFamily: 'Poppins_700Bold' },
-  statTitle:   { color: AppColors.textSecondary, fontSize: 9, textAlign: 'center', marginTop: 1, fontFamily: 'Poppins_400Regular' },
-  changeBadge: { flexDirection: 'row', alignItems: 'center', marginTop: 12, paddingHorizontal: 7, paddingVertical: 4 },
-  arrowUp:     { color: GREEN, fontSize: 9, marginRight: 2 },
-  changeText:  { color: GREEN, fontSize: 7, fontFamily: 'Poppins_500Medium' },
+  statsRow:   { flexDirection: 'row', gap: 10 },
+  statCard:   { flex: 1, alignItems: 'center', paddingTop: 12, paddingBottom: 10, paddingHorizontal: 4 },
+  statValue:  { color: '#C9BDC4', fontSize: 20, marginTop: 4, fontFamily: 'Poppins_600SemiBold' },
+  statTitle:  { color: '#C9BDC4', fontSize: 10, textAlign: 'center', fontFamily: 'Poppins_400Regular' },
+  changeBadge:{ flexDirection: 'row', alignItems: 'center', marginTop: 2, gap: 2 },
+  changeText: { color: GREEN, fontSize: 11, fontFamily: 'Poppins_400Regular' },
 
   /* CHART */
-  chartCard:    { marginTop: 12, backgroundColor: CARD_BG, borderRadius: 16, borderWidth: 1, borderColor: BLUE, padding: 13, overflow: 'hidden' },
-  chartHeader:  { flexDirection: 'row', justifyContent: 'space-between' },
-  chartLabel:   { color: AppColors.textSecondary, fontSize: 10, letterSpacing: 1, fontFamily: 'Poppins_500Medium' },
-  chartNumber:  { color: AppColors.textPrimary, fontSize: 24, fontWeight: '700', marginTop: 4, fontFamily: 'Poppins_700Bold' },
-  chartRight:   { alignItems: 'flex-end' },
-  percentBadge: { backgroundColor: 'rgba(226,103,27,0.2)', borderRadius: 12, paddingHorizontal: 9, paddingVertical: 3, borderWidth: 1, borderColor: 'rgba(226,103,27,0.4)' },
-  percentText:  { color: '#e89c5e', fontSize: 11, fontFamily: 'Poppins_500Medium' },
-  weekButton:       { borderWidth: 1, borderColor: AppColors.glassBorder, borderRadius: 17, paddingHorizontal: 9, paddingVertical: 5, marginTop: 8, flexDirection: 'row', alignItems: 'center' },
-  weekText:         { color: AppColors.textSecondary, fontSize: 11, fontFamily: 'Poppins_400Regular' },
-  downArrow:        { color: AppColors.textSecondary, fontSize: 15, marginLeft: 4 },
-  viewDropdown:     { position: 'absolute', top: 44, right: 0, backgroundColor: 'rgba(6,18,52,0.98)', borderWidth: 1, borderColor: BLUE, borderRadius: 12, zIndex: 99, minWidth: 120, overflow: 'hidden' },
-  viewDropItem:     { paddingHorizontal: 14, paddingVertical: 10 },
-  viewDropItemActive: { backgroundColor: 'rgba(255,105,0,0.15)' },
-  viewDropText:     { color: AppColors.textSecondary, fontSize: 12, fontFamily: 'Poppins_400Regular' },
-  viewDropTextActive: { color: ORANGE, fontFamily: 'Poppins_600SemiBold' },
-  chartArea:    { marginTop: 14, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' },
-  barCol:       { flex: 1, alignItems: 'center', marginHorizontal: 2 },
-  barTopVal:    { color: AppColors.textPrimary, fontSize: 8, fontFamily: 'Poppins_500Medium', marginBottom: 3 },
-  barWrapper:   { width: '100%', borderRadius: 4, overflow: 'hidden' },
-  chartDate:    { color: AppColors.textSecondary, fontSize: 8, fontFamily: 'Poppins_400Regular', marginTop: 4, textAlign: 'center' },
+  chartCard:    { marginTop: 14, padding: 14 },
+  chartHeader:  { flexDirection: 'row', justifyContent: 'space-between', zIndex: 5 },
+  chartLabel:   { color: '#FFFFFF', fontSize: 12, letterSpacing: 1.2, fontFamily: 'Poppins_400Regular' },
+  chartNumber:  { color: '#FFFFFF', fontSize: 24, marginTop: 6, fontFamily: 'Poppins_600SemiBold' },
+  chartRight:   { alignItems: 'flex-end', gap: 8 },
+  percentBadge: { backgroundColor: '#3A2420', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 2 },
+  percentText:  { color: '#C9713F', fontSize: 12, fontFamily: 'Poppins_400Regular' },
+  weekButton:        { borderWidth: 1, borderColor: 'rgba(230,225,232,0.8)', borderRadius: 16, paddingHorizontal: 10, paddingVertical: 4, flexDirection: 'row', alignItems: 'center', gap: 4 },
+  weekText:          { color: '#E6E1E8', fontSize: 13, fontFamily: 'Poppins_400Regular' },
+  viewDropdown:      { position: 'absolute', top: 34, right: 0, backgroundColor: 'rgba(6,18,52,0.98)', borderWidth: 1, borderColor: 'rgba(130,165,213,0.5)', borderRadius: 12, zIndex: 99, minWidth: 120, overflow: 'hidden' },
+  viewDropItem:      { paddingHorizontal: 14, paddingVertical: 10 },
+  viewDropItemActive:{ backgroundColor: 'rgba(226,103,27,0.15)' },
+  viewDropText:      { color: D.muted, fontSize: 12, fontFamily: 'Poppins_400Regular' },
+  viewDropTextActive:{ color: D.orange, fontFamily: 'Poppins_600SemiBold' },
+  chartArea:    { marginTop: 18, flexDirection: 'row', alignItems: 'flex-end' },
+  barWrapper:   { flex: 1, overflow: 'hidden' },
+  dateRow:      { flexDirection: 'row', marginTop: 6 },
+  chartDate:    { flex: 1, color: 'rgba(230,225,232,0.45)', fontSize: 10, fontFamily: 'Poppins_400Regular', textAlign: 'center' },
 
   /* SECONDARY STATS */
-  secondaryRow:    { flexDirection: 'row', gap: 8, marginTop: 12 },
-  secondaryCard:   { flex: 1, height: 100, backgroundColor: CARD_BG, borderRadius: 16, borderWidth: 1, borderColor: BLUE, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  secondaryNumber: { color: AppColors.textPrimary, fontSize: 15, fontWeight: '700', marginTop: 5, fontFamily: 'Poppins_700Bold' },
-  secondaryText:   { color: AppColors.textSecondary, fontSize: 10, fontFamily: 'Poppins_400Regular' },
+  secondaryRow:    { flexDirection: 'row', gap: 12, marginTop: 12 },
+  secondaryCard:   { flex: 1, height: 100, alignItems: 'center', justifyContent: 'center' },
+  secondaryNumber: { color: '#C9BDC4', fontSize: 20, marginTop: 2, fontFamily: 'Poppins_600SemiBold' },
+  secondaryText:   { color: D.muted, fontSize: 11, fontFamily: 'Poppins_400Regular' },
 
   /* QUICK ACTIONS */
-  quickSection: { marginTop: 16 },
-  actionsGrid:  { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 10 },
-  actionCard:   { width: '23.5%', height: 78, borderRadius: 14, backgroundColor: '#061B4A', borderWidth: 1, borderColor: AppColors.glassBorder, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  actionText:   { color: AppColors.textSecondary, fontSize: 9, textAlign: 'center', marginTop: 6, lineHeight: 13, fontFamily: 'Poppins_400Regular' },
+  quickSection: { marginTop: 22 },
+  actionsGrid:  { flexDirection: 'row', flexWrap: 'wrap', rowGap: 12 },
+  actionCard:   { width: '23%', height: 80, borderRadius: 16, backgroundColor: D.navy, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 2 },
+  actionText:   { color: '#C9BDC4', fontSize: 11, textAlign: 'center', marginTop: 6, lineHeight: 14, fontFamily: 'Poppins_400Regular' },
 
   /* RECENT ACTIVITY */
-  activitySection:  { marginTop: 24 },
-  activityCard:     { minHeight: 58, backgroundColor: CARD_BG, borderWidth: 1, borderColor: BLUE, borderRadius: 14, marginBottom: 10, paddingHorizontal: 10, flexDirection: 'row', alignItems: 'center', overflow: 'hidden' },
-  activityIconWrap: { width: 36, height: 36, borderRadius: 18, backgroundColor: AppColors.roleIconBg, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: AppColors.glassBorder },
+  activitySection:  { marginTop: 26 },
+  activityCard:     { minHeight: 60, marginBottom: 12, paddingHorizontal: 10, paddingVertical: 8, flexDirection: 'row', alignItems: 'center' },
+  activityIconWrap: { width: 42, height: 42, borderRadius: 21, backgroundColor: '#0B2358', alignItems: 'center', justifyContent: 'center' },
   activityInfo:     { flex: 1, marginLeft: 10 },
-  activityMain:     { color: AppColors.textPrimary, fontSize: 12, fontWeight: '600', fontFamily: 'Poppins_600SemiBold' },
-  activitySub:      { color: AppColors.textSecondary, fontSize: 8, marginTop: 2, fontFamily: 'Poppins_400Regular' },
+  activityMain:     { color: '#FFFFFF', fontSize: 14, fontFamily: 'Poppins_500Medium' },
+  activitySub:      { color: D.muted, fontSize: 10, marginTop: 2, fontFamily: 'Poppins_400Regular' },
 });

@@ -178,6 +178,7 @@ function RootLayoutNav() {
         <Stack.Screen name="bank-video-ads"       options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="bank-ad-analytics"    options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="(seller)" />
+        <Stack.Screen name="Become_a_Seller" />
         <Stack.Screen name="tracker-search"  options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="tracker-results" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="tracker-detail"   options={{ animation: 'slide_from_right' }} />

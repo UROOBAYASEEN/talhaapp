@@ -8,6 +8,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { ChevronLeft, Search, SlidersHorizontal, Phone, ChevronRight, Users } from 'lucide-react-native';
 import { AppColors } from '@/constants/theme';
+import { D, DHeader, FilterPills, GlowCard, SearchBar } from '@/components/dealer/DealerUI';
+import { Ionicons } from '@expo/vector-icons';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -15,7 +17,7 @@ const ORANGE = '#e2671b';
 const BG     = '#010A1F';
 const SERVER = API_BASE.replace('/api/v1', '');
 
-const FILTERS   = ['All', 'New', 'Confirmed', 'Installation', 'Completed'];
+const FILTERS   = ['All', 'New', 'Confirmed', 'Installation', 'Completed'] as const;
 const SORT_OPTS = ['Newest First', 'Oldest First', 'Name A–Z', 'Name Z–A'];
 
 function statusColor(status: string) {
@@ -52,9 +54,7 @@ function ClaimCard({ item, onViewDetail }: { item: any; onViewDetail: () => void
     : '—';
 
   return (
-    <View style={s.card}>
-      <CardShade />
-
+    <GlowCard style={s.card} radius={22}>
       {/* Top row */}
       <View style={s.cardTop}>
         <View style={s.cardLeft}>
@@ -65,16 +65,16 @@ function ClaimCard({ item, onViewDetail }: { item: any; onViewDetail: () => void
               <Text style={s.avatarInitial}>{initials}</Text>
             </View>
           )}
-          <View>
-            <Text style={s.claimName}>{item.customer_name || 'Customer'}</Text>
+          <View style={{ flexShrink: 1 }}>
+            <Text style={s.claimName} numberOfLines={1}>{item.customer_name || 'Customer'}</Text>
             <View style={s.phoneRow}>
-              <Phone size={11} color={ORANGE} />
+              <Ionicons name="call-outline" size={16} color={ORANGE} />
               <Text style={s.phoneText}>{item.customer_phone || '—'}</Text>
             </View>
           </View>
         </View>
-        <View style={[s.statusBadge, { backgroundColor: color }]}>
-          <Text style={s.statusText}>{item.status?.toUpperCase()}</Text>
+        <View style={[s.statusBadge, { backgroundColor: `${color}33` }]}>
+          <Text style={[s.statusText, { color }]}>{item.status?.toUpperCase()}</Text>
         </View>
       </View>
 
@@ -82,33 +82,31 @@ function ClaimCard({ item, onViewDetail }: { item: any; onViewDetail: () => void
       <View style={s.grid}>
         <View style={s.gridItem}>
           <Text style={s.gridLabel}>VEHICLE</Text>
-          <Text style={s.gridValue} numberOfLines={1}>{item.vehicle || '—'}</Text>
+          <Text style={s.gridValue} numberOfLines={2}>{item.vehicle || '—'}</Text>
         </View>
         <View style={s.gridItem}>
-          <Text style={s.gridLabel}>CITY</Text>
-          <Text style={s.gridValue}>{item.city || '—'}</Text>
+          <Text style={s.gridLabel}>AMOUNT</Text>
+          <Text style={s.gridValue}>PKR {Number(item.amount || 0).toLocaleString()}</Text>
         </View>
         <View style={s.gridItem}>
           <Text style={s.gridLabel}>PACKAGE</Text>
           <Text style={[s.gridValue, { color: ORANGE }]} numberOfLines={1}>{item.device_name || '—'}</Text>
         </View>
         <View style={s.gridItem}>
-          <Text style={s.gridLabel}>AMOUNT</Text>
-          <Text style={s.gridValue}>PKR {Number(item.amount || 0).toLocaleString()}</Text>
+          <Text style={s.gridLabel}>CITY</Text>
+          <Text style={s.gridValue}>{item.city || '—'}</Text>
         </View>
       </View>
 
       {/* Footer */}
       <View style={s.cardFooter}>
-        <Text style={s.dateText}>
-          Date: <Text style={s.dateValue}>{item.date || date}</Text>
-        </Text>
+        <Text style={s.dateText}>Claim date: {item.date || date}</Text>
         <TouchableOpacity style={s.viewBtn} onPress={onViewDetail}>
           <Text style={s.viewBtnText}>View Details</Text>
-          <ChevronRight size={13} color={ORANGE} />
+          <ChevronRight size={18} color={ORANGE} />
         </TouchableOpacity>
       </View>
-    </View>
+    </GlowCard>
   );
 }
 
@@ -116,7 +114,7 @@ export default function TrackerClaimsScreen() {
   const router = useRouter();
   const { user, token } = useAuth();
 
-  const [activeFilter, setActiveFilter] = useState('All');
+  const [activeFilter, setActiveFilter] = useState<typeof FILTERS[number]>('All');
   const [query,        setQuery]        = useState('');
   const [sortBy,       setSortBy]       = useState('Newest First');
   const [showSort,     setShowSort]     = useState(false);
@@ -173,73 +171,40 @@ export default function TrackerClaimsScreen() {
     <View style={s.root}>
       <SafeAreaView edges={['top']}>
         {/* Header */}
-        <View style={s.header}>
-          <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
-            <ChevronLeft size={22} color={AppColors.textPrimary} />
-          </TouchableOpacity>
-          <Text style={s.headerTitle}>Claims</Text>
-          <View style={{ width: 36 }} />
-        </View>
+        <DHeader title="Claims" />
 
         {/* Search + Sort */}
         <View style={s.searchRow}>
-          <View style={s.searchWrap}>
-            <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <Search size={15} color="#8f9cb5" />
-            <TextInput
-              value={query}
-              onChangeText={setQuery}
-              placeholder="Search by Claim ID, Customer, Vehicle..."
-              placeholderTextColor="#8f9cb5"
-              style={s.searchInput}
-            />
-          </View>
-          <View>
-            <TouchableOpacity style={s.sortBtn} onPress={() => setShowSort(v => !v)}>
-              <SlidersHorizontal size={14} color={ORANGE} />
-              <Text style={s.sortText}>Sort</Text>
-            </TouchableOpacity>
-            {showSort && (
-              <View style={s.sortDropdown}>
-                {SORT_OPTS.map(opt => (
-                  <TouchableOpacity
-                    key={opt}
-                    style={[s.sortItem, sortBy === opt && s.sortItemActive]}
-                    onPress={() => { setSortBy(opt); setShowSort(false); }}
-                  >
-                    <Text style={[s.sortItemText, sortBy === opt && { color: ORANGE }]}>{opt}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-          </View>
+          <SearchBar savedSearch
+            value={query}
+            onChangeText={setQuery}
+            placeholder="Search by Claim ID, Customer, Vehicle..."
+            onSort={() => setShowSort(v => !v)}
+          />
+          {showSort && (
+            <View style={s.sortDropdown}>
+              {SORT_OPTS.map(opt => (
+                <TouchableOpacity
+                  key={opt}
+                  style={[s.sortItem, sortBy === opt && s.sortItemActive]}
+                  onPress={() => { setSortBy(opt); setShowSort(false); }}
+                >
+                  <Text style={[s.sortItemText, sortBy === opt && { color: ORANGE }]}>{opt}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
         </View>
 
-        {/* Filter chips */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={s.filtersRow}
-        >
-          {FILTERS.map(f => (
-            <TouchableOpacity
-              key={f}
-              style={[s.chip, activeFilter === f && s.chipActive]}
-              onPress={() => setActiveFilter(f)}
-              activeOpacity={0.7}
-            >
-              <Text style={[s.chipText, activeFilter === f && s.chipTextActive]}>{f}</Text>
-              {counts[f] > 0 && (
-                <View style={[s.chipBadge, activeFilter === f && s.chipBadgeActive]}>
-                  <Text style={[s.chipBadgeText, activeFilter === f && s.chipBadgeTextActive]}>
-                    {counts[f]}
-                  </Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          ))}
+        {/* Filter pills — inventory "All" menu effect */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.filtersRow} style={{ flexGrow: 0 }}>
+          <FilterPills
+            items={FILTERS}
+            value={activeFilter}
+            onChange={setActiveFilter}
+            style={{ flexWrap: 'nowrap', gap: 10 }}
+            badges={Object.fromEntries(FILTERS.filter(f => f !== 'All' && counts[f] > 0).map(f => [f, counts[f]])) as any}
+          />
         </ScrollView>
 
         <Text style={s.countText}>Showing {filtered.length} items</Text>
@@ -269,65 +234,46 @@ export default function TrackerClaimsScreen() {
 }
 
 const s = StyleSheet.create({
-  root:        { flex: 1, backgroundColor: BG },
-
-  /* HEADER */
-  header:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12 },
-  backBtn:     { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { fontSize: 18, fontFamily: 'Poppins_700Bold', color: AppColors.textPrimary },
+  root:        { flex: 1, backgroundColor: D.bg },
 
   /* SEARCH */
-  searchRow:   { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, marginBottom: 14 },
-  searchWrap:     { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(3,12,40,0.6)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', borderRadius: 30, paddingHorizontal: 14, paddingVertical: 10, overflow: 'hidden' },
-  searchInput:    { flex: 1, fontSize: 12, fontFamily: 'Poppins_400Regular', color: AppColors.textPrimary, padding: 0 },
-  sortBtn:        { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 4 },
-  sortText:       { fontSize: 13, fontFamily: 'Poppins_600SemiBold', color: ORANGE },
-  sortDropdown:   { position: 'absolute', top: 32, right: 0, backgroundColor: 'rgba(6,18,52,0.98)', borderWidth: 1, borderColor: 'rgba(100,160,255,0.4)', borderRadius: 12, zIndex: 99, minWidth: 140, overflow: 'hidden' },
+  searchRow:      { paddingHorizontal: 16, marginBottom: 16, zIndex: 20 },
+  sortDropdown:   { position: 'absolute', top: 52, right: 16, backgroundColor: 'rgba(6,18,52,0.98)', borderWidth: 1, borderColor: 'rgba(100,160,255,0.4)', borderRadius: 12, zIndex: 99, minWidth: 150, overflow: 'hidden' },
   sortItem:       { paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' },
   sortItemActive: { backgroundColor: 'rgba(226,103,27,0.12)' },
   sortItemText:   { fontSize: 12, fontFamily: 'Poppins_400Regular', color: AppColors.textSecondary },
 
   /* FILTERS */
-  filtersRow:  { paddingHorizontal: 16, gap: 8, paddingBottom: 4 },
-  chip:        { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 30, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.1)', backgroundColor: '#061B4A' },
-  chipActive:  { borderColor: ORANGE, backgroundColor: 'rgba(226,103,27,0.1)' },
-  chipText:    { fontSize: 13, fontFamily: 'Poppins_600SemiBold', color: '#94a3b8' },
-  chipTextActive: { color: ORANGE },
-  chipBadge:     { backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 10, minWidth: 18, height: 18, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 5 },
-  chipBadgeActive:{ backgroundColor: ORANGE },
-  chipBadgeText:  { fontSize: 10, fontFamily: 'Poppins_700Bold', color: '#94a3b8' },
-  chipBadgeTextActive: { color: '#fff' },
+  filtersRow:  { paddingHorizontal: 16, paddingTop: 6, paddingBottom: 4 },
 
-  countText:   { paddingHorizontal: 16, fontSize: 12, fontFamily: 'Poppins_400Regular', color: '#94a3b8', marginTop: 10, marginBottom: 4 },
+  countText:   { paddingHorizontal: 16, fontSize: 13, fontFamily: 'Poppins_400Regular', color: '#FFFFFF', marginTop: 12, marginBottom: 10 },
 
   /* LIST */
-  list:        { paddingHorizontal: 16, paddingBottom: 100, gap: 14 },
+  list:        { paddingHorizontal: 16, paddingBottom: 110, gap: 18 },
   empty:       { alignItems: 'center', paddingTop: 60 },
   emptyTxt:    { fontSize: 14, fontFamily: 'Poppins_500Medium', color: AppColors.textSecondary },
 
   /* CARD */
-  card:        { borderRadius: 16, padding: 16, backgroundColor: '#010A1F', borderWidth: 1, borderColor: 'rgba(100,160,255,0.5)', overflow: 'hidden' },
+  card:        { padding: 16, paddingBottom: 14 },
 
-  cardTop:     { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 },
-  cardLeft:    { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  avatar:        { width: 44, height: 44, borderRadius: 22, backgroundColor: '#1a2a4a', overflow: 'hidden' },
+  cardTop:     { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 },
+  cardLeft:    { flexDirection: 'row', alignItems: 'center', gap: 14, flexShrink: 1 },
+  avatar:        { width: 66, height: 66, borderRadius: 33, backgroundColor: '#1a2a4a', overflow: 'hidden' },
   avatarFallback:{ backgroundColor: '#032a69', alignItems: 'center', justifyContent: 'center' },
-  avatarInitial: { color: '#fff', fontSize: 18, fontFamily: 'Poppins_700Bold' },
-  lastMsg:       { fontSize: 11, fontFamily: 'Poppins_400Regular', color: '#64748b', marginTop: 2, maxWidth: 160 },
-  claimName:   { fontSize: 13, fontFamily: 'Poppins_700Bold', color: '#fff' },
-  phoneRow:    { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 },
-  phoneText:   { fontSize: 11, fontFamily: 'Poppins_400Regular', color: ORANGE },
-  statusBadge: { backgroundColor: ORANGE, borderRadius: 30, paddingHorizontal: 10, paddingVertical: 4 },
-  statusText:  { fontSize: 10, fontFamily: 'Poppins_700Bold', color: '#fff' },
+  avatarInitial: { color: '#fff', fontSize: 22, fontFamily: 'Poppins_700Bold' },
+  claimName:   { fontSize: 20, fontFamily: 'Poppins_600SemiBold', color: '#fff' },
+  phoneRow:    { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 },
+  phoneText:   { fontSize: 15, fontFamily: 'Poppins_400Regular', color: '#C9BDC4' },
+  statusBadge: { borderRadius: 30, paddingHorizontal: 14, paddingVertical: 4 },
+  statusText:  { fontSize: 13, fontFamily: 'Poppins_600SemiBold', letterSpacing: 0.8 },
 
-  grid:        { flexDirection: 'row', flexWrap: 'wrap', rowGap: 12, columnGap: 0 },
-  gridItem:    { width: '50%' },
-  gridLabel:   { fontSize: 9, fontFamily: 'Poppins_600SemiBold', color: '#94a3b8', letterSpacing: 0.8 },
-  gridValue:   { fontSize: 13, fontFamily: 'Poppins_600SemiBold', color: '#fff', marginTop: 2 },
+  grid:        { flexDirection: 'row', flexWrap: 'wrap', rowGap: 10, paddingHorizontal: 14 },
+  gridItem:    { width: '50%', paddingRight: 8 },
+  gridLabel:   { fontSize: 13, fontFamily: 'Poppins_500Medium', color: '#FFFFFF', letterSpacing: 0.4 },
+  gridValue:   { fontSize: 17, fontFamily: 'Poppins_400Regular', color: '#C9BDC4', marginTop: 2, lineHeight: 26 },
 
-  cardFooter:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)' },
-  dateText:    { fontSize: 11, fontFamily: 'Poppins_400Regular', color: '#94a3b8' },
-  dateValue:   { fontFamily: 'Poppins_600SemiBold', color: '#fff' },
+  cardFooter:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8, paddingTop: 12, marginHorizontal: 12, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.14)' },
+  dateText:    { fontSize: 15, fontFamily: 'Poppins_500Medium', color: '#FFFFFF' },
   viewBtn:     { flexDirection: 'row', alignItems: 'center', gap: 2 },
-  viewBtnText: { fontSize: 12, fontFamily: 'Poppins_600SemiBold', color: ORANGE },
+  viewBtnText: { fontSize: 15, fontFamily: 'Poppins_500Medium', color: ORANGE },
 });

@@ -17,6 +17,11 @@ import {
 import { AppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
+import {
+  AddChip, BottomActions, Chip as DChip, DField, DHeader, DSelect, PlanOption, PromoCard, SaveDraftAction, TermsRow, TipBanner, UploadBox, dk,
+} from '@/components/dealer/DealerUI';
+import { GlassButton, GradientButton } from '@/components/shared/GlowUI';
+import { GlowPublishButton, GlowDraftButton } from "@/components/shared/ActionFooterGlow";
 
 const ORANGE = AppColors.gradientEnd;
 const NAVY   = AppColors.gradientStart;
@@ -49,6 +54,7 @@ function PromoteModal({
   videoAdId,
   token,
   router,
+  initialBoost,
 }: {
   visible:    boolean;
   onSkip:     () => void;
@@ -56,8 +62,11 @@ function PromoteModal({
   videoAdId:  string;
   token:      string | null;
   router:     any;
+  initialBoost?: string;
 }) {
-  const [boost,     setBoost]     = useState('6w');
+  const [boost,     setBoost]     = useState(initialBoost || '6w');
+  // Start with the plan picked on the screen
+  useEffect(() => { if (visible && initialBoost) setBoost(initialBoost); }, [visible, initialBoost]);
   const [paying,    setPaying]    = useState(false);
   const [waiting,   setWaiting]   = useState(false);
 
@@ -279,6 +288,7 @@ export default function VideoAdsScreen() {
   const [publishing,    setPublishing]    = useState(false);
   const [showPromote,   setShowPromote]   = useState(false);
   const [createdAdId,   setCreatedAdId]   = useState<string>('');
+  const [boostSel,      setBoostSel]      = useState('6w');
 
   async function pickMedia() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -356,186 +366,82 @@ export default function VideoAdsScreen() {
   return (
     <SafeAreaView style={s.safeArea} edges={['top']}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <View style={s.container}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scrollContent}>
 
           {/* HEADER */}
-          <View style={s.header}>
-            <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-              <ChevronLeft size={24} color={C.textPrimary} strokeWidth={2}/>
-            </TouchableOpacity>
-            <Text style={s.headerTitle}>Video Ads</Text>
-            <TouchableOpacity style={s.draftTopBtn} onPress={handleDraft}>
-              <Bookmark size={18} color={ORANGE} fill={ORANGE}/>
-              <Text style={s.draftTopTxt}>Save Draft</Text>
-            </TouchableOpacity>
+          <View style={{ marginHorizontal: -16 }}>
+            <DHeader title="Video Ads" center right={<SaveDraftAction onPress={handleDraft} />} />
           </View>
 
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scrollContent}>
+          {/* RECOMMENDATION */}
+          <TipBanner title="Recommendation" text="Video Ads are best for showcasing vehicles directly to interested buyers for Higher engagement & vehicle showcase" />
 
-            {/* RECOMMENDATION CARD */}
-            <View style={s.recCard}>
-              <LinearGradient colors={['transparent','rgba(226,103,27,0.35)']} start={{x:0.5,y:0.5}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <View style={s.recIconWrap}>
-                <Lightbulb size={16} color={ORANGE} fill={'rgba(226,103,27,0.3)'}/>
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={s.recTitle}>Recommendation</Text>
-                <Text style={s.recText}>
-                  Video Ads are best for showcasing vehicles directly to interested buyers. Best for: Higher engagement & vehicle showcase
-                </Text>
-              </View>
-            </View>
+          {/* UPLOAD */}
+          <View style={{ marginTop: 16 }}>
+            <UploadBox title="+ Upload video/img" sub="Drag & drop or click to browse. Recommended 16:9 ratio." onPress={pickMedia}>
+              {uploadedFile ? (
+                <View style={{ alignItems: 'center', gap: 8 }}>
+                  <Text style={{ color: '#22c55e', fontSize: 13, fontFamily: 'Poppins_500Medium' }}>✓ File selected</Text>
+                  <Text style={{ color: '#BAACB6', fontSize: 11, fontFamily: 'Poppins_400Regular' }} numberOfLines={1}>{uploadedFile.split('/').pop()}</Text>
+                </View>
+              ) : undefined}
+            </UploadBox>
+          </View>
 
-            {/* UPLOAD BOX */}
-            <TouchableOpacity style={s.uploadBox} onPress={pickMedia} activeOpacity={0.8}>
-              <Upload size={26} color={ORANGE}/>
-              <Text style={s.uploadTitle}>
-                {uploadedFile ? '✓ File selected' : '+ Upload video/img'}
-              </Text>
-              <Text style={s.uploadSub}>
-                {uploadedFile ? uploadedFile.split('/').pop() : 'Tap to browse. Recommended 16:9 ratio.'}
-              </Text>
-            </TouchableOpacity>
+          <Text style={dk.label}>Video Title</Text>
+          <DField value={videoTitle} onChangeText={setVideoTitle} placeholder="e.g. Summer Auto Sale" />
 
-            {/* VIDEO TITLE */}
-            <Text style={s.label}>Video Title</Text>
-            <View style={s.inputBox}>
-              <GlassInset/>
-              <TextInput
-                style={s.input}
-                placeholder="e.g. Summer Auto Sale"
-                placeholderTextColor={C.textPlaceholder}
-                value={videoTitle}
-                onChangeText={setVideoTitle}
-              />
-            </View>
+          <Text style={dk.label}>Display Location</Text>
+          <DSelect value="Home Screen Top" />
 
-            {/* DISPLAY LOCATION */}
-            <Text style={s.label}>Display Location</Text>
-            <View style={s.dropdownBox}>
-              <GlassInset/>
-              <Text style={s.dropdownText}>Home Screen Top</Text>
-              <ChevronDown size={16} color={C.textSecondary}/>
-            </View>
+          <Text style={dk.label}>Partner Selection</Text>
+          <DSelect value="Autowizor (Default)" />
 
-            {/* SCHEDULE */}
-            <Text style={s.label}>Schedule Ad</Text>
-            <View style={s.dateLabels}>
+          <Text style={dk.label}>Schedule Ad</Text>
+          <View style={s.dateRow}>
+            <View style={{ flex: 1, gap: 6 }}>
               <Text style={s.dateLabel}>Start Date & Time</Text>
+              <DField placeholder="mm/dd/yyyy" value={startDate} onChangeText={setStartDate} />
+            </View>
+            <View style={{ flex: 1, gap: 6 }}>
               <Text style={s.dateLabel}>End Date & Time</Text>
+              <DField placeholder="mm/dd/yyyy" value={endDate} onChangeText={setEndDate} />
             </View>
-            <View style={s.dateRow}>
-              <View style={[s.inputBox, { flex: 1, borderRadius: 22 }]}>
-                <GlassInset/>
-                <TextInput
-                  style={[s.input, { height: 44, fontSize: 12 }]}
-                  placeholder="mm/dd/yyyy"
-                  placeholderTextColor={C.textPlaceholder}
-                  value={startDate}
-                  onChangeText={setStartDate}
-                />
-              </View>
-              <View style={[s.inputBox, { flex: 1, borderRadius: 22 }]}>
-                <GlassInset/>
-                <TextInput
-                  style={[s.input, { height: 44, fontSize: 12 }]}
-                  placeholder="mm/dd/yyyy"
-                  placeholderTextColor={C.textPlaceholder}
-                  value={endDate}
-                  onChangeText={setEndDate}
-                />
-              </View>
-            </View>
-
-            {/* PARTNER SELECTION */}
-            <Text style={s.label}>Partner Selection</Text>
-            <View style={s.dropdownBox}>
-              <GlassInset/>
-              <Text style={s.dropdownText}>Autowizor (Default)</Text>
-              <ChevronDown size={16} color={C.textSecondary}/>
-            </View>
-
-            {/* USER TYPE */}
-            <Text style={s.label}>User Type</Text>
-            <View style={s.chipsRow}>
-              {USER_TYPES.map(t => (
-                <TouchableOpacity
-                  key={t}
-                  style={[s.chip, userType === t && s.chipActive]}
-                  onPress={() => setUserType(t)}
-                >
-                  <Text style={[s.chipText, userType === t && s.chipTextActive]}>{t}</Text>
-                </TouchableOpacity>
-              ))}
-              <TouchableOpacity style={s.chipPlus}>
-                <Plus size={14} color={C.textSecondary}/>
-              </TouchableOpacity>
-            </View>
-
-            {/* CITIES */}
-            <Text style={s.label}>Cities</Text>
-            <View style={s.chipsRow}>
-              {CITIES.map(c => (
-                <TouchableOpacity
-                  key={c}
-                  style={[s.chip, city === c && s.chipActive]}
-                  onPress={() => setCity(c)}
-                >
-                  <Text style={[s.chipText, city === c && s.chipTextActive]}>{c}</Text>
-                </TouchableOpacity>
-              ))}
-              <TouchableOpacity style={s.chipPlus}>
-                <Plus size={14} color={C.textSecondary}/>
-              </TouchableOpacity>
-            </View>
-
-            {/* TERMS */}
-            <TouchableOpacity style={s.termsRow} onPress={() => setAgreed(v => !v)}>
-              {agreed
-                ? <CheckCircle2 size={20} color={ORANGE} fill={ORANGE}/>
-                : <Circle size={20} color={C.textSecondary}/>
-              }
-              <Text style={s.termsText}>
-                I confirm that I have read and accept the terms and conditions and privacy policy.
-              </Text>
-            </TouchableOpacity>
-
-            <View style={{ height: 130 }}/>
-          </ScrollView>
-
-          {/* BOTTOM BUTTONS */}
-          <View style={s.bottomBar}>
-            <GlassInset/>
-            <TouchableOpacity
-              style={[s.publishBtn, (!agreed || publishing) && { opacity: 0.6 }]}
-              onPress={handlePublish}
-              disabled={publishing}
-              activeOpacity={0.85}
-            >
-              <LinearGradient
-                colors={['#c44e00', '#ff6900', '#ff9a00']}
-                start={{x:0,y:0}} end={{x:1,y:0}}
-                style={StyleSheet.absoluteFillObject}
-              />
-              <LinearGradient
-                colors={['rgba(3,42,105,0.95)','rgba(3,42,105,0.65)','rgba(3,42,105,0.15)']}
-                start={{x:0,y:0}} end={{x:1,y:0}}
-                style={StyleSheet.absoluteFillObject}
-                pointerEvents="none"
-              />
-              {publishing
-                ? <><ActivityIndicator color="#fff" size="small"/><Text style={[s.publishTxt,{marginLeft:8}]}>{uploadedFile ? 'Uploading...' : 'Publishing...'}</Text></>
-                : <Text style={s.publishTxt}>Publish Video Ad</Text>
-              }
-            </TouchableOpacity>
-
-            <TouchableOpacity style={s.draftBtn} onPress={handleDraft} activeOpacity={0.8}>
-              <GlassInset/>
-              <Text style={s.draftTxt}>Save as Draft</Text>
-            </TouchableOpacity>
           </View>
 
-        </View>
+          <Text style={dk.label}>Audience Targeting</Text>
+          <Text style={s.subLabel}>User Type</Text>
+          <View style={s.chipsRow}>
+            {USER_TYPES.map(t => <DChip key={t} small label={t} selected={userType === t} onPress={() => setUserType(t)} />)}
+            <AddChip small />
+          </View>
+          <Text style={[s.subLabel, { marginTop: 12 }]}>Cities</Text>
+          <View style={s.chipsRow}>
+            {CITIES.map(c => <DChip key={c} small label={c} selected={city === c} onPress={() => setCity(c)} />)}
+            <AddChip small />
+          </View>
+
+          {/* ADS PLAN */}
+          <View style={{ marginTop: 20 }}>
+            <PromoCard title="Ads to Get Your  Vehicle Seen Faster" sub="Get 5x more visibility by featuring your listing">
+              {BOOSTS.map(b => (
+                <PlanOption key={b.id} title={b.title} sub={b.subtitle} price={b.price.replace('PKR', 'Rs')} fire={b.id === '4w'}
+                  selected={boostSel === b.id} onPress={() => setBoostSel(b.id)} />
+              ))}
+            </PromoCard>
+          </View>
+
+          <TermsRow checked={agreed} onToggle={() => setAgreed(v => !v)} />
+
+          <View style={{ height: 170 }} />
+        </ScrollView>
+
+        {/* BOTTOM BUTTONS */}
+        <BottomActions fx>
+          <GlowPublishButton title="Publish  Reel" loadingTitle={uploadedFile ? 'Uploading...' : 'Publishing...'}
+            loading={publishing} style={!agreed ? { opacity: 0.6 } : undefined} onPress={handlePublish} />
+          <GlowDraftButton title="Save as Draft" onPress={handleDraft} />
+        </BottomActions>
       </KeyboardAvoidingView>
 
       {/* PROMOTE MODAL */}
@@ -546,65 +452,17 @@ export default function VideoAdsScreen() {
         videoAdId={createdAdId}
         token={token}
         router={router}
+        initialBoost={boostSel}
       />
     </SafeAreaView>
   );
 }
 
 const s = StyleSheet.create({
-  safeArea:   { flex: 1, backgroundColor: C.bg },
-  container:  { flex: 1, backgroundColor: C.bg },
-
-  header:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, height: 60 },
-  backBtn:     { width: 36, height: 36, justifyContent: 'center', alignItems: 'flex-start' },
-  headerTitle: { color: C.textPrimary, fontSize: 17, fontFamily: 'Poppins_600SemiBold' },
-  draftTopBtn: { alignItems: 'center', gap: 2 },
-  draftTopTxt: { color: ORANGE, fontSize: 10, fontFamily: 'Poppins_500Medium' },
-
-  scrollContent: { paddingHorizontal: 18, paddingTop: 4, gap: 14, paddingBottom: 20 },
-
-  recCard: {
-    flexDirection: 'row', gap: 12,
-    borderRadius: 18, borderWidth: 1, borderColor: 'rgba(226,103,27,0.4)',
-    backgroundColor: C.bg,
-    padding: 14, overflow: 'hidden',
-  },
-  recIconWrap: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(226,103,27,0.2)', alignItems: 'center', justifyContent: 'center', marginTop: 2, flexShrink: 0 },
-  recTitle:    { color: C.textPrimary, fontSize: 13, fontFamily: 'Poppins_600SemiBold', marginBottom: 3 },
-  recText:     { color: C.textSecondary, fontSize: 12, fontFamily: 'Poppins_400Regular', lineHeight: 18 },
-
-  uploadBox: {
-    borderRadius: 18, borderWidth: 1.5, borderStyle: 'dashed',
-    borderColor: 'rgba(255,255,255,0.15)',
-    paddingVertical: 32, paddingHorizontal: 20,
-    alignItems: 'center', gap: 10,
-    backgroundColor: C.glassBg,
-  },
-  uploadTitle: { color: C.textPrimary, fontSize: 14, fontFamily: 'Poppins_500Medium' },
-  uploadSub:   { color: C.textSecondary, fontSize: 12, fontFamily: 'Poppins_400Regular', textAlign: 'center' },
-
-  label:       { color: C.textPrimary, fontSize: 13, fontFamily: 'Poppins_500Medium' },
-  dateLabels:  { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 4, marginBottom: -8 },
-  dateLabel:   { color: C.textSecondary, fontSize: 10, fontFamily: 'Poppins_400Regular' },
-  dateRow:     { flexDirection: 'row', gap: 12 },
-  inputBox:    { borderRadius: 30, borderWidth: 1, borderColor: 'rgba(99,148,214,0.4)', backgroundColor: C.glassBg, overflow: 'hidden', paddingHorizontal: 18, paddingVertical: 2 },
-  input:       { height: 46, color: C.textPrimary, fontSize: 13, fontFamily: 'Poppins_400Regular' },
-  dropdownBox: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderRadius: 30, borderWidth: 1, borderColor: 'rgba(99,148,214,0.4)', backgroundColor: C.glassBg, overflow: 'hidden', paddingHorizontal: 18, paddingVertical: 14 },
-  dropdownText:{ color: C.textSecondary, fontSize: 13, fontFamily: 'Poppins_400Regular' },
-
-  chipsRow:      { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip:          { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 30, backgroundColor: C.glassBg, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
-  chipActive:    { backgroundColor: 'rgba(226,103,27,0.15)', borderColor: ORANGE },
-  chipText:      { color: C.textSecondary, fontSize: 12, fontFamily: 'Poppins_500Medium' },
-  chipTextActive:{ color: ORANGE },
-  chipPlus:      { width: 34, height: 34, borderRadius: 17, backgroundColor: C.glassBg, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
-
-  termsRow:  { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
-  termsText: { flex: 1, color: C.textSecondary, fontSize: 12, fontFamily: 'Poppins_400Regular', lineHeight: 18 },
-
-  bottomBar:   { position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: 18, paddingTop: 14, paddingBottom: 28, backgroundColor: 'rgba(1,10,31,0.96)', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.07)', overflow: 'hidden', gap: 10 },
-  publishBtn:  { height: 50, borderRadius: 25, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
-  publishTxt:  { color: '#fff', fontSize: 15, fontFamily: 'Poppins_700Bold' },
-  draftBtn:    { height: 50, borderRadius: 25, borderWidth: 1, borderColor: 'rgba(99,148,214,0.5)', overflow: 'hidden', alignItems: 'center', justifyContent: 'center', backgroundColor: C.glassBg },
-  draftTxt:    { color: C.textPrimary, fontSize: 13, fontFamily: 'Poppins_600SemiBold' },
+  safeArea:      { flex: 1, backgroundColor: '#010A1F' },
+  scrollContent: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 20 },
+  dateRow:       { flexDirection: 'row', gap: 12 },
+  dateLabel:     { color: '#FFFFFF', fontSize: 12, fontFamily: 'Poppins_400Regular' },
+  subLabel:      { color: '#FFFFFF', fontSize: 13, fontFamily: 'Poppins_400Regular', marginBottom: 8 },
+  chipsRow:      { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
 });

@@ -10,6 +10,7 @@ import { AppColors } from '@/constants/theme';
 import { useRouter } from 'expo-router';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { D, DHeader, FilterPills, GlowCard, SearchBar } from '@/components/dealer/DealerUI';
 
 const ORANGE = '#e2671b';
 const BG     = '#010A1F';
@@ -21,7 +22,7 @@ function resolveUrl(url?: string | null) {
   return `${SERVER}${url}`;
 }
 
-const FILTERS = ['All', 'New', 'Approved', 'Under Review'];
+const FILTERS = ['All', 'New', 'Approved', 'Under Review'] as const;
 
 function GlassInset() {
   return (
@@ -50,7 +51,7 @@ function statusMeta(s: string) {
 export default function InventoryScreen() {
   const router      = useRouter();
   const { token }   = useAuth();
-  const [activeFilter, setActiveFilter] = useState('All');
+  const [activeFilter, setActiveFilter] = useState<typeof FILTERS[number]>('All');
   const [search,       setSearch]       = useState('');
   const [cases,        setCases]        = useState<any[]>([]);
   const [loading,      setLoading]      = useState(true);
@@ -177,47 +178,25 @@ export default function InventoryScreen() {
         ListHeaderComponent={<>
 
           {/* ── HEADER ── */}
-          <View style={s.header}>
-            <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
-              <ChevronLeft size={24} color={AppColors.textPrimary} />
-            </TouchableOpacity>
-            <Text style={s.heading}>Inventory</Text>
-            <View style={{ width: 24 }} />
+          <View style={{ marginHorizontal: -16 }}>
+            <DHeader title="Partner Management" center />
           </View>
           <Text style={s.subHeading}>Financing cases — {filtered.length} {filtered.length === 1 ? 'case' : 'cases'}</Text>
 
           {/* ── SEARCH ── */}
           <View style={s.searchRow}>
-            <View style={s.searchWrap}>
-              <GlassInset />
-              <Search size={17} color="rgba(255,255,255,0.4)" style={{ marginRight: 8 }} />
-              <TextInput
-                style={s.searchInput}
-                placeholder="Search by customer, vehicle, ref # or city"
-                placeholderTextColor="rgba(255,255,255,0.4)"
-                value={search}
-                onChangeText={setSearch}
-                returnKeyType="search"
-              />
-              {search.length > 0 && (
-                <TouchableOpacity onPress={() => setSearch('')} style={s.clearBtn}>
-                  <Text style={s.clearTxt}>✕</Text>
-                </TouchableOpacity>
-              )}
-            </View>
+            <SearchBar
+              placeholder="Search"
+              value={search}
+              onChangeText={setSearch}
+              returnKeyType="search"
+              onSort={() => {}}
+            />
           </View>
 
-          {/* ── FILTER PILLS ── */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.pillsRow}>
-            {FILTERS.map(f => {
-              const active = activeFilter === f;
-              const count = f === 'All' ? cases.length : 0; // could show count if needed
-              return (
-                <TouchableOpacity key={f} style={[s.pill, active && s.pillActive]} onPress={() => setActiveFilter(f)}>
-                  <Text style={[s.pillText, active && s.pillTextActive]}>{f}</Text>
-                </TouchableOpacity>
-              );
-            })}
+          {/* ── FILTER PILLS (inventory menu effect) ── */}
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.pillsRow} style={{ marginHorizontal: -16 }}>
+            <FilterPills items={FILTERS} value={activeFilter} onChange={setActiveFilter} style={{ flexWrap: 'nowrap', gap: 10 }} />
           </ScrollView>
         </>}
 
@@ -228,7 +207,7 @@ export default function InventoryScreen() {
           const rawImg = item.vehicle_image || item.image || item.images?.[0] || null;
           const imgUri = resolveUrl(rawImg) || rawImg;
           return (
-            <TouchableOpacity style={s.card} activeOpacity={0.85}
+            <GlowCard style={s.card} radius={20}
               onPress={() => router.push({ pathname: '/bank-case-detail', params: { id: item.id } } as any)}>
               <View style={s.cardTop}>
                 <View style={s.carImg}>
@@ -242,27 +221,27 @@ export default function InventoryScreen() {
                   )}
                 </View>
                 <View style={s.cardInfo}>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <Text style={[s.cardTitle, { flex: 1, marginRight: 8 }]} numberOfLines={2}>{vehicleLabel}</Text>
-                    <View style={[s.statusBadge, { backgroundColor: meta.bg, borderColor: meta.color + '30', borderWidth: 1 }]}>
-                      <Text style={[s.statusTxt, { color: meta.color }]}>{item.status}</Text>
-                    </View>
-                  </View>
+                  <Text style={s.cardTitle} numberOfLines={2}>{vehicleLabel}</Text>
+                  {/* Status badge hidden for now (Figma)
+                  <View style={[s.statusBadge, { backgroundColor: meta.bg, borderColor: meta.color + '30', borderWidth: 1 }]}>
+                    <Text style={[s.statusTxt, { color: meta.color }]}>{item.status}</Text>
+                  </View> */}
                   <Text style={s.cardMeta} numberOfLines={1}>Customer: {item.customer || item.full_name || '—'}</Text>
-                  <Text style={s.cardMeta} numberOfLines={1}>Ref: {item.reference_no || '—'} • {item.city || '—'}</Text>
+                  <Text style={s.cardMeta} numberOfLines={1}>Case ID: {item.reference_no || '—'}</Text>
                   <View style={s.priceRow}>
-                    <View>
-                      <Text style={s.priceLabel}>LOAN</Text>
-                      <Text style={s.priceValue}>{fmt(item.loan_amount)}</Text>
+                    <View style={{ flex: 1 }}>
+                      <Text style={s.priceLabel}>PRICE</Text>
+                      <Text style={s.priceValue}>{fmt(item.vehicle_price || item.loan_amount)}</Text>
                     </View>
-                    <View>
+                    <View style={{ flex: 1 }}>
                       <Text style={s.priceLabel}>MONTHLY</Text>
                       <Text style={s.priceValue}>{fmt(item.monthly_installment)}</Text>
                     </View>
+                    {/* Tenure hidden for now
                     <View>
                       <Text style={s.priceLabel}>TENURE</Text>
                       <Text style={s.priceValue}>{item.tenure_years ? `${item.tenure_years}Y` : '—'}</Text>
-                    </View>
+                    </View> */}
                   </View>
                 </View>
               </View>
@@ -277,7 +256,7 @@ export default function InventoryScreen() {
                   </TouchableOpacity>
                 </View>
               ) : null}
-            </TouchableOpacity>
+            </GlowCard>
           );
         }}
 
@@ -288,53 +267,41 @@ export default function InventoryScreen() {
 }
 
 const s = StyleSheet.create({
-  safe:    { flex: 1, backgroundColor: '#010A1F' },
-  content: { paddingHorizontal: 20, paddingTop: 4, gap: 14 },
+  safe:    { flex: 1, backgroundColor: D.bg },
+  content: { paddingHorizontal: 16, paddingTop: 4, gap: 14 },
 
-  /* HEADER */
-  header:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12 },
-  backBtn: { padding: 2 },
-  heading: { color: AppColors.textPrimary, fontSize: 18, fontFamily: 'Poppins_600SemiBold' },
-  subHeading: { color: 'rgba(255,255,255,0.5)', fontSize: 12, fontFamily: 'Poppins_400Regular', marginTop: -6, marginBottom: 4 },
+  subHeading: { color: D.muted, fontSize: 12, fontFamily: 'Poppins_400Regular', marginTop: -4, marginBottom: 4 },
 
   /* SEARCH */
-  searchRow:   { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 8 },
-  searchWrap:  { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#010A1F', borderRadius: 30, paddingHorizontal: 16, paddingVertical: 12, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
-  searchInput: { flex: 1, color: AppColors.textPrimary, fontSize: 13, fontFamily: 'Poppins_400Regular', padding: 0 },
-  clearBtn: { paddingHorizontal: 6, paddingVertical: 2 },
-  clearTxt: { color: 'rgba(255,255,255,0.5)', fontSize: 14 },
+  searchRow:   { marginTop: 4 },
 
   /* FILTER PILLS */
-  pillsRow:      { flexDirection: 'row', gap: 8, marginTop: 14, marginBottom: 4, paddingHorizontal: 0 },
-  pill:          { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 10, backgroundColor: '#061B4A', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
-  pillActive:    { borderColor: 'rgba(100,160,255,0.5)', backgroundColor: '#0e1a3d' },
-  pillText:      { color: 'rgba(255,255,255,0.7)', fontSize: 12, fontFamily: 'Poppins_500Medium' },
-  pillTextActive:{ color: ORANGE },
+  pillsRow:      { paddingHorizontal: 16, marginTop: 8, marginBottom: 4 },
 
   statusBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
-  statusTxt:   { fontSize: 9, fontFamily: 'Poppins_600SemiBold', textTransform: 'capitalize' },
+  statusTxt:   { fontSize: 10, fontFamily: 'Poppins_600SemiBold', textTransform: 'capitalize' },
 
   /* CARDS */
-  card:      { backgroundColor: '#010A1F', borderRadius: 16, padding: 12, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(100,160,255,0.4)' },
-  cardTop:   { flexDirection: 'row', gap: 12, alignItems: 'flex-start' },
-  carImg:    { width: 90, height: 100, borderRadius: 10, overflow: 'hidden', position: 'relative', backgroundColor: '#061B4A' },
+  card:      { padding: 14 },
+  cardTop:   { flexDirection: 'row', gap: 14, alignItems: 'flex-start' },
+  carImg:    { width: '44%', height: 108, borderRadius: 12, overflow: 'hidden', position: 'relative', backgroundColor: '#061B4A' },
   cardInfo:  { flex: 1 },
-  cardTitle: { color: AppColors.textPrimary, fontSize: 12, fontFamily: 'Poppins_600SemiBold', lineHeight: 17 },
-  cardMeta:  { color: 'rgba(255,255,255,0.5)', fontSize: 10, fontFamily: 'Poppins_400Regular', marginTop: 2 },
+  cardTitle: { color: '#FFFFFF', fontSize: 15, fontFamily: 'Poppins_500Medium', lineHeight: 21 },
+  cardMeta:  { color: '#B8B2BD', fontSize: 11, fontFamily: 'Poppins_400Regular', marginTop: 2 },
 
-  priceRow:   { flexDirection: 'row', gap: 16, marginTop: 6, paddingTop: 6, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.1)' },
-  priceLabel: { color: 'rgba(255,255,255,0.4)', fontSize: 8, fontFamily: 'Poppins_500Medium', letterSpacing: 0.5 },
-  priceValue: { color: AppColors.textPrimary, fontSize: 10, fontFamily: 'Poppins_600SemiBold', marginTop: 1 },
+  priceRow:   { flexDirection: 'row', gap: 12, marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.18)' },
+  priceLabel: { color: '#B8B2BD', fontSize: 9, fontFamily: 'Poppins_400Regular', letterSpacing: 0.4 },
+  priceValue: { color: '#FFFFFF', fontSize: 13, fontFamily: 'Poppins_500Medium', marginTop: 1 },
 
-  btnRow:     { flexDirection: 'row', gap: 10, marginTop: 10 },
-  actionBtn:  { flex: 1, borderRadius: 8, paddingVertical: 9, alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
-  approveBtn: { backgroundColor: 'rgba(34,197,94,0.1)', borderColor: 'rgba(34,197,94,0.25)' },
-  rejectBtn:  { backgroundColor: 'rgba(239,68,68,0.08)', borderColor: 'rgba(239,68,68,0.35)' },
-  actionText: { fontSize: 11, fontFamily: 'Poppins_600SemiBold' },
+  btnRow:     { flexDirection: 'row', gap: 12, marginTop: 14 },
+  actionBtn:  { flex: 1, height: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
+  approveBtn: { backgroundColor: 'rgba(11,42,34,0.7)', borderColor: 'rgba(46,204,113,0.45)' },
+  rejectBtn:  { backgroundColor: 'rgba(58,21,32,0.7)', borderColor: 'rgba(224,54,58,0.45)' },
+  actionText: { fontSize: 13, fontFamily: 'Poppins_400Regular' },
 
   emptyBox: { alignItems: 'center', paddingVertical: 64, paddingHorizontal: 24, gap: 10 },
   emptyTitle: { color: '#fff', fontSize: 15, fontFamily: 'Poppins_600SemiBold', marginTop: 8, textAlign: 'center' },
-  emptySub: { color: 'rgba(255,255,255,0.5)', fontSize: 12, fontFamily: 'Poppins_400Regular', textAlign: 'center', lineHeight: 18 },
+  emptySub: { color: D.muted, fontSize: 12, fontFamily: 'Poppins_400Regular', textAlign: 'center', lineHeight: 18 },
   retryBtn: { marginTop: 12, backgroundColor: '#061B4A', borderWidth: 1, borderColor: 'rgba(100,160,255,0.4)', paddingHorizontal: 22, paddingVertical: 9, borderRadius: 20 },
   retryTxt: { color: ORANGE, fontSize: 12, fontFamily: 'Poppins_600SemiBold' },
 });

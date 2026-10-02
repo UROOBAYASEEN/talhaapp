@@ -13,6 +13,8 @@ import AdminFooter from "@/components/admin/AdminFooter";
 import { API_BASE } from "@/constants/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAppColors } from "@/constants/theme";
+import { SavedCardEffect } from "@/components/shared/FigmaEffects";
+import { PillGlow } from "@/components/dealer/DealerUI";
 
 // ── Design tokens ────────────────────────────────────────────────────────────
 const SERVER = API_BASE.replace('/api/v1', '');
@@ -31,8 +33,8 @@ function resolveImg(url?: string | null): string | null {
 
 const BG          = "#010A1F";
 const GLASS_BG    = "rgba(3,12,40,0.6)";
-const GLASS_BORDER= "rgba(100,160,255,0.5)";
-const CARD_BG     = "rgba(1,6,20,1)";
+const GLASS_BORDER= "#82a5d5";
+const CARD_BG     = "#010A1F";
 const ORANGE      = "#e2671b";
 const WHITE       = "#f9fafc";
 const MUTED       = "#baacb6";
@@ -53,16 +55,7 @@ const ROLE_MAP: Record<string,string> = {
 // ── 4-side card glass gradient ───────────────────────────────────────────────
 function CardShade() {
   const aC = useAppColors();
-  if (aC.isDark) {
-    return (
-      <>
-        <LinearGradient colors={["rgba(22,64,136,0.35)","transparent"]} start={{x:0.5,y:0}} end={{x:0.5,y:0.25}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-        <LinearGradient colors={["transparent","rgba(29,83,175,0.35)"]} start={{x:0.5,y:0.75}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-        <LinearGradient colors={["rgba(13,37,84,0.35)","transparent"]} start={{x:0,y:0.5}} end={{x:0.25,y:0.5}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-        <LinearGradient colors={["transparent","rgba(13,37,84,0.35)"]} start={{x:0.75,y:0.5}} end={{x:1,y:0.5}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-      </>
-    );
-  }
+  if (aC.isDark) return <SavedCardEffect band={12} />;
   return (
     <>
       <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
@@ -298,11 +291,7 @@ export default function ApproveListingsScreen() {
         <View style={s.searchRow}>
           <View style={[s.searchBox, { overflow:"hidden", backgroundColor: aC.isDark ? GLASS_BG : '#ffffff', borderColor: aC.isDark ? GLASS_BORDER : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 2 }]}>
             {aC.isDark ? (
-              <>
-                <LinearGradient colors={["rgba(22,64,136,0.2)","transparent"]} start={{x:0.5,y:0}} end={{x:0.5,y:0.6}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                <LinearGradient colors={["rgba(13,37,84,0.18)","transparent"]} start={{x:0,y:0.5}} end={{x:0.45,y:0.5}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                <LinearGradient colors={["transparent","rgba(29,83,175,0.2)"]} start={{x:0.5,y:0.4}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              </>
+              <SavedCardEffect band={12} />
             ) : (
               <>
                 <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
@@ -323,8 +312,8 @@ export default function ApproveListingsScreen() {
           {TYPE_FILTERS.map(f=>{
             const active = typeFilter===f;
             return (
-            <TouchableOpacity key={f} onPress={()=>setTypeFilter(f)} style={[s.tab, { overflow:"hidden", backgroundColor: aC.isDark ? "rgba(3,12,40,0.6)" : (active ? 'rgba(226,103,27,0.08)' : '#ffffff'), borderColor: aC.isDark ? (active ? GLASS_BORDER : "rgba(100,160,255,0.2)") : (active ? ORANGE : 'rgba(3,42,105,0.12)'), shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.06)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 1 }, active&&s.tabActive]}>
-              {active && aC.isDark && <LinearGradient colors={["rgba(22,64,136,0.3)","transparent"]} start={{x:0.5,y:0}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>}
+            <TouchableOpacity key={f} onPress={()=>setTypeFilter(f)} style={[s.tab, { overflow:"hidden", backgroundColor: aC.isDark ? (active ? "#05122A" : "#0B2358") : (active ? 'rgba(226,103,27,0.08)' : '#ffffff'), borderColor: aC.isDark ? (active ? "#7F98C4" : "transparent") : (active ? ORANGE : 'rgba(3,42,105,0.12)'), shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.06)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 1 }, active&&s.tabActive]}>
+              {active && aC.isDark && <PillGlow />}
               <Text style={[s.tabTxt, { color: active ? ORANGE : (aC.isDark ? MUTED : '#475569') }, active&&s.tabTxtActive]}>{f}</Text>
             </TouchableOpacity>
             );
@@ -337,8 +326,8 @@ export default function ApproveListingsScreen() {
             {STATUS_FILTERS.map(f=>{
               const active = statusFilter===f;
               return (
-              <TouchableOpacity key={f} onPress={()=>setStatusFilter(f)} style={[s.tab, { overflow:"hidden", backgroundColor: aC.isDark ? "rgba(3,12,40,0.6)" : (active ? 'rgba(226,103,27,0.08)' : '#ffffff'), borderColor: aC.isDark ? (active ? GLASS_BORDER : "rgba(100,160,255,0.2)") : (active ? ORANGE : 'rgba(3,42,105,0.12)'), shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.06)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 1 }, active&&s.tabActive]}>
-                {active && aC.isDark && <LinearGradient colors={["rgba(22,64,136,0.3)","transparent"]} start={{x:0.5,y:0}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>}
+              <TouchableOpacity key={f} onPress={()=>setStatusFilter(f)} style={[s.tab, { overflow:"hidden", backgroundColor: aC.isDark ? (active ? "#05122A" : "#0B2358") : (active ? 'rgba(226,103,27,0.08)' : '#ffffff'), borderColor: aC.isDark ? (active ? "#7F98C4" : "transparent") : (active ? ORANGE : 'rgba(3,42,105,0.12)'), shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.06)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 1 }, active&&s.tabActive]}>
+                {active && aC.isDark && <PillGlow />}
                 <Text style={[s.tabTxt, { color: active ? ORANGE : (aC.isDark ? MUTED : '#475569') }, active&&s.tabTxtActive]}>{f}</Text>
               </TouchableOpacity>
               );
@@ -585,9 +574,9 @@ const s = StyleSheet.create({
   sortTxt:    {color:WHITE, fontSize:13, fontFamily:"Poppins_500Medium"},
 
   tabRow:     {gap:8, paddingBottom:10},
-  tab:        {height:36, minWidth:72, paddingHorizontal:14, borderRadius:18, backgroundColor:"rgba(3,12,40,0.6)", borderWidth:1, borderColor:"rgba(100,160,255,0.2)", justifyContent:"center", alignItems:"center"},
+  tab:        {height:40, minWidth:80, paddingHorizontal:18, borderRadius:20, backgroundColor:"rgba(3,12,40,0.6)", borderWidth:1, borderColor:"rgba(100,160,255,0.2)", justifyContent:"center", alignItems:"center"},
   tabActive:  {borderColor:GLASS_BORDER},
-  tabTxt:     {color:MUTED, fontSize:12, fontFamily:"Poppins_500Medium"},
+  tabTxt:     {color:MUTED, fontSize:13, fontFamily:"Poppins_500Medium"},
   tabTxtActive:{color:ORANGE, fontFamily:"Poppins_600SemiBold"},
 
   // Account count cards
@@ -597,7 +586,7 @@ const s = StyleSheet.create({
   countLbl:  {fontSize:11, fontFamily:"Poppins_500Medium"},
 
   // Card — card base style
-  card:     {borderRadius:16, overflow:"hidden", backgroundColor:CARD_BG, borderWidth:1, borderColor:GLASS_BORDER, marginTop:12, padding:14},
+  card:     {borderRadius:20, overflow:"hidden", backgroundColor:CARD_BG, borderWidth:1, borderColor:GLASS_BORDER, marginTop:12, padding:14},
   cardTop:  {flexDirection:"row", gap:12},
   imgBox:   {width:100, height:86, borderRadius:12, backgroundColor:"rgba(1,6,20,0.8)", alignItems:"center", justifyContent:"center", overflow:"hidden", position:"relative", flexShrink:0},
   cardImg:  {width:"100%", height:"100%"},
@@ -606,8 +595,8 @@ const s = StyleSheet.create({
   badgeTxt: {fontSize:9, fontFamily:"Poppins_700Bold"},
 
   cardInfo: {flex:1, justifyContent:"center", gap:4},
-  cardTitle:{color:WHITE, fontSize:14, fontFamily:"Poppins_600SemiBold", lineHeight:20},
-  cardSub:  {color:MUTED, fontSize:11, fontFamily:"Poppins_400Regular"},
+  cardTitle:{color:WHITE, fontSize:17, fontFamily:"Poppins_500Medium", lineHeight:23},
+  cardSub:  {color:MUTED, fontSize:13, fontFamily:"Poppins_400Regular"},
   cardPrice:{color:WHITE, fontSize:13, fontFamily:"Poppins_600SemiBold"},
 
   divider:  {height:1, backgroundColor:"rgba(255,255,255,0.06)", marginVertical:10},

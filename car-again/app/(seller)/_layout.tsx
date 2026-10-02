@@ -1,35 +1,20 @@
-import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
-import { Package, MessageCircle, Car, WalletCards, User } from 'lucide-react-native';
 import React, { useEffect } from 'react';
+import { Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
-import { StyleSheet, Text, View } from 'react-native';
+import { PillTabBarHost, PillTabIcon } from '@/components/shared/PillTabBar';
 
-const ORANGE = '#ff6900';
-
-function TabIcon({ Icon, label, focused }: { Icon: any; label: string; focused: boolean }) {
-  if (focused) {
-    return (
-      <View style={styles.activeWrap}>
-        <LinearGradient
-          colors={['#032a69', 'rgba(3,42,105,0.36)', '#e2671b']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
-          style={styles.iconActive}
-        >
-          <Icon size={15} color="#fff" />
-          <Text style={styles.labelActive}>{label}</Text>
-        </LinearGradient>
-      </View>
-    );
-  }
-  return (
-    <View style={styles.iconInactive}>
-      <Icon size={15} color="#9ca8c0" />
-      <Text style={styles.label}>{label}</Text>
-    </View>
-  );
+// Same bottom bar design as the Dealer panel / Figma (components/shared/PillTabBar)
+function mci(name: any) {
+  return function McIcon(c: string) { return <MaterialCommunityIcons name={name} size={18} color={c} />; };
+}
+function img(src: any) {
+  return function ImgIcon(c: string) { return <Image source={src} style={{ width: 18, height: 18, tintColor: c }} resizeMode="contain" />; };
+}
+function ion(name: any) {
+  return function IonIcon(c: string) { return <Ionicons name={name} size={17} color={c} />; };
 }
 
 export default function SellerLayout() {
@@ -44,41 +29,41 @@ export default function SellerLayout() {
   }, [user?.docs_status, user?.is_active]);
   return (
     <Tabs
+      tabBar={props => <PillTabBarHost {...props} />}
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false,
-        tabBarStyle: styles.tabBar,
         sceneStyle: { backgroundColor: '#010a1f' },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          tabBarIcon: ({ focused }) => <TabIcon Icon={Package} label="Home" focused={focused} />,
+          tabBarIcon: ({ focused }) => <PillTabIcon label="Home" focused={focused} renderIcon={mci('view-dashboard')} />,
         }}
       />
       <Tabs.Screen
         name="leads"
         options={{
-          tabBarIcon: ({ focused }) => <TabIcon Icon={MessageCircle} label="Leads" focused={focused} />,
+          tabBarIcon: ({ focused }) => <PillTabIcon label="Leads" focused={focused} renderIcon={img(require('@/assets/DealerPanelIcons/leadsTabIcon.png'))} />,
         }}
       />
       <Tabs.Screen
         name="inventory"
         options={{
-          tabBarIcon: ({ focused }) => <TabIcon Icon={Car} label="Inventory" focused={focused} />,
+          tabBarIcon: ({ focused }) => <PillTabIcon label="Inventory" focused={focused} renderIcon={img(require('@/assets/DealerPanelIcons/inventoryTabIcon.png'))} />,
         }}
       />
       <Tabs.Screen
         name="plan"
         options={{
-          tabBarIcon: ({ focused }) => <TabIcon Icon={WalletCards} label="Plan" focused={focused} />,
+          tabBarIcon: ({ focused }) => <PillTabIcon label="Plan" focused={focused} renderIcon={img(require('@/assets/DealerPanelIcons/planIcon.png'))} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          tabBarIcon: ({ focused }) => <TabIcon Icon={User} label="Profile" focused={focused} />,
+          tabBarIcon: ({ focused }) => <PillTabIcon label="Profile" focused={focused} renderIcon={ion('person-outline')} />,
         }}
       />
       {/* hidden tabs */}
@@ -88,27 +73,3 @@ export default function SellerLayout() {
     </Tabs>
   );
 }
-
-const styles = StyleSheet.create({
-  tabBar: {
-    position: 'absolute',
-    backgroundColor: 'rgba(3,12,40,0.96)',
-    borderTopWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 30,
-    height: 59,
-    bottom: 10,
-    left: 18,
-    right: 18,
-    elevation: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 12,
-  },
-  activeWrap:   { alignItems: 'center', justifyContent: 'center' },
-  iconActive:   { width: 47, height: 47, borderRadius: 24, borderWidth: 1, borderColor: ORANGE, alignItems: 'center', justifyContent: 'center', gap: 2 },
-  iconInactive: { width: 48, alignItems: 'center', justifyContent: 'center', gap: 2 },
-  labelActive:  { fontSize: 7, color: '#fff', fontFamily: 'Poppins_500Medium' },
-  label:        { fontSize: 8, color: '#9ca8c0', marginTop: 4, fontFamily: 'Poppins_500Medium' },
-});

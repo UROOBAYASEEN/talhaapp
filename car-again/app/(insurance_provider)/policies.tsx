@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -219,7 +220,10 @@ export default function InsurancePoliciesScreen() {
           <SearchBar placeholder="Search by name, vehicle or ID..." value={search} onChangeText={setSearch} onSort={() => setSortModal(true)} />
         </View>
 
-        <FilterPills items={FILTERS} value={activeFilter} onChange={setFilter} labels={{ 'Insurance + Tracker': 'Insurance  + Tracker' }} style={s.filterRow} />
+        {/* One line — scrolls sideways if it doesn't fit */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0 }} contentContainerStyle={s.filterRow}>
+          <FilterPills items={FILTERS} value={activeFilter} onChange={setFilter} labels={{ 'Insurance + Tracker': 'Insurance  + Tracker' }} style={{ flexWrap: 'nowrap' }} />
+        </ScrollView>
       </SafeAreaView>
 
       {loading ? (

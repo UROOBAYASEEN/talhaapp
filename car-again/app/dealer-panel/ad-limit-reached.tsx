@@ -7,6 +7,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ChevronLeft, AlertTriangle, Info } from 'lucide-react-native';
 import { AppColors } from '@/constants/theme';
+import { useAuth } from '@/contexts/AuthContext';
 
 const ORANGE = AppColors.gradientEnd;
 const NAVY   = AppColors.gradientStart;
@@ -14,6 +15,7 @@ const C      = AppColors;
 
 export default function AdLimitReachedScreen() {
   const router = useRouter();
+  const { user } = useAuth();
   const params = useLocalSearchParams<{ plan: string; limit: string; used: string }>();
 
   const plan  = params.plan  || 'basic';
@@ -112,7 +114,7 @@ export default function AdLimitReachedScreen() {
           <TouchableOpacity
             style={s.secondaryBtn}
             activeOpacity={0.8}
-            onPress={() => router.push('/(dealer)/plan' as any)}
+            onPress={() => router.push(((user as any)?.role === 'customer' ? '/Become_a_Seller/plan' : '/(dealer)/plan') as any)}
           >
             <LinearGradient
               colors={['rgba(22,64,136,0.2)','transparent']}

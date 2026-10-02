@@ -126,3 +126,13 @@ export function CtaPanelGlass({ radius = 20 }: { radius?: number }) {
     </View>
   );
 }
+
+// Glass panel behind bottom action buttons (Tracker "Publish Tracker / Save as Draft", Figma):
+// dark navy centre with a soft lighter-blue glow on every edge. Fills its parent (absolute).
+export function ActionPanelGlass() {
+  return (
+    <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#0A1838', overflow: 'hidden' }}>
+      <InsetGlow radius={0} band={34} rgb={[46, 86, 160]} peak={0.75} />
+    </View>
+  );
+}

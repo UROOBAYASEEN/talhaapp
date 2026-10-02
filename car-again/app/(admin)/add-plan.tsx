@@ -11,6 +11,7 @@ import * as SecureStore from "expo-secure-store";
 import AdminFooter from "@/components/admin/AdminFooter";
 import { API_BASE } from "@/constants/api";
 import { useAppColors } from '@/constants/theme';
+import { SavedCardEffect } from "@/components/shared/FigmaEffects";
 
 const ROLE_OPTIONS = [
   { id: "all",       label: "All Panels"  },
@@ -107,13 +108,9 @@ export default function AddPlanScreen() {
 
           {/* SET PRICE */}
           <Field label="Monthly Price (PKR)">
-            <View style={[styles.inputWrap, { overflow: "hidden", backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "rgba(80,123,182,0.5)" : "rgba(3,42,105,0.12)", shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]}>
+            <View style={[styles.inputWrap, { overflow: "hidden", backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "#82a5d5" : "rgba(3,42,105,0.12)", shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]}>
               {aC.isDark ? (
-                <>
-                  <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                  <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                  <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                </>
+                <SavedCardEffect band={12} />
               ) : (
                 <>
                   <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
@@ -126,13 +123,9 @@ export default function AddPlanScreen() {
           </Field>
 
           <Field label="Yearly Price (PKR) — Optional">
-            <View style={[styles.inputWrap, { overflow: "hidden", backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "rgba(80,123,182,0.5)" : "rgba(3,42,105,0.12)", shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]}>
+            <View style={[styles.inputWrap, { overflow: "hidden", backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "#82a5d5" : "rgba(3,42,105,0.12)", shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]}>
               {aC.isDark ? (
-                <>
-                  <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                  <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                  <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                </>
+                <SavedCardEffect band={12} />
               ) : (
                 <>
                   <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
@@ -160,13 +153,9 @@ export default function AddPlanScreen() {
 
           {/* DESCRIPTION */}
           <Field label="Description">
-            <View style={[styles.inputWrap, { height: 120, alignItems: "flex-start", overflow: "hidden", backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "rgba(80,123,182,0.5)" : "rgba(3,42,105,0.12)", shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]}>
+            <View style={[styles.inputWrap, { height: 120, alignItems: "flex-start", overflow: "hidden", backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "#82a5d5" : "rgba(3,42,105,0.12)", shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]}>
               {aC.isDark ? (
-                <>
-                  <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                  <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                  <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                </>
+                <SavedCardEffect band={12} />
               ) : (
                 <>
                   <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
@@ -186,7 +175,7 @@ export default function AddPlanScreen() {
           <Text style={[styles.sectionLabel, { color: aC.isDark ? WHITE : '#010a1f' }]}>Services Offered</Text>
           <View style={styles.chipsWrap}>
             {services.map(svc => (
-              <View key={svc} style={[styles.chip, { backgroundColor: aC.isDark ? "#061B4A" : "#ffffff", borderColor: aC.isDark ? "rgba(100,160,255,0.25)" : "rgba(3,42,105,0.12)" }]}>
+              <View key={svc} style={[styles.chip, { backgroundColor: aC.isDark ? "#061B4A" : "#ffffff", borderColor: aC.isDark ? "#7F98C4" : "rgba(3,42,105,0.12)" }]}>
                 <Text style={[styles.chipTxt, { color: aC.isDark ? "#C0C8DC" : "#475569" }]}>{svc}</Text>
                 <TouchableOpacity onPress={() => removeService(svc)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                   <X size={14} color={aC.isDark ? "#8090B0" : "#475569"} strokeWidth={1.8} />
@@ -195,7 +184,7 @@ export default function AddPlanScreen() {
             ))}
 
             {adding ? (
-              <View style={[styles.addingChip, { backgroundColor: aC.isDark ? "#061B4A" : "#ffffff", borderColor: aC.isDark ? "#3A4460" : "rgba(3,42,105,0.12)" }]}>
+              <View style={[styles.addingChip, { backgroundColor: aC.isDark ? "#061B4A" : "#ffffff", borderColor: aC.isDark ? "#7F98C4" : "rgba(3,42,105,0.12)" }]}>
                 <TextInput
                   autoFocus value={newService} onChangeText={setNewService}
                   onSubmitEditing={addService} onBlur={addService}
@@ -204,7 +193,7 @@ export default function AddPlanScreen() {
                 />
               </View>
             ) : (
-              <TouchableOpacity style={[styles.addChip, { backgroundColor: aC.isDark ? "transparent" : "#ffffff", borderColor: aC.isDark ? "#3A4460" : "rgba(3,42,105,0.12)" }]} onPress={() => setAdding(true)}>
+              <TouchableOpacity style={[styles.addChip, { backgroundColor: aC.isDark ? "transparent" : "#ffffff", borderColor: aC.isDark ? "#7F98C4" : "rgba(3,42,105,0.12)" }]} onPress={() => setAdding(true)}>
                 <Plus size={14} color={aC.isDark ? "#C0C8DC" : "#475569"} strokeWidth={1.7} />
                 <Text style={[styles.addChipTxt, { color: aC.isDark ? "#C0C8DC" : "#475569" }]}>Add service</Text>
               </TouchableOpacity>
@@ -221,7 +210,7 @@ export default function AddPlanScreen() {
               <LinearGradient colors={['rgba(22,64,136,0.4)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
               {publishing
                 ? <ActivityIndicator color="#fff" size="small" />
-                : <Text style={styles.publishTxt}>Publish Plan</Text>
+                : <Text style={styles.publishTxt}>Publish</Text>
               }
             </LinearGradient>
           </TouchableOpacity>
@@ -248,13 +237,9 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 function InputBox({ placeholder, value, onChangeText }: { placeholder: string; value: string; onChangeText: (t: string) => void }) {
   const aC = useAppColors();
   return (
-    <View style={[styles.inputWrap, { overflow: "hidden", backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "rgba(80,123,182,0.5)" : "rgba(3,42,105,0.12)", shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]}>
+    <View style={[styles.inputWrap, { overflow: "hidden", backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "#82a5d5" : "rgba(3,42,105,0.12)", shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]}>
       {aC.isDark ? (
-        <>
-          <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-        </>
+        <SavedCardEffect band={12} />
       ) : (
         <>
           <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
@@ -272,7 +257,7 @@ const styles = StyleSheet.create({
 
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingTop: 12, paddingBottom: 16, marginTop: 4 },
   headerBtn:   { width: 36, height: 44, justifyContent: "center" },
-  headerTitle: { color: WHITE, fontSize: 17, fontFamily: "Poppins_600SemiBold" },
+  headerTitle: { color: WHITE, fontSize: 18, fontFamily: "Poppins_500Medium" },
 
   scroll: { paddingHorizontal: 20 },
 
@@ -280,7 +265,7 @@ const styles = StyleSheet.create({
   fieldLabel: { color: WHITE, fontSize: 14, fontFamily: "Poppins_600SemiBold", marginBottom: 10 },
 
   inputWrap: {
-    height: 48, borderRadius: 25, borderWidth: 1,
+    height: 56, borderRadius: 28, borderWidth: 1,
     borderColor: "rgba(80,123,182,0.5)", backgroundColor: "#010A1F",
     flexDirection: "row", alignItems: "center",
   },
@@ -312,6 +297,6 @@ const styles = StyleSheet.create({
   },
   addChipTxt: { color: "#C0C8DC", fontSize: 13, fontFamily: "Poppins_400Regular" },
 
-  publishBtn: { height: 50, borderRadius: 25, alignItems: "center", justifyContent: "center" },
-  publishTxt: { color: WHITE, fontSize: 15, fontFamily: "Poppins_600SemiBold" },
+  publishBtn: { height: 58, borderRadius: 29, alignItems: "center", justifyContent: "center" },
+  publishTxt: { color: WHITE, fontSize: 19, fontFamily: "Poppins_600SemiBold" },
 });

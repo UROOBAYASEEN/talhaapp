@@ -17,6 +17,7 @@ import {
   BottomActions, Chip, D, DField, DHeader, DSelect, PlanOption, PromoCard, SaveDraftAction, TermsRow, TipBanner, UploadBox, dk,
 } from '@/components/dealer/DealerUI';
 import { GlassButton, GradientButton } from '@/components/shared/GlowUI';
+import { GlowPublishButton, GlowDraftButton } from "@/components/shared/ActionFooterGlow";
 
 const ORANGE = AppColors.gradientEnd;
 const NAVY   = AppColors.gradientStart;
@@ -289,9 +290,9 @@ export default function SpecialOfferScreen() {
           </ScrollView>
 
           {/* BOTTOM */}
-          <BottomActions>
-            <GradientButton title="Publish Banner" height={50} fontSize={17} loading={submitting} style={!agreed ? { opacity: 0.6 } : undefined} onPress={handlePublish} />
-            <GlassButton title="Save as Draft" height={48} fontSize={16} color="#E6E1E8" onPress={handleDraft} />
+          <BottomActions fx>
+            <GlowPublishButton title="Publish Banner" loading={submitting} style={!agreed ? { opacity: 0.6 } : undefined} onPress={handlePublish} />
+            <GlowDraftButton title="Save as Draft" onPress={handleDraft} />
           </BottomActions>
 
         </View>

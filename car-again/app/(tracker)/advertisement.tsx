@@ -16,6 +16,8 @@ import {
 import { AppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { D, DHeader } from '@/components/dealer/DealerUI';
+import { BannerCard as FBannerCard, VideoCard as FVideoCard } from '@/components/dealer/AdCards';
 
 const { width: SW, height: SH } = Dimensions.get('window');
 const ORANGE = AppColors.gradientEnd;
@@ -279,15 +281,15 @@ export default function TrackerAdvertisementScreen() {
     <SafeAreaView style={s.safeArea} edges={['top']}>
       <View style={s.container}>
 
-        <View style={s.header}>
-          <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
-            <ChevronLeft size={24} color={ORANGE} strokeWidth={2}/>
-          </TouchableOpacity>
-          <Text style={s.headerTitle}>Active Advertisements</Text>
-          <TouchableOpacity style={s.analyticsBtn} onPress={() => router.push('/(tracker)/analytics' as any)}>
-            <BarChart2 size={20} color={ORANGE}/>
-          </TouchableOpacity>
-        </View>
+        {/* HEADER */}
+        <DHeader
+          title="Active Advertisements"
+          right={
+            <TouchableOpacity style={s.analyticsBtn} onPress={() => router.push({ pathname: '/dealer-panel/advertisement-analytics', params: { variant: 'insurance' } } as any)}>
+              <BarChart2 size={22} color={ORANGE}/>
+            </TouchableOpacity>
+          }
+        />
 
         {loading ? (
           <View style={s.center}><ActivityIndicator color={ORANGE} size="large" /></View>
@@ -297,63 +299,61 @@ export default function TrackerAdvertisementScreen() {
             contentContainerStyle={s.scrollContent}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={ORANGE} />}
           >
-            {/* ── ACTIVE BANNERS ── */}
+            {/* ACTIVE BANNERS */}
             <View style={s.sectionHeader}>
               <Text style={s.sectionTitle}>Active Banners</Text>
               <TouchableOpacity style={s.addBtn} onPress={() => router.push('/(tracker)/special-offer' as any)}>
-                <Plus size={16} color={ORANGE}/>
+                <Plus size={20} color={ORANGE}/>
               </TouchableOpacity>
             </View>
-
             {banners.length === 0 ? (
               <EmptyState label="Banner" onAdd={() => router.push('/(tracker)/special-offer' as any)} />
             ) : (
-              <>
-                <View style={s.videoGrid}>
-                  {banners.slice(0, 2).map(b => (
-                    <BannerCard key={b.id} banner={b} onDelete={() => deleteBanner(b.id)}
-                      onDetail={() => router.push(`/bank-ad-detail?id=${b.id}&type=banner` as any)} />
-                  ))}
-                </View>
-                {banners.length > 2 && (
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap:12, paddingHorizontal:2, marginTop:12 }}>
-                    {banners.slice(2).map(b => (
-                      <View key={b.id} style={{ width:160 }}>
-                        <BannerCard banner={b} onDelete={() => deleteBanner(b.id)}
-                          onDetail={() => router.push(`/bank-ad-detail?id=${b.id}&type=banner` as any)} />
-                      </View>
-                    ))}
-                  </ScrollView>
-                )}
-              </>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 16, paddingRight: 16 }} style={{ marginHorizontal: -16, paddingLeft: 16, marginBottom: 26 }}>
+                {banners.map(b => (
+                  <FBannerCard key={b.id} banner={b} activeLabel="LIVE" onDelete={() => deleteBanner(b.id)} onDetail={() => router.push(`/bank-ad-detail?id=${b.id}&type=banner` as any)} />
+                ))}
+              </ScrollView>
             )}
 
-            {/* ── VIDEO ADS ── */}
+            {/* VIDEO ADS */}
             <View style={[s.sectionHeader, { marginTop: 8 }]}>
-              <Text style={s.sectionTitle}>Video Ads</Text>
+              <Text style={s.sectionTitle}>Promotional Reels</Text>
               <TouchableOpacity style={s.addBtn} onPress={() => router.push('/(tracker)/video-ads' as any)}>
-                <Plus size={16} color={ORANGE}/>
+                <Plus size={20} color={ORANGE}/>
               </TouchableOpacity>
             </View>
-
             {videos.length === 0 ? (
               <EmptyState label="Video Ad" onAdd={() => router.push('/(tracker)/video-ads' as any)} />
             ) : (
               <>
                 <View style={s.videoGrid}>
                   {videos.slice(0, 2).map(v => (
-                    <VideoCard key={v.id} video={v} onDelete={() => deleteVideo(v.id)}
-                      onPlay={() => { if (!v.media_url) { Alert.alert('No video','This ad has no video file.'); return; } setPlayVideo({ uri: v.media_url, title: v.title }); }}
-                      onDetail={() => router.push(`/bank-ad-detail?id=${v.id}&type=video` as any)} />
+                    <FVideoCard
+                      key={v.id}
+                      video={v}
+                      onDelete={() => deleteVideo(v.id)}
+                      onPlay={() => {
+                        if (!v.media_url) { Alert.alert('No video', 'This ad has no video file.'); return; }
+                        setPlayVideo({ uri: v.media_url, title: v.title });
+                      }}
+                      onDetail={() => router.push(`/bank-ad-detail?id=${v.id}&type=video` as any)}
+                    />
                   ))}
                 </View>
                 {videos.length > 2 && (
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap:12, paddingHorizontal:2, marginTop:12 }}>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingHorizontal: 2, marginTop: 12 }}>
                     {videos.slice(2).map(v => (
-                      <View key={v.id} style={{ width:160 }}>
-                        <VideoCard video={v} onDelete={() => deleteVideo(v.id)}
-                          onPlay={() => { if (!v.media_url) { Alert.alert('No video','No video file.'); return; } setPlayVideo({ uri: v.media_url, title: v.title }); }}
-                          onDetail={() => router.push(`/bank-ad-detail?id=${v.id}&type=video` as any)} />
+                      <View key={v.id}>
+                        <FVideoCard
+                          video={v}
+                          onDelete={() => deleteVideo(v.id)}
+                          onPlay={() => {
+                            if (!v.media_url) { Alert.alert('No video', 'This ad has no video file.'); return; }
+                            setPlayVideo({ uri: v.media_url, title: v.title });
+                          }}
+                          onDetail={() => router.push(`/bank-ad-detail?id=${v.id}&type=video` as any)}
+                        />
                       </View>
                     ))}
                   </ScrollView>
@@ -361,29 +361,31 @@ export default function TrackerAdvertisementScreen() {
               </>
             )}
 
-            <View style={{ height: 30 }}/>
+            <View style={{ height: 100 }}/>
           </ScrollView>
         )}
       </View>
 
       {playVideo && (
-        <VideoPlayerModal visible={!!playVideo} uri={playVideo.uri} title={playVideo.title} onClose={() => setPlayVideo(null)} />
+        <VideoPlayerModal
+          visible={!!playVideo}
+          uri={playVideo.uri}
+          title={playVideo.title}
+          onClose={() => setPlayVideo(null)}
+        />
       )}
     </SafeAreaView>
   );
 }
 
 const s = StyleSheet.create({
-  safeArea:      { flex:1, backgroundColor:C.bg },
-  container:     { flex:1, backgroundColor:C.bg },
-  center:        { flex:1, alignItems:'center', justifyContent:'center' },
-  header:        { flexDirection:'row', alignItems:'center', justifyContent:'space-between', paddingHorizontal:18, height:60 },
-  backBtn:       { width:36, height:36, justifyContent:'center', alignItems:'flex-start' },
-  headerTitle:   { color:C.textPrimary, fontSize:17, fontFamily:'Poppins_600SemiBold' },
-  analyticsBtn:  { width:36, height:36, alignItems:'center', justifyContent:'center' },
-  scrollContent: { paddingHorizontal:18, paddingTop:4, paddingBottom:20 },
-  sectionHeader: { flexDirection:'row', alignItems:'center', justifyContent:'space-between', marginBottom:14 },
-  sectionTitle:  { color:C.textPrimary, fontSize:18, fontFamily:'Poppins_700Bold' },
-  addBtn:        { width:32, height:32, borderRadius:8, borderWidth:1, borderColor:ORANGE, alignItems:'center', justifyContent:'center' },
-  videoGrid:     { flexDirection:'row', flexWrap:'wrap', gap:12, marginBottom:16 },
+  safeArea:      { flex: 1, backgroundColor: D.bg },
+  container:     { flex: 1, backgroundColor: D.bg },
+  center:        { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  analyticsBtn:  { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+  scrollContent: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 20 },
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 },
+  sectionTitle:  { color: '#FFFFFF', fontSize: 18, fontFamily: 'Poppins_500Medium' },
+  addBtn:        { width: 28, height: 28, borderRadius: 4, borderWidth: 2, borderColor: ORANGE, alignItems: 'center', justifyContent: 'center' },
+  videoGrid:     { flexDirection: 'row', flexWrap: 'wrap', gap: 16, marginBottom: 16 },
 });

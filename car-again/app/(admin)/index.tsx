@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "expo-router";
 import AdminFooter from "@/components/admin/AdminFooter";
+import WelcomeBanner from "@/components/shared/WelcomeBanner";
+import { SavedCardEffect } from "@/components/shared/FigmaEffects";
 import {
   Dimensions,
   Image,
@@ -186,7 +188,7 @@ export default function AdminDashboard() {
           </View>
 
           <View style={styles.headerIcons}>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push('/(admin)/alerts' as any)}>
               <Ionicons
                 name="notifications-outline"
                 size={23}
@@ -205,21 +207,7 @@ export default function AdminDashboard() {
         </View>
 
         {/* WELCOME BANNER */}
-        <View style={[styles.banner, { backgroundColor: aC.isDark ? "rgba(6, 27, 74, 1)" : "#ffffff", borderWidth: aC.isDark ? 0 : 1, borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }]}>
-          <View style={styles.bannerText}>
-            <Text style={[styles.smallWelcome, { color: aC.isDark ? "#D8E0EF" : "#475569" }]}>Welcome Back,</Text>
-
-            <Text style={[styles.bannerTitle, { color: aC.isDark ? WHITE : '#010a1f' }]}>
-              Let's grow your{"\n"}dealership today!
-            </Text>
-          </View>
-
-          <Image
-            source={require('@/screenshot/bankpanelcar.png')}
-            style={styles.carImage}
-            resizeMode="contain"
-          />
-        </View>
+        <WelcomeBanner style={{ marginTop: 9, marginBottom: 13 }} />
 
         {/* OVERVIEW HEADER */}
         <View style={styles.sectionHeader}>
@@ -242,28 +230,12 @@ export default function AdminDashboard() {
           ] : stats).map((item, index) => (
             <TouchableOpacity
               key={index}
-              style={[styles.statCard, { backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "rgba(100,160,255,0.4)" : "rgba(3,42,105,0.12)", shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }]}
+              style={[styles.statCard, { backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "#82a5d5" : "rgba(3,42,105,0.12)", shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }]}
               activeOpacity={item.route ? 0.75 : 1}
               onPress={() => item.route && router.push(item.route as any)}
             >
               {aC.isDark ? (
-                <>
-                  <LinearGradient
-                    colors={['rgba(22,64,136,0.5)', 'transparent']}
-                    start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }}
-                    style={StyleSheet.absoluteFillObject} pointerEvents="none"
-                  />
-                  <LinearGradient
-                    colors={['rgba(13,37,84,0.33)', 'transparent']}
-                    start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }}
-                    style={StyleSheet.absoluteFillObject} pointerEvents="none"
-                  />
-                  <LinearGradient
-                    colors={['transparent', 'rgba(29,83,175,0.33)']}
-                    start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }}
-                    style={StyleSheet.absoluteFillObject} pointerEvents="none"
-                  />
-                </>
+                <SavedCardEffect />
               ) : (
                 <>
                   <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
@@ -281,15 +253,10 @@ export default function AdminDashboard() {
 
         {/* REVENUE CARD */}
         <View
-          style={[styles.revenueCard, { backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "rgba(100,160,255,0.5)" : "rgba(3,42,105,0.12)", shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }]}
+          style={[styles.revenueCard, { backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "#82a5d5" : "rgba(3,42,105,0.12)", shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }]}
         >
           {aC.isDark ? (
-            <>
-              <LinearGradient colors={['rgba(22,64,136,0.35)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.25 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <LinearGradient colors={['transparent', 'rgba(29,83,175,0.35)']} start={{ x: 0.5, y: 0.75 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <LinearGradient colors={['rgba(13,37,84,0.35)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.25, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <LinearGradient colors={['transparent', 'rgba(13,37,84,0.35)']} start={{ x: 0.75, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-            </>
+            <SavedCardEffect />
           ) : (
             <>
               <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
@@ -372,13 +339,9 @@ export default function AdminDashboard() {
 
         {/* SMALL SUMMARY CARDS */}
         <View style={styles.summaryRow}>
-          <View style={[styles.summaryCard, { backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "rgba(100,160,255,0.4)" : "rgba(3,42,105,0.12)", shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: "hidden" }]}>
+          <View style={[styles.summaryCard, { backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "#82a5d5" : "rgba(3,42,105,0.12)", shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: "hidden" }]}>
             {aC.isDark ? (
-              <>
-                <LinearGradient colors={['rgba(22,64,136,0.5)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                <LinearGradient colors={['rgba(13,37,84,0.5)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                <LinearGradient colors={['transparent', 'rgba(29,83,175,0.5)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-              </>
+              <SavedCardEffect />
             ) : (
               <>
                 <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
@@ -389,13 +352,9 @@ export default function AdminDashboard() {
             <Text style={[styles.summaryValue, { color: aC.isDark ? "#DDE5F3" : "#010a1f" }]}>{homeStats ? String(homeStats.reservations_today ?? 0) : "0"}</Text>
           </View>
 
-          <View style={[styles.summaryCard, { backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "rgba(100,160,255,0.4)" : "rgba(3,42,105,0.12)", shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: "hidden" }]}>
+          <View style={[styles.summaryCard, { backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "#82a5d5" : "rgba(3,42,105,0.12)", shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: "hidden" }]}>
             {aC.isDark ? (
-              <>
-                <LinearGradient colors={['rgba(22,64,136,0.5)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                <LinearGradient colors={['rgba(13,37,84,0.5)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                <LinearGradient colors={['transparent', 'rgba(29,83,175,0.5)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-              </>
+              <SavedCardEffect />
             ) : (
               <>
                 <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
@@ -411,26 +370,19 @@ export default function AdminDashboard() {
         <Text style={[styles.activityHeading, { color: aC.isDark ? WHITE : '#010a1f' }]}>Quick Actions</Text>
         <View style={styles.actionGrid}>
           {actions.map((item, index) => (
-            <TouchableOpacity key={index} style={[styles.actionCard, { backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "rgba(100,160,255,0.5)" : "rgba(3,42,105,0.12)", shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: "hidden" }]} onPress={() => router.push(item.route as any)}>
-              {aC.isDark ? (
-                <>
-                  <LinearGradient colors={['rgba(22,64,136,0.35)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.25 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                  <LinearGradient colors={['transparent', 'rgba(29,83,175,0.35)']} start={{ x: 0.5, y: 0.75 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                  <LinearGradient colors={['rgba(13,37,84,0.35)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.25, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                  <LinearGradient colors={['transparent', 'rgba(13,37,84,0.35)']} start={{ x: 0.75, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                </>
-              ) : (
+            <TouchableOpacity key={index} style={[styles.actionCard, { backgroundColor: aC.isDark ? "#0B2358" : "#ffffff", borderColor: aC.isDark ? "transparent" : "rgba(3,42,105,0.12)", shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: "hidden" }]} onPress={() => router.push(item.route as any)}>
+              {aC.isDark ? null : (
                 <>
                   <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
                   <LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
                 </>
               )}
               {item.image ? (
-                <Image source={item.image} style={{ width: 22, height: 22 }} resizeMode="contain" />
+                <Image source={item.image} style={{ width: 30, height: 30 }} resizeMode="contain" />
               ) : (
                 <MaterialCommunityIcons
                   name={item.icon as any}
-                  size={22}
+                  size={30}
                   color={ORANGE}
                 />
               )}
@@ -446,14 +398,10 @@ export default function AdminDashboard() {
           {(recentActivities.length ? recentActivities : FALLBACK_ACTIVITIES).map((item, index) => (
             <View
               key={index}
-              style={[styles.activityCard, { backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "rgba(100,160,255,0.4)" : "rgba(3,42,105,0.12)", shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: "hidden" }]}
+              style={[styles.activityCard, { backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "#82a5d5" : "rgba(3,42,105,0.12)", shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: "hidden" }]}
             >
               {aC.isDark ? (
-                <>
-                  <LinearGradient colors={['rgba(22,64,136,0.5)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                  <LinearGradient colors={['rgba(13,37,84,0.5)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                  <LinearGradient colors={['transparent', 'rgba(29,83,175,0.5)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                </>
+                <SavedCardEffect />
               ) : (
                 <>
                   <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
@@ -694,7 +642,7 @@ const styles = StyleSheet.create({
   /* BANNER */
 
   banner: {
-    height: 95,
+    minHeight: 124,
     borderRadius: 20,
     backgroundColor: "rgba(6, 27, 74, 1)",
     marginTop: 9,
@@ -715,22 +663,23 @@ const styles = StyleSheet.create({
   },
 
   smallWelcome: {
-    color: "#D8E0EF",
-    fontSize: 10,
-    marginBottom: 5,
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontFamily: "Poppins_400Regular",
+    marginBottom: 8,
   },
 
   bannerTitle: {
     color: WHITE,
-    fontSize: 12,
-    lineHeight: 18,
-    fontWeight: "800",
+    fontSize: 17,
+    lineHeight: 27,
+    fontFamily: "Poppins_700Bold",
   },
 
   carImage: {
-    width: 145,
-    height: 78,
-    marginRight: -5,
+    width: 150,
+    height: 92,
+    marginRight: -4,
   },
 
   /* SECTION */
@@ -765,8 +714,8 @@ const styles = StyleSheet.create({
 
   statCard: {
     width: "31.9%",
-    height: 74,
-    borderRadius: 12,
+    height: 76,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: "rgba(100,160,255,0.4)",
     paddingHorizontal: 12,
@@ -777,13 +726,13 @@ const styles = StyleSheet.create({
 
   statTitle: {
     color: "#C6CFDF",
-    fontSize: 9,
+    fontSize: 11,
     marginBottom: 6,
   },
 
   statValue: {
     color: "#DCE5F5",
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: "700",
   },
 
@@ -937,9 +886,9 @@ const styles = StyleSheet.create({
 
   actionCard: {
     width: (width - 32 - 30) / 4,
-    height: 80,
-    backgroundColor: "#010A1F",
-    borderRadius: 15,
+    height: 86,
+    backgroundColor: "#0B2358",
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: "rgba(100,160,255,0.5)",
     alignItems: "center",
@@ -949,7 +898,7 @@ const styles = StyleSheet.create({
 
   actionText: {
     color: "#ADB8CD",
-    fontSize: 11,
+    fontSize: 12,
     textAlign: "center",
     marginTop: 8,
   },

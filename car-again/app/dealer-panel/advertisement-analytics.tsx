@@ -48,12 +48,14 @@ function MiniChart({ data, maxVal }: { data: {day:string;value:number}[]; maxVal
   );
 }
 
-export default function AdvertisementAnalyticsScreen() {
+export default function AdvertisementAnalyticsScreen({ forceVariant }: { forceVariant?: string } = {}) {
   const router    = useRouter();
   const { token } = useAuth();
-  // Insurance panel reuses this screen with its own wording (Figma)
+  // Insurance / bank panels reuse this screen with their own wording (Figma)
   const { variant } = useLocalSearchParams<{ variant?: string }>();
-  const isIns = variant === 'insurance';
+  const isIns = (forceVariant || variant) === 'insurance';
+  // Admin panel adds a "Featured Banner" section (Figma)
+  const isAdmin = (forceVariant || variant) === 'admin';
   const [tab,      setTab]      = useState<'Banner' | 'Video ads'>('Banner');
   const [overview, setOverview] = useState<any>(null);
   const [loading,  setLoading]  = useState(true);
@@ -80,6 +82,41 @@ export default function AdvertisementAnalyticsScreen() {
     { day: 'Sun', value: 0 },
   ];
   const maxVal = Math.max(...trendData.map((d: any) => d.value), 1);
+
+  // One banner campaign card (image + stats)
+  function renderCampaign(c: any, i: number, badge: string) {
+    return (
+                <View key={i} style={s.campaignCard}>
+                  <View style={s.campaignImg}>
+                    <LinearGradient colors={['#4a5568','#2d3748','#000']} start={{x:0,y:0}} end={{x:1,y:1}} style={StyleSheet.absoluteFillObject}/>
+                    {dImg(c?.media_url || c?.image_url) ? <Image source={{ uri: dImg(c?.media_url || c?.image_url)! }} style={StyleSheet.absoluteFillObject} resizeMode="cover" /> : null}
+                    <View style={s.campaignTopBadge}>
+                      <View style={s.topDot}/>
+                      <Text style={s.topText}>{badge}</Text>
+                    </View>
+                  </View>
+                  <View style={s.campaignInfo}>
+                    <Text style={s.campaignTitle}>{c?.title ?? 'No campaigns yet'}</Text>
+                    <Text style={s.campaignMeta}>Status: {c?.status ?? '—'} • Spend: PKR {c?.amount ?? 0}</Text>
+                    <View style={s.analyticsGrid}>
+                      {[
+                        { label: 'Impression', value: c?.impressions ?? 0 },
+                        { label: 'Clicks',     value: c?.clicks      ?? 0 },
+                        { label: 'Calls',      value: c?.calls       ?? 0 },
+                        { label: 'Favorited',  value: c?.favorites   ?? 0 },
+                        { label: 'Enquiry',    value: c?.enquiries   ?? 0 },
+                        { label: 'Shares',     value: c?.shares      ?? 0 },
+                      ].map(({ label, value }) => (
+                        <View key={label} style={s.analyticsCell}>
+                          <Text style={s.analyticsCellLabel}>{label}</Text>
+                          <Text style={s.analyticsCellValue}>{value.toLocaleString()}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                </View>
+    );
+  }
 
   return (
     <SafeAreaView style={s.safeArea} edges={['top']}>
@@ -151,37 +188,17 @@ export default function AdvertisementAnalyticsScreen() {
           {tab === 'Banner' && (
             <>
               <Text style={[s.sectionTitle, { marginTop: 10 }]}>{isIns ? 'Banner Campaigns' : 'Top Campaigns'}</Text>
-              {(bannerCampaigns.length > 0 ? bannerCampaigns : [null]).map((c: any, i: number) => (
-                <View key={i} style={s.campaignCard}>
-                  <View style={s.campaignImg}>
-                    <LinearGradient colors={['#4a5568','#2d3748','#000']} start={{x:0,y:0}} end={{x:1,y:1}} style={StyleSheet.absoluteFillObject}/>
-                    {dImg(c?.media_url || c?.image_url) ? <Image source={{ uri: dImg(c?.media_url || c?.image_url)! }} style={StyleSheet.absoluteFillObject} resizeMode="cover" /> : null}
-                    <View style={s.campaignTopBadge}>
-                      <View style={s.topDot}/>
-                      <Text style={s.topText}>{isIns ? 'LIVE' : 'Top'}</Text>
-                    </View>
-                  </View>
-                  <View style={s.campaignInfo}>
-                    <Text style={s.campaignTitle}>{c?.title ?? 'No campaigns yet'}</Text>
-                    <Text style={s.campaignMeta}>Status: {c?.status ?? '—'} • Spend: PKR {c?.amount ?? 0}</Text>
-                    <View style={s.analyticsGrid}>
-                      {[
-                        { label: 'Impression', value: c?.impressions ?? 0 },
-                        { label: 'Clicks',     value: c?.clicks      ?? 0 },
-                        { label: 'Calls',      value: c?.calls       ?? 0 },
-                        { label: 'Favorited',  value: c?.favorites   ?? 0 },
-                        { label: 'Enquiry',    value: c?.enquiries   ?? 0 },
-                        { label: 'Shares',     value: c?.shares      ?? 0 },
-                      ].map(({ label, value }) => (
-                        <View key={label} style={s.analyticsCell}>
-                          <Text style={s.analyticsCellLabel}>{label}</Text>
-                          <Text style={s.analyticsCellValue}>{value.toLocaleString()}</Text>
-                        </View>
-                      ))}
-                    </View>
-                  </View>
-                </View>
-              ))}
+              {(bannerCampaigns.length > 0 ? bannerCampaigns : [null]).map((c: any, i: number) => renderCampaign(c, i, isIns ? 'LIVE' : 'Top'))}
+              {isAdmin && (
+                <>
+                  <Text style={[s.sectionTitle, { marginTop: 10 }]}>Featured Banner</Text>
+                  {(() => {
+                    const featured = bannerCampaigns.filter((c: any) => c?.is_featured || c?.featured || c?.promoted);
+                    const list = featured.length ? featured : bannerCampaigns.slice(0, 1);
+                    return (list.length ? list : [null]).map((c: any, i: number) => renderCampaign(c, i, 'Promotion'));
+                  })()}
+                </>
+              )}
             </>
           )}
 

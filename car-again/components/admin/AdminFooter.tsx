@@ -1,91 +1,41 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Image, View, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { PillTabIcon, pillTabStyles } from '@/components/shared/PillTabBar';
 
 type TabName = 'home' | 'partners' | 'ads' | 'payments' | 'actions';
 
-const TABS = [
-  { name: 'home'     as TabName, icon: 'home',                   label: 'Home',     route: '/(admin)'          },
-  { name: 'partners' as TabName, icon: 'account-group-outline',  label: 'Partners', route: '/(admin)/partners'  },
-  { name: 'ads'      as TabName, icon: 'clipboard-text-outline', label: 'Ads list', route: '/(admin)/approve-listings' },
-  { name: 'payments' as TabName, icon: 'cash-register',          label: 'Payments', route: '/(admin)/payments'  },
-  { name: 'actions'  as TabName, icon: 'lightning-bolt-outline', label: 'Actions',  route: '/(admin)/settings'  },
+// Same pill bottom bar design as the customer / dealer / insurance panels (Figma)
+function img(src: any) {
+  return function ImgIcon(c: string) { return <Image source={src} style={{ width: 20, height: 20, tintColor: c }} resizeMode="contain" />; };
+}
+
+const TABS: { name: TabName; label: string; route: string; icon: (c: string) => React.ReactNode }[] = [
+  { name: 'home',     label: 'Home',     route: '/(admin)',                  icon: c => <MaterialCommunityIcons name="view-dashboard" size={18} color={c} /> },
+  { name: 'partners', label: 'Partners', route: '/(admin)/partners',         icon: img(require('@/assets/AdminIcons/partners.png')) },
+  { name: 'ads',      label: 'Ads list', route: '/(admin)/approve-listings', icon: img(require('@/assets/AdminIcons/AdsList.png')) },
+  { name: 'payments', label: 'Payments', route: '/(admin)/payments',         icon: img(require('@/assets/AdminIcons/Payments.png')) },
+  { name: 'actions',  label: 'Actions',  route: '/(admin)/settings',         icon: img(require('@/assets/AdminIcons/Actions.png')) },
 ];
 
 export default function AdminFooter({ active }: { active: TabName }) {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   return (
-    <View style={styles.bottomNav}>
-      {TABS.map((tab) => {
-        const isActive = active === tab.name;
-        return (
-          <TouchableOpacity
-            key={tab.name}
-            style={styles.item}
-            onPress={() => tab.route && router.replace(tab.route as any)}
-          >
-            <View style={[styles.iconBox, isActive && styles.activeIconBox]}>
-              <MaterialCommunityIcons
-                name={tab.icon as any}
-                size={21}
-                color={isActive ? '#FF6B00' : '#AEB9D0'}
-              />
-            </View>
-            <Text style={[styles.label, isActive && styles.activeLabel]}>
-              {tab.label}
-            </Text>
-          </TouchableOpacity>
-        );
-      })}
+    <View style={[pillTabStyles.bar, { bottom: insets.bottom + 4 }]}>
+      {TABS.map((tab) => (
+        <TouchableOpacity
+          key={tab.name}
+          style={pillTabStyles.barItem}
+          activeOpacity={0.8}
+          onPress={() => tab.route && router.replace(tab.route as any)}
+        >
+          <PillTabIcon label={tab.label} focused={active === tab.name} renderIcon={tab.icon} />
+        </TouchableOpacity>
+      ))}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  bottomNav: {
-    position: 'absolute',
-    left: 18,
-    right: 18,
-    bottom: 14,
-    height: 58,
-    borderRadius: 32,
-    backgroundColor: '#082257',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    paddingHorizontal: 5,
-    elevation: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.35,
-    shadowRadius: 15,
-    shadowOffset: { width: 0, height: 5 },
-  },
-  item: {
-    width: 52,
-    height: 58,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  iconBox: {
-    width: 35,
-    height: 35,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 20,
-  },
-  activeIconBox: {
-    borderWidth: 1,
-    borderColor: '#6D7E9D',
-    backgroundColor: '#102E62',
-  },
-  label: {
-    color: '#A7B1C5',
-    fontSize: 8,
-    marginTop: -1,
-  },
-  activeLabel: {
-    color: '#fff',
-  },
-});

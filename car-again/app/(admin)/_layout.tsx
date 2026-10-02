@@ -23,6 +23,7 @@ export default function AdminLayout() {
       <Stack.Screen name="partner-profile"       options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="advertisement"          options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="video-ads"             options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen name="alerts"                options={{ animation: 'slide_from_right' }} />
     </Stack>
   );
 }

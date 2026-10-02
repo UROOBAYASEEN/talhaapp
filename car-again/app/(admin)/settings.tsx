@@ -15,11 +15,11 @@ const ORANGE = '#FF6B00';
 const WHITE  = '#F4F4F7';
 
 const SETTINGS = [
-  { title: 'Add Partner',                     icon: 'person-add-outline',       route: '/(admin)/add-partner'           },
+  { title: 'Add Partner',                     icon: 'person-add',       route: '/(admin)/add-partner'           },
   { title: 'Add Banner',                       icon: 'image-outline',             route: '/(admin)/add-banner'            },
-  { title: 'Send Notification',               icon: 'send-outline',              route: '/(admin)/send-notification'     },
-  { title: 'Approve Listings',                icon: 'checkmark-circle-outline',  route: '/(admin)/approve-listings'      },
-  { title: 'Manage Subscriptions',            icon: 'settings-outline',          route: '/(admin)/manage-subscriptions'  },
+  { title: 'Send Notification',               icon: 'send',              route: '/(admin)/send-notification'     },
+  { title: 'Approve Listings',                icon: 'checkmark-circle',  route: '/(admin)/approve-listings'      },
+  { title: 'Manage Subscriptions & Settings', icon: 'options-outline',          route: '/(admin)/manage-subscriptions'  },
 ];
 
 const PAYMENT_ITEMS = [
@@ -35,27 +35,21 @@ function OptionRow({
   const aC = useAppColors();
   return (
     <TouchableOpacity
-      style={[s.option, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.5)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }]}
+      style={[s.option, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderColor: aC.isDark ? 'rgba(230,225,232,0.28)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }]}
       activeOpacity={0.8}
       onPress={onPress}
     >
-      {aC.isDark ? (
-        <>
-          <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-        </>
-      ) : (
+      {aC.isDark ? null : (
         <>
           <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
           <LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
         </>
       )}
       <View style={s.optionLeft}>
-        <Ionicons name={icon as any} size={20} color={danger ? '#FF4B4B' : ORANGE} />
+        <Ionicons name={icon as any} size={24} color={danger ? '#FF4B4B' : ORANGE} />
         <Text style={[s.optionText, { color: danger ? '#FF4B4B' : (aC.isDark ? WHITE : '#010a1f') }]}>{title}</Text>
       </View>
-      {chevron && <Ionicons name="chevron-forward" size={20} color={aC.isDark ? "rgba(255,255,255,0.35)" : "rgba(3,42,105,0.35)"} />}
+      {chevron && <Ionicons name="chevron-forward" size={20} color={aC.isDark ? "#FFFFFF" : "rgba(3,42,105,0.35)"} />}
     </TouchableOpacity>
   );
 }
@@ -76,7 +70,7 @@ export default function ActionsScreen() {
           <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
             <Ionicons name="chevron-back" size={25} color={aC.isDark ? WHITE : '#010a1f'} />
           </TouchableOpacity>
-          <Text style={[s.headerTitle, { color: aC.isDark ? WHITE : '#010a1f' }]}>Settings</Text>
+          <Text style={[s.headerTitle, { color: aC.isDark ? WHITE : '#010a1f' }]}>Actions</Text>
           <View style={{ width: 40 }} />
         </View>
 
@@ -94,27 +88,21 @@ export default function ActionsScreen() {
             ))}
 
             {/* Payments — expandable */}
-            <TouchableOpacity style={[s.option, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.5)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }]} activeOpacity={0.8} onPress={() => setPayOpen(p => !p)}>
-              {aC.isDark ? (
-                <>
-                  <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                  <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                  <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                </>
-              ) : (
+            <TouchableOpacity style={[s.option, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderColor: aC.isDark ? 'rgba(230,225,232,0.28)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }]} activeOpacity={0.8} onPress={() => setPayOpen(p => !p)}>
+              {aC.isDark ? null : (
                 <>
                   <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
                   <LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
                 </>
               )}
               <View style={s.optionLeft}>
-                <Ionicons name="card-outline" size={20} color={ORANGE} />
+                <Ionicons name="checkmark-circle" size={24} color={ORANGE} />
                 <Text style={[s.optionText, { color: aC.isDark ? WHITE : '#010a1f' }]}>Payments</Text>
               </View>
               <Ionicons
                 name={payOpen ? 'chevron-down' : 'chevron-forward'}
                 size={20}
-                color={aC.isDark ? "rgba(255,255,255,0.35)" : "rgba(3,42,105,0.35)"}
+                color={aC.isDark ? "#FFFFFF" : "rgba(3,42,105,0.35)"}
               />
             </TouchableOpacity>
 
@@ -177,16 +165,16 @@ const s = StyleSheet.create({
     paddingTop: 14,
   },
   backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { color: WHITE, fontSize: 18, fontFamily: 'Poppins_600SemiBold' },
+  headerTitle: { flex: 1, marginLeft: 20, color: WHITE, fontSize: 20, fontFamily: 'Poppins_600SemiBold' },
 
   scroll: { paddingBottom: 20 },
 
-  list: { paddingHorizontal: 20, paddingTop: 10, gap: 10 },
+  list: { paddingHorizontal: 16, paddingTop: 6, gap: 18 },
 
   option: {
-    height: 54,
-    borderRadius: 16,
-    paddingHorizontal: 16,
+    height: 64,
+    borderRadius: 32,
+    paddingHorizontal: 22,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -195,8 +183,8 @@ const s = StyleSheet.create({
     borderColor: 'rgba(100,160,255,0.5)',
     overflow: 'hidden',
   },
-  optionLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  optionText: { color: WHITE, fontSize: 13, fontFamily: 'Poppins_500Medium' },
+  optionLeft: { flexDirection: 'row', alignItems: 'center', gap: 26 },
+  optionText: { color: WHITE, fontSize: 16, fontFamily: 'Poppins_500Medium' },
 
   dropdown: {
     marginTop: -4,

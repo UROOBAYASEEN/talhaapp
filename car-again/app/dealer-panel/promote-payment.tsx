@@ -25,6 +25,8 @@ interface Checkout {
 export default function PromotePaymentScreen() {
   const router = useRouter();
   const { token, user } = useAuth();
+  // Home after payment: Seller → (seller), Become_a_Seller (customer account) → its own panel, else Dealer
+  const panelHome = (user as any)?.role === 'individual_seller' ? '/(seller)' : (user as any)?.role === 'customer' ? '/Become_a_Seller' : '/(dealer)';
   const params = useLocalSearchParams<{
     vehicle_ids: string;
     plan_title:  string;
@@ -222,7 +224,7 @@ export default function PromotePaymentScreen() {
                   vid: vehicle_ids[0] || '',
                   title: title || planTitle,
                   price: String(planAmount || 0),
-                  home: (user as any)?.role === 'individual_seller' ? '/(seller)' : '/(dealer)',
+                  home: panelHome,
                 },
               })}
             >
@@ -233,7 +235,7 @@ export default function PromotePaymentScreen() {
               />
               <Text style={s.successBtnTxt}>View Success Page</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.replace(((user as any)?.role === 'individual_seller' ? '/(seller)' : '/(dealer)') as any)}>
+            <TouchableOpacity onPress={() => router.replace(panelHome as any)}>
               <Text style={s.successHome}>Back to Home</Text>
             </TouchableOpacity>
           </View>

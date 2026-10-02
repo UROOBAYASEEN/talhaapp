@@ -20,6 +20,7 @@ import {
   MapPin,
 } from 'lucide-react-native';
 import { useAppColors } from '@/constants/theme';
+import { SavedCardEffect } from "@/components/shared/FigmaEffects";
 
 const { width } = Dimensions.get('window');
 
@@ -104,11 +105,7 @@ export default function AddPartnerScreen() {
                   style={[styles.partnerCard, isSelected && styles.selectedCard, { backgroundColor: aC.isDark ? '#010A1F' : '#ffffff', borderColor: isSelected ? (aC.isDark ? '#5685C4' : ORANGE) : (aC.isDark ? '#4973AE' : 'rgba(3,42,105,0.12)'), shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 2 }]}
                 >
                   {aC.isDark ? (
-                    <>
-                      <LinearGradient colors={['rgba(22,64,136,0.15)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                      <LinearGradient colors={['rgba(13,37,84,0.12)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                      <LinearGradient colors={['transparent', 'rgba(29,83,175,0.15)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                    </>
+                    <SavedCardEffect band={12} />
                   ) : (
                     <>
                       <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />

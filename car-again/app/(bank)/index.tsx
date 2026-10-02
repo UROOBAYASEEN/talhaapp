@@ -40,6 +40,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'expo-router';
 import { API_BASE } from '@/constants/api';
 import Chatbot from '@/components/shared/Chatbot';
+import { Ionicons } from '@expo/vector-icons';
+import { DICON, DIcon, GlowCard } from '@/components/dealer/DealerUI';
 
 const ORANGE = '#F97316';
 const CARD   = '#111A3F';
@@ -56,11 +58,11 @@ const overviewStats = [
 const progressPoints = [8, 22, 14, 26, 18, 34, 30, 46, 40, 58];
 
 const quickActions = [
-  { Icon: Car,       label: 'Finance Case',      route: '/(bank)/inventory'      },
-  { Icon: Crown,     label: 'Subscription',      route: '/(bank)/plan'           },
-  { Icon: Plus,      label: 'Special Offer',     route: '/bank-special-offer'    },
-  { Icon: Plus,      label: 'Add Video',         route: '/bank-video-ads'        },
-  { Icon: Megaphone, label: 'Advertisement',     route: '/bank-advertisement'    },
+  { Icon: Car,       label: 'Finance Case',      route: '/(bank)/inventory',   icon: <Ionicons name="car" size={30} color="#E2671B" /> },
+  { Icon: Crown,     label: 'Subscription',      route: '/(bank)/plan',        icon: <DIcon src={DICON.subscription} size={28} /> },
+  { Icon: Plus,      label: 'Add special offer', route: '/bank-special-offer', icon: <Ionicons name="add" size={24} color="#E2671B" /> },
+  { Icon: Plus,      label: 'Add Video',         route: '/bank-video-ads',     icon: <Ionicons name="add" size={24} color="#E2671B" /> },
+  { Icon: Megaphone, label: 'Advertisement',     route: '/bank-advertisement', icon: <DIcon src={DICON.advertisement} size={28} /> },
 ];
 
 
@@ -247,33 +249,25 @@ export default function BankHomeScreen() {
               { label: 'Approved Cases',   value: stats.approved,   delta: 'total',                     trend: 'up'   },
               { label: 'Under Review',     value: stats.reviewing,  delta: 'pending',                   trend: 'down' },
             ].map((stat) => (
-              <View key={stat.label} style={s.statCard}>
-                <LinearGradient colors={['rgba(22,64,136,0.35)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.25 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                <LinearGradient colors={['transparent', 'rgba(29,83,175,0.35)']} start={{ x: 0.5, y: 0.75 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                <LinearGradient colors={['rgba(13,37,84,0.35)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.25, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                <LinearGradient colors={['transparent', 'rgba(13,37,84,0.35)']} start={{ x: 0.75, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+              <GlowCard key={stat.label} style={s.statCard} radius={14}>
                 <Text style={s.statLabel}>{stat.label}</Text>
                 <View style={s.statBottom}>
                   <Text style={s.statValue}>{stat.value}</Text>
                   {stat.trend === 'up'
-                    ? <TrendingUp size={15} color={ORANGE} />
-                    : <TrendingDown size={15} color="#f87171" />
+                    ? <TrendingUp size={20} color={ORANGE} />
+                    : <TrendingDown size={20} color="#f87171" />
                   }
                 </View>
                 <Text style={[s.statDelta, { color: stat.trend === 'up' ? ORANGE : '#f87171' }]}>
                   ({stat.delta})
                 </Text>
-              </View>
+              </GlowCard>
             ))
           )}
         </View>
 
         {/* ── PROGRESS / CHART CARD ── */}
-        <View style={s.chartCard}>
-          <LinearGradient colors={['rgba(22,64,136,0.35)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.25 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-          <LinearGradient colors={['transparent', 'rgba(29,83,175,0.35)']} start={{ x: 0.5, y: 0.75 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-          <LinearGradient colors={['rgba(13,37,84,0.35)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.25, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-          <LinearGradient colors={['transparent', 'rgba(13,37,84,0.35)']} start={{ x: 0.75, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+        <GlowCard style={s.chartCard} radius={20}>
           <View style={s.rowBetween}>
             <Text style={s.chartSubLabel}>Overview</Text>
             <View style={{ alignItems: 'flex-end', gap: 6 }}>
@@ -330,21 +324,21 @@ export default function BankHomeScreen() {
               <Path d={areaPath} fill="url(#areaFill)" />
               <Path d={linePath} fill="none" stroke={ORANGE} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
               {points.map(([x, y], i) => {
-                const show = i === points.length - 1 || i === 3 || i === 5;
+                const show = i > 0;
                 return show ? (
                   <Circle key={i} cx={x} cy={y} r={3.5} fill={BG} stroke={ORANGE} strokeWidth={2} />
                 ) : null;
               })}
             </Svg>
           </View>
-        </View>
+        </GlowCard>
 
         {/* ── QUICK ACTIONS ── */}
         <Text style={[s.sectionTitle, { marginTop: 20 }]}>Quick Actions</Text>
         <View style={s.actionsGrid}>
-          {quickActions.map(({ Icon, label, route }) => (
+          {quickActions.map(({ icon, label, route }) => (
             <TouchableOpacity key={label} style={s.actionCard} activeOpacity={0.75} onPress={() => route && router.push(route as any)}>
-              <Icon size={22} color={ORANGE} />
+              {icon}
               <Text style={s.actionLabel}>{label}</Text>
             </TouchableOpacity>
           ))}
@@ -361,34 +355,43 @@ export default function BankHomeScreen() {
         {loadActivity ? (
           <ActivityIndicator color={ORANGE} style={{ paddingVertical: 20 }} />
         ) : recentActivity.length === 0 ? (
-          <View style={s.activityEmpty}>
-            <Banknote size={36} color="rgba(255,255,255,0.2)" />
-            <Text style={s.activityEmptyTxt}>No applications yet</Text>
-          </View>
+          // No applications yet → sample activity (Figma)
+          [
+            { title: 'New Dealer Registered', sub: 'Al-Ghazi Motors',     icon: <Ionicons name="desktop-outline" size={22} color={ORANGE} /> },
+            { title: 'Payment Received',      sub: 'Transaction #8842',   icon: <Ionicons name="cash-outline" size={22} color={ORANGE} /> },
+            { title: 'Listing approved',      sub: 'Toyota Corolla 2023', icon: <Ionicons name="checkmark-done-circle-outline" size={22} color={ORANGE} /> },
+          ].map(item => (
+            <GlowCard key={item.title} style={s.activityCard} radius={16}>
+              <View style={s.activityIcon}>{item.icon}</View>
+              <View style={s.activityInfo}>
+                <Text style={s.activityTitle}>{item.title}</Text>
+                <Text style={s.activitySub}>{item.sub}</Text>
+              </View>
+              <ChevronRight size={24} color={ORANGE} />
+            </GlowCard>
+          ))
         ) : recentActivity.map((item: any) => {
           const statusColor = item.status === 'approved' ? '#22C55E' : item.status === 'rejected' ? '#f87171' : ORANGE;
           return (
-          <TouchableOpacity
+          <GlowCard
             key={item.id}
             style={s.activityCard}
-            activeOpacity={0.8}
+            radius={16}
             onPress={() => router.push({ pathname: '/bank-case-detail', params: { id: item.id } } as any)}
           >
-            <GlassInset />
-            <View style={[s.activityIcon, { backgroundColor: statusColor + '22' }]}>
-              <CreditCard size={18} color={statusColor} />
+            <View style={s.activityIcon}>
+              <CreditCard size={20} color={statusColor} />
             </View>
             <View style={s.activityInfo}>
               <Text style={s.activityTitle}>{item.full_name || 'Applicant'}</Text>
               <Text style={s.activitySub}>{item.vehicle || `${item.brand} ${item.car_model}`} • <Text style={{ color: statusColor }}>{item.status}</Text></Text>
             </View>
-            <ChevronRight size={18} color={ORANGE} />
-          </TouchableOpacity>
+            <ChevronRight size={24} color={ORANGE} />
+          </GlowCard>
           );
         })}
 
         {/* Home indicator */}
-        <View style={s.homeIndicator} />
         <View style={{ height: 100 }} />
       </ScrollView>
       <Chatbot />
@@ -404,36 +407,36 @@ const s = StyleSheet.create({
   /* HEADER */
   header:     { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12 },
   logoRow:    { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  logoBox:    { width: 44, height: 44, borderRadius: 22, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
+  logoBox:    { width: 44, height: 44, borderRadius: 10, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   logoLetter: { color: '#4C1D95', fontSize: 20, fontFamily: 'Poppins_700Bold' },
-  bankName:   { color: AppColors.textPrimary, fontSize: 17, fontFamily: 'Poppins_600SemiBold' },
+  bankName:   { color: AppColors.textPrimary, fontSize: 18, fontFamily: 'Poppins_500Medium' },
   headerIcons:{ flexDirection: 'row', gap: 18 },
 
   /* BANNER */
-  banner:    { borderRadius: 24, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 22, marginBottom: 22, minHeight: 110 },
-  bannerSub: { color: 'rgba(255,255,255,0.7)', fontSize: 12, fontFamily: 'Poppins_400Regular' },
-  bannerTitle:{ color: '#fff', fontSize: 14, fontFamily: 'Poppins_600SemiBold', lineHeight: 21, marginTop: 4, maxWidth: 170 },
-  bannerCar: { width: 100, height: 62, position: 'absolute', right: 10, bottom: 16 },
+  banner:    { borderRadius: 20, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 22, paddingVertical: 20, marginBottom: 22, minHeight: 124 },
+  bannerSub: { color: '#FFFFFF', fontSize: 14, fontFamily: 'Poppins_400Regular' },
+  bannerTitle:{ color: '#fff', fontSize: 17, fontFamily: 'Poppins_700Bold', lineHeight: 27, marginTop: 8, maxWidth: 200 },
+  bannerCar: { width: 150, height: 92, position: 'absolute', right: 8, top: 16 },
 
   /* SECTION */
   rowBetween:   { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
-  sectionTitle: { color: AppColors.textPrimary, fontSize: 15, fontFamily: 'Poppins_600SemiBold' },
+  sectionTitle: { color: AppColors.textPrimary, fontSize: 17, fontFamily: 'Poppins_500Medium' },
   analyticsLink:{ color: ORANGE, fontSize: 13, fontFamily: 'Poppins_500Medium' },
 
   /* STAT CARDS */
   statsRow:  { flexDirection: 'row', gap: 10, marginBottom: 16 },
-  statCard:  { flex: 1, backgroundColor: '#010A1F', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(100,160,255,0.4)', paddingHorizontal: 12, paddingVertical: 11, minHeight: 74, overflow: 'hidden' },
-  statLabel: { color: 'rgba(255,255,255,0.6)', fontSize: 11, fontFamily: 'Poppins_400Regular', lineHeight: 15 },
+  statCard:  { flex: 1, paddingHorizontal: 14, paddingVertical: 14, minHeight: 120 },
+  statLabel: { color: '#E6E1E8', fontSize: 14, fontFamily: 'Poppins_400Regular', lineHeight: 18 },
   statBottom:{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 10 },
   statValue: { color: AppColors.textPrimary, fontSize: 22, fontFamily: 'Poppins_600SemiBold' },
-  statDelta: { fontSize: 11, fontFamily: 'Poppins_400Regular', marginTop: 2 },
+  statDelta: { fontSize: 12, fontFamily: 'Poppins_400Regular', marginTop: 2 },
 
   /* CHART CARD */
-  chartCard:     { backgroundColor: '#010A1F', borderRadius: 16, padding: 16, marginBottom: 4, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(100,160,255,0.5)' },
-  chartSubLabel: { color: 'rgba(255,255,255,0.6)', fontSize: 12, fontFamily: 'Poppins_400Regular' },
-  dropBtn:       { flexDirection: 'row', alignItems: 'center', gap: 4, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6 },
-  dropText:      { color: 'rgba(255,255,255,0.8)', fontSize: 11, fontFamily: 'Poppins_400Regular' },
-  chartTitle:    { color: AppColors.textPrimary, fontSize: 22, fontFamily: 'Poppins_600SemiBold', marginTop: -4 },
+  chartCard:     { padding: 16, marginBottom: 4 },
+  chartSubLabel: { color: '#C9BDC4', fontSize: 14, fontFamily: 'Poppins_400Regular' },
+  dropBtn:       { flexDirection: 'row', alignItems: 'center', gap: 4, borderWidth: 1, borderColor: 'rgba(230,225,232,0.8)', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4 },
+  dropText:      { color: '#E6E1E8', fontSize: 12, fontFamily: 'Poppins_400Regular' },
+  chartTitle:    { color: AppColors.textPrimary, fontSize: 24, fontFamily: 'Poppins_500Medium', marginTop: -4 },
   trendRow:      { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
   trendText:     { color: ORANGE, fontSize: 13, fontFamily: 'Poppins_500Medium' },
   dropBtn2:      { flexDirection: 'row', alignItems: 'center', gap: 4, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6, alignSelf: 'flex-start', marginTop: 10 },
@@ -446,19 +449,19 @@ const s = StyleSheet.create({
 
   /* QUICK ACTIONS */
   actionsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 12, marginBottom: 14 },
-  actionCard:  { width: (SCREEN_W - 40 - 30) / 4, height: 100, backgroundColor: '#061B4A', borderRadius: 15, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
-  actionLabel: { color: '#ffffff', fontSize: 9, fontFamily: 'Poppins_400Regular', textAlign: 'center', marginTop: 4, flexShrink: 1 },
+  actionCard:  { width: (SCREEN_W - 40 - 30) / 4, height: 100, backgroundColor: '#061B4A', borderRadius: 16, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
+  actionLabel: { color: '#C9BDC4', fontSize: 11, fontFamily: 'Poppins_400Regular', textAlign: 'center', marginTop: 6, flexShrink: 1 },
 
   /* ADVERTISEMENT */
   adBtn:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: CARD, borderRadius: 18, paddingVertical: 16, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
   adText: { color: ORANGE, fontSize: 14, fontFamily: 'Poppins_600SemiBold' },
 
   /* RECENT ACTIVITY */
-  activityCard: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: BG, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 8, marginBottom: 8, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
-  activityIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#1B2A63', alignItems: 'center', justifyContent: 'center' },
+  activityCard: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 10, paddingVertical: 10, marginBottom: 14, minHeight: 58 },
+  activityIcon: { width: 42, height: 42, borderRadius: 21, backgroundColor: '#0B2358', alignItems: 'center', justifyContent: 'center' },
   activityInfo: { flex: 1 },
-  activityTitle:{ color: AppColors.textPrimary, fontSize: 11, fontFamily: 'Poppins_600SemiBold' },
-  activitySub:  { color: 'rgba(255,255,255,0.5)', fontSize: 9, fontFamily: 'Poppins_400Regular', marginTop: 1 },
+  activityTitle:{ color: AppColors.textPrimary, fontSize: 14, fontFamily: 'Poppins_500Medium' },
+  activitySub:  { color: '#C9BDC4', fontSize: 11, fontFamily: 'Poppins_400Regular', marginTop: 1 },
 
   activityEmpty:    { alignItems: 'center', paddingVertical: 24, gap: 8 },
   activityEmptyTxt: { color: 'rgba(255,255,255,0.3)', fontSize: 12, fontFamily: 'Poppins_400Regular' },

@@ -16,6 +16,7 @@ import {
 import { AppColors, useAppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { BannerCard as FBannerCard, VideoCard as FVideoCard } from '@/components/dealer/AdCards';
 import AdminFooter from '@/components/admin/AdminFooter';
 
 const { width: SW, height: SH } = Dimensions.get('window');
@@ -349,12 +350,12 @@ export default function AdminAdvertisementScreen() {
         {/* HEADER */}
         <View style={[s.header, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderBottomWidth: aC.isDark ? 0 : 1, borderBottomColor: 'rgba(3,42,105,0.08)' }]}>
           <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
-            <ChevronLeft size={24} color={ORANGE} strokeWidth={2}/>
+            <ChevronLeft size={26} color="#C9C6D0" strokeWidth={2}/>
           </TouchableOpacity>
           <Text style={[s.headerTitle, { color: aC.isDark ? AppColors.textPrimary : '#010a1f' }]}>Active Advertisements</Text>
           <TouchableOpacity
             style={s.analyticsBtn}
-            onPress={() => router.push('/(admin)/analytics' as any)}
+            onPress={() => router.push({ pathname: '/dealer-panel/advertisement-analytics', params: { variant: 'admin' } } as any)}
           >
             <BarChart2 size={20} color={ORANGE}/>
           </TouchableOpacity>
@@ -380,34 +381,23 @@ export default function AdminAdvertisementScreen() {
             <View style={s.sectionHeader}>
               <Text style={[s.sectionTitle, { color: aC.isDark ? AppColors.textPrimary : '#010a1f' }]}>Active Banners</Text>
               <TouchableOpacity style={[s.addBtn, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderColor: ORANGE }]} onPress={() => router.push('/(admin)/add-banner' as any)}>
-                <Plus size={16} color={ORANGE}/>
+                <Plus size={20} color={ORANGE}/>
               </TouchableOpacity>
             </View>
 
             {banners.length === 0 ? (
               <EmptyState label="Banner" onAdd={() => router.push('/(admin)/add-banner' as any)} />
             ) : (
-              <>
-                <View style={s.videoGrid}>
-                  {banners.slice(0, 2).map(b => (
-                    <BannerCard key={b.id} banner={b} onDelete={() => deleteBanner(b.id)} onDetail={() => {}} />
-                  ))}
-                </View>
-                {banners.length > 2 && (
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingHorizontal: 2, marginTop: 12 }}>
-                    {banners.slice(2).map(b => (
-                      <View key={b.id} style={{ width: 160 }}>
-                        <BannerCard banner={b} onDelete={() => deleteBanner(b.id)} onDetail={() => {}} />
-                      </View>
-                    ))}
-                  </ScrollView>
-                )}
-              </>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 16, paddingRight: 18 }} style={{ marginHorizontal: -18, paddingLeft: 18, marginBottom: 26 }}>
+                {banners.map(b => (
+                  <FBannerCard key={b.id} banner={b} activeLabel="LIVE" onDelete={() => deleteBanner(b.id)} onDetail={() => {}} />
+                ))}
+              </ScrollView>
             )}
 
             {/* VIDEO ADS */}
             <View style={[s.sectionHeader, { marginTop: 8 }]}>
-              <Text style={[s.sectionTitle, { color: aC.isDark ? AppColors.textPrimary : '#010a1f' }]}>Video Ads</Text>
+              <Text style={[s.sectionTitle, { color: aC.isDark ? AppColors.textPrimary : '#010a1f' }]}>Promotional Reels</Text>
               <TouchableOpacity style={[s.addBtn, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderColor: ORANGE }]} onPress={() => router.push('/(admin)/video-ads' as any)}>
                 <Plus size={16} color={ORANGE}/>
               </TouchableOpacity>
@@ -419,7 +409,7 @@ export default function AdminAdvertisementScreen() {
               <>
                 <View style={s.videoGrid}>
                   {videos.slice(0, 2).map(v => (
-                    <VideoCard
+                    <FVideoCard
                       key={v.id}
                       video={v}
                       onDelete={() => deleteVideo(v.id)}
@@ -434,8 +424,8 @@ export default function AdminAdvertisementScreen() {
                 {videos.length > 2 && (
                   <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingHorizontal: 2, marginTop: 12 }}>
                     {videos.slice(2).map(v => (
-                      <View key={v.id} style={{ width: 160 }}>
-                        <VideoCard
+                      <View key={v.id}>
+                        <FVideoCard
                           video={v}
                           onDelete={() => deleteVideo(v.id)}
                           onPlay={() => {
@@ -476,11 +466,11 @@ const s = StyleSheet.create({
   center:        { flex: 1, alignItems: 'center', justifyContent: 'center' },
   header:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, height: 60 },
   backBtn:       { width: 36, height: 36, justifyContent: 'center', alignItems: 'flex-start' },
-  headerTitle:   { color: AppColors.textPrimary, fontSize: 17, fontFamily: 'Poppins_600SemiBold' },
+  headerTitle:   { flex: 1, marginLeft: 8, color: AppColors.textPrimary, fontSize: 20, fontFamily: 'Poppins_500Medium' },
   analyticsBtn:  { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   scrollContent: { paddingHorizontal: 18, paddingTop: 4, paddingBottom: 20 },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 },
-  sectionTitle:  { color: AppColors.textPrimary, fontSize: 18, fontFamily: 'Poppins_700Bold' },
-  addBtn:        { width: 32, height: 32, borderRadius: 8, borderWidth: 1, borderColor: ORANGE, alignItems: 'center', justifyContent: 'center' },
+  sectionTitle:  { color: AppColors.textPrimary, fontSize: 17, fontFamily: 'Poppins_500Medium' },
+  addBtn:        { width: 28, height: 28, borderRadius: 4, borderWidth: 1, borderColor: ORANGE, alignItems: 'center', justifyContent: 'center' },
   videoGrid:     { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 16 },
 });

@@ -348,6 +348,7 @@ function SettingsMenu({ visible, onClose, anchor }: { visible: boolean; onClose:
   const aC = useAppColors();
   const scheme = useColorScheme();
   const lightOn = scheme === 'light';
+  const [sellerOn, setSellerOn] = useState(false);
   const dark = aC.isDark;
   const txt = dark ? '#F2F1F5' : '#010a1f';
   const line = dark ? 'rgba(160,168,196,0.55)' : 'rgba(3,42,105,0.12)';
@@ -384,6 +385,19 @@ function SettingsMenu({ visible, onClose, anchor }: { visible: boolean; onClose:
               <MaterialCommunityIcons name="tag-outline" size={10} color="#E2671B" style={sm.tag} />
             </View>
             <Text style={[sm.label, { color: txt, flex: 1 }]}>Become A Seller</Text>
+            {/* Same toggle as Light Mode */}
+            <Switch
+              value={sellerOn}
+              onValueChange={v => {
+                setSellerOn(v);
+                // ON → Become_a_Seller panel (API logic will come later)
+                if (v) { onClose(); router.replace('/Become_a_Seller' as any); }
+              }}
+              trackColor={{ false: '#0B2E6B', true: '#0B2E6B' }}
+              thumbColor="#ffffff"
+              ios_backgroundColor="#0B2E6B"
+              style={sm.switch}
+            />
           </TouchableOpacity>
         </TouchableOpacity>
       </TouchableOpacity>

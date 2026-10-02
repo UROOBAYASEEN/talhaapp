@@ -16,11 +16,12 @@ import { useRouter } from 'expo-router';
 import { AppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { D, DHeader, FilterPills, GlowCard, SearchBar } from '@/components/dealer/DealerUI';
 
 const ORANGE = '#e2671b';
 const C = AppColors;
 
-const TABS = ['All', 'Chat', 'Call'];
+const TABS = ['All', 'Chat', 'Call'] as const;
 
 function getInitials(name: string) {
   return (name || 'U').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
@@ -50,12 +51,7 @@ function ClientCard({ item, onPress }: { item: any; onPress: () => void }) {
   const initials = getInitials(name);
 
   return (
-    <TouchableOpacity style={s.card} activeOpacity={0.8} onPress={onPress}>
-      <LinearGradient colors={['rgba(22,64,136,0.35)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.25 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-      <LinearGradient colors={['transparent', 'rgba(29,83,175,0.35)']} start={{ x: 0.5, y: 0.75 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-      <LinearGradient colors={['rgba(13,37,84,0.35)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.25, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-      <LinearGradient colors={['transparent', 'rgba(13,37,84,0.35)']} start={{ x: 0.75, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-
+    <GlowCard style={s.card} onPress={onPress} radius={20}>
       <View style={s.avatarWrap}>
         <View style={s.avatar}>
           <Text style={s.avatarTxt}>{initials}</Text>
@@ -68,7 +64,7 @@ function ClientCard({ item, onPress }: { item: any; onPress: () => void }) {
           <Text style={s.time}>{time}</Text>
         </View>
         <View style={s.msgRow}>
-          <Text style={s.message} numberOfLines={1}>{lastMsg}</Text>
+          <Text style={s.message} numberOfLines={2}>{lastMsg}</Text>
           {unread > 0 && (
             <View style={s.badge}>
               <Text style={s.badgeTxt}>{unread}</Text>
@@ -76,14 +72,14 @@ function ClientCard({ item, onPress }: { item: any; onPress: () => void }) {
           )}
         </View>
       </View>
-    </TouchableOpacity>
+    </GlowCard>
   );
 }
 
 export default function TrackerClientsScreen() {
   const router = useRouter();
   const { token } = useAuth();
-  const [activeTab,    setActiveTab]    = useState('All');
+  const [activeTab,    setActiveTab]    = useState<typeof TABS[number]>('All');
   const [search,       setSearch]       = useState('');
   const [conversations, setConversations] = useState<any[]>([]);
   const [loading,      setLoading]      = useState(true);
@@ -115,40 +111,14 @@ export default function TrackerClientsScreen() {
   return (
     <View style={s.root}>
       <SafeAreaView edges={['top']}>
-        <View style={s.header}>
-          <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
-            <ChevronLeft size={22} color={C.textPrimary} />
-          </TouchableOpacity>
-          <Text style={s.headerTitle}>Clients</Text>
-          <View style={{ width: 36 }} />
-        </View>
+        <DHeader title="Clients" center />
 
         <View style={s.searchWrap}>
-          <LinearGradient colors={['rgba(22,64,136,0.5)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <LinearGradient colors={['rgba(13,37,84,0.5)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <LinearGradient colors={['transparent', 'rgba(29,83,175,0.5)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <Search size={16} color="#8f9cb5" />
-          <TextInput
-            style={s.searchInput}
-            placeholder="Search client by name"
-            placeholderTextColor={C.textPlaceholder}
-            value={search}
-            onChangeText={setSearch}
-          />
+          <SearchBar placeholder="Search client by name" value={search} onChangeText={setSearch} />
         </View>
 
-        <Text style={s.sectionTitle}>Messages</Text>
-        <View style={s.tabRow}>
-          {TABS.map(tab => (
-            <TouchableOpacity
-              key={tab}
-              style={[s.tab, activeTab === tab && s.tabActive]}
-              onPress={() => setActiveTab(tab)}
-            >
-              <Text style={[s.tabTxt, activeTab === tab && s.tabTxtActive]}>{tab}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+        <Text style={s.sectionTitle}>Requests</Text>
+        <FilterPills small items={TABS} value={activeTab} onChange={setActiveTab} style={s.tabRow} />
       </SafeAreaView>
 
       {loading ? (
@@ -184,29 +154,29 @@ export default function TrackerClientsScreen() {
 }
 
 const s = StyleSheet.create({
-  root:        { flex: 1, backgroundColor: C.bg },
+  root:        { flex: 1, backgroundColor: D.bg },
   header:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12 },
   backBtn:     { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { fontSize: 18, fontFamily: 'Poppins_600SemiBold', color: C.textPrimary },
-  searchWrap:  { flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: 16, marginBottom: 14, borderRadius: 30, paddingHorizontal: 14, paddingVertical: 11, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(100,160,255,0.5)', backgroundColor: C.bg },
+  searchWrap:  { marginHorizontal: 16, marginBottom: 14 },
   searchInput: { flex: 1, fontSize: 13, fontFamily: 'Poppins_400Regular', color: C.textPrimary, padding: 0 },
-  sectionTitle:{ fontSize: 14, fontFamily: 'Poppins_600SemiBold', color: C.textPrimary, paddingHorizontal: 16, marginBottom: 10 },
-  tabRow:      { flexDirection: 'row', gap: 8, paddingHorizontal: 16, marginBottom: 14 },
+  sectionTitle:{ fontSize: 16, fontFamily: 'Poppins_400Regular', color: D.muted, paddingHorizontal: 16, marginBottom: 12 },
+  tabRow:      { paddingHorizontal: 16, marginBottom: 20 },
   tab:         { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 30, paddingVertical: 5, borderRadius: 30, backgroundColor: 'rgba(6,27,74,1)', borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.1)' },
   tabActive:   { backgroundColor: 'rgba(6,27,74,1)', borderColor: ORANGE },
   tabTxt:      { fontSize: 13, fontFamily: 'Poppins_500Medium', color: C.textSecondary },
   tabTxtActive:{ color: ORANGE, fontFamily: 'Poppins_600SemiBold' },
-  list:        { paddingHorizontal: 16, paddingBottom: 100, gap: 10 },
-  card:        { borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(100,160,255,0.5)', backgroundColor: 'rgba(1,6,20,1)', padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  list:        { paddingHorizontal: 22, paddingBottom: 100, gap: 16 },
+  card:        { padding: 12, flexDirection: 'row', alignItems: 'center', gap: 14 },
   avatarWrap:  { position: 'relative' },
-  avatar:      { width: 50, height: 50, borderRadius: 25, backgroundColor: '#09265A', alignItems: 'center', justifyContent: 'center' },
-  avatarTxt:   { color: '#E7EBF4', fontSize: 16, fontFamily: 'Poppins_700Bold' },
+  avatar:      { width: 66, height: 66, borderRadius: 33, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' },
+  avatarTxt:   { color: '#FFFFFF', fontSize: 18, fontFamily: 'Poppins_700Bold' },
   cardInfo:    { flex: 1 },
   nameRow:     { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
   msgRow:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  name:        { fontSize: 14, fontFamily: 'Poppins_600SemiBold', color: C.textPrimary, flex: 1 },
-  time:        { fontSize: 11, fontFamily: 'Poppins_400Regular', color: '#8f9cb5' },
-  message:     { fontSize: 12, fontFamily: 'Poppins_400Regular', color: C.textSecondary, flex: 1 },
+  name:        { fontSize: 16, fontFamily: 'Poppins_500Medium', color: '#FFFFFF', flex: 1 },
+  time:        { fontSize: 13, fontFamily: 'Poppins_400Regular', color: '#E6E1E8' },
+  message:     { fontSize: 13, fontFamily: 'Poppins_400Regular', color: '#E6E1E8', lineHeight: 20, flex: 1 },
   badge:       { backgroundColor: ORANGE, borderRadius: 10, paddingHorizontal: 6, paddingVertical: 1, marginLeft: 6 },
   badgeTxt:    { fontSize: 10, fontFamily: 'Poppins_700Bold', color: '#fff' },
   center:      { flex: 1, alignItems: 'center', justifyContent: 'center' },

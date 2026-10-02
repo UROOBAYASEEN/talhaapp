@@ -6,8 +6,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { ArrowLeft, BadgeCheck } from "lucide-react-native";
+import { PillGlow } from "@/components/dealer/DealerUI";
 import AdminFooter from "@/components/admin/AdminFooter";
 import { useAppColors } from '@/constants/theme';
+import { SavedCardEffect } from "@/components/shared/FigmaEffects";
 
 const WHITE = "#F4F5F7";
 const ORANGE = "#E2671B";
@@ -50,11 +52,7 @@ export default function SubscriptionScreen() {
             {OVERVIEW.map(item => (
               <View key={item.label} style={[styles.overviewCard, { overflow: "hidden", backgroundColor: aC.isDark ? "#061B4A" : "#ffffff", borderColor: aC.isDark ? "rgba(100,160,255,0.2)" : "rgba(3,42,105,0.12)", shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }]}>
                 {aC.isDark ? (
-                  <>
-                    <LinearGradient colors={['rgba(22,64,136,0.5)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                    <LinearGradient colors={['rgba(13,37,84,0.5)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                    <LinearGradient colors={['transparent', 'rgba(29,83,175,0.5)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                  </>
+                  <SavedCardEffect band={12} />
                 ) : (
                   <>
                     <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
@@ -74,14 +72,9 @@ export default function SubscriptionScreen() {
               return (
                 <TouchableOpacity
                   key={f} onPress={() => setFilter(f)}
-                  style={[styles.filterChip, { overflow: "hidden", backgroundColor: aC.isDark ? "#061B4A" : (active ? 'rgba(226,103,27,0.08)' : '#ffffff'), borderColor: aC.isDark ? "#232B45" : (active ? ORANGE : "rgba(3,42,105,0.12)") } , active && styles.filterChipActive]}
+                  style={[styles.filterChip, { backgroundColor: aC.isDark ? (active ? "#05122A" : "#0B2358") : (active ? 'rgba(226,103,27,0.08)' : '#ffffff'), borderColor: aC.isDark ? (active ? "#7F98C4" : "transparent") : (active ? ORANGE : "rgba(3,42,105,0.12)"), overflow: "hidden" } , active && styles.filterChipActive]}
                 >
-                  {active && aC.isDark && (
-                    <>
-                      <LinearGradient colors={['rgba(22,64,136,0.3)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                      <LinearGradient colors={['transparent', 'rgba(29,83,175,0.3)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                    </>
-                  )}
+                  {active && aC.isDark && <PillGlow />}
                   <Text style={[styles.filterTxt, { color: active ? ORANGE : (aC.isDark ? "#8090B0" : "#475569") }, active && styles.filterTxtActive]}>{f}</Text>
                 </TouchableOpacity>
               );
@@ -92,13 +85,9 @@ export default function SubscriptionScreen() {
           <Text style={[styles.sectionTitle, { color: aC.isDark ? WHITE : '#010a1f' }]}>Recent Subscription Payments</Text>
           <View style={styles.paymentsList}>
             {PAYMENTS.filter(p => filter === "All" || p.tag.toLowerCase().includes(filter.toLowerCase())).map(p => (
-              <View key={p.id} style={[styles.paymentCard, { overflow: "hidden", backgroundColor: aC.isDark ? "#061B4A" : "#ffffff", borderColor: aC.isDark ? "rgba(100,160,255,0.5)" : "rgba(3,42,105,0.12)", shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }]}>
+              <View key={p.id} style={[styles.paymentCard, { overflow: "hidden", backgroundColor: aC.isDark ? "#061B4A" : "#ffffff", borderColor: aC.isDark ? "#82a5d5" : "rgba(3,42,105,0.12)", shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }]}>
                 {aC.isDark ? (
-                  <>
-                    <LinearGradient colors={['rgba(22,64,136,0.5)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                    <LinearGradient colors={['rgba(13,37,84,0.5)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                    <LinearGradient colors={['transparent', 'rgba(29,83,175,0.5)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                  </>
+                  <SavedCardEffect band={12} />
                 ) : (
                   <>
                     <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
@@ -171,7 +160,7 @@ const styles = StyleSheet.create({
 
   filterRow: { flexDirection: "row", gap: 8, marginBottom: 20 },
   filterChip: {
-    paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20,
+    paddingHorizontal: 20, height: 46, justifyContent: "center", borderRadius: 16,
     borderWidth: 1, borderColor: "#232B45", backgroundColor: "#061B4A",
   },
   filterChipActive: { borderColor: "rgba(100,160,255,0.4)" },

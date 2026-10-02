@@ -18,6 +18,8 @@ import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import * as SecureStore from "expo-secure-store";
 import AdminFooter from "@/components/admin/AdminFooter";
+import { SavedCardEffect } from "@/components/shared/FigmaEffects";
+import { PillGlow } from "@/components/dealer/DealerUI";
 import { API_BASE } from "@/constants/api";
 import { useAppColors } from "@/constants/theme";
 
@@ -121,25 +123,9 @@ export default function PartnerManagement() {
 
         {/* Search + Sort */}
         <View style={styles.searchRow}>
-          <View style={[styles.searchBox, { overflow: "hidden", backgroundColor: aC.isDark ? "#010A1F" : '#ffffff', borderColor: aC.isDark ? "#5789D5" : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? "#2466D8" : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0.35 : 0.08, elevation: aC.isDark ? 5 : 2 }]}>
+          <View style={[styles.searchBox, { overflow: "hidden", backgroundColor: aC.isDark ? "#010A1F" : '#ffffff', borderColor: aC.isDark ? "#82a5d5" : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? "#2466D8" : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0.35 : 0.08, elevation: aC.isDark ? 5 : 2 }]}>
             {aC.isDark ? (
-              <>
-                <LinearGradient
-                  colors={['rgba(22,64,136,0.5)', 'transparent']}
-                  start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }}
-                  style={StyleSheet.absoluteFillObject} pointerEvents="none"
-                />
-                <LinearGradient
-                  colors={['rgba(13,37,84,0.5)', 'transparent']}
-                  start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }}
-                  style={StyleSheet.absoluteFillObject} pointerEvents="none"
-                />
-                <LinearGradient
-                  colors={['transparent', 'rgba(29,83,175,0.5)']}
-                  start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }}
-                  style={StyleSheet.absoluteFillObject} pointerEvents="none"
-                />
-              </>
+              <SavedCardEffect band={10} />
             ) : (
               <>
                 <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
@@ -180,28 +166,10 @@ export default function PartnerManagement() {
             return (
               <TouchableOpacity
                 key={filter}
-                style={[styles.filterButton, { backgroundColor: aC.isDark ? "#061B4A" : (isActive ? 'rgba(226,103,27,0.08)' : '#ffffff'), borderWidth: 1, borderColor: aC.isDark ? (isActive ? "#6395E4" : 'transparent') : (isActive ? "#e2671b" : 'rgba(3,42,105,0.12)'), shadowColor: aC.isDark ? "#2765D1" : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark && isActive ? 0.35 : (aC.isDark ? 0 : 0.06), elevation: aC.isDark && isActive ? 4 : (aC.isDark ? 0 : 1) }, isActive && styles.activeFilter, isActive && { overflow: "hidden" }]}
+                style={[styles.filterButton, { backgroundColor: aC.isDark ? (isActive ? "#05122A" : "#061B4A") : (isActive ? 'rgba(226,103,27,0.08)' : '#ffffff'), borderWidth: 1, borderColor: aC.isDark ? (isActive ? "#7F98C4" : 'transparent') : (isActive ? "#e2671b" : 'rgba(3,42,105,0.12)'), shadowColor: aC.isDark ? "#2765D1" : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark && isActive ? 0.35 : (aC.isDark ? 0 : 0.06), elevation: aC.isDark && isActive ? 4 : (aC.isDark ? 0 : 1) }, isActive && styles.activeFilter, isActive && { overflow: "hidden" }]}
                 onPress={() => setActiveFilter(filter)}
               >
-                {isActive && aC.isDark && (
-                  <>
-                    <LinearGradient
-                      colors={['rgba(22,64,136,0.5)', 'transparent']}
-                      start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }}
-                      style={StyleSheet.absoluteFillObject} pointerEvents="none"
-                    />
-                    <LinearGradient
-                      colors={['rgba(13,37,84,0.5)', 'transparent']}
-                      start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }}
-                      style={StyleSheet.absoluteFillObject} pointerEvents="none"
-                    />
-                    <LinearGradient
-                      colors={['transparent', 'rgba(29,83,175,0.5)']}
-                      start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }}
-                      style={StyleSheet.absoluteFillObject} pointerEvents="none"
-                    />
-                  </>
-                )}
+                {isActive && aC.isDark && <PillGlow />}
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 5, zIndex: 2 }}>
                   <Text style={[styles.filterText, { color: isActive ? "#FF6500" : (aC.isDark ? "#F1F3F9" : '#475569') }, isActive && styles.activeFilterText]}>
                     {filter}
@@ -283,9 +251,9 @@ export default function PartnerManagement() {
 
         {/* Floating Add Button */}
         <TouchableOpacity style={styles.fab} onPress={() => router.push('/(admin)/add-partner' as any)}>
-          <Ionicons
-            name="add"
-            size={28}
+          <MaterialCommunityIcons
+            name="plus-box-outline"
+            size={30}
             color="#FFFFFF"
           />
         </TouchableOpacity>
@@ -301,16 +269,11 @@ function PartnerCard({ partner, onPress }: { partner: Partner; onPress: () => vo
   return (
     <TouchableOpacity
       activeOpacity={0.85}
-      style={[styles.partnerCard, { overflow: "hidden", backgroundColor: aC.isDark ? "rgba(1,6,20,1)" : '#ffffff', borderColor: aC.isDark ? "rgba(100,160,255,0.5)" : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? "#2365D4" : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0.32 : 0.08, elevation: aC.isDark ? 5 : 3 }]}
+      style={[styles.partnerCard, { overflow: "hidden", backgroundColor: aC.isDark ? "#010A1F" : '#ffffff', borderColor: aC.isDark ? "#82a5d5" : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? "#2365D4" : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0.32 : 0.08, elevation: aC.isDark ? 5 : 3 }]}
       onPress={onPress}
     >
       {aC.isDark ? (
-        <>
-          <LinearGradient colors={['rgba(22,64,136,0.35)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.25 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <LinearGradient colors={['transparent', 'rgba(29,83,175,0.35)']} start={{ x: 0.5, y: 0.75 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <LinearGradient colors={['rgba(13,37,84,0.35)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.25, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <LinearGradient colors={['transparent', 'rgba(13,37,84,0.35)']} start={{ x: 0.75, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-        </>
+        <SavedCardEffect band={10} />
       ) : (
         <>
           <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
@@ -320,7 +283,7 @@ function PartnerCard({ partner, onPress }: { partner: Partner; onPress: () => vo
 
       <View style={[styles.logo, { backgroundColor: aC.isDark ? "#032A69" : '#eef2ff' }]}>
         {partner.avatar_url ? (
-          <Image source={{ uri: partner.avatar_url }} style={{ width: 56, height: 56, borderRadius: 28 }} />
+          <Image source={{ uri: partner.avatar_url }} style={{ width: 70, height: 70, borderRadius: 35 }} />
         ) : (
           <Text style={[styles.avatarInitial, { color: aC.isDark ? "#FFFFFF" : '#032a69' }]}>{partner.name.charAt(0).toUpperCase()}</Text>
         )}
@@ -615,9 +578,9 @@ const styles = StyleSheet.create({
   },
 
   logo: {
-    width: 56,
-    height: 56,
-    borderRadius: 30,
+    width: 70,
+    height: 70,
+    borderRadius: 35,
     backgroundColor: "#032A69",
     alignItems: "center",
     justifyContent: "center",
@@ -649,7 +612,7 @@ const styles = StyleSheet.create({
 
   partnerName: {
     color: "#F6F7FB",
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "600",
     lineHeight: 21,
   },
@@ -703,7 +666,7 @@ const styles = StyleSheet.create({
   fab: {
     position: "absolute",
     right: 24,
-    bottom: 95,
+    bottom: 110,
 
     width: 61,
     height: 61,

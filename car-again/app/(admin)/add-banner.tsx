@@ -11,43 +11,46 @@ import { useRouter } from "expo-router";
 import { ChevronLeft, Save, Upload, ChevronDown, Check, Plus, X, Calendar, ChevronRight } from "lucide-react-native";
 import { API_BASE } from "@/constants/api";
 import { useAppColors } from '@/constants/theme';
+import { SavedCardEffect } from "@/components/shared/FigmaEffects";
+import InnerGlow from "@/components/shared/InnerGlow";
+import { ActionPanelBg, GlowPublishButton, GlowDraftButton } from "@/components/shared/ActionFooterGlow";
 
-const WHITE  = "#F4F5F7";
+const WHITE = "#F4F5F7";
 const ORANGE = "#FF6B00";
 
 const BANNER_TYPES = ["Home Screen Top", "Home Screen Bottom", "Search Results", "Listing Detail"];
-const PARTNERS     = ["Autowisor (Default)", "PakWheels", "OLX Autos"];
-const USER_TYPES   = ["All Users", "Buyers", "Sellers"];
+const PARTNERS = ["Autowisor (Default)", "PakWheels", "OLX Autos"];
+const USER_TYPES = ["All Users", "Buyers", "Sellers"];
 
 const ALL_CITIES = [
-  "All Cities","Karachi","Lahore","Islamabad","Rawalpindi",
-  "Faisalabad","Multan","Peshawar","Quetta","Sialkot",
-  "Gujranwala","Hyderabad","Bahawalpur","Sargodha","Abbottabad",
+  "All Cities", "Karachi", "Lahore", "Islamabad", "Rawalpindi",
+  "Faisalabad", "Multan", "Peshawar", "Quetta", "Sialkot",
+  "Gujranwala", "Hyderabad", "Bahawalpur", "Sargodha", "Abbottabad",
 ];
 
 export default function AddBannerScreen() {
   const router = useRouter();
   const aC = useAppColors();
 
-  const [bannerType,   setBannerType]   = useState("Home Screen Top");
-  const [partner,      setPartner]      = useState("Autowisor (Default)");
-  const [userTypes,    setUserTypes]    = useState(["All Users"]);
-  const [cities,       setCities]       = useState(["All Cities", "Karachi", "Lahore", "Islamabad"]);
-  const [agreed,       setAgreed]       = useState(false);
-  const [startDate,    setStartDate]    = useState<Date | null>(null);
-  const [endDate,      setEndDate]      = useState<Date | null>(null);
-  const [bannerImage,  setBannerImage]  = useState<string | null>(null);
-  const [title,        setTitle]        = useState("");
-  const [description,  setDescription]  = useState("");
-  const [campaign,     setCampaign]     = useState("");
+  const [bannerType, setBannerType] = useState("Home Screen Top");
+  const [partner, setPartner] = useState("Autowisor (Default)");
+  const [userTypes, setUserTypes] = useState(["All Users"]);
+  const [cities, setCities] = useState(["All Cities", "Karachi", "Lahore", "Islamabad"]);
+  const [agreed, setAgreed] = useState(false);
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
+  const [bannerImage, setBannerImage] = useState<string | null>(null);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [campaign, setCampaign] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState<string | null>(null);
   const [showDatePicker, setShowDatePicker] = useState<"start" | "end" | null>(null);
-  const [pickerYear,  setPickerYear]  = useState(new Date().getFullYear());
+  const [pickerYear, setPickerYear] = useState(new Date().getFullYear());
   const [pickerMonth, setPickerMonth] = useState(new Date().getMonth());
-  const [pickerDay,   setPickerDay]   = useState(new Date().getDate());
-  const [pickerHour,  setPickerHour]  = useState(new Date().getHours());
-  const [pickerMin,   setPickerMin]   = useState(0);
-  const [cityModal,   setCityModal]   = useState(false);
+  const [pickerDay, setPickerDay] = useState(new Date().getDate());
+  const [pickerHour, setPickerHour] = useState(new Date().getHours());
+  const [pickerMin, setPickerMin] = useState(0);
+  const [cityModal, setCityModal] = useState(false);
 
   const toggleUserType = (t: string) =>
     setUserTypes(p => p.includes(t) ? p.filter(i => i !== t) : [...p, t]);
@@ -58,7 +61,7 @@ export default function AddBannerScreen() {
   const removeCity = (c: string) => setCities(p => p.filter(i => i !== c));
 
   const formatDate = (d: Date | null) =>
-    d ? `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}  ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}` : "";
+    d ? `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}  ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}` : "";
 
   const openPicker = (type: "start" | "end") => {
     const ref = type === "start" ? startDate : endDate;
@@ -78,12 +81,12 @@ export default function AddBannerScreen() {
     setShowDatePicker(null);
   };
 
-  const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const daysInMonth = new Date(pickerYear, pickerMonth + 1, 0).getDate();
-  const years  = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() + i);
-  const days   = Array.from({ length: daysInMonth }, (_, i) => i + 1);
-  const hours  = Array.from({ length: 24 }, (_, i) => i);
-  const mins   = Array.from({ length: 12 }, (_, i) => i * 5);
+  const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() + i);
+  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+  const hours = Array.from({ length: 24 }, (_, i) => i);
+  const mins = Array.from({ length: 12 }, (_, i) => i * 5);
 
   const [publishing, setPublishing] = useState(false);
 
@@ -94,7 +97,7 @@ export default function AddBannerScreen() {
 
   const publishBanner = async () => {
     if (!title.trim()) { Alert.alert("Missing", "Banner title is required."); return; }
-    if (!agreed)        { Alert.alert("Missing", "Please accept terms first."); return; }
+    if (!agreed) { Alert.alert("Missing", "Please accept terms first."); return; }
 
     try {
       setPublishing(true);
@@ -117,17 +120,17 @@ export default function AddBannerScreen() {
       }
 
       const body = {
-        title:            title.trim(),
-        description:      description.trim() || null,
-        campaign_name:    campaign.trim()     || null,
+        title: title.trim(),
+        description: description.trim() || null,
+        campaign_name: campaign.trim() || null,
         banner_image_url: imageUrl,
         display_location: bannerType,
-        partner:          partner,
-        user_type:        userTypes[0] ?? "All Users",
-        cities:           cities,
-        boost_weeks:      6,
-        start_date:       startDate ? startDate.toISOString() : null,
-        end_date:         endDate   ? endDate.toISOString()   : null,
+        partner: partner,
+        user_type: userTypes[0] ?? "All Users",
+        cities: cities,
+        boost_weeks: 6,
+        start_date: startDate ? startDate.toISOString() : null,
+        end_date: endDate ? endDate.toISOString() : null,
       };
 
       const res = await fetch(`${API_BASE}/admin/banners`, {
@@ -218,9 +221,9 @@ export default function AddBannerScreen() {
           <View style={styles.dateRow}>
             <TouchableOpacity style={{ flex: 1 }} onPress={() => openPicker("start")} activeOpacity={0.8}>
               <Text style={[styles.dateLabel, { color: aC.isDark ? "#6B7A99" : "#475569" }]}>Start Date & Time</Text>
-              <View style={[styles.inputWrap, { overflow: "hidden", backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "rgba(80,123,182,0.5)" : "rgba(3,42,105,0.12)" }]}>
+              <View style={[styles.inputWrap, { overflow: "hidden", backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "#82a5d5" : "rgba(3,42,105,0.12)" }, aC.isDark && { borderWidth: 0, backgroundColor: "#061227" }]}>
                 {aC.isDark ? (
-                  <LinearGradient colors={["rgba(22,64,136,0.1)", "transparent"]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+                  <InputGlow />
                 ) : (
                   <>
                     <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
@@ -235,9 +238,9 @@ export default function AddBannerScreen() {
             </TouchableOpacity>
             <TouchableOpacity style={{ flex: 1 }} onPress={() => openPicker("end")} activeOpacity={0.8}>
               <Text style={[styles.dateLabel, { color: aC.isDark ? "#6B7A99" : "#475569" }]}>End Date & Time</Text>
-              <View style={[styles.inputWrap, { overflow: "hidden", backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "rgba(80,123,182,0.5)" : "rgba(3,42,105,0.12)" }]}>
+              <View style={[styles.inputWrap, { overflow: "hidden", backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "#82a5d5" : "rgba(3,42,105,0.12)" }, aC.isDark && { borderWidth: 0, backgroundColor: "#061227" }]}>
                 {aC.isDark ? (
-                  <LinearGradient colors={["rgba(22,64,136,0.1)", "transparent"]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+                  <InputGlow />
                 ) : (
                   <>
                     <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
@@ -264,11 +267,11 @@ export default function AddBannerScreen() {
                 </View>
 
                 <View style={styles.pickerRow}>
-                  <PickerCol label="Month"  items={MONTHS}  selected={pickerMonth} onSelect={setPickerMonth} />
-                  <PickerCol label="Day"    items={days}    selected={pickerDay - 1} onSelect={(i) => setPickerDay(days[i])} />
-                  <PickerCol label="Year"   items={years}   selected={years.indexOf(pickerYear)} onSelect={(i) => setPickerYear(years[i])} />
-                  <PickerCol label="Hour"   items={hours.map(h => String(h).padStart(2,"0"))} selected={pickerHour} onSelect={setPickerHour} />
-                  <PickerCol label="Min"    items={mins.map(m => String(m).padStart(2,"0"))}  selected={mins.indexOf(pickerMin)} onSelect={(i) => setPickerMin(mins[i])} />
+                  <PickerCol label="Month" items={MONTHS} selected={pickerMonth} onSelect={setPickerMonth} />
+                  <PickerCol label="Day" items={days} selected={pickerDay - 1} onSelect={(i) => setPickerDay(days[i])} />
+                  <PickerCol label="Year" items={years} selected={years.indexOf(pickerYear)} onSelect={(i) => setPickerYear(years[i])} />
+                  <PickerCol label="Hour" items={hours.map(h => String(h).padStart(2, "0"))} selected={pickerHour} onSelect={setPickerHour} />
+                  <PickerCol label="Min" items={mins.map(m => String(m).padStart(2, "0"))} selected={mins.indexOf(pickerMin)} onSelect={(i) => setPickerMin(mins[i])} />
                 </View>
 
                 <TouchableOpacity style={styles.modalDone} onPress={confirmPicker}>
@@ -346,12 +349,10 @@ export default function AddBannerScreen() {
         </ScrollView>
 
         {/* FIXED FOOTER */}
-        <View style={[styles.fixedFooter, { overflow: "hidden", backgroundColor: aC.isDark ? "rgba(3,42,105,0.25)" : "#ffffff", borderTopColor: aC.isDark ? "rgba(255,255,255,0.08)" : "rgba(3,42,105,0.08)" }]}>
+        <View style={[styles.fixedFooter, aC.isDark && { paddingHorizontal: 32, paddingBottom: 22, borderTopWidth: 0 }, { overflow: "hidden", backgroundColor: aC.isDark ? "#0A1838" : "#ffffff", borderTopColor: aC.isDark ? "rgba(130,165,213,0.35)" : "rgba(3,42,105,0.08)" }]}>
           {aC.isDark ? (
             <>
-              <LinearGradient colors={['rgba(22,64,136,0.5)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-              <LinearGradient colors={['rgba(13,37,84,0.5)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-              <LinearGradient colors={['transparent', 'rgba(29,83,175,0.5)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+              <ActionPanelBg />
             </>
           ) : (
             <>
@@ -359,6 +360,12 @@ export default function AddBannerScreen() {
               <LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
             </>
           )}
+          {aC.isDark ? (
+            <>
+              <GlowPublishButton title="Publish Banner" loading={publishing} disabled={!agreed} style={{ marginTop: 12, marginBottom: 11 }} onPress={publishBanner} />
+              <GlowDraftButton title="Save as Draft" />
+            </>
+          ) : (<>
           <TouchableOpacity
             activeOpacity={agreed && !publishing ? 0.85 : 1}
             disabled={!agreed || publishing}
@@ -378,13 +385,9 @@ export default function AddBannerScreen() {
             </LinearGradient>
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.draftBtn, { overflow: "hidden", backgroundColor: aC.isDark ? "#0D1530" : "#ffffff", borderColor: aC.isDark ? "#2A3350" : "rgba(3,42,105,0.12)" }]} activeOpacity={0.8}>
+          <TouchableOpacity style={[styles.draftBtn, { overflow: "hidden", backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "#82a5d5" : "rgba(3,42,105,0.12)" }]} activeOpacity={0.8}>
             {aC.isDark ? (
-              <>
-                <LinearGradient colors={['rgba(22,64,136,0.5)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                <LinearGradient colors={['rgba(13,37,84,0.5)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                <LinearGradient colors={['transparent', 'rgba(29,83,175,0.5)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-              </>
+              <SavedCardEffect band={12} />
             ) : (
               <>
                 <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
@@ -393,6 +396,7 @@ export default function AddBannerScreen() {
             )}
             <Text style={[styles.draftTxt, { color: aC.isDark ? WHITE : '#010a1f' }]}>Save as Draft</Text>
           </TouchableOpacity>
+          </>)}
         </View>
 
       </SafeAreaView>
@@ -433,19 +437,23 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
+// Figma input effect (dark): blue glow from the rounded edges into a dark centre + light-blue border
+function InputGlow({ radius = 23.5 }: { radius?: number }) {
+  return <InnerGlow radius={radius} fill="#061227" glowColor="#18386E" blur={14} borderColors={["#6F8CBC", "#7E92B3"]} borderWidth={1} />;
+}
+
 function InputBox({ placeholder, value, onChangeText, multiline }: {
   placeholder: string; value: string;
   onChangeText: (t: string) => void; multiline?: boolean;
 }) {
   const aC = useAppColors();
   return (
-    <View style={[styles.inputWrap, multiline && { height: 100, alignItems: "flex-start" }, { overflow: "hidden", backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "rgba(80,123,182,0.5)" : "rgba(3,42,105,0.12)", shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.06)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 1 }]}>
+    <View style={[styles.inputWrap, multiline && { height: 100, alignItems: "flex-start" }, { overflow: "hidden", backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "#82a5d5" : "rgba(3,42,105,0.12)", shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.06)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 1 },
+      aC.isDark && (multiline
+        ? { borderRadius: 18, shadowColor: '#638ed0', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.15, shadowRadius: 5, elevation: 2 }
+        : { borderWidth: 0, backgroundColor: "#061227" })]}>
       {aC.isDark ? (
-        <>
-          <LinearGradient colors={["rgba(22,64,136,0.1)", "transparent"]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <LinearGradient colors={["rgba(13,37,84,0.08)", "transparent"]} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <LinearGradient colors={["transparent", "rgba(29,83,175,0.1)"]} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-        </>
+        multiline ? <SavedCardEffect /> : <InputGlow />
       ) : (
         <>
           <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
@@ -468,9 +476,9 @@ function DropdownField({ value, options, open, onOpen, onSelect }: {
   const aC = useAppColors();
   return (
     <View>
-      <TouchableOpacity style={[styles.inputWrap, { overflow: "hidden", backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "rgba(80,123,182,0.5)" : "rgba(3,42,105,0.12)" }]} onPress={onOpen} activeOpacity={0.8}>
+      <TouchableOpacity style={[styles.inputWrap, { overflow: "hidden", backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "#82a5d5" : "rgba(3,42,105,0.12)" }, aC.isDark && { borderWidth: 0, backgroundColor: "#061227" }]} onPress={onOpen} activeOpacity={0.8}>
         {aC.isDark ? (
-          <LinearGradient colors={["rgba(22,64,136,0.1)", "transparent"]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+          <InputGlow />
         ) : (
           <>
             <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
@@ -499,7 +507,7 @@ function Pill({ label, active, onPress }: { label: string; active: boolean; onPr
   return (
     <TouchableOpacity
       onPress={onPress} activeOpacity={0.8}
-      style={[styles.pill, { backgroundColor: aC.isDark ? "#0D1530" : (active ? 'rgba(226,103,27,0.08)' : '#ffffff'), borderColor: aC.isDark ? "#232B45" : (active ? ORANGE : "rgba(3,42,105,0.12)") }, active && styles.pillActive]}
+      style={[styles.pill, { backgroundColor: aC.isDark ? (active ? "#3A2420" : "#0B2358") : (active ? 'rgba(226,103,27,0.08)' : '#ffffff'), borderColor: aC.isDark ? (active ? ORANGE : "#7F98C4") : (active ? ORANGE : "rgba(3,42,105,0.12)") }, active && styles.pillActive]}
     >
       <Text style={[styles.pillTxt, { color: active ? ORANGE : (aC.isDark ? "#C0C8DC" : "#475569") }, active && styles.pillTxtActive]}>{label}</Text>
     </TouchableOpacity>
@@ -509,13 +517,13 @@ function Pill({ label, active, onPress }: { label: string; active: boolean; onPr
 /* ── Styles ── */
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#010A1F" },
-  safeArea:  { flex: 1, backgroundColor: "#010A1F" },
+  safeArea: { flex: 1, backgroundColor: "#010A1F" },
 
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingTop: 8, paddingBottom: 12 },
-  backBtn:     { width: 36, height: 44, justifyContent: "center" },
+  backBtn: { width: 36, height: 44, justifyContent: "center" },
   headerTitle: { color: WHITE, fontSize: 17, fontFamily: "Poppins_600SemiBold" },
-  saveBtn:     { alignItems: "center", gap: 2 },
-  saveTxt:     { color: ORANGE, fontSize: 9, fontFamily: "Poppins_500Medium", textAlign: "center", lineHeight: 12 },
+  saveBtn: { alignItems: "center", gap: 2 },
+  saveTxt: { color: ORANGE, fontSize: 9, fontFamily: "Poppins_500Medium", textAlign: "center", lineHeight: 12 },
 
   scroll: { paddingHorizontal: 20, paddingTop: 4 },
 
@@ -525,8 +533,8 @@ const styles = StyleSheet.create({
     justifyContent: "center", marginBottom: 22, gap: 8, backgroundColor: "#040E24",
   },
   bannerPreview: { width: "100%", height: 160, borderRadius: 16 },
-  uploadTitle:   { color: WHITE, fontSize: 15, fontFamily: "Poppins_600SemiBold" },
-  uploadSub:     { color: "#6B7A99", fontSize: 11, fontFamily: "Poppins_400Regular", textAlign: "center" },
+  uploadTitle: { color: WHITE, fontSize: 15, fontFamily: "Poppins_600SemiBold" },
+  uploadSub: { color: "#6B7A99", fontSize: 11, fontFamily: "Poppins_400Regular", textAlign: "center" },
 
   fieldLabel: { color: WHITE, fontSize: 13, fontFamily: "Poppins_500Medium", marginBottom: 10 },
 
@@ -549,23 +557,23 @@ const styles = StyleSheet.create({
   dropItemTxt: { color: "#C8D3E8", fontSize: 13, fontFamily: "Poppins_400Regular" },
 
   sectionLabel: { color: WHITE, fontSize: 13, fontFamily: "Poppins_600SemiBold", marginBottom: 12, marginTop: 6 },
-  subLabel:     { color: "#6B7A99", fontSize: 12, fontFamily: "Poppins_400Regular", marginBottom: 8 },
-  dateRow:      { flexDirection: "row", gap: 12, marginBottom: 20 },
-  dateLabel:    { color: "#6B7A99", fontSize: 11, fontFamily: "Poppins_400Regular", marginBottom: 6 },
+  subLabel: { color: "#6B7A99", fontSize: 12, fontFamily: "Poppins_400Regular", marginBottom: 8 },
+  dateRow: { flexDirection: "row", gap: 12, marginBottom: 20 },
+  dateLabel: { color: "#6B7A99", fontSize: 11, fontFamily: "Poppins_400Regular", marginBottom: 6 },
 
   pillRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   pill: {
     paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20,
     borderWidth: 1, borderColor: "#232B45", backgroundColor: "#0D1530",
   },
-  pillActive:    { backgroundColor: "rgba(226,103,27,0.15)", borderColor: "#E2671B" },
-  pillTxt:       { color: "#C0C8DC", fontSize: 13, fontFamily: "Poppins_400Regular" },
+  pillActive: { backgroundColor: "rgba(226,103,27,0.15)", borderColor: "#E2671B" },
+  pillTxt: { color: "#C0C8DC", fontSize: 13, fontFamily: "Poppins_400Regular" },
   pillTxtActive: { color: ORANGE, fontFamily: "Poppins_500Medium" },
 
-  termsRow:    { flexDirection: "row", alignItems: "flex-start", gap: 12, marginTop: 24, marginBottom: 22 },
-  checkbox:    { width: 18, height: 18, borderRadius: 4, borderWidth: 1.5, borderColor: "#3A4A6B", alignItems: "center", justifyContent: "center", marginTop: 2, flexShrink: 0 },
+  termsRow: { flexDirection: "row", alignItems: "flex-start", gap: 12, marginTop: 24, marginBottom: 22 },
+  checkbox: { width: 18, height: 18, borderRadius: 4, borderWidth: 1.5, borderColor: "#3A4A6B", alignItems: "center", justifyContent: "center", marginTop: 2, flexShrink: 0 },
   checkboxActive: { backgroundColor: ORANGE, borderColor: ORANGE },
-  termsText:   { flex: 1, color: "#8E98B0", fontSize: 12, fontFamily: "Poppins_400Regular", lineHeight: 18 },
+  termsText: { flex: 1, color: "#8E98B0", fontSize: 12, fontFamily: "Poppins_400Regular", lineHeight: 18 },
 
   fixedFooter: {
     position: "absolute", bottom: 40, left: 0, right: 0,
@@ -608,10 +616,10 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: "rgba(100,160,255,0.15)",
     paddingHorizontal: 20, paddingTop: 20, paddingBottom: 32,
   },
-  pickerRow:     { flexDirection: "row", gap: 4, marginBottom: 16 },
-  pickerLabel:   { color: "#6B7A99", fontSize: 10, fontFamily: "Poppins_400Regular", marginBottom: 6 },
-  pickerScroll:  { height: 160, width: "100%" },
-  pickerItem:    { paddingVertical: 8, alignItems: "center" },
+  pickerRow: { flexDirection: "row", gap: 4, marginBottom: 16 },
+  pickerLabel: { color: "#6B7A99", fontSize: 10, fontFamily: "Poppins_400Regular", marginBottom: 6 },
+  pickerScroll: { height: 160, width: "100%" },
+  pickerItem: { paddingVertical: 8, alignItems: "center" },
   pickerItemTxt: { color: "#6B7A99", fontSize: 13, fontFamily: "Poppins_400Regular" },
   pickerItemActive: { color: ORANGE, fontFamily: "Poppins_600SemiBold", fontSize: 14 },
   modalSheet: {
@@ -620,7 +628,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20, paddingTop: 20, paddingBottom: 32, maxHeight: "70%",
   },
   modalHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 },
-  modalTitle:  { color: WHITE, fontSize: 16, fontFamily: "Poppins_600SemiBold" },
+  modalTitle: { color: WHITE, fontSize: 16, fontFamily: "Poppins_600SemiBold" },
   modalItem: {
     flexDirection: "row", justifyContent: "space-between", alignItems: "center",
     paddingVertical: 13, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.06)",

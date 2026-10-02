@@ -10,6 +10,17 @@ import { useRouter } from 'expo-router';
 import { AppColors } from '@/constants/theme';
 import { useAuth } from '@/contexts/AuthContext';
 import { API_BASE } from '@/constants/api';
+import { D, GlowCard, Verified } from '@/components/dealer/DealerUI';
+import { RatingSummary, ReviewItem as SharedReviewItem } from '@/components/book/reviews';
+import { GlassButton, GradientButton } from '@/components/shared/GlowUI';
+import { DUMMY_REVIEWS } from '@/constants/dummyReviews';
+
+// Dummy office photos until the company uploads its own
+const DUMMY_OFFICES = [
+  require('@/assets/images/office.png'),
+  require('@/assets/images/Office 2.png'),
+  require('@/assets/images/Office3.png'),
+];
 
 const SERVER = API_BASE.replace('/api/v1', '');
 function resolveUrl(url?: string) {
@@ -286,22 +297,26 @@ export default function TrackerProfileScreen() {
     );
   }
 
+  // No reviews yet → dummy reviews for now
+  const shownReviews = reviews.length
+    ? reviews
+    : DUMMY_REVIEWS.slice(0, 2).map(r => ({ id: r.id, reviewer_name: r.name, rating: r.rating, comment: r.comment, time: r.date }));
+
   return (
     <View style={s.root}>
       <SafeAreaView edges={['top']}>
         <View style={s.topbar}>
-          <TouchableOpacity onPress={() => router.back()} style={s.iconBtn}>
-            <Ionicons name="chevron-back" size={24} color={C.textPrimary} />
+          <TouchableOpacity onPress={() => router.back()} style={{ width: 70 }}>
+            <Ionicons name="chevron-back" size={28} color="#FFFFFF" />
           </TouchableOpacity>
-          <View style={s.logoWrap} pointerEvents="none">
-            <Image source={require('@/assets/images/autowizor-logo-text.png')} style={s.logo} resizeMode="contain" />
-          </View>
+          <Image source={require('@/assets/images/autowizor-logo-text.png')} style={s.logoImg} resizeMode="contain" />
           <View style={s.topActions}>
+            <Ionicons name="eye-outline" size={26} color={ORANGE} />
             <TouchableOpacity onPress={() => router.push('/alert' as any)}>
-              <Ionicons name="notifications-outline" size={20} color={C.textPrimary} />
+              <Ionicons name="notifications-outline" size={24} color="#FFFFFF" />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => router.push('/profile/settings' as any)}>
-              <Ionicons name="settings-outline" size={20} color={C.textPrimary} />
+              <Ionicons name="settings-outline" size={24} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
         </View>
@@ -309,22 +324,19 @@ export default function TrackerProfileScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 110 }}
+        contentContainerStyle={{ paddingBottom: 120 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={ORANGE} />}
       >
 
-        {/* Cover / Hero image */}
-        <TouchableOpacity style={s.hero} activeOpacity={0.85} onPress={() => pickAndUpload('cover')}>
+        {/* Cover / Hero image (tap to change) */}
+        <TouchableOpacity style={s.hero} activeOpacity={0.9} onPress={() => pickAndUpload('cover')}>
           {coverUrl
-            ? <Image source={{ uri: coverUrl }} style={s.heroImg} />
-            : <View style={[s.heroImg, { backgroundColor: '#061B4A', alignItems: 'center', justifyContent: 'center' }]}>
+            ? <Image source={{ uri: coverUrl }} style={StyleSheet.absoluteFillObject} resizeMode="cover" key={coverUrl} />
+            : <View style={[StyleSheet.absoluteFillObject, { backgroundColor: '#061B4A', alignItems: 'center', justifyContent: 'center' }]}>
                 <Ionicons name="image-outline" size={40} color="#4B5A7A" />
               </View>
           }
-          {uploading === 'cover'
-            ? <View style={s.uploadOverlay}><ActivityIndicator color="#fff" /></View>
-            : <View style={s.editCoverBtn}><Feather name="camera" size={13} color="#fff" /><Text style={s.editCoverTxt}>Edit Cover</Text></View>
-          }
+          {uploading === 'cover' && <View style={s.uploadOverlay}><ActivityIndicator color="#fff" /></View>}
           {isVerified && (
             <View style={s.badge}><Text style={s.badgeText}>VERIFIED</Text></View>
           )}
@@ -336,30 +348,32 @@ export default function TrackerProfileScreen() {
             {avatarUrl
               ? <Image source={{ uri: avatarUrl }} style={s.avatar} />
               : <View style={[s.avatar, { alignItems: 'center', justifyContent: 'center', backgroundColor: '#032a69' }]}>
-                  <Text style={{ color: '#fff', fontSize: 26, fontFamily: 'Poppins_700Bold' }}>{initials}</Text>
+                  <Text style={{ color: '#fff', fontSize: 30, fontFamily: 'Poppins_700Bold' }}>{initials}</Text>
                 </View>
             }
             {uploading === 'avatar'
               ? <View style={[s.avatarBadge, { backgroundColor: 'rgba(0,0,0,0.5)' }]}><ActivityIndicator size="small" color="#fff" /></View>
-              : <View style={s.avatarBadge}><Feather name="camera" size={11} color="#fff" /></View>
+              : <View style={s.avatarBadge}><MaterialCommunityIcons name="square-edit-outline" size={16} color="#fff" /></View>
             }
           </TouchableOpacity>
 
           <View style={s.profileInfo}>
             <View style={s.nameRow}>
               <Text style={s.name} numberOfLines={1}>{name}</Text>
-              {isVerified && <Ionicons name="checkmark-circle" size={16} color="#3b82f6" />}
+              {isVerified && <Verified size={20} />}
+              <View style={{ flex: 1 }} />
+              <Ionicons name="ellipsis-vertical" size={22} color={ORANGE} />
             </View>
             <Text style={s.tagline} numberOfLines={2}>{bio}</Text>
             <View style={s.metaRow}>
               {avgRating > 0 && (
                 <View style={s.metaItem}>
-                  <Ionicons name="star" size={12} color={ORANGE} />
+                  <Ionicons name="star" size={16} color={ORANGE} />
                   <Text style={s.metaText}>{avgRating.toFixed(1)} ({reviewCount} Reviews)</Text>
                 </View>
               )}
               <View style={s.metaItem}>
-                <Ionicons name="location-outline" size={12} color="#8f9cb5" />
+                <Ionicons name="location-outline" size={16} color={ORANGE} />
                 <Text style={s.metaText}>{city}</Text>
               </View>
             </View>
@@ -368,40 +382,28 @@ export default function TrackerProfileScreen() {
 
         {/* Stats */}
         <View style={s.stats}>
-          <StatItem icon={<MaterialCommunityIcons name="map-marker-check-outline" size={22} color={ORANGE} />} num={String(totalBookings)} label="BOOKINGS" />
-          <StatItem icon={<Ionicons name="people-outline" size={22} color={ORANGE} />} num={String(followers)} label="FOLLOWERS" />
-          <StatItem icon={<Ionicons name="star-outline" size={22} color={ORANGE} />} num={avgRating > 0 ? avgRating.toFixed(1) : '—'} label="RATING" />
-          <StatItem icon={<Ionicons name="ribbon-outline" size={22} color={ORANGE} />} num={String(reviewCount)} label="REVIEWS" />
+          <StatItem icon={<MaterialCommunityIcons name="shield-search" size={26} color={ORANGE} />} num={String(totalBookings)} label="BOOKINGS" />
+          <View style={s.statSep} />
+          <StatItem icon={<Ionicons name="people-outline" size={26} color={ORANGE} />} num={String(followers)} label="FOLLOWERS" />
+          <View style={s.statSep} />
+          <StatItem icon={<Ionicons name="star-outline" size={24} color={ORANGE} />} num={avgRating > 0 ? avgRating.toFixed(1) : '—'} label="RATING" />
+          <View style={s.statSep} />
+          <StatItem icon={<Ionicons name="ribbon-outline" size={24} color={ORANGE} />} num={String(reviewCount)} label="REVIEWS" />
         </View>
 
         {/* Edit Profile Button */}
-        <TouchableOpacity style={s.editBtn} activeOpacity={0.85} onPress={() => router.push('/profile/edit' as any)}>
-          <CardShade />
+        <GlowCard style={s.editBtn} radius={26} onPress={() => router.push('/profile/edit' as any)}>
           <Text style={s.editBtnText}>Edit Profile</Text>
-        </TouchableOpacity>
+        </GlowCard>
 
         {/* About */}
         <View style={s.section}>
           <Text style={s.sectionTitle}>About</Text>
-          <View style={s.aboutCard}>
-            <Text style={s.aboutText}>{bio}</Text>
-            <View style={s.infoRow}>
-              <InfoItem
-                icon={<Ionicons name="location-outline" size={14} color={ORANGE} />}
-                label="Location"
-                value={location || city || '—'}
-              />
-              <InfoItem
-                icon={<Ionicons name="call-outline" size={14} color={ORANGE} />}
-                label="Contact"
-                value={`${phone}\n${email}`}
-              />
-              <InfoItem
-                icon={<Ionicons name="time-outline" size={14} color={ORANGE} />}
-                label="Working Hours"
-                value={workingHours}
-              />
-            </View>
+          <Text style={s.aboutText}>{bio}</Text>
+          <View style={s.infoRow}>
+            <InfoItem icon={<Ionicons name="location-outline" size={20} color={ORANGE} />} label="Location" value={location || city || '—'} />
+            <InfoItem icon={<Ionicons name="call-outline" size={20} color={ORANGE} />} label="Contact" value={`${phone}\n${email}`} />
+            <InfoItem icon={<Ionicons name="time-outline" size={20} color={ORANGE} />} label="Working hour" value={workingHours} />
           </View>
         </View>
 
@@ -411,20 +413,19 @@ export default function TrackerProfileScreen() {
             <Text style={s.sectionTitle}>Achievement</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.achieveRow}>
               {estYear && (
-                <InfoCard icon={<Feather name="calendar" size={18} color={ORANGE} />} num={`${new Date().getFullYear() - estYear}+ Yrs`} label="In Business" />
+                <InfoCard icon={<Feather name="calendar" size={16} color="#fff" />} num={`${new Date().getFullYear() - estYear}+ Yrs`} label="In Business" />
               )}
-              <InfoCard icon={<Ionicons name="people-outline" size={18} color={ORANGE} />}   num={String(followers)}     label="Followers"    />
-              <InfoCard icon={<Ionicons name="clipboard-outline" size={18} color={ORANGE} />} num={String(totalBookings)} label="Total Orders"  />
-              <InfoCard icon={<Ionicons name="star-outline" size={18} color={ORANGE} />}      num={avgRating > 0 ? avgRating.toFixed(1) : '—'} label="Avg Rating" />
+              <InfoCard icon={<Ionicons name="people-outline" size={16} color="#fff" />}   num={String(followers)}     label="Followers"    />
+              <InfoCard icon={<Ionicons name="clipboard-outline" size={16} color="#fff" />} num={String(totalBookings)} label="Total Orders"  />
+              <InfoCard icon={<Ionicons name="star-outline" size={16} color="#fff" />}      num={avgRating > 0 ? avgRating.toFixed(1) : '—'} label="Avg Rating" />
             </ScrollView>
           </View>
         )}
 
         {/* Monthly Earnings */}
         <View style={s.section}>
-          <Text style={s.sectionTitle}>Monthly Earnings</Text>
-          <View style={s.earnCard}>
-            <CardShade />
+          <Text style={s.sectionTitleBold}>Monthly Earnings</Text>
+          <GlowCard style={s.earnCard}>
             <View style={s.earnHead}>
               <View>
                 <Text style={s.earnLabel}>Total Earnings</Text>
@@ -445,29 +446,28 @@ export default function TrackerProfileScreen() {
                 </Text>
               </View>
             ))}
-          </View>
+          </GlowCard>
         </View>
 
         {/* Our Offices */}
         <View style={s.section}>
           <View style={s.sectionHeader}>
-            <Text style={s.sectionTitle}>Our Offices</Text>
+            <Text style={[s.sectionTitleBold, { marginBottom: 0 }]}>Our Offices</Text>
             <TouchableOpacity onPress={pickOfficeImage}>
               <Text style={s.viewAll}>+ Add Photo</Text>
             </TouchableOpacity>
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 12 }}>
-            {officeImages.map((uri, i) => (
-              <TouchableOpacity key={i} onLongPress={() => deleteOfficeImage(uri)} activeOpacity={0.9} style={{ marginRight: 10 }}>
-                <Image source={{ uri }} style={s.officeThumb} />
-                <TouchableOpacity
-                  onPress={() => deleteOfficeImage(uri)}
-                  style={s.officeDeleteBtn}
-                >
-                  <Ionicons name="close-circle" size={20} color="#ff4050" />
-                </TouchableOpacity>
-              </TouchableOpacity>
-            ))}
+            {officeImages.length
+              ? officeImages.map((uri, i) => (
+                  <TouchableOpacity key={i} onLongPress={() => deleteOfficeImage(uri)} activeOpacity={0.9} style={{ marginRight: 12 }}>
+                    <Image source={{ uri }} style={s.officeThumb} />
+                    <TouchableOpacity onPress={() => deleteOfficeImage(uri)} style={s.officeDeleteBtn}>
+                      <Ionicons name="close-circle" size={20} color="#ff4050" />
+                    </TouchableOpacity>
+                  </TouchableOpacity>
+                ))
+              : DUMMY_OFFICES.map((src, i) => <Image key={i} source={src} style={[s.officeThumb, { marginRight: 12 }]} />)}
             <TouchableOpacity style={s.officeAddBtn} onPress={pickOfficeImage} activeOpacity={0.8}>
               <Ionicons name="add" size={28} color={ORANGE} />
               <Text style={s.officeAddTxt}>Add</Text>
@@ -475,60 +475,26 @@ export default function TrackerProfileScreen() {
           </ScrollView>
         </View>
 
-        {/* Reviews summary */}
-        <View style={s.section}>
-          <Text style={s.sectionTitle}>Reviews</Text>
-          <View style={s.reviewsCard}>
-            <CardShade />
-            <View style={{ flex: 1 }}>
-              {[5, 4, 3, 2, 1].map(star => {
-                const count = reviews.filter(r => Math.round(r.rating) === star).length;
-                const pct   = reviewCount > 0 ? count / reviewCount : 0;
-                return <ReviewBar key={star} star={star} pct={pct} />;
-              })}
-            </View>
-            <View style={s.reviewsSummary}>
-              <Text style={s.score}>{avgRating > 0 ? avgRating.toFixed(1) : '0.0'}</Text>
-              <View style={{ alignItems: 'center' }}>
-                <View style={{ flexDirection: 'row' }}>
-                  {[1, 2, 3, 4, 5].map(i => (
-                    <Ionicons key={i} name={i <= Math.round(avgRating) ? 'star' : 'star-outline'} size={14} color={ORANGE} />
-                  ))}
-                </View>
-                <Text style={s.reviewCount}>{reviewCount} Reviews</Text>
-              </View>
-            </View>
-          </View>
-        </View>
-
-        {/* Review items */}
-        <View style={s.section}>
-          {reviews.length === 0
-            ? <Text style={{ color: AppColors.textSecondary, fontSize: 13, fontFamily: 'Poppins_400Regular', textAlign: 'center', paddingVertical: 16 }}>No reviews yet</Text>
-            : reviews.map((r, i) => (
-                <ReviewItem
-                  key={i}
-                  initial={(r.reviewer_name || 'U').charAt(0).toUpperCase()}
-                  color={i === 0 ? ORANGE : '#6b7280'}
-                  name={r.reviewer_name || 'User'}
-                  stars={Math.round(r.rating)}
-                  time={r.created_at ? new Date(r.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) : ''}
-                  text={r.comment || ''}
-                />
-              ))
-          }
+        {/* Reviews (same as the insurance / dealer profile) */}
+        <View style={[s.section, { marginTop: 22 }]}>
+          <RatingSummary avg={avgRating} count={reviewCount} reviews={reviews} />
+          {shownReviews.map((r: any, i: number) => <SharedReviewItem key={r.id || i} r={r} index={i} />)}
           <TouchableOpacity style={s.seeMoreRow} onPress={() => router.push('/(tracker)/reviews' as any)}>
-            <Text style={s.seeMore}>See More Reviews</Text>
+            <Text style={s.seeMore}>See More</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Bottom actions */}
+        {/* Bottom actions (Figma) */}
         <View style={s.bottomActions}>
-          <TouchableOpacity style={s.btnLogout} onPress={logout} activeOpacity={0.85}>
-            <CardShade />
-            <Feather name="log-out" size={16} color={C.textPrimary} />
-            <Text style={s.btnLogoutText}>Logout from Session</Text>
-          </TouchableOpacity>
+          <GradientButton title="View Tracker Plans" height={52} fontSize={17} onPress={() => router.push('/(tracker)/plan' as any)} />
+          <GlassButton
+            title="Logout from Session"
+            height={52}
+            fontSize={16}
+            color="#E6E1E8"
+            icon={<Feather name="log-out" size={20} color="#E6E1E8" />}
+            onPress={logout}
+          />
         </View>
 
       </ScrollView>
@@ -537,100 +503,94 @@ export default function TrackerProfileScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: C.bg },
+  root: { flex: 1, backgroundColor: D.bg },
 
-  topbar:     { height: 56, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18 },
-  iconBtn:    { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  logoWrap:   { position: 'absolute', left: 0, right: 0, alignItems: 'center', justifyContent: 'center' },
-  logo:       { width: 112, height: 21 },
-  topActions: { flexDirection: 'row', gap: 16 },
+  topbar:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, height: 60 },
+  logoImg:    { width: 128, height: 24 },
+  topActions: { flexDirection: 'row', alignItems: 'center', gap: 12, width: 100, justifyContent: 'flex-end' },
 
-  hero:          { marginHorizontal: 18, height: 190, borderRadius: 18, overflow: 'hidden', backgroundColor: '#1a2244' },
-  heroImg:       { width: '100%', height: '100%' },
+  hero:          { height: 240, backgroundColor: '#061B4A', overflow: 'hidden' },
+  uploadOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.4)', alignItems: 'center', justifyContent: 'center' },
   badge:         { position: 'absolute', top: 12, left: 12, backgroundColor: '#22c55e', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4 },
   badgeText:     { color: '#fff', fontSize: 10, fontFamily: 'Poppins_700Bold', letterSpacing: 0.5 },
-  uploadOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.4)', alignItems: 'center', justifyContent: 'center' },
-  editCoverBtn:  { position: 'absolute', bottom: 10, right: 12, flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 5 },
-  editCoverTxt:  { color: '#fff', fontSize: 11, fontFamily: 'Poppins_500Medium' },
 
-  profileRow:  { flexDirection: 'row', alignItems: 'flex-start', paddingHorizontal: 18, marginTop: -34, gap: 12 },
+  profileRow:  { flexDirection: 'row', alignItems: 'flex-start', paddingHorizontal: 16, marginTop: -40, gap: 12 },
   avatarWrap:  { position: 'relative' },
-  avatar:      { width: 66, height: 66, borderRadius: 33, backgroundColor: '#032a69', borderWidth: 3, borderColor: C.bg },
-  avatarBadge: { position: 'absolute', bottom: -2, right: -2, width: 22, height: 22, borderRadius: 11, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: C.bg },
-  profileInfo: { flex: 1, paddingTop: 40 },
-  nameRow:     { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  name:        { fontSize: 17, fontFamily: 'Poppins_700Bold', color: C.textPrimary },
-  tagline:     { fontSize: 12, fontFamily: 'Poppins_400Regular', color: '#8f9cb5', marginTop: 2 },
-  metaRow:     { flexDirection: 'row', gap: 10, marginTop: 6, flexWrap: 'wrap' },
-  metaItem:    { flexDirection: 'row', alignItems: 'center', gap: 3 },
-  metaText:    { fontSize: 11, fontFamily: 'Poppins_400Regular', color: '#8f9cb5' },
+  avatar:      { width: 104, height: 104, borderRadius: 52, backgroundColor: '#FFFFFF', borderWidth: 2, borderColor: '#FFFFFF' },
+  avatarBadge: { position: 'absolute', bottom: 4, right: -2, width: 30, height: 30, borderRadius: 15, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#FFFFFF' },
+  profileInfo: { flex: 1, paddingTop: 46 },
+  nameRow:     { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  name:        { fontSize: 19, fontFamily: 'Poppins_500Medium', color: '#FFFFFF', flexShrink: 1 },
+  tagline:     { fontSize: 13, fontFamily: 'Poppins_400Regular', color: D.muted, marginTop: 1 },
+  metaRow:     { flexDirection: 'row', gap: 14, marginTop: 4, flexWrap: 'wrap' },
+  metaItem:    { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  metaText:    { fontSize: 13, fontFamily: 'Poppins_400Regular', color: D.muted },
 
-  stats:     { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 22, marginTop: 18 },
+  stats:     { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, marginTop: 24 },
   statItem:  { alignItems: 'center', flex: 1, gap: 4 },
-  statNum:   { fontSize: 15, fontFamily: 'Poppins_700Bold', color: C.textPrimary },
-  statLabel: { fontSize: 10, fontFamily: 'Poppins_400Regular', color: '#8f9cb5', letterSpacing: 0.4 },
+  statSep:   { width: 1, height: 52, backgroundColor: 'rgba(255,255,255,0.14)' },
+  statNum:   { fontSize: 17, fontFamily: 'Poppins_600SemiBold', color: '#FFFFFF' },
+  statLabel: { fontSize: 11, fontFamily: 'Poppins_400Regular', color: D.muted, letterSpacing: 0.6 },
 
-  editBtn:     { marginHorizontal: 18, marginTop: 18, borderRadius: 30, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(100,160,255,0.5)', backgroundColor: 'rgba(1,6,20,1)', paddingVertical: 13, alignItems: 'center', marginBottom: 4 },
-  editBtnText: { color: '#fff', fontSize: 14, fontFamily: 'Poppins_600SemiBold' },
+  editBtn:     { marginHorizontal: 16, marginTop: 24, height: 52, alignItems: 'center', justifyContent: 'center' },
+  editBtnText: { color: '#fff', fontSize: 15, fontFamily: 'Poppins_500Medium' },
 
-  section:       { paddingHorizontal: 18, marginTop: 20 },
-  sectionTitle:  { fontSize: 16, fontFamily: 'Poppins_600SemiBold', color: C.textPrimary, marginBottom: 10 },
-  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  viewAll:       { fontSize: 12, fontFamily: 'Poppins_500Medium', color: ORANGE },
+  section:          { paddingHorizontal: 16, marginTop: 24 },
+  sectionTitle:     { fontSize: 18, fontFamily: 'Poppins_500Medium', color: '#FFFFFF', marginBottom: 6 },
+  sectionTitleBold: { fontSize: 16, fontFamily: 'Poppins_600SemiBold', color: '#FFFFFF', marginBottom: 12 },
+  sectionHeader:    { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  viewAll:          { fontSize: 14, fontFamily: 'Poppins_600SemiBold', color: '#5B9BFF' },
 
-  aboutCard:    { borderRadius: 14, padding: 14 },
-  aboutText:    { fontSize: 13, fontFamily: 'Poppins_400Regular', color: C.textSecondary, lineHeight: 20, marginBottom: 14 },
-  infoRow:      { flexDirection: 'row', gap: 10 },
-  infoLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 4 },
-  infoLabel:    { fontSize: 11, fontFamily: 'Poppins_600SemiBold', color: C.textPrimary },
-  infoValue:    { fontSize: 11, fontFamily: 'Poppins_400Regular', color: '#8f9cb5', lineHeight: 16 },
+  aboutText:    { fontSize: 14, fontFamily: 'Poppins_400Regular', color: D.muted, lineHeight: 24, marginBottom: 16 },
+  infoRow:      { flexDirection: 'row', gap: 8 },
+  infoLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 },
+  infoLabel:    { fontSize: 14, fontFamily: 'Poppins_500Medium', color: '#FFFFFF' },
+  infoValue:    { fontSize: 11, fontFamily: 'Poppins_400Regular', color: D.muted, lineHeight: 16, marginLeft: 26 },
 
-  achieveRow: { flexDirection: 'row', gap: 12, paddingRight: 4 },
-  infoCard: { width: 160, borderRadius: 14, backgroundColor: '#061B4A', padding: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  iconBox:  { width: 38, height: 38, borderRadius: 10, backgroundColor: 'rgba(226,103,27,0.12)', alignItems: 'center', justifyContent: 'center' },
-  cardNum:  { fontSize: 11, fontFamily: 'Poppins_700Bold', color: C.textPrimary },
-  cardLabel:{ fontSize: 8, fontFamily: 'Poppins_400Regular', color: '#8f9cb5', marginTop: 1 },
+  achieveRow: { flexDirection: 'row', gap: 10, paddingRight: 4 },
+  infoCard:   { height: 44, borderRadius: 10, backgroundColor: D.navy, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  iconBox:    { width: 26, height: 26, borderRadius: 6, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' },
+  cardNum:    { fontSize: 12, fontFamily: 'Poppins_500Medium', color: '#FFFFFF' },
+  cardLabel:  { fontSize: 10, fontFamily: 'Poppins_400Regular', color: D.muted },
 
+  aboutGrid:     { flexDirection: 'row', flexWrap: 'wrap', gap: 14 },
+  aboutGridCard: { width: '47.5%', height: 76, flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 18 },
+  gridNum:       { fontSize: 15, fontFamily: 'Poppins_600SemiBold', color: '#FFFFFF' },
+  gridLabel:     { fontSize: 12, fontFamily: 'Poppins_400Regular', color: D.muted },
 
-  officeThumb:   { width: 130, height: 100, borderRadius: 12 },  officeDeleteBtn:{ position: 'absolute', top: -6, right: -6, backgroundColor: C.bg, borderRadius: 10 },
-  officeAddBtn:  { width: 100, height: 100, borderRadius: 12, borderWidth: 1.5, borderColor: 'rgba(226,103,27,0.4)', borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(226,103,27,0.05)', marginRight: 10, gap: 4 },
-  officeAddTxt:  { color: ORANGE, fontSize: 11, fontFamily: 'Poppins_500Medium' },
+  officeThumb:  { width: 170, height: 106, borderRadius: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.4)' },
+  officeDeleteBtn: { position: 'absolute', top: -6, right: -6, backgroundColor: D.bg, borderRadius: 10 },
+  officeAddBtn: { width: 106, height: 106, borderRadius: 10, borderWidth: 1.5, borderColor: 'rgba(226,103,27,0.4)', borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(226,103,27,0.05)', marginRight: 10, gap: 4 },
+  officeAddTxt: { color: ORANGE, fontSize: 11, fontFamily: 'Poppins_500Medium' },
+
+  seeMoreRow: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 8 },
+  seeMore:    { fontSize: 14, fontFamily: 'Poppins_400Regular', color: '#E6E1E8', textDecorationLine: 'underline' },
+
+  bottomActions: { paddingHorizontal: 16, marginTop: 20, gap: 14 },
 
   /* Monthly Earnings */
-  earnCard:   { borderRadius: 14, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(100,160,255,0.5)', backgroundColor: 'rgba(6,27,74,1)', padding: 16 },
+  earnCard:   { padding: 16 },
   earnHead:   { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
-  earnLabel:  { fontSize: 11, fontFamily: 'Poppins_400Regular', color: '#8f9cb5' },
-  earnTotal:  { fontSize: 20, fontFamily: 'Poppins_700Bold', color: C.textPrimary, marginTop: 2 },
+  earnLabel:  { fontSize: 12, fontFamily: 'Poppins_400Regular', color: D.muted },
+  earnTotal:  { fontSize: 20, fontFamily: 'Poppins_600SemiBold', color: '#FFFFFF', marginTop: 2 },
   earnIconBox:{ width: 42, height: 42, borderRadius: 12, backgroundColor: 'rgba(226,103,27,0.12)', alignItems: 'center', justifyContent: 'center' },
   earnRow:    { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
-  earnMonth:  { width: 62, fontSize: 11, fontFamily: 'Poppins_500Medium', color: C.textSecondary },
+  earnMonth:  { width: 66, fontSize: 11, fontFamily: 'Poppins_500Medium', color: D.muted },
   earnBarTrack:{ flex: 1, height: 6, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 4, overflow: 'hidden' },
   earnBarFill:{ height: '100%', backgroundColor: ORANGE, borderRadius: 4 },
-  earnAmt:    { width: 92, fontSize: 10, fontFamily: 'Poppins_600SemiBold', color: C.textPrimary, textAlign: 'right' },
+  earnAmt:    { width: 92, fontSize: 11, fontFamily: 'Poppins_600SemiBold', color: '#FFFFFF', textAlign: 'right' },
 
-  reviewsCard:    { borderRadius: 14, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(100,160,255,0.5)', backgroundColor: 'rgba(6,27,74,1)', padding: 16, flexDirection: 'row', gap: 16, alignItems: 'center' },
+  /* legacy review pieces (kept) */
   reviewBarRow:   { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
-  reviewBarLabel: { fontSize: 12, fontFamily: 'Poppins_400Regular', color: C.textSecondary, width: 10 },
+  reviewBarLabel: { fontSize: 12, fontFamily: 'Poppins_400Regular', color: D.muted, width: 10 },
   barTrack:       { flex: 1, height: 5, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 4, overflow: 'hidden' },
   barFill:        { height: '100%', backgroundColor: ORANGE, borderRadius: 4 },
-  reviewsSummary: { alignItems: 'center', gap: 4 },
-  score:          { fontSize: 34, fontFamily: 'Poppins_700Bold', color: C.textPrimary },
-  reviewCount:    { fontSize: 11, fontFamily: 'Poppins_400Regular', color: '#8f9cb5', marginTop: 4 },
-
   reviewItem:       { paddingVertical: 14, marginBottom: 4 },
   reviewHead:       { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 },
   reviewAvatar:     { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
   reviewAvatarText: { color: '#fff', fontFamily: 'Poppins_700Bold', fontSize: 14 },
-  reviewName:       { fontSize: 13, fontFamily: 'Poppins_600SemiBold', color: C.textPrimary },
+  reviewName:       { fontSize: 13, fontFamily: 'Poppins_600SemiBold', color: '#FFFFFF' },
   starsTimeRow:     { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 2 },
-  reviewTime:       { fontSize: 11, fontFamily: 'Poppins_400Regular', color: '#8f9cb5' },
-  reviewText:       { fontSize: 12, fontFamily: 'Poppins_400Regular', color: C.textSecondary, lineHeight: 18 },
-  seeMoreRow:       { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 4 },
-  seeMore:          { fontSize: 12, fontFamily: 'Poppins_600SemiBold', color: ORANGE },
-
-  bottomActions:  { paddingHorizontal: 18, marginTop: 22, gap: 12 },
-  btnContact:     { borderRadius: 30, overflow: 'hidden', paddingVertical: 15, alignItems: 'center' },
-  btnContactText: { color: '#fff', fontFamily: 'Poppins_700Bold', fontSize: 15 },
-  btnLogout:      { borderRadius: 30, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(100,160,255,0.5)', backgroundColor: 'transparent', paddingVertical: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  btnLogoutText:  { color: C.textPrimary, fontFamily: 'Poppins_600SemiBold', fontSize: 14 },
+  reviewTime:       { fontSize: 11, fontFamily: 'Poppins_400Regular', color: D.muted },
+  reviewText:       { fontSize: 12, fontFamily: 'Poppins_400Regular', color: D.muted, lineHeight: 18 },
 });

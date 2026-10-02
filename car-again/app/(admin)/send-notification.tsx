@@ -12,6 +12,8 @@ import { ArrowLeft, Search, ImagePlus, Globe, Landmark, ShieldPlus } from "lucid
 import { Image as RNImage } from "react-native";
 import { API_BASE } from "@/constants/api";
 import { useAppColors } from '@/constants/theme';
+import { SavedCardEffect } from "@/components/shared/FigmaEffects";
+import { Radio } from "@/components/dealer/DealerUI";
 
 const WHITE = "#F4F5F7";
 const ORANGE = "#FF6B00";
@@ -112,7 +114,7 @@ export default function SendNotificationScreen() {
             <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn}>
               <ArrowLeft size={24} color={aC.isDark ? "rgba(255,255,255,0.9)" : "#010a1f"} strokeWidth={1.8} />
             </TouchableOpacity>
-            <Text style={[styles.headerTitle, { color: aC.isDark ? WHITE : '#010a1f' }]}>Notification Center</Text>
+            <Text style={[styles.headerTitle, { color: aC.isDark ? WHITE : '#010a1f' }]}>Admin Notification Center</Text>
             <TouchableOpacity style={styles.headerBtn}>
               <Search size={22} color={aC.isDark ? "rgba(255,255,255,0.9)" : "#010a1f"} strokeWidth={1.8} />
             </TouchableOpacity>
@@ -139,11 +141,7 @@ export default function SendNotificationScreen() {
               </View>
               <View style={[styles.inputWrap, { height: 120, alignItems: "flex-start", overflow: "hidden", backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "rgba(80,123,182,0.5)" : "rgba(3,42,105,0.12)", shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]}>
                 {aC.isDark ? (
-                  <>
-                    <LinearGradient colors={['rgba(22,64,136,0.35)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                    <LinearGradient colors={['rgba(13,37,84,0.3)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                    <LinearGradient colors={['transparent', 'rgba(29,83,175,0.35)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                  </>
+                  <SavedCardEffect band={12} />
                 ) : (
                   <>
                     <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
@@ -183,15 +181,9 @@ export default function SendNotificationScreen() {
                 return (
                   <TouchableOpacity
                     key={id} onPress={() => toggleAudience(id)} activeOpacity={0.8}
-                    style={[styles.audienceCard, active && styles.audienceCardActive, { overflow: "hidden", backgroundColor: aC.isDark ? "#061B4A" : "#ffffff", borderColor: active ? "rgba(255,107,0,0.5)" : (aC.isDark ? "#232B45" : "rgba(3,42,105,0.12)"), shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]}
+                    style={[styles.audienceCard, active && styles.audienceCardActive, { overflow: "hidden", backgroundColor: aC.isDark ? "#0B2358" : "#ffffff", borderColor: aC.isDark ? (active ? "#C9D6F0" : "#7F98C4") : (active ? "rgba(255,107,0,0.5)" : "rgba(3,42,105,0.12)"), shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]}
                   >
-                    {!active && aC.isDark && (
-                      <>
-                        <LinearGradient colors={['rgba(22,64,136,0.5)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                        <LinearGradient colors={['rgba(13,37,84,0.4)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                        <LinearGradient colors={['transparent', 'rgba(29,83,175,0.5)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                      </>
-                    )}
+                    {aC.isDark && <SavedCardEffect band={10} color="#1a4a9a80" />}
                     {!active && !aC.isDark && (
                       <>
                         <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
@@ -210,9 +202,13 @@ export default function SendNotificationScreen() {
                       <Text style={[styles.audienceSub, { color: aC.isDark ? "#6B7A99" : "#475569" }]} numberOfLines={1}>{subtitle}</Text>
                     </View>
                     {/* Checkbox */}
-                    <View style={[styles.checkbox, { borderColor: active ? ORANGE : (aC.isDark ? "#3A4A6B" : "rgba(3,42,105,0.15)"), backgroundColor: active ? ORANGE : 'transparent' }, active && styles.checkboxActive]}>
-                      {active && <Text style={styles.checkmark}>✓</Text>}
-                    </View>
+                    {aC.isDark ? (
+                      <Radio on={active} />
+                    ) : (
+                      <View style={[styles.checkbox, { borderColor: active ? ORANGE : "rgba(3,42,105,0.15)", backgroundColor: active ? ORANGE : 'transparent' }, active && styles.checkboxActive]}>
+                        {active && <Text style={styles.checkmark}>✓</Text>}
+                      </View>
+                    )}
                   </TouchableOpacity>
                 );
               })}
@@ -261,11 +257,7 @@ function InputBox({ placeholder, value, onChangeText }: {
   return (
     <View style={[styles.inputWrap, { overflow: "hidden", backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "rgba(80,123,182,0.5)" : "rgba(3,42,105,0.12)", shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]}>
       {aC.isDark ? (
-        <>
-          <LinearGradient colors={['rgba(22,64,136,0.35)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <LinearGradient colors={['rgba(13,37,84,0.3)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <LinearGradient colors={['transparent', 'rgba(29,83,175,0.35)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-        </>
+        <SavedCardEffect band={12} />
       ) : (
         <>
           <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />

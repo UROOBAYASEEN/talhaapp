@@ -25,6 +25,7 @@ import { AppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 import PromoteModal from '@/components/dealer/PromoteModal';
+import { GlowPublishButton, GlowDraftButton } from "@/components/shared/ActionFooterGlow";
 
 const ORANGE = '#E2671B';
 const C      = AppColors;
@@ -424,9 +425,9 @@ export default function AddVehicleScreen() {
       />
 
       {/* BOTTOM BUTTONS */}
-      <BottomActions>
-        <GradientButton title="Publish" height={50} fontSize={17} loading={publishing} onPress={handlePublish} />
-        <GlassButton title="Save as Draft" height={48} fontSize={16} color="#E6E1E8" onPress={handleDraft} />
+      <BottomActions fx>
+        <GlowPublishButton title="Publish" loading={publishing} onPress={handlePublish} />
+        <GlowDraftButton title="Save as Draft" onPress={handleDraft} />
       </BottomActions>
     </View>
   );

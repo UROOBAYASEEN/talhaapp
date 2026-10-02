@@ -11,6 +11,10 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { AppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { G, GlowBackground, GradientButton, ScreenHeader } from '@/components/shared/GlowUI';
+import { ReviewItem as SharedReviewItem } from '@/components/book/reviews';
+import { DUMMY_REVIEWS } from '@/constants/dummyReviews';
 
 const ORANGE = '#e2671b';
 const C      = AppColors;
@@ -108,6 +112,7 @@ function RatingSummary({ reviews }: { reviews: any[] }) {
 
 export default function TrackerReviewsScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { token, user } = useAuth();
   const { tracker_id } = useLocalSearchParams<{ tracker_id?: string }>();
 
@@ -161,47 +166,34 @@ export default function TrackerReviewsScreen() {
 
   const ratingLabel = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'][rating] || '';
 
+  // No reviews yet → dummy reviews for now
+  const list = reviews.length
+    ? reviews
+    : DUMMY_REVIEWS.map(r => ({ id: r.id, reviewer_name: r.name, rating: r.rating, comment: r.comment, time: r.date }));
+
   return (
-    <View style={s.root}>
-      <SafeAreaView edges={['top']}>
-        <View style={s.header}>
-          <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
-            <ChevronLeft size={22} color={C.textPrimary} />
-          </TouchableOpacity>
-          <Text style={s.headerTitle}>Reviews</Text>
-          <View style={{ width: 36 }} />
-        </View>
-      </SafeAreaView>
+    <GlowBackground>
+      <SafeAreaView style={{ flex: 1 }} edges={['top']}>
+        <ScreenHeader title="Reviews" />
 
       {loading ? (
-        <View style={s.center}><ActivityIndicator color={ORANGE} size="large" /></View>
+        <View style={s.center}><ActivityIndicator color={G.orange} size="large" /></View>
       ) : (
         <FlatList
-          data={reviews}
-          keyExtractor={item => String(item.id)}
-          contentContainerStyle={s.list}
+          data={list}
+          keyExtractor={(item, i) => String(item.id ?? i)}
+          contentContainerStyle={[s.list, { paddingBottom: 110 + insets.bottom }]}
           showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={ORANGE} />}
-          ListHeaderComponent={<RatingSummary reviews={reviews} />}
-          renderItem={({ item }) => <ReviewItem item={item} />}
-          ListEmptyComponent={
-            <View style={s.empty}>
-              <Star size={40} color={C.textSecondary} />
-              <Text style={s.emptyTxt}>No reviews yet</Text>
-              <Text style={{ color: C.textSecondary, fontSize: 12, fontFamily: 'Poppins_400Regular' }}>Be the first to write a review</Text>
-            </View>
-          }
+          renderItem={({ item, index }) => <SharedReviewItem r={item} index={index} divider={index < list.length - 1} />}
         />
       )}
 
       {/* Write Review Button */}
-      <View style={s.bottomWrap}>
-        <TouchableOpacity style={s.writeBtn} activeOpacity={0.85} onPress={() => setShowModal(true)}>
-          <LinearGradient colors={['#032a69', ORANGE]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
-          <Star size={16} color="#fff" fill="#fff" />
-          <Text style={s.writeBtnTxt}>Write Your Review</Text>
-        </TouchableOpacity>
+      <View style={[s.bottomWrap, { paddingBottom: Math.max(insets.bottom, 12) + 8 }]}>
+        <GradientButton title="Write Your Review" height={50} fontSize={17} onPress={() => setShowModal(true)} />
       </View>
+      </SafeAreaView>
 
       {/* Review Modal */}
       <Modal visible={showModal} transparent animationType="slide" onRequestClose={() => setShowModal(false)}>
@@ -262,7 +254,7 @@ export default function TrackerReviewsScreen() {
           </View>
         </KeyboardAvoidingView>
       </Modal>
-    </View>
+    </GlowBackground>
   );
 }
 
@@ -297,7 +289,7 @@ const s = StyleSheet.create({
   empty:       { alignItems: 'center', paddingTop: 80, gap: 10 },
   emptyTxt:    { fontSize: 14, fontFamily: 'Poppins_500Medium', color: C.textSecondary },
 
-  bottomWrap:  { position: 'absolute', bottom: 70, left: 0, right: 0, paddingHorizontal: 20 },
+  bottomWrap:  { position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: 24, paddingTop: 8 },
   writeBtn:    { borderRadius: 30, overflow: 'hidden', paddingVertical: 14, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 },
   writeBtnTxt: { fontSize: 14, fontFamily: 'Poppins_600SemiBold', color: '#fff' },
 });

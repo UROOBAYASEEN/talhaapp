@@ -22,6 +22,7 @@ export default function AuthLayout() {
         <Stack.Screen name="forgot-password" />
         <Stack.Screen name="create-password" />
         <Stack.Screen name="password-updated" />
+        <Stack.Screen name="account-created" />
         <Stack.Screen name="suspended" />
       </Stack>
       <StatusBar style={scheme === 'light' ? 'dark' : 'light'} />

@@ -16,9 +16,10 @@ import {
 import { AppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { D, GlowCard } from '@/components/dealer/DealerUI';
 
 const { width } = Dimensions.get('window');
-const ORANGE = AppColors.gradientEnd;
+const ORANGE = '#E2671B';
 const NAVY   = AppColors.gradientStart;
 const C      = AppColors;
 
@@ -161,17 +162,17 @@ export default function SellerProfileScreen() {
         {/* ── HEADER ── */}
         <View style={s.header}>
           <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
-            <ChevronLeft size={26} color={C.textPrimary} strokeWidth={2}/>
+            <ChevronLeft size={28} color="#FFFFFF" strokeWidth={2}/>
           </TouchableOpacity>
           <Text style={s.logo}>
             Auto<Text style={{ color: ORANGE }}>wizor</Text>
           </Text>
           <View style={s.headerIcons}>
             <TouchableOpacity onPress={() => router.push('/alert' as any)}>
-              <Bell size={20} color={C.textPrimary} strokeWidth={1.5}/>
+              <Bell size={24} color="#FFFFFF" strokeWidth={1.5}/>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => router.push('/(seller)/settings' as any)}>
-              <Settings size={21} color={C.textPrimary} strokeWidth={1.5}/>
+              <Settings size={24} color="#FFFFFF" strokeWidth={1.5}/>
             </TouchableOpacity>
           </View>
         </View>
@@ -212,11 +213,11 @@ export default function SellerProfileScreen() {
               <View style={s.dealerDetails}>
                 <View style={s.dealerNameRow}>
                   <Text style={s.dealerName} numberOfLines={1}>{name}</Text>
-                  <BadgeCheck size={17} color="#078DE8" fill="#078DE8"/>
+                  <BadgeCheck size={20} color="#078DE8" fill="#078DE8"/>
                 </View>
                 <Text style={s.official}>Individual Seller</Text>
                 <View style={s.ratingRow}>
-                  <Star size={15} color={ORANGE} fill={ORANGE}/>
+                  <Star size={20} color={ORANGE} fill={ORANGE}/>
                   <Text style={s.ratingText}>{avgRating}</Text>
                   <Text style={s.reviews}>({reviewCount}+ Reviews)</Text>
                 </View>
@@ -227,16 +228,15 @@ export default function SellerProfileScreen() {
 
             {/* Stats */}
             <View style={s.statsContainer}>
-              <Stat icon={<Car size={20} color={ORANGE}/>}                         value={String(activeAds)} label="ACTIVE ADS"/>
-              <Stat icon={<Star size={20} color={ORANGE} fill={ORANGE}/>}          value={String(avgRating)} label="RATING"/>
-              <Stat icon={<Users size={20} color={ORANGE}/>}                       value={String(customers)} label="BUYERS"/>
-              <Stat icon={<Award size={20} color={ORANGE}/>}                       value={String(since)}     label="SINCE"/>
+              <Stat icon={<Car size={26} color={ORANGE}/>}                         value={String(activeAds)} label="ACTIVE ADS"/>
+              <Stat icon={<Star size={24} color={ORANGE} fill={ORANGE}/>}          value={String(avgRating)} label="RATING"/>
+              <Stat icon={<Users size={26} color={ORANGE}/>}                       value={String(customers)} label="BUYERS"/>
+              <Stat icon={<Award size={24} color={ORANGE}/>}                       value={String(since)}     label="SINCE"/>
             </View>
 
-            <TouchableOpacity style={s.editProfileBtn} onPress={() => router.push('/profile/edit' as any)}>
-              <GlassInset/>
+            <GlowCard style={s.editProfileBtn} radius={26} onPress={() => router.push('/profile/edit' as any)}>
               <Text style={s.editProfileText}>Edit Profile</Text>
-            </TouchableOpacity>
+            </GlowCard>
           </View>
 
           {/* ── ABOUT ── */}
@@ -247,9 +247,9 @@ export default function SellerProfileScreen() {
 
           {/* ── CONTACT ROW ── */}
           <View style={s.contactRow}>
-            <ContactItem icon={<MapPin size={17} color={ORANGE}/>} title="Location"     lines={location.split(',')} />
-            <ContactItem icon={<Phone size={17} color={ORANGE}/>}  title="Contact"      lines={[phone, user?.email || '']} />
-            <ContactItem icon={<Clock3 size={17} color={ORANGE}/>} title="Available"    lines={hours.split('\n')} />
+            <ContactItem icon={<MapPin size={20} color={ORANGE}/>} title="Location"     lines={location.split(',')} />
+            <ContactItem icon={<Phone size={20} color={ORANGE}/>}  title="Contact"      lines={[phone, user?.email || '']} />
+            <ContactItem icon={<Clock3 size={20} color={ORANGE}/>} title="Available"    lines={hours.split('\n')} />
           </View>
 
           {/* ── ACHIEVEMENTS ── */}
@@ -262,7 +262,7 @@ export default function SellerProfileScreen() {
               { label: '10+ Cars Sold'   },
             ].map((a, i) => (
               <View key={i} style={s.achievementBox}>
-                <Award size={18} color={ORANGE}/>
+                <View style={s.achIcon}><Award size={16} color="#fff"/></View>
                 <Text style={s.achievementText}>{a.label}</Text>
               </View>
             ))}
@@ -307,10 +307,7 @@ export default function SellerProfileScreen() {
           </View>
 
           {/* ── PLAN CARD ── */}
-          <View style={s.premiumCard}>
-            <LinearGradient colors={['rgba(22,64,136,0.15)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-            <LinearGradient colors={['rgba(13,37,84,0.12)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-            <LinearGradient colors={['transparent', 'rgba(29,83,175,0.15)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+          <GlowCard style={s.premiumCard} radius={24}>
             <View style={s.planHeader}>
               <View>
                 <View style={s.currentPlanBadge}>
@@ -328,10 +325,10 @@ export default function SellerProfileScreen() {
             ))}
 
             <TouchableOpacity style={s.manageButton} activeOpacity={0.85} onPress={() => router.push('/(seller)/plan' as any)}>
-              <LinearGradient colors={[NAVY, ORANGE]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject}/>
+              <LinearGradient colors={['#0B3585', '#7E4F5C', '#E8702A']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject}/>
               <Text style={s.manageText}>Manage Plan</Text>
             </TouchableOpacity>
-          </View>
+          </GlowCard>
 
         </ScrollView>
       </View>
@@ -466,94 +463,95 @@ function Review({ name, color, text, date, rating }: { name: string; color: stri
 function PlanFeature({ text }: { text: string }) {
   return (
     <View style={s.planFeature}>
-      <CheckCircle size={19} color="#20D87A" strokeWidth={2}/>
+      <CheckCircle size={22} color="#2ECC71" strokeWidth={1.5}/>
       <Text style={s.planFeatureText}>{text}</Text>
     </View>
   );
 }
 
 const s = StyleSheet.create({
-  safeArea:  { flex: 1, backgroundColor: C.bg },
-  container: { flex: 1, backgroundColor: C.bg },
-  center:    { flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center' },
+  safeArea:  { flex: 1, backgroundColor: D.bg },
+  container: { flex: 1, backgroundColor: D.bg },
+  center:    { flex: 1, backgroundColor: D.bg, alignItems: 'center', justifyContent: 'center' },
 
   header:      { height: 60, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   backBtn:     { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  logo:        { fontSize: 18, fontFamily: 'Poppins_700Bold', color: C.textPrimary, letterSpacing: -0.5 },
-  headerIcons: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  logo:        { fontSize: 20, fontFamily: 'Poppins_700Bold', color: '#FFFFFF', letterSpacing: -0.5 },
+  headerIcons: { flexDirection: 'row', alignItems: 'center', gap: 14 },
 
-  coverContainer: { width, height: 220, overflow: 'hidden' },
+  coverContainer: { width, height: 230, overflow: 'hidden' },
   coverImage:     { width: '100%', height: '100%' },
   coverOverlay:   { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.18)' },
   coverEditBtn:   { position: 'absolute', bottom: 12, right: 12, width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.3)' },
 
-  dealerSection: { paddingHorizontal: 20 },
-  dealerTop:     { flexDirection: 'row', alignItems: 'center', marginTop: -35 },
+  dealerSection: { paddingHorizontal: 16 },
+  dealerTop:     { flexDirection: 'row', alignItems: 'flex-start', marginTop: -30 },
 
-  avatarWrapper: { width: 82, height: 82, position: 'relative' },
-  avatar:        { width: 82, height: 82, borderRadius: 41, backgroundColor: '#fff', borderWidth: 3, borderColor: '#fff' },
-  editAvatarBtn: { position: 'absolute', right: -1, bottom: 1, width: 23, height: 23, borderRadius: 12, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: C.bg },
+  avatarWrapper: { width: 96, height: 96, position: 'relative' },
+  avatar:        { width: 96, height: 96, borderRadius: 48, backgroundColor: '#1a2f52', borderWidth: 2, borderColor: '#fff' },
+  editAvatarBtn: { position: 'absolute', right: -2, bottom: 6, width: 28, height: 28, borderRadius: 14, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#fff' },
 
-  dealerDetails: { flex: 1, marginLeft: 14, paddingTop: 36 },
-  dealerNameRow: { flexDirection: 'row', alignItems: 'center', gap: 5, flexWrap: 'wrap' },
-  dealerName:    { color: C.textPrimary, fontSize: 15, fontFamily: 'Poppins_600SemiBold', flexShrink: 1 },
-  official:      { color: C.textSecondary, fontSize: 12, fontFamily: 'Poppins_400Regular', marginTop: 2 },
-  ratingRow:     { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
-  ratingText:    { color: C.textPrimary, fontSize: 12, fontFamily: 'Poppins_600SemiBold', marginLeft: 5 },
-  reviews:       { color: C.textSecondary, fontSize: 11, fontFamily: 'Poppins_400Regular', marginLeft: 4 },
+  dealerDetails: { flex: 1, marginLeft: 12, paddingTop: 38 },
+  dealerNameRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
+  dealerName:    { color: '#FFFFFF', fontSize: 19, fontFamily: 'Poppins_500Medium', flexShrink: 1 },
+  official:      { color: D.muted, fontSize: 14, fontFamily: 'Poppins_400Regular', marginTop: 1 },
+  ratingRow:     { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 },
+  ratingText:    { color: D.muted, fontSize: 14, fontFamily: 'Poppins_400Regular' },
+  reviews:       { color: D.muted, fontSize: 14, fontFamily: 'Poppins_400Regular' },
 
-  statsContainer: { flexDirection: 'row', marginTop: 32, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)', paddingBottom: 12 },
-  stat:           { flex: 1, alignItems: 'center', borderRightWidth: 1, borderRightColor: 'rgba(255,255,255,0.08)' },
-  statValue:      { color: C.textPrimary, fontSize: 14, fontFamily: 'Poppins_600SemiBold', marginTop: 5 },
-  statLabel:      { color: C.textSecondary, fontSize: 8, fontFamily: 'Poppins_400Regular', marginTop: 3, letterSpacing: 0.3 },
+  statsContainer: { flexDirection: 'row', marginTop: 26 },
+  stat:           { flex: 1, alignItems: 'center', borderRightWidth: 1, borderRightColor: 'rgba(255,255,255,0.14)' },
+  statValue:      { color: '#FFFFFF', fontSize: 17, fontFamily: 'Poppins_500Medium', marginTop: 8 },
+  statLabel:      { color: D.muted, fontSize: 11, fontFamily: 'Poppins_400Regular', marginTop: 1, letterSpacing: 0.8 },
 
-  editProfileBtn:  { height: 44, borderRadius: 22, marginTop: 20, borderWidth: 1, borderColor: 'rgba(99,148,214,0.7)', backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  editProfileText: { color: C.textPrimary, fontSize: 13, fontFamily: 'Poppins_500Medium' },
+  editProfileBtn:  { height: 52, marginTop: 24, alignItems: 'center', justifyContent: 'center' },
+  editProfileText: { color: '#FFFFFF', fontSize: 15, fontFamily: 'Poppins_500Medium' },
 
-  section:      { paddingHorizontal: 20, marginTop: 22 },
-  sectionTitle: { color: C.textPrimary, fontSize: 15, fontFamily: 'Poppins_600SemiBold', marginBottom: 6 },
-  aboutText:    { color: C.textSecondary, fontSize: 12, fontFamily: 'Poppins_400Regular', lineHeight: 18 },
+  section:      { paddingHorizontal: 20, marginTop: 24 },
+  sectionTitle: { color: '#FFFFFF', fontSize: 18, fontFamily: 'Poppins_500Medium', marginBottom: 4 },
+  aboutText:    { color: D.muted, fontSize: 13, fontFamily: 'Poppins_400Regular', lineHeight: 21 },
 
-  contactRow:      { flexDirection: 'row', paddingHorizontal: 20, marginTop: 18, gap: 8 },
+  contactRow:      { flexDirection: 'row', paddingHorizontal: 20, marginTop: 20, gap: 8 },
   contactItem:     { flex: 1 },
-  contactTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 5 },
-  contactTitle:    { color: C.textPrimary, fontSize: 11, fontFamily: 'Poppins_600SemiBold' },
-  contactText:     { color: C.textSecondary, fontSize: 10, fontFamily: 'Poppins_400Regular', lineHeight: 14, paddingLeft: 22 },
+  contactTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 },
+  contactTitle:    { color: '#FFFFFF', fontSize: 14, fontFamily: 'Poppins_500Medium' },
+  contactText:     { color: D.muted, fontSize: 11, fontFamily: 'Poppins_400Regular', lineHeight: 16, paddingLeft: 26 },
 
-  achievementTitle: { color: C.textPrimary, fontSize: 15, fontFamily: 'Poppins_600SemiBold', marginHorizontal: 20, marginTop: 22, marginBottom: 8 },
-  achievementRow:   { paddingHorizontal: 20, gap: 8, flexDirection: 'row' },
-  achievementBox:   { height: 38, borderRadius: 8, backgroundColor: 'rgba(6,27,74,1)', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, gap: 8, borderWidth: 1, borderColor: 'rgba(99,148,214,0.4)' },
-  achievementText:  { color: C.textSecondary, fontSize: 11, fontFamily: 'Poppins_400Regular' },
+  achievementTitle: { color: '#FFFFFF', fontSize: 18, fontFamily: 'Poppins_500Medium', marginHorizontal: 20, marginTop: 22, marginBottom: 10 },
+  achievementRow:   { paddingHorizontal: 20, gap: 10, flexDirection: 'row' },
+  achievementBox:   { height: 44, borderRadius: 10, backgroundColor: D.navy, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, gap: 10 },
+  achIcon:          { width: 26, height: 26, borderRadius: 6, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' },
+  achievementText:  { color: '#FFFFFF', fontSize: 12, fontFamily: 'Poppins_400Regular' },
 
-  reviewSummary: { marginHorizontal: 20, marginTop: 16, borderRadius: 12, backgroundColor: 'rgba(6,27,74,1)', borderWidth: 1, borderColor: 'rgba(99,148,214,0.4)', flexDirection: 'row', paddingHorizontal: 12, paddingVertical: 14 },
+  reviewSummary: { marginHorizontal: 20, marginTop: 20, borderRadius: 14, backgroundColor: D.navy, flexDirection: 'row', paddingHorizontal: 12, paddingVertical: 14 },
   barsContainer: { flex: 1, justifyContent: 'space-between' },
   ratingBarRow:  { flexDirection: 'row', alignItems: 'center', height: 22 },
-  ratingNumber:  { width: 14, color: C.textPrimary, fontSize: 11, fontFamily: 'Poppins_400Regular' },
+  ratingNumber:  { width: 14, color: '#FFFFFF', fontSize: 11, fontFamily: 'Poppins_400Regular' },
   barBackground: { height: 5, width: 150, backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 5, marginLeft: 5, overflow: 'hidden' },
   barFill:       { height: '100%', backgroundColor: ORANGE, borderRadius: 5 },
   reviewScore:   { width: 100, alignItems: 'center', justifyContent: 'center' },
-  bigScore:      { color: C.textPrimary, fontSize: 38, fontFamily: 'Poppins_700Bold' },
+  bigScore:      { color: '#FFFFFF', fontSize: 38, fontFamily: 'Poppins_700Bold' },
   starsRow:      { flexDirection: 'row', gap: 3, marginTop: 3 },
-  reviewCount:   { color: C.textSecondary, fontSize: 11, fontFamily: 'Poppins_600SemiBold', marginTop: 6 },
+  reviewCount:   { color: D.muted, fontSize: 11, fontFamily: 'Poppins_600SemiBold', marginTop: 6 },
 
   review:        { marginHorizontal: 20, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.07)', flexDirection: 'row' },
   reviewAvatar:  { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
   reviewInitial: { color: '#fff', fontSize: 16, fontFamily: 'Poppins_700Bold' },
   reviewContent: { flex: 1, marginLeft: 10 },
   reviewNameRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  reviewName:    { color: C.textPrimary, fontSize: 12, fontFamily: 'Poppins_600SemiBold' },
+  reviewName:    { color: '#FFFFFF', fontSize: 13, fontFamily: 'Poppins_500Medium' },
   reviewStars:   { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 3 },
-  reviewTime:    { color: C.textSecondary, fontSize: 9, fontFamily: 'Poppins_400Regular', marginLeft: 4 },
-  reviewText:    { color: C.textSecondary, fontSize: 10, fontFamily: 'Poppins_400Regular', marginTop: 6, lineHeight: 15 },
+  reviewTime:    { color: D.muted, fontSize: 10, fontFamily: 'Poppins_400Regular', marginLeft: 4 },
+  reviewText:    { color: D.muted, fontSize: 12, fontFamily: 'Poppins_400Regular', marginTop: 6, lineHeight: 18 },
 
   reviewActions: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 12 },
   seeMoreBtn:    { paddingVertical: 6 },
-  seeMoreText:   { color: ORANGE, fontSize: 13, fontFamily: 'Poppins_500Medium', textDecorationLine: 'underline' },
-  addReviewBtn:  { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: NAVY, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, borderWidth: 1, borderColor: ORANGE },
+  seeMoreText:   { color: '#E6E1E8', fontSize: 14, fontFamily: 'Poppins_400Regular', textDecorationLine: 'underline' },
+  addReviewBtn:  { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: D.navy, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, borderWidth: 1, borderColor: ORANGE },
   addReviewTxt:  { color: '#fff', fontSize: 12, fontFamily: 'Poppins_600SemiBold' },
 
   modalOverlay:  { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
-  modalSheet:    { backgroundColor: '#0D1E3F', borderTopLeftRadius: 24, borderTopRightRadius: 24, borderWidth: 1, borderColor: 'rgba(100,160,255,0.2)', paddingHorizontal: 24, paddingTop: 24, paddingBottom: 40 },
+  modalSheet:    { backgroundColor: '#061234', borderTopLeftRadius: 24, borderTopRightRadius: 24, borderWidth: 1, borderColor: 'rgba(130,165,213,0.5)', paddingHorizontal: 24, paddingTop: 24, paddingBottom: 40 },
   modalTitle:    { color: C.textPrimary, fontSize: 17, fontFamily: 'Poppins_700Bold', marginBottom: 6 },
   modalSub:      { color: C.textSecondary, fontSize: 13, fontFamily: 'Poppins_400Regular', marginBottom: 20 },
   starPicker:    { flexDirection: 'row', gap: 10, justifyContent: 'center', marginBottom: 20 },
@@ -564,17 +562,17 @@ const s = StyleSheet.create({
   modalCancelTxt:{ color: C.textSecondary, fontSize: 13, fontFamily: 'Poppins_400Regular' },
 
   seeMoreOverlay:{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
-  seeMoreSheet:  { backgroundColor: '#0D1E3F', borderTopLeftRadius: 24, borderTopRightRadius: 24, borderWidth: 1, borderColor: 'rgba(100,160,255,0.2)', maxHeight: '80%', paddingBottom: 20 },
+  seeMoreSheet:  { backgroundColor: '#061234', borderTopLeftRadius: 24, borderTopRightRadius: 24, borderWidth: 1, borderColor: 'rgba(130,165,213,0.5)', maxHeight: '80%', paddingBottom: 20 },
   seeMoreHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 24, paddingVertical: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' },
 
-  premiumCard:      { marginHorizontal: 16, marginTop: 16, padding: 22, borderRadius: 22, borderWidth: 1, borderColor: 'rgba(99,148,214,0.5)', backgroundColor: C.bg, overflow: 'hidden' },
-  planHeader:       { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 },
-  currentPlanBadge: { alignSelf: 'flex-start', backgroundColor: ORANGE, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 3 },
-  currentPlanText:  { color: '#081022', fontSize: 8, fontFamily: 'Poppins_700Bold' },
-  premiumTitle:     { color: ORANGE, fontSize: 16, fontFamily: 'Poppins_600SemiBold', marginTop: 6 },
+  premiumCard:      { marginHorizontal: 16, marginTop: 24, padding: 20 },
+  planHeader:       { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
+  currentPlanBadge: { alignSelf: 'flex-start', backgroundColor: ORANGE, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 2 },
+  currentPlanText:  { color: '#3A1A0A', fontSize: 10, fontFamily: 'Poppins_700Bold' },
+  premiumTitle:     { color: ORANGE, fontSize: 17, fontFamily: 'Poppins_500Medium', marginTop: 6 },
   badgeCircle:      { width: 44, height: 44, borderRadius: 22, borderWidth: 2, borderColor: ORANGE, alignItems: 'center', justifyContent: 'center' },
-  planFeature:      { flexDirection: 'row', alignItems: 'center', marginVertical: 7 },
-  planFeatureText:  { color: C.textPrimary, fontSize: 14, fontFamily: 'Poppins_400Regular', marginLeft: 12 },
-  manageButton:     { height: 48, borderRadius: 24, marginTop: 18, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  manageText:       { color: '#fff', fontSize: 15, fontFamily: 'Poppins_700Bold' },
+  planFeature:      { flexDirection: 'row', alignItems: 'center', marginVertical: 6 },
+  planFeatureText:  { color: '#E6E1E8', fontSize: 15, fontFamily: 'Poppins_400Regular', marginLeft: 12 },
+  manageButton:     { height: 50, borderRadius: 25, marginTop: 20, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  manageText:       { color: '#fff', fontSize: 16, fontFamily: 'Poppins_600SemiBold' },
 });

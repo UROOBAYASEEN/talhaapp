@@ -170,7 +170,7 @@ export default function PartnerProfileScreen() {
                 <Text style={[styles.ownerName, { color: aC.isDark ? "#8090B0" : '#475569' }]}>{partner.name}</Text>
               )}
               <View style={styles.badgeRow}>
-                <View style={[styles.typeBadge, { backgroundColor: aC.isDark ? "rgba(100,160,255,0.15)" : '#eef2ff', borderColor: aC.isDark ? "rgba(100,160,255,0.3)" : 'rgba(3,42,105,0.12)' }]}>
+                <View style={[styles.typeBadge, { backgroundColor: aC.isDark ? "rgba(100,160,255,0.15)" : '#eef2ff', borderColor: aC.isDark ? "#82a5d5" : 'rgba(3,42,105,0.12)' }]}>
                   <Text style={[styles.typeBadgeText, { color: aC.isDark ? "#64A0FF" : '#475569' }]}>{partner.type}</Text>
                 </View>
                 <View style={[styles.statusBadge, { backgroundColor: partner.status === "Active" ? (aC.isDark ? "rgba(0,217,152,0.1)" : 'rgba(22,163,74,0.08)') : "rgba(255,101,0,0.1)", borderColor: partner.status === "Active" ? (aC.isDark ? "rgba(0,217,152,0.3)" : 'rgba(22,163,74,0.2)') : "rgba(255,101,0,0.3)" }, partner.status !== "Active" && styles.reviewBadge]}>
@@ -189,7 +189,7 @@ export default function PartnerProfileScreen() {
             </View>
 
             {/* STATS ROW */}
-            <View style={[styles.statsRow, { backgroundColor: aC.isDark ? "rgba(1,6,20,1)" : '#ffffff', borderColor: aC.isDark ? "rgba(100,160,255,0.4)" : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }]}>
+            <View style={[styles.statsRow, { backgroundColor: aC.isDark ? "rgba(1,6,20,1)" : '#ffffff', borderColor: aC.isDark ? "#82a5d5" : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }]}>
               {aC.isDark ? null : (<>
                 <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
                 <LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
@@ -214,7 +214,7 @@ export default function PartnerProfileScreen() {
             </View>
 
             {/* CONTACT INFO CARD */}
-            <View style={[styles.card, { backgroundColor: aC.isDark ? "rgba(1,6,20,1)" : '#ffffff', borderColor: aC.isDark ? "rgba(100,160,255,0.5)" : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }]}>
+            <View style={[styles.card, { backgroundColor: aC.isDark ? "rgba(1,6,20,1)" : '#ffffff', borderColor: aC.isDark ? "#82a5d5" : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }]}>
               {!aC.isDark && (<>
                 <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
                 <LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
@@ -253,7 +253,7 @@ export default function PartnerProfileScreen() {
             </View>
 
             {/* BUSINESS INFO CARD */}
-            <View style={[styles.card, { backgroundColor: aC.isDark ? "rgba(1,6,20,1)" : '#ffffff', borderColor: aC.isDark ? "rgba(100,160,255,0.5)" : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }]}>
+            <View style={[styles.card, { backgroundColor: aC.isDark ? "rgba(1,6,20,1)" : '#ffffff', borderColor: aC.isDark ? "#82a5d5" : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }]}>
               {!aC.isDark && (<>
                 <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
                 <LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
@@ -293,7 +293,7 @@ export default function PartnerProfileScreen() {
 
             {/* REVIEWS */}
             {reviews.length > 0 && (
-              <View style={[styles.card, { backgroundColor: aC.isDark ? "rgba(1,6,20,1)" : '#ffffff', borderColor: aC.isDark ? "rgba(100,160,255,0.5)" : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }]}>
+              <View style={[styles.card, { backgroundColor: aC.isDark ? "rgba(1,6,20,1)" : '#ffffff', borderColor: aC.isDark ? "#82a5d5" : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }]}>
                 {!aC.isDark && (<>
                   <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
                   <LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
@@ -313,7 +313,7 @@ export default function PartnerProfileScreen() {
 
             {/* ACTION BUTTONS */}
             <View style={styles.actionRow}>
-              <TouchableOpacity style={[styles.actionBtn, { backgroundColor: aC.isDark ? "rgba(1,6,20,1)" : '#ffffff', borderColor: aC.isDark ? "rgba(100,160,255,0.5)" : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.06)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]} onPress={() => setResetModal(true)}>
+              <TouchableOpacity style={[styles.actionBtn, { backgroundColor: aC.isDark ? "rgba(1,6,20,1)" : '#ffffff', borderColor: aC.isDark ? "#82a5d5" : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.06)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]} onPress={() => setResetModal(true)}>
                 <Text style={[styles.actionBtnText, { color: aC.isDark ? WHITE : '#010a1f' }]}>Reset Password</Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -377,7 +377,7 @@ export default function PartnerProfileScreen() {
             <Text style={[styles.modalTitle, { color: aC.isDark ? WHITE : '#010a1f' }]}>Reset Password</Text>
             <Text style={[styles.modalSub, { color: aC.isDark ? "#8090B0" : '#475569' }]}>Enter new password for {partner?.name}</Text>
             <TextInput
-              style={[styles.modalInput, { backgroundColor: aC.isDark ? "rgba(1,6,20,1)" : '#ffffff', borderColor: aC.isDark ? "rgba(100,160,255,0.4)" : 'rgba(3,42,105,0.12)', color: aC.isDark ? WHITE : '#010a1f' }]}
+              style={[styles.modalInput, { backgroundColor: aC.isDark ? "rgba(1,6,20,1)" : '#ffffff', borderColor: aC.isDark ? "#82a5d5" : 'rgba(3,42,105,0.12)', color: aC.isDark ? WHITE : '#010a1f' }]}
               placeholder="New password (min 6 chars)"
               placeholderTextColor={aC.isDark ? "#6B7A99" : "#94a3b8"}
               value={newPassword}

@@ -11,6 +11,8 @@ import * as SecureStore from "expo-secure-store";
 import AdminFooter from "@/components/admin/AdminFooter";
 import { API_BASE } from "@/constants/api";
 import { AppColors, useAppColors } from '@/constants/theme';
+import { SavedCardEffect } from "@/components/shared/FigmaEffects";
+import { PillGlow } from "@/components/dealer/DealerUI";
 
 const { width } = Dimensions.get("window");
 const WHITE = "#F4F5F7";
@@ -122,27 +124,23 @@ function DonutChart({ data }: { data: { value: number; color: string }[] }) {
 }
 
 /* ── Progress Bar ── */
-function ProgressBar({ value, max, color = ORANGE }: { value: number; max: number; color?: string }) {
+function ProgressBar({ value, max, color = ORANGE, track }: { value: number; max: number; color?: string; track?: string }) {
   const aC = useAppColors();
   const pct = Math.min(100, (value / max) * 100);
   return (
-    <View style={[styles.progressTrack, { backgroundColor: aC.isDark ? "#232B45" : "rgba(3,42,105,0.08)" }]}>
+    <View style={[styles.progressTrack, { backgroundColor: aC.isDark ? (track || "#232B45") : "rgba(3,42,105,0.08)" }]}>
       <View style={[styles.progressFill, { width: `${pct}%` as any, backgroundColor: color }]} />
     </View>
   );
 }
 
 /* ── Card ── */
-function Card({ children, style }: { children: React.ReactNode; style?: any }) {
+function Card({ children, style, glow }: { children: React.ReactNode; style?: any; glow?: boolean }) {
   const aC = useAppColors();
   return (
-    <View style={[styles.card, { backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "rgba(100,160,255,0.2)" : "rgba(3,42,105,0.12)", shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }, style, { overflow: "hidden" }]}>
+    <View style={[styles.card, { backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? (glow ? "#82a5d5" : "rgba(230,225,232,0.18)") : "rgba(3,42,105,0.12)", shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }, style, { overflow: "hidden" }]}>
       {aC.isDark ? (
-        <>
-          <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-        </>
+        glow ? <SavedCardEffect band={14} /> : null
       ) : (
         <>
           <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
@@ -211,11 +209,12 @@ export default function AnalyticsScreen() {
           {/* DATE RANGES */}
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.rangeRow}>
             {RANGES.map(r => (
-              <TouchableOpacity key={r} onPress={() => { setRange(r); }} style={[styles.rangeChip, { backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "#232B45" : "rgba(3,42,105,0.12)" }, range === r && [styles.rangeChipActive, { backgroundColor: aC.isDark ? "#010A1F" : "rgba(3,42,105,0.06)", borderColor: aC.isDark ? "rgba(56,189,248,0.5)" : "rgba(3,42,105,0.2)" }]]}>
-                <Text style={[styles.rangeTxt, { color: aC.isDark ? "#8090B0" : "#475569" }, range === r && [styles.rangeTxtActive, { color: aC.isDark ? "#7dd3fc" : "#032a69" }]]}>{r}</Text>
+              <TouchableOpacity key={r} onPress={() => { setRange(r); }} style={[styles.rangeChip, { backgroundColor: aC.isDark ? "#0B2358" : "#ffffff", borderColor: aC.isDark ? "transparent" : "rgba(3,42,105,0.12)" }, range === r && [styles.rangeChipActive, { backgroundColor: aC.isDark ? "#05122A" : "rgba(3,42,105,0.06)", borderColor: aC.isDark ? "#7F98C4" : "rgba(3,42,105,0.2)", overflow: "hidden" }]]}>
+                {range === r && aC.isDark && <PillGlow />}
+                <Text style={[styles.rangeTxt, { color: aC.isDark ? "#8090B0" : "#475569" }, range === r && [styles.rangeTxtActive, { color: aC.isDark ? "#E6E1E8" : "#032a69" }]]}>{r}</Text>
               </TouchableOpacity>
             ))}
-            <TouchableOpacity style={[styles.calBtn, { backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "#232B45" : "rgba(3,42,105,0.12)" }]}>
+            <TouchableOpacity style={[styles.calBtn, { backgroundColor: aC.isDark ? "#0B2358" : "#ffffff", borderColor: aC.isDark ? "transparent" : "rgba(3,42,105,0.12)" }]}>
               <Calendar size={14} color={aC.isDark ? "#C0C8DC" : "#475569"} strokeWidth={1.8} />
             </TouchableOpacity>
           </ScrollView>
@@ -226,13 +225,9 @@ export default function AnalyticsScreen() {
           ) : (
           <View style={styles.statsGrid}>
             {(data?.stats ?? []).map(s => (
-              <View key={s.label} style={[styles.statCard, { backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "rgba(100,160,255,0.2)" : "rgba(3,42,105,0.12)", shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }]}>
+              <View key={s.label} style={[styles.statCard, { backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "#82a5d5" : "rgba(3,42,105,0.12)", shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }]}>
                 {aC.isDark ? (
-                  <>
-                    <LinearGradient colors={['rgba(22,64,136,0.5)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                    <LinearGradient colors={['rgba(13,37,84,0.5)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                    <LinearGradient colors={['transparent', 'rgba(29,83,175,0.5)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                  </>
+                  <SavedCardEffect band={12} />
                 ) : (
                   <>
                     <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
@@ -248,14 +243,8 @@ export default function AnalyticsScreen() {
           )}
 
           {/* REVENUE OVERVIEW */}
-          <View style={[styles.card, styles.mb, { backgroundColor: aC.isDark ? '#010A1F' : '#ffffff', borderColor: aC.isDark ? "rgba(100,160,255,0.2)" : "rgba(3,42,105,0.12)", shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }]}>
-            {aC.isDark ? (
-              <>
-                <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-              </>
-            ) : (
+          <View style={[styles.card, styles.mb, { backgroundColor: aC.isDark ? '#010A1F' : '#ffffff', borderColor: aC.isDark ? "rgba(230,225,232,0.18)" : "rgba(3,42,105,0.12)", shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }]}>
+            {aC.isDark ? null : (
               <>
                 <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
                 <LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
@@ -273,13 +262,9 @@ export default function AnalyticsScreen() {
             </View>
             <View style={styles.breakdownGrid}>
               {(data?.revenue_breakdown ?? []).map(r => (
-                <View key={r.label} style={[styles.breakdownItem, { backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "#1E2748" : "rgba(3,42,105,0.12)", overflow: 'hidden' }]}>
+                <View key={r.label} style={[styles.breakdownItem, { backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "#82a5d5" : "rgba(3,42,105,0.12)", overflow: 'hidden' }]}>
                   {aC.isDark ? (
-                    <>
-                      <LinearGradient colors={['rgba(22,64,136,0.5)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                      <LinearGradient colors={['rgba(13,37,84,0.5)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                      <LinearGradient colors={['transparent', 'rgba(29,83,175,0.5)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                    </>
+                    <SavedCardEffect band={12} />
                   ) : (
                     <>
                       <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
@@ -297,14 +282,8 @@ export default function AnalyticsScreen() {
           </View>
 
           {/* LISTING PERFORMANCE */}
-          <View style={[styles.card, styles.mb, { backgroundColor: aC.isDark ? '#010A1F' : '#ffffff', borderColor: aC.isDark ? "rgba(100,160,255,0.2)" : "rgba(3,42,105,0.12)", shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }]}>
-            {aC.isDark ? (
-              <>
-                <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-              </>
-            ) : (
+          <View style={[styles.card, styles.mb, { backgroundColor: aC.isDark ? '#010A1F' : '#ffffff', borderColor: aC.isDark ? "rgba(230,225,232,0.18)" : "rgba(3,42,105,0.12)", shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }]}>
+            {aC.isDark ? null : (
               <>
                 <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
                 <LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
@@ -322,6 +301,7 @@ export default function AnalyticsScreen() {
                   <View key={i} style={styles.barGroup}>
                     <View style={styles.barPair}>
                       <View style={[styles.barItem, { height: Math.max(ha, 4), backgroundColor: ORANGE }]} />
+                      {d.b != null && <View style={[styles.barItem, { height: Math.max((d.b / Math.max(...(data?.listing_perf ?? []).map(x => x.b || 0), 1)) * 120, 4), backgroundColor: "#3b82f6" }]} />}
                     </View>
                     <Text style={[styles.barLabel, { color: aC.isDark ? "#6B7A99" : "#475569" }]}>{d.name}</Text>
                   </View>
@@ -339,14 +319,14 @@ export default function AnalyticsScreen() {
                   <Text style={[styles.progressLabel, { color: aC.isDark ? WHITE : '#010a1f' }]}>{p.label}</Text>
                   <Text style={[styles.progressVal, { color: aC.isDark ? "#C0C8DC" : "#475569" }]}>{p.value}</Text>
                 </View>
-                <ProgressBar value={p.value} max={p.max} />
+                <ProgressBar value={p.value} max={p.max} track="#C9BDC4" />
               </View>
             ))}
           </Card>
 
           {/* ADVERTISING */}
           <Card style={styles.mb}>
-            <Text style={[styles.cardTitle, { color: aC.isDark ? WHITE : '#010a1f' }]}>Advertising</Text>
+            <Text style={[styles.cardTitle, { color: aC.isDark ? WHITE : '#010a1f' }]}>Advertising Revenue</Text>
             {(data?.advertising ?? []).map(a => (
               <View key={a.label} style={styles.progressRow}>
                 <View style={styles.progressLabelRow}>
@@ -361,14 +341,14 @@ export default function AnalyticsScreen() {
           {/* SUBSCRIPTION OVERVIEW */}
           <Card style={styles.mb}>
             <Text style={[styles.cardTitle, { color: aC.isDark ? WHITE : '#010a1f' }]}>Subscription Overview</Text>
-            <AreaChartSvg data={data?.sub_points?.length ? data.sub_points : [0,0,0,0,0,0]} color="#3b82f6" h={100} />
+            <AreaChartSvg data={data?.sub_points?.length ? data.sub_points : [0,0,0,0,0,0]} color={ORANGE} h={100} />
             <View style={styles.revMonths}>
               {(data?.sub_labels ?? []).map(m => <Text key={m} style={[styles.revMonth, { color: aC.isDark ? "#6B7A99" : "#475569" }]}>{m}</Text>)}
             </View>
           </Card>
 
           {/* UNIT SELLING */}
-          <Card style={styles.mb}>
+          <View style={[styles.mb, { paddingVertical: 6 }]}>
             <View style={styles.unitHeader}>
               <Text style={[styles.cardTitle, { color: aC.isDark ? WHITE : '#010a1f', marginBottom: 0 }]}>Unit Selling</Text>
               <View style={styles.legendItem}>
@@ -376,9 +356,10 @@ export default function AnalyticsScreen() {
                 <Text style={[styles.legendTxt, { color: aC.isDark ? "#C0C8DC" : "#475569" }]}>Views</Text>
               </View>
             </View>
-            <View style={[styles.tabRow, { backgroundColor: aC.isDark ? "#010A1F" : "#ffffff", borderColor: aC.isDark ? "#232B45" : "rgba(3,42,105,0.12)" }]}>
+            <View style={[styles.tabRow, { backgroundColor: aC.isDark ? "#0B2358" : "#ffffff", borderColor: aC.isDark ? "transparent" : "rgba(3,42,105,0.12)" }]}>
               {["Weekly","Monthly","Yearly"].map(t => (
-                <TouchableOpacity key={t} onPress={() => setUnitTab(t)} style={[styles.tab, unitTab === t && [styles.tabActive, { backgroundColor: aC.isDark ? "#0d2040" : "rgba(3,42,105,0.06)" }]]}>
+                <TouchableOpacity key={t} onPress={() => setUnitTab(t)} style={[styles.tab, unitTab === t && [styles.tabActive, { backgroundColor: aC.isDark ? "#05122A" : "rgba(3,42,105,0.06)", borderWidth: aC.isDark ? 1 : 0, borderColor: "#7F98C4", overflow: "hidden" }]]}>
+                  {unitTab === t && aC.isDark && <PillGlow />}
                   <Text style={[styles.tabTxt, { color: aC.isDark ? "#8090B0" : "#475569" }, unitTab === t && [styles.tabTxtActive, { color: aC.isDark ? WHITE : '#010a1f' }]]}>{t}</Text>
                 </TouchableOpacity>
               ))}
@@ -389,18 +370,18 @@ export default function AnalyticsScreen() {
                 return (
                   <View key={i} style={styles.barGroup}>
                     <View style={[styles.stackBar]}>
-                      <View style={{ height: (d.new / maxV) * 110, backgroundColor: ORANGE, borderRadius: 3 }} />
-                      <View style={{ height: (d.used / maxV) * 110, backgroundColor: aC.isDark ? "#7c2d12" : "#e67e22", borderRadius: 3 }} />
+                      <View style={{ height: (d.new / maxV) * 140, backgroundColor: ORANGE, borderBottomLeftRadius: 2, borderBottomRightRadius: 2 }} />
+                      <View style={{ height: (d.used / maxV) * 140, backgroundColor: "#E8C2AB", borderTopLeftRadius: 3, borderTopRightRadius: 3 }} />
                     </View>
-                    <Text style={[styles.barLabel, { color: aC.isDark ? "#6B7A99" : "#475569" }]}>{d.day}</Text>
+                    <Text style={[styles.barLabel, { color: aC.isDark ? "#FFFFFF" : "#475569", fontFamily: "Poppins_600SemiBold", fontSize: 13 }]}>{d.day}</Text>
                   </View>
                 );
               })}
             </View>
-          </Card>
+          </View>
 
           {/* RESERVATIONS OVERVIEW */}
-          <Card style={styles.mb}>
+          <Card style={styles.mb} glow>
             <Text style={[styles.cardTitle, { color: aC.isDark ? WHITE : '#010a1f' }]}>Reservations Overview</Text>
             <View style={styles.reservRow}>
               <View style={styles.donutWrap}>
@@ -430,7 +411,7 @@ export default function AnalyticsScreen() {
             <Text style={[styles.subLabel, { color: aC.isDark ? "#8090B0" : "#475569" }]}>Top Locations</Text>
             <View style={styles.locRow}>
               {LOCATIONS.map(l => (
-                <View key={l} style={[styles.locChip, { backgroundColor: aC.isDark ? "rgba(226,103,27,0.1)" : "rgba(226,103,27,0.08)", borderColor: aC.isDark ? "rgba(226,103,27,0.3)" : "rgba(226,103,27,0.3)" }]}>
+                <View key={l} style={[styles.locChip, { backgroundColor: ORANGE, borderColor: ORANGE }]}>
                   <Text style={styles.locTxt}>{l}</Text>
                 </View>
               ))}
@@ -461,27 +442,27 @@ const styles = StyleSheet.create({
 
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingTop: 12, paddingBottom: 4, marginTop: 4 },
   headerBtn:   { width: 36, height: 44, justifyContent: "center" },
-  headerTitle: { color: WHITE, fontSize: 17, fontFamily: "Poppins_600SemiBold" },
-  headerSub:   { color: "#8090B0", fontSize: 12, fontFamily: "Poppins_400Regular", paddingHorizontal: 20, marginBottom: 12 },
+  headerTitle: { color: WHITE, fontSize: 19, fontFamily: "Poppins_600SemiBold" },
+  headerSub:   { color: "#8090B0", fontSize: 14, fontFamily: "Poppins_400Regular", paddingHorizontal: 20, marginBottom: 12 },
 
   scroll: { paddingHorizontal: 20 },
   mb: { marginBottom: 14 },
 
   rangeRow: { gap: 8, paddingBottom: 14 },
-  rangeChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: "#232B45", backgroundColor: "#010A1F" },
+  rangeChip: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 10, borderWidth: 1, borderColor: "#232B45", backgroundColor: "#010A1F" },
   rangeChipActive: { backgroundColor: "#010A1F", borderColor: "rgba(56,189,248,0.5)" },
   rangeTxt:        { color: "#8090B0", fontSize: 12, fontFamily: "Poppins_500Medium" },
   rangeTxtActive:  { color: "#7dd3fc" },
-  calBtn: { width: 34, height: 34, borderRadius: 17, borderWidth: 1, borderColor: "#232B45", backgroundColor: "#010A1F", alignItems: "center", justifyContent: "center" },
+  calBtn: { width: 42, height: 42, borderRadius: 12, borderWidth: 1, borderColor: "#232B45", backgroundColor: "#010A1F", alignItems: "center", justifyContent: "center" },
 
   statsGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: 14 },
   statCard:  { width: "47%", alignItems: "center", paddingVertical: 14, backgroundColor: "#010A1F", borderRadius: 20, borderWidth: 1, borderColor: "rgba(100,160,255,0.2)", overflow: 'hidden' },
-  statLabel: { color: "#8090B0", fontSize: 12, fontFamily: "Poppins_400Regular", marginBottom: 4 },
-  statValue: { color: WHITE, fontSize: 18, fontFamily: "Poppins_700Bold" },
-  statDelta: { color: "#34D399", fontSize: 11, fontFamily: "Poppins_600SemiBold", marginTop: 2 },
+  statLabel: { color: "#E6E1E8", fontSize: 14, fontFamily: "Poppins_400Regular", marginBottom: 4 },
+  statValue: { color: WHITE, fontSize: 22, fontFamily: "Poppins_700Bold" },
+  statDelta: { color: ORANGE, fontSize: 12, fontFamily: "Poppins_600SemiBold", marginTop: 2 },
 
   card: { backgroundColor: "#010A1F", borderRadius: 20, borderWidth: 1, borderColor: "rgba(100,160,255,0.2)", padding: 14 },
-  cardTitle: { color: WHITE, fontSize: 14, fontFamily: "Poppins_600SemiBold", marginBottom: 10 },
+  cardTitle: { color: WHITE, fontSize: 16, fontFamily: "Poppins_600SemiBold", marginBottom: 10 },
 
   revTopRow: { flexDirection: "row", alignItems: "baseline", gap: 10, marginBottom: 10 },
   revAmount: { color: WHITE, fontSize: 22, fontFamily: "Poppins_700Bold" },
@@ -500,18 +481,18 @@ const styles = StyleSheet.create({
   legendTxt:  { color: "#C0C8DC", fontSize: 11, fontFamily: "Poppins_400Regular" },
   dot: { width: 8, height: 8, borderRadius: 4 },
 
-  barChartWrap: { flexDirection: "row", alignItems: "flex-end", justifyContent: "space-around", height: 130, marginTop: 4 },
+  barChartWrap: { flexDirection: "row", alignItems: "flex-end", justifyContent: "space-around", minHeight: 130, marginTop: 4 },
   barGroup: { alignItems: "center", gap: 6 },
   barPair:  { flexDirection: "row", alignItems: "flex-end", gap: 3 },
-  barItem:  { width: 14, borderRadius: 3 },
+  barItem:  { width: 12, borderRadius: 2 },
   barLabel: { color: "#6B7A99", fontSize: 10, fontFamily: "Poppins_400Regular" },
-  stackBar: { flexDirection: "column-reverse", gap: 2, alignItems: "center", width: 16 },
+  stackBar: { flexDirection: "column-reverse", alignItems: "stretch", width: 36 },
 
   progressRow:     { marginBottom: 14 },
   progressLabelRow:{ flexDirection: "row", justifyContent: "space-between", marginBottom: 6 },
-  progressLabel:   { color: WHITE, fontSize: 12, fontFamily: "Poppins_500Medium" },
+  progressLabel:   { color: WHITE, fontSize: 13, fontFamily: "Poppins_600SemiBold" },
   progressVal:     { color: "#C0C8DC", fontSize: 12, fontFamily: "Poppins_400Regular" },
-  progressTrack:   { height: 8, backgroundColor: "#232B45", borderRadius: 4, overflow: "hidden" },
+  progressTrack:   { height: 9, backgroundColor: "#232B45", borderRadius: 5, overflow: "hidden" },
   progressFill:    { height: "100%", borderRadius: 4 },
 
   unitHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 },
@@ -534,9 +515,9 @@ const styles = StyleSheet.create({
 
   subLabel: { color: "#8090B0", fontSize: 12, fontFamily: "Poppins_400Regular", marginBottom: 10 },
   locRow:  { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  locChip: { backgroundColor: "rgba(226,103,27,0.1)", borderWidth: 1, borderColor: "rgba(226,103,27,0.3)", borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8 },
-  locTxt:  { color: ORANGE, fontSize: 13, fontFamily: "Poppins_500Medium" },
+  locChip: { backgroundColor: ORANGE, borderWidth: 1, borderColor: ORANGE, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 4 },
+  locTxt:  { color: "#FFFFFF", fontSize: 13, fontFamily: "Poppins_700Bold" },
 
-  shareBtn: { height: 50, borderRadius: 25, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },
+  shareBtn: { height: 56, borderRadius: 28, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },
   shareTxt: { color: WHITE, fontSize: 15, fontFamily: "Poppins_600SemiBold" },
 });

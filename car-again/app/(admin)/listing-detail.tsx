@@ -15,6 +15,8 @@ import { Video, ResizeMode } from "expo-av";
 import { API_BASE } from "@/constants/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAppColors } from "@/constants/theme";
+import { SavedCardEffect } from "@/components/shared/FigmaEffects";
+import { Ionicons } from "@expo/vector-icons";
 
 const { width } = Dimensions.get("window");
 const BG     = "#010A1F";
@@ -46,13 +48,9 @@ function fmtDate(dateStr: string) {
 function GlassCard({ children, style }: any) {
   const aC = useAppColors();
   return (
-    <View style={[styles.glassCard, style, { overflow: "hidden", backgroundColor: aC.isDark ? "#010A1F" : '#ffffff', borderColor: aC.isDark ? "rgba(100,160,255,0.3)" : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }]}>
+    <View style={[styles.glassCard, style, { overflow: "hidden", backgroundColor: aC.isDark ? "#010A1F" : '#ffffff', borderColor: aC.isDark ? "#82a5d5" : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }]}>
       {aC.isDark ? (
-        <>
-          <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.25 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.75 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <LinearGradient colors={['rgba(13,37,84,0.2)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.25, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-        </>
+        <SavedCardEffect band={12} />
       ) : (
         <>
           <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
@@ -94,6 +92,25 @@ export default function ListingDetailScreen() {
   const isBanner      = type === "banner"       && id;
   const isVideoAd     = type === "video_ad"     && id;
   const adItem        = itemData ? (() => { try { return JSON.parse(itemData as string); } catch { return null; } })() : null;
+
+  // Vehicle view: full vehicle + tax (read only, for the Figma detail layout)
+  const isVehicleView = !isTracker && !isUserRequest && !isBanner && !isVideoAd && type === "vehicle" && !!adItem?.id;
+  const [fullV, setFullV] = useState<any>(null);
+  const [vTax,  setVTax]  = useState<any>(null);
+  useEffect(() => {
+    if (!isVehicleView) return;
+    (async () => {
+      try {
+        const h: any = token ? { Authorization: `Bearer ${token}` } : {};
+        const [vr, tr] = await Promise.all([
+          fetch(`${API_BASE}/vehicles/${adItem.id}`, { headers: h }),
+          fetch(`${API_BASE}/vehicles/${adItem.id}/tax`, { headers: h }),
+        ]);
+        if (vr.ok) setFullV(await vr.json());
+        if (tr.ok) setVTax(await tr.json());
+      } catch { /* offline */ }
+    })();
+  }, [isVehicleView, adItem?.id]);
 
   useEffect(() => {
     if (!isUserRequest || !userId || !token) return;
@@ -255,7 +272,7 @@ export default function ListingDetailScreen() {
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={adS.scroll} style={{ backgroundColor: aC.bg }}>
 
           {/* HERO CARD */}
-          <View style={[adS.heroCard, { borderColor: aC.isDark ? 'rgba(100,160,255,0.3)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }]}>
+          <View style={[adS.heroCard, { borderColor: aC.isDark ? '#82a5d5' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }]}>
             {imageUrl ? (
               <Image source={{ uri: imageUrl }} style={StyleSheet.absoluteFillObject} resizeMode="cover" />
             ) : (
@@ -267,7 +284,7 @@ export default function ListingDetailScreen() {
                 <View style={[adS.statusDot, { backgroundColor: sColor }]} />
                 <Text style={[adS.statusText, { color: sColor }]}>{adItem.status}</Text>
               </View>
-              <View style={[adS.typeBadge, { backgroundColor: aC.isDark ? 'rgba(3,42,105,0.7)' : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.3)' : 'rgba(3,42,105,0.12)' }]}>
+              <View style={[adS.typeBadge, { backgroundColor: aC.isDark ? 'rgba(3,42,105,0.7)' : '#ffffff', borderColor: aC.isDark ? '#82a5d5' : 'rgba(3,42,105,0.12)' }]}>
                 <Text style={[adS.typeText, { color: aC.isDark ? 'rgba(255,255,255,0.8)' : '#475569' }]}>{isBanner ? 'Banner Ad' : 'Video Ad'}</Text>
               </View>
             </View>
@@ -289,7 +306,7 @@ export default function ListingDetailScreen() {
               { Icon: Clock,      label: 'Start Date', value: startDate               },
               { Icon: Calendar,   label: 'End Date',   value: endDate                 },
             ].map(({ Icon, label, value }) => (
-              <View key={label} style={[adS.infoCard, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.3)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }]}>
+              <View key={label} style={[adS.infoCard, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? '#82a5d5' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }]}>
                 {aC.isDark ? null : (<>
                   <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
                   <LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
@@ -302,7 +319,7 @@ export default function ListingDetailScreen() {
           </View>
 
           {/* DURATION CARD */}
-          <View style={[adS.durationCard, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.3)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }]}>
+          <View style={[adS.durationCard, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? '#82a5d5' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }]}>
             {!aC.isDark && (<>
               <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
               <LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
@@ -324,7 +341,7 @@ export default function ListingDetailScreen() {
           <Text style={[adS.sectionTitle, { color: aC.isDark ? WHITE : '#010a1f' }]}>Performance</Text>
           <View style={adS.statsGrid}>
             {perfStats.map(({ Icon, label, value }) => (
-              <View key={label} style={[adS.statCell, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.3)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }]}>
+              <View key={label} style={[adS.statCell, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? '#82a5d5' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }]}>
                 {!aC.isDark && (<>
                   <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
                   <LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
@@ -783,56 +800,95 @@ export default function ListingDetailScreen() {
       ) : (
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll} style={{ backgroundColor: aC.bg }}>
 
-          {/* Image */}
-          {vehicleItem.image ? (
-            <Image source={{ uri: resolveUrl(vehicleItem.image) }} style={styles.heroImg} resizeMode="cover" />
-          ) : (
-            <View style={[styles.heroFallback, { backgroundColor: aC.isDark ? "#061B4A" : '#eef2ff' }]}>
-              <Cpu size={48} color={aC.isDark ? "#4B5A7A" : "#94a3b8"} strokeWidth={1.2} />
-            </View>
-          )}
+          {/* Hero (Figma vehicle detail) */}
+          {(() => {
+            const heroUri = resolveUrl(fullV?.images?.[0] || vehicleItem.image);
+            return heroUri ? (
+              <Image source={{ uri: heroUri }} style={styles.heroImg} resizeMode="cover" />
+            ) : (
+              <View style={[styles.heroFallback, { backgroundColor: aC.isDark ? "#061B4A" : '#eef2ff' }]}>
+                <Cpu size={48} color={aC.isDark ? "#4B5A7A" : "#94a3b8"} strokeWidth={1.2} />
+              </View>
+            );
+          })()}
 
           <View style={[styles.content, { backgroundColor: aC.bg }]}>
 
             {/* Title + status */}
             <View style={styles.titleRow}>
-              <Text style={[styles.trackerName, { flex: 1, color: aC.isDark ? WHITE : '#010a1f' }]}>{vehicleItem.title}</Text>
+              <Text style={[styles.vdTitle, { flex: 1, color: aC.isDark ? WHITE : '#010a1f' }]} numberOfLines={1}>
+                {fullV ? [fullV.make, fullV.model, fullV.variant].filter(Boolean).join(' ') : vehicleItem.title}
+                {fullV?.year ? <Text style={styles.vdYear}>  •{fullV.year}</Text> : null}
+              </Text>
               <View style={[styles.pill, { borderColor: vehicleStatusColor+"55", backgroundColor: vehicleStatusColor+"18" }]}>
                 <Text style={[styles.pillTxt, { color: vehicleStatusColor }]}>{vehicleStatusLabel}</Text>
               </View>
             </View>
-
-            {/* Price */}
-            <GlassCard style={{ marginBottom: 16 }}>
-              <View style={styles.priceRow}>
-                <View style={styles.priceItem}>
-                  <DollarSign size={16} color={ORANGE} />
-                  <View>
-                    <Text style={[styles.priceLabel, { color: aC.isDark ? "#8090B0" : '#475569' }]}>Price</Text>
-                    <Text style={[styles.priceVal, { color: aC.isDark ? WHITE : '#010a1f' }]}>{vehicleItem.price}</Text>
-                  </View>
-                </View>
-                <View style={[styles.priceDivider, { backgroundColor: aC.isDark ? "rgba(255,255,255,0.08)" : 'rgba(3,42,105,0.12)' }]} />
-                <View style={styles.priceItem}>
-                  <MapPin size={16} color={ORANGE} />
-                  <View>
-                    <Text style={[styles.priceLabel, { color: aC.isDark ? "#8090B0" : '#475569' }]}>Location</Text>
-                    <Text style={[styles.priceVal, { color: aC.isDark ? WHITE : '#010a1f' }]}>{vehicleItem.sub?.split("•")[0]?.trim() || "—"}</Text>
-                  </View>
-                </View>
-                <View style={[styles.priceDivider, { backgroundColor: aC.isDark ? "rgba(255,255,255,0.08)" : 'rgba(3,42,105,0.12)' }]} />
-                <View style={styles.priceItem}>
-                  <Calendar size={16} color={ORANGE} />
-                  <View>
-                    <Text style={[styles.priceLabel, { color: aC.isDark ? "#8090B0" : '#475569' }]}>Listed</Text>
-                    <Text style={[styles.priceVal, { color: aC.isDark ? WHITE : '#010a1f' }]}>{vehicleItem.date}</Text>
-                  </View>
-                </View>
+            <Text style={[styles.vdSeller, { color: aC.isDark ? WHITE : '#010a1f' }]} numberOfLines={1}>{vehicleItem.seller_name || fullV?.seller?.full_name || vehicleItem.title}</Text>
+            <View style={styles.vdRow}>
+              <Ionicons name="star" size={15} color={ORANGE} />
+              <Text style={styles.vdMuted}>{fullV?.average_rating > 0 ? fullV.average_rating.toFixed(1) : '—'} ({fullV?.review_count ?? 0} Reviews)</Text>
+            </View>
+            <View style={[styles.vdRow, { justifyContent: 'space-between' }]}>
+              <View style={[styles.vdRow, { marginTop: 0 }]}>
+                <Ionicons name="location-outline" size={15} color={aC.isDark ? "#C9C6D0" : '#475569'} />
+                <Text style={styles.vdMuted}>{fullV?.city || vehicleItem.sub?.split("•")[0]?.trim() || "—"}</Text>
               </View>
-            </GlassCard>
+              <Text style={styles.vdPrice}>{vehicleItem.price}</Text>
+            </View>
+
+            {/* Spec strip */}
+            <View style={styles.vdSpecs}>
+              {[
+                { icon: 'speedometer-outline', val: fullV?.mileage != null ? `${Number(fullV.mileage).toLocaleString()} km` : '—' },
+                { icon: 'star-outline',        val: fullV?.transmission || '—' },
+                { icon: 'people-outline',      val: fullV?.fuel_type || '—' },
+                { icon: 'calendar-outline',    val: fullV?.engine_cc ? `${fullV.engine_cc} cc` : '—' },
+              ].map((sp, i) => (
+                <View key={i} style={[styles.vdSpec, i > 0 && styles.vdSpecSep]}>
+                  <Ionicons name={sp.icon as any} size={16} color={ORANGE} />
+                  <Text style={styles.vdSpecTxt} numberOfLines={2}>{sp.val}</Text>
+                </View>
+              ))}
+            </View>
+
+            {/* Price Breakdown */}
+            <Text style={[styles.vdSec, { color: aC.isDark ? WHITE : '#010a1f' }]}>Price Breakdown</Text>
+            {(() => {
+              const price = Number(fullV?.price || 0);
+              const f = vTax?.filer_tax; const nf = vTax?.non_filer_tax;
+              const fmtP = (n: number) => `Rs ${Number(n).toLocaleString()}`;
+              return [
+                { l: 'Vehicle price',               v: price ? fmtP(price) : vehicleItem.price },
+                { l: 'Withholding Tax (Filer)',     v: f  != null ? fmtP(f)  : '—' },
+                { l: 'Withholding Tax (non-Filer)', v: nf != null ? fmtP(nf) : '—' },
+                { l: 'Estimated Total (Filer)',     v: f  != null && price ? fmtP(price + f)  : '—' },
+                { l: 'Estimated Total (Non-Filer)', v: nf != null && price ? fmtP(price + nf) : '—' },
+              ].map(r => (
+                <View key={r.l} style={styles.vdPriceRow}>
+                  <Text style={styles.vdPriceLbl}>{r.l}</Text>
+                  <Text style={[styles.vdPriceVal, { color: aC.isDark ? WHITE : '#010a1f' }]}>{r.v}</Text>
+                </View>
+              ));
+            })()}
+
+            {/* Key Features */}
+            {(fullV?.features || []).length > 0 && (
+              <>
+                <Text style={[styles.vdSec, { color: aC.isDark ? WHITE : '#010a1f' }]}>Key Features</Text>
+                <View style={styles.vdChips}>
+                  {(fullV.features as string[]).map(f => (
+                    <View key={f} style={styles.vdChip}>
+                      <Ionicons name="checkmark" size={12} color="#E6E1E8" />
+                      <Text style={styles.vdChipTxt}>{f}</Text>
+                    </View>
+                  ))}
+                </View>
+              </>
+            )}
 
             {/* Vehicle details */}
-            <Text style={[styles.sectionTitle, { color: aC.isDark ? WHITE : '#010a1f' }]}>Vehicle Info</Text>
+            <Text style={[styles.sectionTitle, { color: aC.isDark ? WHITE : '#010a1f', marginTop: 18 }]}>Vehicle Info</Text>
             <GlassCard style={{ marginBottom: 16 }}>
               <InfoRow label="Condition" value={vehicleItem.sub?.split("•")[1]?.trim() || "—"} />
               <View style={[styles.dividerLine, { backgroundColor: aC.isDark ? "rgba(255,255,255,0.06)" : 'rgba(3,42,105,0.08)' }]} />
@@ -982,6 +1038,23 @@ const styles = StyleSheet.create({
   priceDivider:{ width: 1, height: 36, backgroundColor: "rgba(255,255,255,0.08)" },
 
   sectionTitle: { color: WHITE, fontSize: 14, fontFamily: "Poppins_600SemiBold", marginBottom: 10, marginTop: 4 },
+  vdTitle:    { fontSize: 17, fontFamily: "Poppins_600SemiBold" },
+  vdYear:     { fontSize: 11, fontFamily: "Poppins_400Regular", color: "#C9C6D0" },
+  vdSeller:   { fontSize: 17, fontFamily: "Poppins_500Medium", marginTop: 2 },
+  vdRow:      { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 6 },
+  vdMuted:    { color: "#C9C6D0", fontSize: 12, fontFamily: "Poppins_400Regular" },
+  vdPrice:    { color: ORANGE, fontSize: 17, fontFamily: "Poppins_600SemiBold" },
+  vdSpecs:    { flexDirection: "row", marginTop: 16, marginBottom: 6 },
+  vdSpec:     { flex: 1, flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 4 },
+  vdSpecSep:  { borderLeftWidth: 1, borderLeftColor: "rgba(255,255,255,0.3)" },
+  vdSpecTxt:  { flex: 1, color: "#E6E1E8", fontSize: 11, fontFamily: "Poppins_400Regular" },
+  vdSec:      { fontSize: 18, fontFamily: "Poppins_600SemiBold", marginTop: 22, marginBottom: 8 },
+  vdPriceRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.12)" },
+  vdPriceLbl: { color: "#C9C6D0", fontSize: 14, fontFamily: "Poppins_400Regular", flex: 1 },
+  vdPriceVal: { fontSize: 14, fontFamily: "Poppins_400Regular" },
+  vdChips:    { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  vdChip:     { flexDirection: "row", alignItems: "center", gap: 6, borderWidth: 1, borderColor: "#7F98C4", backgroundColor: "#0B2358", borderRadius: 16, paddingHorizontal: 14, paddingVertical: 6 },
+  vdChipTxt:  { color: "#E6E1E8", fontSize: 11, fontFamily: "Poppins_400Regular" },
 
   infoRow:   { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 10 },
   infoLabel: { color: "#8090B0", fontSize: 13, fontFamily: "Poppins_400Regular" },

@@ -14,7 +14,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronLeft, Search, ArrowDownUp, Eye, CheckCircle, Shield, MapPin, Check } from 'lucide-react-native';
+import { ChevronLeft, Search, Eye, CheckCircle, Shield, Check, Car, Crosshair } from 'lucide-react-native';
+import { MaterialIcons } from '@expo/vector-icons';
+import { GlowCard, PillGlow } from '@/components/dealer/DealerUI';
+import { SearchInputEffect } from '@/components/shared/FigmaEffects';
+import InnerGlow from '@/components/shared/InnerGlow';
 import { useRouter } from 'expo-router';
 import { AppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
@@ -35,10 +39,10 @@ const SORT_OPTIONS = [
 ];
 
 const STATUS_STYLES: any = {
-  'Pending':     { bg: 'rgba(226,103,27,0.15)', text: ORANGE, border: ORANGE },
-  'In progress': { bg: 'rgba(59,111,214,0.15)', text: '#6ab0ff', border: '#6ab0ff' },
-  'Approved':    { bg: 'rgba(10,60,35,0.4)',    text: '#22c55e', border: '#22c55e' },
-  'Rejected':    { bg: 'rgba(90,15,25,0.4)',    text: '#F45B69', border: '#F45B69' },
+  'Pending':     { bg: '#3A2420', text: ORANGE,    border: 'rgba(226,103,27,0.45)' },
+  'In progress': { bg: '#0E2A55', text: '#7FB0FF', border: 'rgba(127,176,255,0.35)' },
+  'Approved':    { bg: '#0B2A22', text: '#2ECC71', border: 'rgba(46,204,113,0.4)' },
+  'Rejected':    { bg: '#3A1520', text: '#E0363A', border: 'rgba(224,54,58,0.4)' },
 };
 
 const STATUS_LABEL_MAP: Record<string, string> = {
@@ -65,18 +69,13 @@ function applySortKey(list: any[], key: string) {
 function RequestCard({ item, onDetails }: { item: any; onDetails: () => void }) {
   const st = STATUS_STYLES[item.status] || STATUS_STYLES['Pending'];
   return (
-    <View style={s.card}>
-      <LinearGradient colors={['rgba(22,64,136,0.35)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.25 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-      <LinearGradient colors={['transparent', 'rgba(29,83,175,0.35)']} start={{ x: 0.5, y: 0.75 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-      <LinearGradient colors={['rgba(13,37,84,0.35)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.25, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-      <LinearGradient colors={['transparent', 'rgba(13,37,84,0.35)']} start={{ x: 0.75, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-
+    <GlowCard style={s.card} radius={20}>
       {/* Customer + Status */}
       <View style={s.cardTopRow}>
-        <View>
+        <View style={{ flex: 1 }}>
           <Text style={s.customerName}>{item.name}</Text>
           <View style={s.vehicleRow}>
-            <MapPin size={11} color="#8f9cb5" />
+            <Car size={13} color="#E6E1E8" />
             <Text style={s.vehicleTxt}>{item.vehicle}</Text>
           </View>
         </View>
@@ -88,9 +87,9 @@ function RequestCard({ item, onDetails }: { item: any; onDetails: () => void }) 
       {/* Insurance info */}
       <View style={s.infoBox}>
         <View style={s.infoIconWrap}>
-          <Shield size={16} color={ORANGE} />
+          <Shield size={20} color={ORANGE} />
         </View>
-        <View>
+        <View style={{ flex: 1 }}>
           <Text style={s.infoLabel}>Selected Insurance</Text>
           <Text style={s.infoValue}>{item.insurance}</Text>
           <Text style={s.infoRate}>{item.insuranceRate}</Text>
@@ -100,14 +99,16 @@ function RequestCard({ item, onDetails }: { item: any; onDetails: () => void }) 
       {/* Tracker info */}
       <View style={s.infoBox}>
         <View style={s.infoIconWrap}>
-          <MapPin size={16} color={ORANGE} />
+          <Crosshair size={20} color={ORANGE} />
         </View>
-        <View>
+        <View style={{ flex: 1 }}>
           <Text style={s.infoLabel}>Tracker Package</Text>
           <Text style={s.infoValue}>{item.tracker}</Text>
           <Text style={s.infoRate}>{item.trackerModel}</Text>
         </View>
       </View>
+
+      <View style={s.divider} />
 
       {/* Fee + Date */}
       <View style={s.feeRow}>
@@ -124,16 +125,17 @@ function RequestCard({ item, onDetails }: { item: any; onDetails: () => void }) 
       {/* Buttons */}
       <View style={s.btnRow}>
         <TouchableOpacity style={s.detailsBtn} activeOpacity={0.8} onPress={onDetails}>
-          <Eye size={14} color={C.textPrimary} />
+          <InnerGlow radius={20} fill="#131F38" glowColor="#2C55A0" blur={12} borderColors={['#6F8CC0', '#5873A6']} borderWidth={1} />
+          <Eye size={16} color="#C9C6D0" />
           <Text style={s.detailsTxt}>DETAILS</Text>
         </TouchableOpacity>
         <TouchableOpacity style={s.approveBtn} activeOpacity={0.85}>
-          <LinearGradient colors={['#032a69', ORANGE]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
-          <CheckCircle size={14} color="#fff" />
+          <LinearGradient colors={['#082C66', '#DF6728']} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} />
+          <CheckCircle size={16} color="#fff" />
           <Text style={s.approveTxt}>APPROVE</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </GlowCard>
   );
 }
 
@@ -188,31 +190,29 @@ export default function TrackerRequestsScreen() {
       <SafeAreaView edges={['top']}>
         <View style={s.header}>
           <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
-            <ChevronLeft size={22} color={C.textPrimary} />
+            <ChevronLeft size={28} color="#BAACB6" />
           </TouchableOpacity>
           <Text style={s.headerTitle}>Tracker Requests</Text>
-          <View style={{ width: 36 }} />
         </View>
 
         {/* Search + Sort */}
         <View style={s.searchRow}>
           <View style={s.searchBox}>
-            <LinearGradient colors={['rgba(22,64,136,0.5)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <LinearGradient colors={['rgba(13,37,84,0.5)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <LinearGradient colors={['transparent', 'rgba(29,83,175,0.5)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <Search size={16} color="#8f9cb5" />
-            <TextInput style={s.searchInput} placeholder="Search by Claim ID, Customer, Vehicle..." placeholderTextColor={C.textPlaceholder} value={search} onChangeText={setSearch} />
+            <SearchInputEffect radius={32} />
+            <Search size={20} color="#C9C6D0" />
+            <TextInput style={s.searchInput} placeholder="Search by Claim ID, Customer, Vehicle..." placeholderTextColor="#9C96A2" value={search} onChangeText={setSearch} />
           </View>
           <TouchableOpacity style={s.sortBtn} onPress={() => setSortModal(true)}>
-            <ArrowDownUp size={15} color={sortKey ? ORANGE : '#8f9cb5'} />
-            <Text style={[s.sortTxt, { color: sortKey ? ORANGE : '#8f9cb5' }]}>Sort</Text>
+            <MaterialIcons name="sort" size={26} color={ORANGE} />
+            <Text style={[s.sortTxt, { color: sortKey ? ORANGE : '#FFFFFF' }]}>Sort</Text>
           </TouchableOpacity>
         </View>
 
         {/* Filter chips */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.filterRow} style={{ marginBottom: 8 }}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.filterRow} style={{ marginBottom: 14, flexGrow: 0 }}>
           {FILTERS.map(f => (
             <TouchableOpacity key={f} style={[s.chip, activeFilter === f && s.chipActive]} onPress={() => setFilter(f)}>
+              {activeFilter === f && <PillGlow />}
               <Text style={[s.chipTxt, activeFilter === f && s.chipTxtActive]}>{f}</Text>
             </TouchableOpacity>
           ))}
@@ -271,50 +271,51 @@ export default function TrackerRequestsScreen() {
 }
 
 const s = StyleSheet.create({
-  root:        { flex: 1, backgroundColor: C.bg },
-  header:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12 },
-  backBtn:     { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { fontSize: 18, fontFamily: 'Poppins_600SemiBold', color: C.textPrimary },
+  root:        { flex: 1, backgroundColor: '#010A1F' },
+  header:      { height: 56, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, gap: 10 },
+  backBtn:     { width: 30, height: 40, justifyContent: 'center' },
+  headerTitle: { fontSize: 20, fontFamily: 'Poppins_500Medium', color: '#F2F1F5' },
 
-  searchRow:   { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, marginBottom: 12 },
-  searchBox:   { flex: 1, flexDirection: 'row', alignItems: 'center', borderRadius: 30, paddingHorizontal: 14, paddingVertical: 11, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(100,160,255,0.5)', backgroundColor: C.bg, marginRight: 12 },
-  searchInput: { flex: 1, fontSize: 13, fontFamily: 'Poppins_400Regular', color: C.textPrimary, padding: 0, marginLeft: 8 },
-  sortBtn:     { flexDirection: 'row', alignItems: 'center' },
-  sortTxt:     { fontSize: 13, fontFamily: 'Poppins_600SemiBold', marginLeft: 4 },
+  searchRow:   { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, marginBottom: 16, gap: 12 },
+  searchBox:   { flex: 1, height: 48, flexDirection: 'row', alignItems: 'center', borderRadius: 32, paddingHorizontal: 16, overflow: 'hidden', borderWidth: 1, borderColor: '#829fd0', backgroundColor: '#061124' },
+  searchInput: { flex: 1, height: '100%', fontSize: 13, fontFamily: 'Poppins_400Regular', color: '#F2F1F5', padding: 0, marginLeft: 10 },
+  sortBtn:     { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  sortTxt:     { fontSize: 18, fontFamily: 'Poppins_400Regular' },
 
-  filterRow:   { paddingHorizontal: 16, paddingRight: 8 },
-  chip:        { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 30, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.12)', backgroundColor: 'rgba(6,27,74,1)', marginRight: 8 },
-  chipActive:  { borderColor: ORANGE },
-  chipTxt:     { fontSize: 12, fontFamily: 'Poppins_500Medium', color: '#c3cee2' },
-  chipTxtActive:{ color: ORANGE },
-  itemCount:   { fontSize: 12, fontFamily: 'Poppins_400Regular', color: C.textSecondary, paddingHorizontal: 16, marginTop: 6, marginBottom: 10 },
+  filterRow:   { paddingHorizontal: 16, paddingRight: 8, gap: 12 },
+  chip:        { height: 48, minWidth: 64, paddingHorizontal: 22, borderRadius: 16, borderWidth: 1, borderColor: '#0B2358', backgroundColor: '#0B2358', alignItems: 'center', justifyContent: 'center' },
+  chipActive:  { backgroundColor: '#05122A', borderColor: '#7F98C4', overflow: 'hidden' },
+  chipTxt:     { fontSize: 15, fontFamily: 'Poppins_500Medium', color: '#FFFFFF' },
+  chipTxtActive:{ color: ORANGE, fontFamily: 'Poppins_600SemiBold' },
+  itemCount:   { fontSize: 13, fontFamily: 'Poppins_400Regular', color: '#E6E1E8', paddingHorizontal: 16, marginBottom: 12 },
 
-  list:        { paddingHorizontal: 16, paddingBottom: 100, gap: 14 },
+  list:        { paddingHorizontal: 16, paddingBottom: 100, gap: 16 },
 
-  card:        { borderRadius: 14, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(100,160,255,0.5)', backgroundColor: 'rgba(1,6,20,1)', padding: 10 },
-  cardTopRow:  { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 },
-  customerName:{ fontSize: 15, fontFamily: 'Poppins_600SemiBold', color: C.textPrimary, marginBottom: 4 },
-  vehicleRow:  { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  vehicleTxt:  { fontSize: 12, fontFamily: 'Poppins_400Regular', color: '#8f9cb5' },
-  statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20, borderWidth: 1 },
-  statusTxt:   { fontSize: 10, fontFamily: 'Poppins_700Bold', letterSpacing: 0.5 },
+  card:        { padding: 22 },
+  cardTopRow:  { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 18 },
+  customerName:{ fontSize: 16, fontFamily: 'Poppins_500Medium', color: '#FFFFFF', marginBottom: 2 },
+  vehicleRow:  { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  vehicleTxt:  { fontSize: 12, fontFamily: 'Poppins_400Regular', color: '#E6E1E8' },
+  statusBadge: { paddingHorizontal: 14, paddingVertical: 4, borderRadius: 14, borderWidth: 1 },
+  statusTxt:   { fontSize: 11, fontFamily: 'Poppins_500Medium', letterSpacing: 1 },
 
-  infoBox:     { padding: 8, flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 6 },
-  infoIconWrap:{ width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(226,103,27,0.12)', alignItems: 'center', justifyContent: 'center' },
-  infoLabel:   { fontSize: 11, fontFamily: 'Poppins_400Regular', color: '#8f9cb5', marginBottom: 2 },
-  infoValue:   { fontSize: 13, fontFamily: 'Poppins_600SemiBold', color: C.textPrimary },
+  infoBox:     { paddingVertical: 14, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 16, marginBottom: 16, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(230,225,232,0.22)' },
+  infoIconWrap:{ width: 24, alignItems: 'center', justifyContent: 'center' },
+  infoLabel:   { fontSize: 13, fontFamily: 'Poppins_400Regular', color: '#FFFFFF', marginBottom: 2 },
+  infoValue:   { fontSize: 14, fontFamily: 'Poppins_500Medium', color: '#FFFFFF' },
   infoRate:    { fontSize: 11, fontFamily: 'Poppins_400Regular', color: ORANGE, marginTop: 1 },
 
-  feeRow:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 8, marginBottom: 10 },
-  feeLabel:    { fontSize: 11, fontFamily: 'Poppins_400Regular', color: '#8f9cb5', marginBottom: 3 },
-  feeValue:    { fontSize: 16, fontFamily: 'Poppins_700Bold', color: C.textPrimary },
-  dateValue:   { fontSize: 13, fontFamily: 'Poppins_500Medium', color: C.textPrimary },
+  divider:     { height: 1, backgroundColor: 'rgba(230,225,232,0.2)', marginBottom: 18 },
+  feeRow:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 22 },
+  feeLabel:    { fontSize: 13, fontFamily: 'Poppins_400Regular', color: '#FFFFFF', marginBottom: 3 },
+  feeValue:    { fontSize: 14, fontFamily: 'Poppins_500Medium', color: '#FFFFFF' },
+  dateValue:   { fontSize: 11, fontFamily: 'Poppins_400Regular', color: '#FFFFFF' },
 
-  btnRow:      { flexDirection: 'row', gap: 10 },
-  detailsBtn:  { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 11, borderRadius: 30, borderWidth: 1, borderColor: 'rgba(100,160,255,0.5)' },
-  detailsTxt:  { fontSize: 12, fontFamily: 'Poppins_700Bold', color: C.textPrimary, letterSpacing: 0.5 },
-  approveBtn:  { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 11, borderRadius: 30, overflow: 'hidden' },
-  approveTxt:  { fontSize: 12, fontFamily: 'Poppins_700Bold', color: '#fff', letterSpacing: 0.5 },
+  btnRow:      { flexDirection: 'row', gap: 12 },
+  detailsBtn:  { flex: 1, height: 40, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 20, overflow: 'hidden' },
+  detailsTxt:  { fontSize: 13, fontFamily: 'Poppins_500Medium', color: '#E3E5EF', letterSpacing: 1.5 },
+  approveBtn:  { flex: 1, height: 40, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 20, overflow: 'hidden' },
+  approveTxt:  { fontSize: 13, fontFamily: 'Poppins_500Medium', color: '#fff', letterSpacing: 1.5 },
 
   empty:       { alignItems: 'center', paddingTop: 80 },
   emptyTxt:    { fontSize: 14, fontFamily: 'Poppins_500Medium', color: C.textSecondary },
