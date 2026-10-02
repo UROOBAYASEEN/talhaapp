@@ -655,8 +655,8 @@ const styles = StyleSheet.create({
     flex: 1, paddingHorizontal: 10, paddingVertical: 12,
     alignItems: 'center', justifyContent: 'flex-end',
   },
-  needImgCompare:{ width: 96, height: 69, marginBottom: 8 },
-  needImgFinance:{ width: 120, height: 82, marginBottom: 8 },
+  needImgCompare:{ width: 110, height: 76, marginBottom: 8 },
+  needImgFinance:{ width: 110, height: 76, marginBottom: 8 },
   needTitleRow:  {
     flexDirection: 'row', alignItems: 'center',
     justifyContent: 'space-between', width: '100%', marginBottom: 4,

@@ -259,7 +259,9 @@ export default function AdsScreen() {
                     start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
                     style={styles.needGrad}
                   >
-                    <Image source={{ uri: IMG_COMPARE }} style={styles.needImg} resizeMode="contain" />
+                    <View style={styles.needImgWrap}>
+                      <Image source={{ uri: IMG_COMPARE }} style={styles.needImg} resizeMode="contain" />
+                    </View>
                     <View style={styles.needTitleRow}>
                       <Text style={[styles.needTitle, { color: aC.isDark ? WHITE : '#032a69' }]}>{'Compare\nVehicle'}</Text>
                       <Ionicons name="chevron-forward" size={14} color={aC.isDark ? WHITE : '#032a69'} />
@@ -274,7 +276,9 @@ export default function AdsScreen() {
                     start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
                     style={styles.needGrad}
                   >
-                    <Image source={{ uri: IMG_INSURANCE }} style={styles.needImg} resizeMode="contain" />
+                    <View style={styles.needImgWrap}>
+                      <Image source={{ uri: IMG_INSURANCE }} style={styles.needImg} resizeMode="contain" />
+                    </View>
                     <View style={styles.needTitleRow}>
                       <Text style={[styles.needTitle, { color: aC.isDark ? WHITE : '#032a69' }]}>{'Compare\nInsurance'}</Text>
                       <Ionicons name="chevron-forward" size={14} color={aC.isDark ? WHITE : '#032a69'} />
@@ -405,16 +409,17 @@ const styles = StyleSheet.create({
     marginBottom: 12, marginTop: 8,
   },
 
-  needsRow: { flexDirection: 'row', gap: 12, marginBottom: 20 },
+  needsRow: { flexDirection: 'row', gap: 12, marginBottom: 20, alignItems: 'stretch' },
   needCard: { flex: 1, borderRadius: 16, overflow: 'hidden' },
-  needGrad: { padding: 10, minHeight: 186, justifyContent: 'flex-end' },
+  needGrad: { padding: 12, minHeight: 210, justifyContent: 'flex-start', alignItems: 'center' },
+  needImgWrap: { height: 84, width: '100%', alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
   needTitleRow: {
-    flexDirection: 'row', alignItems: 'center',
-    justifyContent: 'space-between', marginBottom: 4,
+    flexDirection: 'row', alignItems: 'center', width: '100%',
+    justifyContent: 'space-between', marginBottom: 4, minHeight: 44,
   },
-  needTitle: { color: WHITE,    fontSize: 16, fontFamily: 'Poppins_500Medium', textTransform: 'capitalize' },
-  needImg:   { width: 96, height: 70, marginBottom: 8 },
-  needSub:   { color: UNSELECT, fontSize: 10, fontFamily: 'Poppins_400Regular', lineHeight: 14 },
+  needTitle: { color: WHITE,    fontSize: 15, fontFamily: 'Poppins_500Medium', textTransform: 'capitalize', flex: 1, lineHeight: 21 },
+  needImg:   { width: 88, height: 68 },
+  needSub:   { color: UNSELECT, fontSize: 10, fontFamily: 'Poppins_400Regular', lineHeight: 14, textAlign: 'center', minHeight: 42, width: '100%' },
 
   videoCard: {
     flexDirection: 'row', gap: 14,

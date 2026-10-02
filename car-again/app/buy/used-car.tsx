@@ -693,7 +693,7 @@ const styles = StyleSheet.create({
   container: { paddingHorizontal: 15, paddingTop: 8 },
 
   header:     { height: 48, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  logo:       { flex: 1, height: 22, marginHorizontal: 12 },
+  logo:       { flex: 1, height: 22, marginHorizontal: 12, marginTop: 18 },
 
   findText:     { color: WHITE, fontSize: 13, fontFamily: "Poppins_500Medium", marginTop: 12, marginBottom: 10 },
   tabsScroll:   { marginBottom: 8 },

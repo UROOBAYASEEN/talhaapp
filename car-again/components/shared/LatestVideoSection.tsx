@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Video, ResizeMode } from 'expo-av';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { API_BASE } from '@/constants/api';
 import { useAppColors } from '@/constants/theme';
 
@@ -19,14 +20,14 @@ interface Props {
   count?: number;   // how many video cards to show (default 2)
 }
 
-function VideoCard({ item }: { item: any }) {
+function VideoCard({ item, onPlay }: { item: any; onPlay: () => void }) {
   const SERVER = API_BASE.replace('/api/v1', '');
   const C = useAppColors();
   const thumb = item.media_url?.startsWith('http') ? item.media_url : item.media_url ? `${SERVER}${item.media_url}` : VIDEO_IMG;
   const title = item.title || 'Video Ad';
   const isVideo = (item.media_url || '').match(/\.(mp4|mov|webm)$/i);
   return (
-    <TouchableOpacity style={[s.card, { backgroundColor: C.isDark ? C.glassBg : '#ffffff', borderColor: C.isDark ? 'rgba(100,160,255,0.5)' : 'rgba(3,42,105,0.12)', shadowColor: C.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOffset: { width: 0, height: 4 }, shadowOpacity: C.isDark ? 0 : 0.08, shadowRadius: 10, elevation: C.isDark ? 0 : 3 }]} activeOpacity={0.86}>
+    <TouchableOpacity style={[s.card, { backgroundColor: C.isDark ? C.glassBg : '#ffffff', borderColor: C.isDark ? 'rgba(100,160,255,0.5)' : 'rgba(3,42,105,0.12)', shadowColor: C.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOffset: { width: 0, height: 4 }, shadowOpacity: C.isDark ? 0 : 0.08, shadowRadius: 10, elevation: C.isDark ? 0 : 3 }]} activeOpacity={0.86} onPress={onPlay}>
       {C.isDark ? (
         <>
           <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
@@ -74,8 +75,10 @@ function VideoCard({ item }: { item: any }) {
 
 export default function LatestVideoSection({ count = 2 }: Props) {
   const C = useAppColors();
+  const SERVER = API_BASE.replace('/api/v1', '');
   const [videos, setVideos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [playing, setPlaying] = useState<{ uri: string; title: string } | null>(null);
   useEffect(() => {
     (async () => {
       try {
@@ -83,17 +86,13 @@ export default function LatestVideoSection({ count = 2 }: Props) {
         if (res.ok) {
           const data = await res.json();
           const items = Array.isArray(data) ? data : data.items || [];
+          // Latest first — start ki videos (koi random/shuffle nahi)
           const sorted = [...items].sort((a, b) => {
-            const priceA = a.amount ?? a.price ?? a.boost_price ?? 0;
-            const priceB = b.amount ?? b.price ?? b.boost_price ?? 0;
-            if (priceB !== priceA) return priceB - priceA;
             const da = new Date(a.created_at || a.createdAt || 0).getTime();
             const db = new Date(b.created_at || b.createdAt || 0).getTime();
             return db - da;
           });
-          // priority sort (price high → recent) then random pick 2 each time
-          const shuffled = [...sorted].sort(() => Math.random() - 0.5);
-          setVideos(shuffled.slice(0, count));
+          setVideos(sorted.slice(0, count));
         }
       } catch {}
       finally { setLoading(false); }
@@ -101,14 +100,53 @@ export default function LatestVideoSection({ count = 2 }: Props) {
   }, [count]);
   if (loading) return <View style={s.wrap}><ActivityIndicator color={ORANGE} style={{ marginTop: 12 }} /></View>;
   const list = videos.length > 0 ? videos : Array.from({ length: count }).map((_, i) => ({ id: `fallback-${i}`, title: '2026 Honda Civic', media_url: VIDEO_IMG, user_type: 'All Users' }));
+
+  function playUrl(item: any): string | null {
+    const u = item.media_url;
+    if (!u) return null;
+    if (u.startsWith('http')) return u;
+    return `${SERVER}${u.startsWith('/') ? u : `/${u}`}`;
+  }
+
   return (
     <View style={s.wrap}>
       <View style={s.header}>
         <Text style={[s.heading, { color: C.textPrimary }]}>Latest Video</Text>
       </View>
       {list.map((v: any) => (
-        <VideoCard key={v.id || v._id || v.title} item={v} />
+        <VideoCard
+          key={v.id || v._id || v.title}
+          item={v}
+          onPlay={() => {
+            const uri = playUrl(v);
+            if (!uri) return;
+            setPlaying({ uri, title: v.title || 'Video Ad' });
+          }}
+        />
       ))}
+
+      {/* Video player */}
+      <Modal visible={!!playing} transparent animationType="fade" onRequestClose={() => setPlaying(null)}>
+        <View style={s.playerOverlay}>
+          <View style={s.playerHeader}>
+            <Text style={s.playerTitle} numberOfLines={1}>{playing?.title}</Text>
+            <TouchableOpacity style={s.playerClose} onPress={() => setPlaying(null)}>
+              <Ionicons name="close" size={20} color="#fff" />
+            </TouchableOpacity>
+          </View>
+          {playing && (/\.(mp4|mov|webm)$/i.test(playing.uri) ? (
+            <Video
+              source={{ uri: playing.uri }}
+              style={s.playerVideo}
+              resizeMode={ResizeMode.CONTAIN}
+              shouldPlay
+              useNativeControls
+            />
+          ) : (
+            <Image source={{ uri: playing.uri }} style={s.playerVideo} resizeMode="contain" />
+          ))}
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -150,4 +188,10 @@ const s = StyleSheet.create({
 
   watchBtn: { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 2 },
   watchTxt: { color: '#ff383c', fontSize: 9, fontFamily: 'Poppins_600SemiBold' },
+
+  playerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', justifyContent: 'center', paddingHorizontal: 16 },
+  playerHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
+  playerTitle: { flex: 1, color: '#fff', fontSize: 15, fontFamily: 'Poppins_600SemiBold', marginRight: 12 },
+  playerClose: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.12)', alignItems: 'center', justifyContent: 'center' },
+  playerVideo: { width: '100%', height: 320, borderRadius: 12, backgroundColor: '#000' },
 });

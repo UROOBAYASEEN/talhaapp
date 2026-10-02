@@ -1,20 +1,26 @@
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator, FlatList, Image, RefreshControl,
-  StyleSheet, Text, TextInput, TouchableOpacity, View, StatusBar
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { API_BASE } from '@/constants/api';
-import { useAuth } from '@/contexts/AuthContext';
-import { AppColors, useAppColors } from '@/constants/theme';
+  SafeAreaView, View, Text, StyleSheet, ScrollView, Modal,
+  TouchableOpacity, Image, Dimensions, StatusBar, ActivityIndicator,
+  RefreshControl, TextInput, PanResponder, Animated,
+} from "react-native";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
+import { AppColors, useAppColors } from "@/constants/theme";
+import { API_BASE } from "@/constants/api";
+import { useAuth } from "@/contexts/AuthContext";
+import AskariBank from "@/components/shared/AskariBank";
+import LatestVideoSection from "@/components/shared/LatestVideoSection";
 
+const { width } = Dimensions.get("window");
+const BG     = AppColors.bg;
+const CARD   = AppColors.glassBg;
 const ORANGE = AppColors.gradientEnd;
 const NAVY   = AppColors.gradientStart;
-const C      = AppColors;
-const BORDER = 'rgba(100,160,255,0.4)';
+const WHITE  = AppColors.textPrimary;
+const MUTED  = AppColors.textSecondary;
+const BORDER = "rgba(100,160,255,0.4)";
 
 const SERVER_BASE = API_BASE.replace('/api/v1', '');
 function imgUrl(url?: string) {
@@ -33,331 +39,730 @@ function GlassInset() {
   if (!aC.isDark) {
     return (
       <>
-        <LinearGradient colors={['rgba(3,42,105,0.04)','transparent']} start={{x:0.5,y:0}} end={{x:0.5,y:0.4}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-        <LinearGradient colors={['transparent','rgba(226,103,27,0.07)']} start={{x:0.5,y:0.6}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+        <LinearGradient colors={["rgba(3,42,105,0.04)","transparent"]} start={{x:0.5,y:0}} end={{x:0.5,y:0.4}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+        <LinearGradient colors={["transparent","rgba(226,103,27,0.07)"]} start={{x:0.5,y:0.6}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
       </>
     );
   }
   return (
     <>
-      <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-      <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-      <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+      <LinearGradient colors={["rgba(22,64,136,0.2)","transparent"]} start={{x:0.5,y:0}} end={{x:0.5,y:0.6}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+      <LinearGradient colors={["rgba(13,37,84,0.18)","transparent"]} start={{x:0,y:0.5}} end={{x:0.45,y:0.5}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+      <LinearGradient colors={["transparent","rgba(29,83,175,0.2)"]} start={{x:0.5,y:0.4}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
     </>
   );
 }
 
-export default function UsedBikeScreen() {
-  const router = useRouter();
+// ── Static data ──────────────────────────────────────────────────────────────
+const CATEGORIES = [
+  { title: "Sports bikes", icon: "bike-fast",          search: "sports" },
+  { title: "Old bikes",    icon: "bicycle",            search: "" },
+  { title: "Chinese\nbikes", icon: "bike",             search: "chinese" },
+  { title: "Cheap bikes",  icon: "tag-outline",        search: "cheap" },
+  { title: "Electric\nbikes", icon: "ev-station",      search: "electric" },
+  { title: "Scooty",       icon: "moped-outline",      search: "scooty" },
+  { title: "Heavy bikes",  icon: "motorbike",          search: "heavy" },
+  { title: "CD 70 bikes",  icon: "bicycle",            search: "cd 70" },
+];
+
+const CITIES    = ["All Cities","Karachi","Lahore","Islamabad","Rawalpindi","Peshawar","Quetta","Faisalabad","Multan","Hyderabad","Sialkot","Gujranwala"];
+const YEARS     = ["Any Year", ...Array.from({ length: 27 }, (_, i) => String(2026 - i))];
+const COLORS    = ["Any Color","White","Black","Silver","Grey","Red","Blue","Beige","Green","Brown","Orange","Golden"];
+const VARIANTS  = ["Any Variant","70cc","100cc","110cc","125cc","150cc","250cc","Standard","GL","Sport","AWD"];
+const SELLER_TYPES = ["All (Showroom + Sellers)", "Dealership", "Individual"];
+const SERVICES  = [
+  { title: "Protect Your Vehicle with Insurance",          subtitle: "Pick the Right Coverage and Get Insured Easily.",                    icon: "shield-check-outline", route: "/insurance-search" },
+  { title: "Get an Installation Tracker for Your Vehicle", subtitle: "Compare Prices and Schedule Installation.",                         icon: "map-marker-outline",   route: "/tracker-search" },
+  { title: "Apply for Auto Financing",                     subtitle: "Submit your financing application online in just a few easy steps.", icon: "bank-outline",          route: "/(tabs)/sellers" },
+];
+
+// ── Range Slider ──────────────────────────────────────────────────────────────
+const PRICE_MIN = 0;
+const PRICE_MAX = 50_000_000;
+
+function RangeSlider({ onChangMin, onChangeMax }: { onChangMin: (v: string) => void; onChangeMax: (v: string) => void }) {
+  const THUMB = 16;
+  const trackRef  = useRef<View>(null);
+  const trackWidth= useRef(0);
+  const minPos    = useRef(new Animated.Value(0)).current;
+  const maxPos    = useRef(new Animated.Value(1)).current; // 0–1 ratio
+  const minRatio  = useRef(0);
+  const maxRatio  = useRef(1);
+
+  function ratioToPrice(r: number) {
+    return Math.round(PRICE_MIN + r * (PRICE_MAX - PRICE_MIN) / 100_000) * 100_000;
+  }
+  function priceLabel(p: number) {
+    if (p >= 10_000_000) return `${(p / 10_000_000).toFixed(1)}Cr`;
+    if (p >= 100_000)    return `${(p / 100_000).toFixed(1)}L`;
+    return `${p}`;
+  }
+
+  const makePan = (isMin: boolean) => PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onPanResponderMove: (_, g) => {
+      if (!trackWidth.current) return;
+      const tw = trackWidth.current - THUMB;
+      const ratio = Math.max(0, Math.min(1, (g.moveX - THUMB / 2) / tw));
+      if (isMin) {
+        const clamped = Math.min(ratio, maxRatio.current - 0.02);
+        minRatio.current = clamped;
+        minPos.setValue(clamped);
+        onChangMin(String(ratioToPrice(clamped)));
+      } else {
+        const clamped = Math.max(ratio, minRatio.current + 0.02);
+        maxRatio.current = clamped;
+        maxPos.setValue(clamped);
+        onChangeMax(String(ratioToPrice(clamped)));
+      }
+    },
+  });
+
+  const minPan = useRef(makePan(true)).current;
+  const maxPan = useRef(makePan(false)).current;
+
+  const [minVal, setMinVal] = useState(0);
+  const [maxVal, setMaxVal] = useState(PRICE_MAX);
+
+  // Re-derive labels
+  minPos.addListener(({ value }) => setMinVal(ratioToPrice(value)));
+  maxPos.addListener(({ value }) => setMaxVal(ratioToPrice(value)));
+
+  return (
+    <View style={{ marginTop: 10, marginBottom: 4 }}>
+      {/* Price labels */}
+      <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 6 }}>
+        <Text style={{ color: ORANGE, fontSize: 10, fontFamily: "Poppins_600SemiBold" }}>{priceLabel(minVal)}</Text>
+        <Text style={{ color: ORANGE, fontSize: 10, fontFamily: "Poppins_600SemiBold" }}>{priceLabel(maxVal)}</Text>
+      </View>
+
+      {/* Track */}
+      <View
+        ref={trackRef}
+        onLayout={e => { trackWidth.current = e.nativeEvent.layout.width; }}
+        style={{ height: THUMB, justifyContent: "center" }}
+      >
+        {/* Background track */}
+        <View style={{ height: 4, backgroundColor: "rgba(255,255,255,0.15)", borderRadius: 3, marginHorizontal: THUMB / 2 }} />
+
+        {/* Active fill */}
+        <Animated.View style={{
+          position: "absolute", height: 4, borderRadius: 3,
+          backgroundColor: ORANGE,
+          left:  Animated.multiply(minPos, trackWidth.current - THUMB),
+          right: Animated.multiply(Animated.subtract(new Animated.Value(1), maxPos), trackWidth.current - THUMB),
+        }} />
+
+        {/* Min thumb */}
+        <Animated.View
+          {...minPan.panHandlers}
+          style={{
+            position: "absolute",
+            left: Animated.multiply(minPos, trackWidth.current - THUMB),
+            width: THUMB, height: THUMB, borderRadius: THUMB / 2,
+            backgroundColor: "#f1f1f1", borderWidth: 3, borderColor: ORANGE,
+          }}
+        />
+
+        {/* Max thumb */}
+        <Animated.View
+          {...maxPan.panHandlers}
+          style={{
+            position: "absolute",
+            left: Animated.multiply(maxPos, trackWidth.current - THUMB),
+            width: THUMB, height: THUMB, borderRadius: THUMB / 2,
+            backgroundColor: "#f1f1f1", borderWidth: 3, borderColor: ORANGE,
+          }}
+        />
+      </View>
+    </View>
+  );
+}
+
+// ── Select Sheet ──────────────────────────────────────────────────────────────
+function SelectSheet({ visible, title, options, selected, onSelect, onClose }: {
+  visible: boolean; title: string; options: string[];
+  selected: string; onSelect: (v: string) => void; onClose: () => void;
+}) {
+  const [q, setQ] = useState("");
+  const filtered  = q ? options.filter(o => o.toLowerCase().includes(q.toLowerCase())) : options;
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <TouchableOpacity style={sh.overlay} activeOpacity={1} onPress={onClose}>
+        <TouchableOpacity activeOpacity={1} style={sh.sheet}>
+          <GlassInset />
+          <View style={sh.handle} />
+          <View style={sh.header}>
+            <Text style={sh.title}>{title}</Text>
+            <TouchableOpacity onPress={onClose} style={sh.closeBtn}>
+              <Ionicons name="close" size={16} color={MUTED} />
+            </TouchableOpacity>
+          </View>
+          <View style={sh.searchRow}>
+            <GlassInset />
+            <Ionicons name="search-outline" size={14} color={MUTED} style={{ marginLeft: 12 }} />
+            <TextInput style={sh.searchInput} value={q} onChangeText={setQ} placeholder={`Search ${title}...`} placeholderTextColor={MUTED} />
+          </View>
+          <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 320 }} keyboardShouldPersistTaps="handled">
+            {filtered.map(opt => (
+              <TouchableOpacity key={opt} style={sh.option} onPress={() => { onSelect(opt); onClose(); }}>
+                <Text style={[sh.optTxt, opt === selected && { color: ORANGE, fontFamily: "Poppins_600SemiBold" }]}>{opt}</Text>
+                {opt === selected && <Ionicons name="checkmark" size={15} color={ORANGE} />}
+              </TouchableOpacity>
+            ))}
+            <View style={{ height: 20 }} />
+          </ScrollView>
+        </TouchableOpacity>
+      </TouchableOpacity>
+    </Modal>
+  );
+}
+const sh = StyleSheet.create({
+  overlay:   { flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "flex-end" },
+  sheet:     { backgroundColor: BG, borderTopLeftRadius: 24, borderTopRightRadius: 24, borderWidth: 1, borderColor: BORDER, paddingBottom: 36, overflow: "hidden" },
+  handle:    { width: 36, height: 4, borderRadius: 2, backgroundColor: "rgba(255,255,255,0.2)", alignSelf: "center", marginTop: 10, marginBottom: 4 },
+  header:    { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 18, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.08)" },
+  title:     { color: WHITE, fontSize: 15, fontFamily: "Poppins_700Bold" },
+  closeBtn:  { width: 28, height: 28, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.08)", alignItems: "center", justifyContent: "center" },
+  searchRow: { flexDirection: "row", alignItems: "center", marginHorizontal: 14, marginVertical: 10, height: 40, borderRadius: 20, borderWidth: 1, borderColor: BORDER, backgroundColor: CARD, overflow: "hidden" },
+  searchInput:{ flex: 1, color: WHITE, fontSize: 12, fontFamily: "Poppins_400Regular", paddingHorizontal: 10 },
+  option:    { flexDirection: "row", alignItems: "center", paddingHorizontal: 18, paddingVertical: 13, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.06)" },
+  optTxt:    { flex: 1, color: MUTED, fontSize: 13, fontFamily: "Poppins_400Regular" },
+});
+
+// ── Section Header ────────────────────────────────────────────────────────────
+function SectionHeader({ title, onViewAll }: { title: string; onViewAll?: () => void }) {
+  return (
+    <View style={styles.sectionHeader}>
+      <Text style={styles.sectionTitle}>{title}</Text>
+      {onViewAll && (
+        <TouchableOpacity onPress={onViewAll}>
+          <Text style={styles.viewAll}>View all <Text style={{ fontSize: 16 }}>›</Text></Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+}
+
+// ── Bike Card ─────────────────────────────────────────────────────────────────
+function BikeCard({ bike, onPress, onSave, saved }: { bike: any; onPress: () => void; onSave: () => void; saved: boolean }) {
+  const aC = useAppColors();
+  const uri = imgUrl(bike.images?.[0]);
+  return (
+    <View style={[styles.bikeCard, { backgroundColor: aC.isDark ? CARD : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }]}>
+      <GlassInset />
+      {uri
+        ? <Image source={{ uri }} style={styles.bikeImage} resizeMode="cover" />
+        : <View style={[styles.bikeImage, { backgroundColor: aC.isDark ? "#0d1e3d" : "#f1f5f9", alignItems: "center", justifyContent: "center" }]}>
+            <Ionicons name="bicycle-outline" size={32} color={aC.isDark ? MUTED : '#94a3b8'} />
+          </View>
+      }
+      <View style={styles.bikeInfo}>
+        <View style={styles.bikeNameRow}>
+          <Text style={[styles.bikeName, { color: aC.isDark ? WHITE : '#010a1f' }]} numberOfLines={1}>{bike.title || `${bike.make} ${bike.model}`}</Text>
+          <Text style={styles.bikePrice}>{formatPrice(bike.price)}</Text>
+        </View>
+        <Text style={[styles.bikeDetails, { color: aC.isDark ? 'rgba(255,255,255,0.75)' : '#475569' }]} numberOfLines={1}>{bike.variant || bike.transmission || "—"}</Text>
+        <Text style={[styles.bikeLocation, { color: aC.isDark ? MUTED : '#64748b' }]}>{bike.city || "Pakistan"} • {bike.year} • {bike.transmission || "Manual"}</Text>
+        <View style={styles.bikeButtonRow}>
+          <TouchableOpacity style={styles.viewButton} onPress={onPress} activeOpacity={0.85}>
+            <LinearGradient colors={[NAVY, ORANGE]} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFillObject} />
+            <Text style={styles.viewButtonText}>View</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.heartButton} onPress={onSave}>
+            <Ionicons name={saved ? "heart" : "heart-outline"} size={18} color={saved ? "#ff4d6d" : ORANGE} />
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+// ── Main Screen ───────────────────────────────────────────────────────────────
+export default function BuyUsedBikeScreen() {
+  const router    = useRouter();
   const { token } = useAuth();
   const aC = useAppColors();
 
-  const [bikes,      setBikes]      = useState<any[]>([]);
-  const [total,      setTotal]      = useState(0);
+  const [tab,        setTab]        = useState<"Category"|"Brand"|"Model"|"Cities">("Category");
+  const [recent,     setRecent]     = useState<any[]>([]);
+  const [hotSelling, setHotSelling] = useState<any[]>([]);
+  const [brands,     setBrands]     = useState<any[]>([]);
+  const [savedIds,   setSavedIds]   = useState<Set<string>>(new Set());
   const [loading,    setLoading]    = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [page,       setPage]       = useState(1);
-  const [hasNext,    setHasNext]    = useState(false);
-  const [search,     setSearch]     = useState('');
-  const [savedIds,   setSavedIds]   = useState<Set<string>>(new Set());
 
-  const fetchBikes = useCallback(async (p = 1, replace = true, q = search) => {
+  // Search form state
+  const [city,       setCity]       = useState("All Cities");
+  const [brand,      setBrand]      = useState("All Brands");
+  const [year,       setYear]       = useState("Any Year");
+  const [bikeName,   setBikeName]   = useState("");
+  const [variant,    setVariant]    = useState("Any Variant");
+  const [color,      setColor]      = useState("Any Color");
+  const [sellerType, setSellerType] = useState("All (Showroom + Sellers)");
+  const [minPrice,   setMinPrice]   = useState("");
+  const [maxPrice,   setMaxPrice]   = useState("");
+  const [openSheet,  setOpenSheet]  = useState<string | null>(null);
+
+  useEffect(() => { load(); }, []);
+
+  async function load() {
     try {
-      const headers: any = token ? { Authorization: `Bearer ${token}` } : {};
-      const params = new URLSearchParams({
-        category:  'bike',
-        condition: 'used',
-        page:      String(p),
-        limit:     '12',
-      });
-      if (q.trim()) params.set('search', q.trim());
-
-      const res = await fetch(`${API_BASE}/vehicles?${params}`, { headers });
-      if (res.ok) {
-        const d = await res.json();
-        setBikes(prev => replace ? (d.items || []) : [...prev, ...(d.items || [])]);
-        setTotal(d.total ?? 0);
-        setHasNext(d.has_next ?? false);
-        setPage(p);
+      const h: any = token ? { Authorization: `Bearer ${token}` } : {};
+      // Recently Listed = all used bikes | Hot Selling = sirf paid ads (AdPromotion success)
+      const [a, b, c] = await Promise.all([
+        fetch(`${API_BASE}/vehicles?condition=used&category=bike&limit=10`, { headers: h }),
+        fetch(`${API_BASE}/ads/hot-selling?condition=used&category=bike&limit=10`, { headers: h }),
+        fetch(`${API_BASE}/vehicles/brands?condition=used&category=bike`, { headers: h }),
+      ]);
+      let recentItems: any[] = [];
+      if (a.ok) { const d = await a.json(); recentItems = d.items || d || []; setRecent(recentItems); }
+      if (b.ok) {
+        const d = await b.json();
+        const hot = d.items || d || [];
+        // Hot Selling me sirf paid ads wali bikes - agar koi paid ad nahi to empty dikhega (no fallback)
+        setHotSelling(hot);
+      } else {
+        // Fallback agar endpoint na ho: purana featured query
+        try {
+          const fb = await fetch(`${API_BASE}/vehicles?condition=used&category=bike&featured=true&limit=10`, { headers: h });
+          if (fb.ok) { const d = await fb.json(); setHotSelling(d.items || d || []); }
+        } catch {}
       }
-    } catch { /* offline */ }
-    finally { setLoading(false); setRefreshing(false); setLoadingMore(false); }
-  }, [token, search]);
-
-  useEffect(() => { fetchBikes(1, true); }, []);
-
-  function loadMore() {
-    if (!hasNext || loadingMore) return;
-    setLoadingMore(true);
-    fetchBikes(page + 1, false);
+      if (c.ok) { const d = await c.json(); setBrands(d || []); }
+    } catch {}
+    finally { setLoading(false); setRefreshing(false); }
   }
 
   async function toggleSave(id: string) {
     if (!token) return;
     try {
       const res = await fetch(`${API_BASE}/vehicles/${id}/save`, {
-        method: 'POST', headers: { Authorization: `Bearer ${token}` },
+        method: "POST", headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
         const d = await res.json();
-        setSavedIds(prev => {
-          const s = new Set(prev);
-          if (d.saved) s.add(id); else s.delete(id);
-          return s;
-        });
+        setSavedIds(prev => { const s = new Set(prev); d.saved ? s.add(id) : s.delete(id); return s; });
       }
-    } catch { /* offline */ }
+    } catch {}
   }
 
-  // ── Bike Card — used-car wala div design ───────────────────────────────
-  function BikeCard({ item, onPress, onSave, saved }: {
-    item: any; onPress: () => void; onSave: () => void; saved: boolean;
-  }) {
-    const aC = useAppColors();
-    const bikeImg = imgUrl(item.images?.[0]);
+  function goDetail(id: string) {
+    router.push({ pathname: "/buy/car-detail", params: { id } } as any);
+  }
 
-    if (aC.isDark) {
+  function goSearch(extra?: Record<string, string>) {
+    const params: any = { condition: "used", category: "bike", seller_type: "individual" };
+    if (extra) Object.assign(params, extra);
+    router.push({ pathname: "/buy/search-results" as any, params });
+  }
+
+  function handleSearch() {
+    const params: any = { condition: "used", category: "bike", seller_type: "individual" };
+    if (city && city !== "All Cities")               params.city       = city;
+    if (brand && brand !== "All Brands")             params.search     = brand;
+    if (bikeName)                                     params.search     = bikeName;
+    if (year && year !== "Any Year")                  params.year       = year;
+    if (variant && variant !== "Any Variant")         params.variant    = variant;
+    if (color && color !== "Any Color")               params.color      = color;
+    if (minPrice)                                     params.min_price  = minPrice;
+    if (maxPrice)                                     params.max_price  = maxPrice;
+    router.push({ pathname: "/buy/search-results" as any, params });
+  }
+
+  // Dropdown helper
+  const fields = {
+    city:       { label: "City",         value: city,       options: CITIES,        setter: setCity },
+    brand:      { label: "Brand",        value: brand,      options: ["All Brands", ...brands.map((b:any) => b.name || b)], setter: setBrand },
+    year:       { label: "Year",         value: year,       options: YEARS,         setter: setYear },
+    variant:    { label: "Variant",      value: variant,    options: VARIANTS,      setter: setVariant },
+    color:      { label: "Color",        value: color,      options: COLORS,        setter: setColor },
+    sellerType: { label: "Seller Type",  value: sellerType, options: SELLER_TYPES,  setter: setSellerType },
+  };
+
+  function DropdownField({ fkey, icon, fullWidth = false }: { fkey: keyof typeof fields; icon: string; fullWidth?: boolean }) {
+    const f = fields[fkey];
+    return (
+      <View style={[styles.dropdownWrapper, fullWidth && { width: "100%" }]}>
+        <View style={styles.fieldLabelRow}>
+          <MaterialCommunityIcons name={icon as any} size={11} color={ORANGE} />
+          <Text style={[styles.fieldLabel, { color: aC.isDark ? MUTED : '#475569' }]}>{f.label}</Text>
+        </View>
+        <TouchableOpacity style={[styles.dropdown, { backgroundColor: aC.isDark ? CARD : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.06)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]} onPress={() => setOpenSheet(fkey)}>
+          <GlassInset />
+          <Text style={[styles.dropdownText, { color: aC.isDark ? WHITE : '#010a1f' }]} numberOfLines={1}>{f.value}</Text>
+          <Ionicons name="chevron-down" size={13} color={aC.isDark ? MUTED : '#64748b'} />
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  // Tab content
+  function TabContent() {
+    if (tab === "Brand") {
+      if (loading) return <ActivityIndicator color={ORANGE} style={{ paddingVertical: 16 }} />;
       return (
-        <LinearGradient
-          colors={['#0A285B', '#071A3B', '#071B3D']}
-          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-          style={s.bikeCard}
-        >
-        <View style={s.bikeTop}>
-          {/* Image */}
-          <View style={s.bikeImageWrap}>
-            {bikeImg ? (
-              <Image source={{ uri: bikeImg }} style={s.bikeImage} resizeMode="cover" />
-            ) : (
-              <View style={[s.bikeImage, { alignItems: 'center', justifyContent: 'center' }]}>
-                <Ionicons name="bicycle-outline" size={32} color="#929DB1" />
-              </View>
-            )}
-          </View>
-
-          {/* Details */}
-          <View style={s.bikeDetails}>
-            <Text style={s.bikeTitle} numberOfLines={2}>
-              {item.title || `${item.make} ${item.model}`}
-            </Text>
-            <Text style={s.bikeColor}>{item.color || '—'}</Text>
-
-            <View style={s.dealerRow}>
-              <Text style={s.dealer}>
-                {item.seller?.full_name || 'Seller'}
-              </Text>
-              <Ionicons name="checkmark-circle" size={16} color="#05AFFF" />
-            </View>
-
-            <Text style={s.bikeMeta}>
-              {item.city || 'Pakistan'} • {item.year} • {item.transmission || 'Manual'}
-            </Text>
-
-            <View style={s.availableRow}>
-              <View style={s.availableBadge}>
-                <Text style={s.availableText}>Available</Text>
-              </View>
-              <Text style={s.price}>{formatPrice(item.price)}</Text>
-            </View>
-          </View>
-
-          {/* Heart */}
-          <TouchableOpacity style={s.heartButton} onPress={onSave}>
-            <Ionicons
-              name={saved ? 'heart' : 'heart-outline'}
-              size={22}
-              color={saved ? '#ff4d6d' : '#FF7600'}
-            />
-          </TouchableOpacity>
+        <View style={styles.categoryGrid}>
+          {brands.slice(0, 8).map((b: any, i: number) => {
+            const name = b.name || b;
+            return (
+              <TouchableOpacity key={i} style={[styles.categoryCard, { backgroundColor: aC.isDark ? CARD : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]} onPress={() => goSearch({ search: name })} activeOpacity={0.82}>
+                <GlassInset />
+                <MaterialCommunityIcons name="bicycle" size={24} color={ORANGE} />
+                <Text style={styles.categoryText}>{name}</Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
-
-        {/* Buttons */}
-        <View style={s.cardButtons}>
-          <TouchableOpacity style={s.detailsButton} onPress={onPress} activeOpacity={0.85}>
-            <LinearGradient
-              colors={['#073C8E', '#F46A19']}
-              start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-              style={s.gradientButton}
-            >
-              <Text style={s.buttonText}>View Details</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={s.contactButton} activeOpacity={0.85}>
-            <Text style={s.buttonText}>Contact Dealer</Text>
-          </TouchableOpacity>
-        </View>
-      </LinearGradient>
       );
     }
-    // Light — white card with subtle blue/orange shade
+    if (tab === "Cities") {
+      return (
+        <View style={styles.categoryGrid}>
+          {CITIES.slice(1).map((c, i) => (
+              <TouchableOpacity key={i} style={[styles.categoryCard, { backgroundColor: aC.isDark ? CARD : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]} onPress={() => goSearch({ city: c })} activeOpacity={0.82}>
+              <GlassInset />
+              <Ionicons name="location-outline" size={22} color={ORANGE} />
+              <Text style={styles.categoryText}>{c}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      );
+    }
+    if (tab === "Model") {
+      const models = ["CD 70","CG 125","GS 150","GR 150","GD 110","Wego","Pridor","CB 150F","YBR 125","YBZ 125","GD 150","GSX 125","Vespa","Burkan"];
+      return (
+        <View style={styles.categoryGrid}>
+          {models.map((m, i) => (
+            <TouchableOpacity key={i} style={[styles.categoryCard, { backgroundColor: aC.isDark ? CARD : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]} onPress={() => goSearch({ search: m })} activeOpacity={0.82}>
+              <GlassInset />
+              <MaterialCommunityIcons name="bike" size={22} color={ORANGE} />
+              <Text style={styles.categoryText}>{m}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      );
+    }
+    // Default: Category
     return (
-      <View style={[s.bikeCard, { backgroundColor: '#ffffff', borderColor: 'rgba(3,42,105,0.12)', shadowColor: 'rgba(3,42,105,0.12)', shadowOpacity: 0.08, shadowRadius: 10, elevation: 3, overflow: 'hidden' }]}>
-        <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-        <LinearGradient colors={['transparent', 'rgba(226,103,27,0.08)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-        <View style={s.bikeTop}>
-          <View style={[s.bikeImageWrap, { backgroundColor: '#f1f5f9' }]}>
-            {bikeImg ? (
-              <Image source={{ uri: bikeImg }} style={s.bikeImage} resizeMode="cover" />
-            ) : (
-              <View style={[s.bikeImage, { alignItems: 'center', justifyContent: 'center', backgroundColor: '#f1f5f9' }]}>
-                <Ionicons name="bicycle-outline" size={32} color="#94a3b8" />
-              </View>
-            )}
-          </View>
-          <View style={s.bikeDetails}>
-            <Text style={[s.bikeTitle, { color: '#010a1f' }]} numberOfLines={2}>{item.title || `${item.make} ${item.model}`}</Text>
-            <Text style={[s.bikeColor, { color: '#475569' }]}>{item.color || '—'}</Text>
-            <View style={s.dealerRow}>
-              <Text style={[s.dealer, { color: '#010a1f' }]}>{item.seller?.full_name || 'Seller'}</Text>
-              <Ionicons name="checkmark-circle" size={16} color="#05AFFF" />
+      <View style={styles.categoryGrid}>
+        {CATEGORIES.map((item, index) => (
+          <TouchableOpacity key={index} style={[styles.categoryCard, { backgroundColor: aC.isDark ? CARD : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]} onPress={() => goSearch({ search: item.search || item.title })} activeOpacity={0.82}>
+            <GlassInset />
+            <View style={styles.categoryIcon}>
+              <MaterialCommunityIcons name={item.icon as any} size={26} color={ORANGE} />
             </View>
-            <Text style={[s.bikeMeta, { color: '#64748b' }]}>{item.city || 'Pakistan'} • {item.year} • {item.transmission || 'Manual'}</Text>
-            <View style={s.availableRow}>
-              <View style={s.availableBadge}>
-                <Text style={s.availableText}>Available</Text>
-              </View>
-              <Text style={s.price}>{formatPrice(item.price)}</Text>
-            </View>
-          </View>
-          <TouchableOpacity style={[s.heartButton, { backgroundColor: '#ffffff', borderWidth: 1, borderColor: 'rgba(3,42,105,0.12)' }]} onPress={onSave}>
-            <Ionicons name={saved ? 'heart' : 'heart-outline'} size={22} color={saved ? '#ff4d6d' : '#e2671b'} />
+            <Text style={styles.categoryText}>{item.title}</Text>
           </TouchableOpacity>
-        </View>
-        <View style={s.cardButtons}>
-          <TouchableOpacity style={s.detailsButton} onPress={onPress} activeOpacity={0.85}>
-            <LinearGradient colors={['#073C8E', '#F46A19']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.gradientButton}>
-              <Text style={s.buttonText}>View Details</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-          <TouchableOpacity style={[s.contactButton, { backgroundColor: '#ffffff', borderColor: 'rgba(3,42,105,0.12)' }]} activeOpacity={0.85}>
-            <Text style={[s.buttonText, { color: '#032a69' }]}>Contact Dealer</Text>
-          </TouchableOpacity>
-        </View>
+        ))}
       </View>
     );
   }
 
   return (
-    <SafeAreaView style={[s.safe, { backgroundColor: aC.bg }]}>
-      <StatusBar barStyle={aC.isDark ? 'light-content' : 'dark-content'} backgroundColor={aC.bg} />
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: aC.bg }]}>
+      <StatusBar barStyle={aC.isDark ? "light-content" : "dark-content"} backgroundColor={aC.bg} />
 
-      {/* Header */}
-      <View style={[s.header, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderBottomWidth: aC.isDark ? 0 : 1, borderBottomColor: 'rgba(3,42,105,0.08)' }]}>
-        <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-          <Ionicons name="arrow-back-outline" size={24} color={aC.isDark ? C.textPrimary : '#010a1f'} />
-        </TouchableOpacity>
-        {aC.isDark ? (
-          <Image source={require('@/assets/images/autowizor-logo-text.png')} style={s.logo} resizeMode="contain" />
-        ) : (
-          <Text style={{ flex: 1, textAlign: 'center', fontSize: 18, fontFamily: 'Poppins_700Bold' }}><Text style={{ color: '#032a69' }}>Auto</Text><Text style={{ color: '#e2671b' }}>wizor</Text></Text>
-        )}
-        <View style={{ width: 36 }} />
-      </View>
-
-      {/* Title */}
-      <Text style={[s.pageTitle, { color: aC.isDark ? C.textPrimary : '#010a1f' }]}>Buy Used Bike</Text>
-      <Text style={[s.pageSub, { color: aC.isDark ? C.textSecondary : '#475569' }]}>{total} used bikes available</Text>
-
-      {/* Search */}
-      <View style={[s.searchWrap, { backgroundColor: aC.isDark ? C.glassBg : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.5)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]}>
-        <GlassInset />
-        <Ionicons name="search-outline" size={18} color={aC.isDark ? C.textSecondary : '#64748b'} />
-        <TextInput
-          style={[s.searchInput, { color: aC.isDark ? C.textPrimary : '#010a1f' }]}
-          placeholder="Search bikes..."
-          placeholderTextColor={aC.isDark ? C.textPlaceholder : '#94a3b8'}
-          value={search}
-          onChangeText={v => { setSearch(v); fetchBikes(1, true, v); }}
-          returnKeyType="search"
-        />
-        {search.length > 0 && (
-          <TouchableOpacity onPress={() => { setSearch(''); fetchBikes(1, true, ''); }}>
-            <Ionicons name="close-circle" size={18} color={aC.isDark ? C.textSecondary : '#94a3b8'} />
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[styles.container, { backgroundColor: aC.bg }]}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={ORANGE} />}
+      >
+        {/* HEADER */}
+        <View style={[styles.header, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderBottomWidth: aC.isDark ? 0 : 1, borderBottomColor: 'rgba(3,42,105,0.08)' }]}>
+          <TouchableOpacity onPress={() => router.back()}>
+            <Ionicons name="chevron-back" size={27} color={aC.isDark ? WHITE : '#010a1f'} />
           </TouchableOpacity>
-        )}
-      </View>
-
-      {loading ? (
-        <ActivityIndicator color={ORANGE} size="large" style={{ flex: 1 }} />
-      ) : (
-        <FlatList
-          data={bikes}
-          keyExtractor={i => i.id}
-          contentContainerStyle={[s.list, { backgroundColor: aC.bg }]}
-          showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchBikes(1, true); }} tintColor={ORANGE} />}
-          onEndReached={loadMore}
-          onEndReachedThreshold={0.3}
-          ListFooterComponent={loadingMore ? <ActivityIndicator color={ORANGE} style={{ paddingVertical: 16 }} /> : null}
-          ListEmptyComponent={
-            <View style={s.empty}>
-              <Ionicons name="bicycle-outline" size={56} color={aC.isDark ? C.textSecondary : '#94a3b8'} />
-              <Text style={[s.emptyTxt, { color: aC.isDark ? C.textSecondary : '#64748b' }]}>No used bikes found</Text>
-            </View>
-          }
-          renderItem={({ item }) => (
-            <BikeCard
-              item={item}
-              saved={savedIds.has(item.id)}
-              onPress={() => router.push({ pathname: '/vehicle/[id]', params: { id: item.id } })}
-              onSave={() => toggleSave(item.id)}
-            />
+          {aC.isDark ? (
+            <Image source={require("@/assets/images/autowizor-logo-text.png")} style={styles.logo} resizeMode="contain" />
+          ) : (
+            <Text style={{ flex: 1, textAlign: 'center', fontSize: 18, fontFamily: 'Poppins_700Bold' }}><Text style={{ color: '#032a69' }}>Auto</Text><Text style={{ color: '#e2671b' }}>wizor</Text></Text>
           )}
+          <View style={{ width: 27 }} />
+        </View>
+
+        {/* FIND BIKE */}
+        <Text style={[styles.findText, { color: aC.isDark ? WHITE : '#010a1f' }]}>Find Your Bike By</Text>
+
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabsScroll}>
+          {(["Category","Brand","Model","Cities"] as const).map(item => (
+            <TouchableOpacity key={item} onPress={() => setTab(item)} style={[styles.tab, { backgroundColor: aC.isDark ? "rgba(16,40,88,0.9)" : '#ffffff', borderColor: aC.isDark ? "transparent" : 'rgba(3,42,105,0.12)', borderWidth: 1, shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }, tab === item && { borderColor: ORANGE, backgroundColor: aC.isDark ? "rgba(226,103,27,0.12)" : 'rgba(226,103,27,0.12)' }]}>
+              <Text style={[styles.tabText, { color: aC.isDark ? MUTED : '#475569' }, tab === item && { color: ORANGE }]}>{item}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        <TabContent />
+
+        {/* DOTS */}
+        <View style={styles.dots}>
+          <View style={styles.dotActive} />
+          <View style={styles.dot} />
+          <View style={styles.dot} />
+        </View>
+
+        {/* BANK BANNER */}
+        <AskariBank />
+
+        {/* SEARCH BOX */}
+        <View style={{ height: 12 }} />
+        <View style={[styles.searchBox, { backgroundColor: aC.isDark ? CARD : '#ffffff', borderColor: aC.isDark ? ORANGE : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }]}>
+          <GlassInset />
+          {aC.isDark ? (
+            <LinearGradient colors={["transparent","rgba(226,103,27,0.2)"]} start={{x:0.5,y:0.5}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+          ) : (
+            <LinearGradient colors={["transparent","rgba(226,103,27,0.08)"]} start={{x:0.5,y:0.6}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+          )}
+
+          <Text style={[styles.searchTitle, { color: aC.isDark ? WHITE : '#010a1f' }]}>Find Your Perfect Bike</Text>
+
+          <View style={styles.formRow}>
+            <DropdownField fkey="city"  icon="map-marker" />
+            <DropdownField fkey="brand" icon="sitemap-outline" />
+          </View>
+
+          <View style={styles.formRow}>
+            <DropdownField fkey="year"  icon="calendar-outline" />
+            <View style={styles.dropdownWrapper}>
+              <View style={styles.fieldLabelRow}>
+                <MaterialCommunityIcons name="bike" size={11} color={ORANGE} />
+                <Text style={styles.fieldLabel}>Bike Name</Text>
+              </View>
+              <View style={styles.dropdown}>
+                <GlassInset />
+                <TextInput
+                  style={[styles.dropdownText, { flex: 1, paddingVertical: 0 }]}
+                  value={bikeName}
+                  onChangeText={setBikeName}
+                  placeholder="e.g. Honda CD 70"
+                  placeholderTextColor={MUTED}
+                />
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.formRow}>
+            <DropdownField fkey="variant" icon="bike" />
+            <DropdownField fkey="color"   icon="palette-outline" />
+          </View>
+
+          <DropdownField fkey="sellerType" icon="store-outline" fullWidth />
+
+          {/* PRICE RANGE */}
+          <Text style={styles.rangeLabel}>Select Your Budget Range (PKR)</Text>
+          <View style={styles.priceInputs}>
+            <View style={{ flex: 1, marginRight: 8 }}>
+              <Text style={[styles.minMax, { color: aC.isDark ? MUTED : '#475569' }]}>Min Price</Text>
+              <View style={[styles.priceInput, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.12)' }]}>
+                <GlassInset />
+                <TextInput
+                  style={[styles.priceText, { flex: 1, paddingVertical: 0, color: aC.isDark ? WHITE : '#010a1f' }]}
+                  value={minPrice}
+                  onChangeText={setMinPrice}
+                  placeholder="e.g. 50000"
+                  placeholderTextColor={MUTED}
+                  keyboardType="numeric"
+                />
+              </View>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.minMax, { color: aC.isDark ? MUTED : '#475569' }]}>Max Price</Text>
+              <View style={[styles.priceInput, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.12)' }]}>
+                <GlassInset />
+                <TextInput
+                  style={[styles.priceText, { flex: 1, paddingVertical: 0, color: aC.isDark ? WHITE : '#010a1f' }]}
+                  value={maxPrice}
+                  onChangeText={setMaxPrice}
+                  placeholder="e.g. 500000"
+                  placeholderTextColor={MUTED}
+                  keyboardType="numeric"
+                />
+              </View>
+            </View>
+          </View>
+
+          <RangeSlider onChangMin={setMinPrice} onChangeMax={setMaxPrice} />
+
+          <TouchableOpacity style={styles.searchButton} onPress={handleSearch} activeOpacity={0.88}>
+            <LinearGradient colors={[NAVY, ORANGE]} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFillObject} />
+            <Text style={styles.searchButtonText}>Search</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* RECENTLY LISTED */}
+        <SectionHeader title="Recently Listed" onViewAll={() => goSearch()} />
+        {loading ? (
+          <ActivityIndicator color={ORANGE} style={{ paddingVertical: 16 }} />
+        ) : (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList}>
+            {recent.length === 0
+              ? <Text style={{ color: MUTED, fontFamily: "Poppins_400Regular", fontSize: 12, paddingVertical: 16 }}>No used bikes listed yet</Text>
+              : recent.map(v => (
+                  <BikeCard key={v.id} bike={v} saved={savedIds.has(v.id)} onPress={() => goDetail(v.id)} onSave={() => toggleSave(v.id)} />
+                ))
+            }
+          </ScrollView>
+        )}
+
+        {/* HOT SELLING */}
+        <SectionHeader title="Hot Selling Bikes" onViewAll={() => goSearch({ hot: "true" })} />
+        {loading ? (
+          <ActivityIndicator color={ORANGE} style={{ paddingVertical: 16 }} />
+        ) : (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList}>
+            {hotSelling.length === 0
+              ? <Text style={{ color: MUTED, fontFamily: "Poppins_400Regular", fontSize: 12, paddingVertical: 16 }}>No featured used bikes yet</Text>
+              : hotSelling.map(v => (
+                  <BikeCard key={v.id} bike={v} saved={savedIds.has(v.id)} onPress={() => goDetail(v.id)} onSave={() => toggleSave(v.id)} />
+                ))
+            }
+          </ScrollView>
+        )}
+
+        {/* YOU MAY NEED */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>You May Need This</Text>
+        </View>
+        <View style={styles.toolsRow}>
+          {[
+            { icon: "bike-fast", title: "Compare\nBike",         desc: "Compare bike features,\nprices, and specifications.", route: "/compare-vehicle" },
+            { icon: "calculator",   title: "Smart Finance\nCalculator", desc: "Compare financing plans\nand calculate your monthly\npayments.",                route: "/auto-financing" },
+          ].map((t, i) => (
+            <TouchableOpacity key={i} style={[styles.toolCard, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderWidth: aC.isDark ? 0 : 1, borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }]} onPress={() => router.push(t.route as any)} activeOpacity={0.85}>
+              {aC.isDark ? (
+                <LinearGradient colors={[ORANGE, "#0d2040", BG]} start={{x:0,y:1}} end={{x:0,y:0}} style={StyleSheet.absoluteFillObject} />
+              ) : (
+                <>
+                  <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{x:0.5,y:0}} end={{x:0.5,y:0.4}} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+                  <LinearGradient colors={['transparent', 'rgba(226,103,27,0.08)']} start={{x:0.5,y:0.6}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+                </>
+              )}
+              <View style={[styles.toolImageCircle, { backgroundColor: aC.isDark ? 'transparent' : '#eef2ff' }]}>
+                <MaterialCommunityIcons name={t.icon as any} size={45} color={ORANGE} />
+              </View>
+              <Text style={[styles.toolTitle, { color: aC.isDark ? WHITE : '#010a1f' }]}>{t.title}</Text>
+              <Text style={[styles.toolDescription, { color: aC.isDark ? 'rgba(255,255,255,0.65)' : '#475569' }]}>{t.desc}</Text>
+              <Text style={styles.toolArrow}>›</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* BROWSE MORE SERVICES */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Browse More Services</Text>
+        </View>
+        {SERVICES.map((service, index) => (
+          <TouchableOpacity style={[styles.serviceCard, { backgroundColor: aC.isDark ? CARD : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]} key={index} onPress={() => router.push(service.route as any)} activeOpacity={0.85}>
+            <GlassInset />
+            <MaterialCommunityIcons name={service.icon as any} size={22} color={ORANGE} />
+            <View style={styles.serviceText}>
+              <Text style={[styles.serviceTitle, { color: aC.isDark ? WHITE : '#010a1f' }]}>{service.title}</Text>
+              <Text style={[styles.serviceSubtitle, { color: aC.isDark ? MUTED : '#475569' }]}>{service.subtitle}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={ORANGE} />
+          </TouchableOpacity>
+        ))}
+
+        {/* LATEST VIDEO */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Latest Video</Text>
+        </View>
+        <LatestVideoSection count={2} />
+
+        <View style={{ height: 80 }} />
+      </ScrollView>
+
+      {/* SELECT SHEETS */}
+      {Object.entries(fields).map(([key, f]) => (
+        <SelectSheet
+          key={key}
+          visible={openSheet === key}
+          title={f.label}
+          options={f.options}
+          selected={f.value}
+          onSelect={f.setter}
+          onClose={() => setOpenSheet(null)}
         />
-      )}
+      ))}
     </SafeAreaView>
   );
 }
 
-const s = StyleSheet.create({
-  safe:   { flex: 1, backgroundColor: C.bg },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 10, paddingBottom: 8 },
-  backBtn:{ width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  logo:   { flex: 1, height: 24 },
+const styles = StyleSheet.create({
+  safeArea:  { flex: 1, backgroundColor: BG },
+  container: { paddingHorizontal: 15, paddingTop: 8 },
 
-  pageTitle: { color: C.textPrimary, fontSize: 20, fontFamily: 'Poppins_600SemiBold', paddingHorizontal: 16, marginTop: 4 },
-  pageSub:   { color: C.textSecondary, fontSize: 12, fontFamily: 'Poppins_400Regular', paddingHorizontal: 16, marginBottom: 12 },
+  /* Header */
+  header:     { height: 48, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  logo:       { flex: 1, height: 22, marginHorizontal: 12, marginTop: 18 },
 
-  searchWrap:  { flexDirection: 'row', alignItems: 'center', gap: 10, marginHorizontal: 16, marginBottom: 14, height: 46, borderRadius: 24, borderWidth: 1, borderColor: 'rgba(100,160,255,0.5)', backgroundColor: C.glassBg, paddingHorizontal: 14, overflow: 'hidden' },
-  searchInput: { flex: 1, color: C.textPrimary, fontSize: 13, fontFamily: 'Poppins_400Regular', paddingVertical: 0 },
+  findText:     { color: WHITE, fontSize: 13, fontFamily: "Poppins_500Medium", marginTop: 12, marginBottom: 10 },
+  tabsScroll:   { marginBottom: 8 },
+  tab:          { backgroundColor: "rgba(16,40,88,0.9)", paddingHorizontal: 17, height: 28, borderRadius: 14, justifyContent: "center", marginRight: 9, borderWidth: 1, borderColor: "transparent" },
+  activeTab:    { borderColor: ORANGE, backgroundColor: "rgba(226,103,27,0.12)" },
+  tabText:      { color: MUTED, fontSize: 11, fontFamily: "Poppins_500Medium" },
+  activeTabText:{ color: ORANGE },
 
-  list: { paddingHorizontal: 16, paddingBottom: 100 },
+  categoryGrid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", marginTop: 2 },
+  categoryCard: { width: "23.5%", height: 60, backgroundColor: CARD, borderRadius: 12, borderWidth: 1, borderColor: BORDER, marginBottom: 6, alignItems: "center", justifyContent: "center", overflow: "hidden" },
+  categoryIcon: { height: 28, justifyContent: "center" },
+  categoryText: { color: MUTED, fontSize: 8.5, fontFamily: "Poppins_400Regular", textAlign: "center", lineHeight: 11 },
 
-  /* Bike Card — used-car wala div design */
-  bikeCard: {
-    borderRadius: 16, borderWidth: 1,
-    borderColor: '#5C8ECF', padding: 11,
-    marginBottom: 20, overflow: 'hidden',
-  },
-  bikeTop:      { flexDirection: 'row', minHeight: 124 },
-  bikeImageWrap:{ width: 129, height: 112, borderRadius: 10, overflow: 'hidden', backgroundColor: '#17243B' },
-  bikeImage:    { width: 129, height: 112 },
-  bikeDetails:  { flex: 1, paddingLeft: 10, paddingRight: 24 },
-  bikeTitle:    { color: '#FFFFFF', fontSize: 11, fontFamily: 'Poppins_500Medium', marginTop: 2 },
-  bikeColor:    { color: '#FFFFFF', fontSize: 10, fontFamily: 'Poppins_400Regular', marginTop: 4 },
-  dealerRow:   { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
-  dealer:      { color: '#FFFFFF', fontSize: 10, fontFamily: 'Poppins_400Regular' },
-  bikeMeta:     { color: '#929DB1', fontSize: 9, fontFamily: 'Poppins_400Regular', marginTop: 4 },
-  availableRow:{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 6 },
-  availableBadge: { backgroundColor: '#003D32', paddingHorizontal: 7, paddingVertical: 3, borderRadius: 8 },
-  availableText:  { color: '#00B982', fontSize: 8, fontFamily: 'Poppins_500Medium' },
-  price:          { color: '#FF7200', fontSize: 11, fontFamily: 'Poppins_700Bold' },
-  heartButton:    { position: 'absolute', right: 3, top: 44 },
+  dots:      { flexDirection: "row", justifyContent: "center", alignItems: "center", marginVertical: 6, gap: 5 },
+  dot:       { width: 6, height: 6, borderRadius: 3, backgroundColor: "rgba(255,255,255,0.2)" },
+  dotActive: { width: 16, height: 6, borderRadius: 3, backgroundColor: ORANGE },
 
-  /* Card buttons */
-  cardButtons:   { flexDirection: 'row', gap: 12, marginTop: 10 },
-  detailsButton: { flex: 1, height: 34, borderRadius: 18, overflow: 'hidden' },
-  gradientButton:{ height: '100%', alignItems: 'center', justifyContent: 'center' },
-  contactButton: {
-    flex: 1, height: 34, borderRadius: 18,
-    borderWidth: 1, borderColor: '#6297DE',
-    backgroundColor: '#08204A',
-    justifyContent: 'center', alignItems: 'center',
-  },
-  buttonText: { color: '#FFFFFF', fontSize: 12, fontFamily: 'Poppins_500Medium' },
+  searchBox:    { backgroundColor: CARD, borderWidth: 1.5, borderColor: ORANGE, borderRadius: 14, padding: 10, marginBottom: 15, overflow: "hidden" },
+  searchTitle:  { color: WHITE, fontSize: 13, fontFamily: "Poppins_700Bold", marginBottom: 10 },
 
-  empty:    { alignItems: 'center', paddingVertical: 80, gap: 12 },
-  emptyTxt: { color: C.textSecondary, fontSize: 14, fontFamily: 'Poppins_500Medium' },
+  formRow:        { flexDirection: "row", justifyContent: "space-between", marginBottom: 8 },
+  dropdownWrapper:{ width: "48%" },
+  fieldLabelRow:  { flexDirection: "row", alignItems: "center", marginBottom: 3, gap: 4 },
+  fieldLabel:     { color: MUTED, fontSize: 9, fontFamily: "Poppins_400Regular" },
+  dropdown:       { height: 32, borderRadius: 8, borderWidth: 1, borderColor: BORDER, backgroundColor: CARD, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 9, overflow: "hidden" },
+  dropdownText:   { color: WHITE, fontSize: 10, fontFamily: "Poppins_400Regular", flex: 1 },
+
+  rangeLabel:  { color: MUTED, fontSize: 9, fontFamily: "Poppins_400Regular", marginTop: 6, marginBottom: 6 },
+  priceInputs: { flexDirection: "row", justifyContent: "space-between" },
+  minMax:      { color: MUTED, fontSize: 8, fontFamily: "Poppins_400Regular", marginBottom: 3 },
+  priceInput:  { height: 32, borderWidth: 1, borderColor: BORDER, borderRadius: 8, justifyContent: "center", paddingHorizontal: 9, overflow: "hidden" },
+  priceText:   { color: WHITE, fontSize: 10, fontFamily: "Poppins_400Regular" },
+
+  presetBtn:      { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderWidth: 1, borderColor: BORDER, backgroundColor: CARD },
+  presetBtnActive:{ borderColor: ORANGE, backgroundColor: "rgba(226,103,27,0.1)" },
+  presetTxt:      { color: MUTED, fontSize: 9, fontFamily: "Poppins_500Medium" },
+
+  searchButton:     { height: 40, borderRadius: 20, marginTop: 12, alignItems: "center", justifyContent: "center", overflow: "hidden" },
+  searchButtonText: { color: WHITE, fontSize: 13, fontFamily: "Poppins_700Bold" },
+
+  sectionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10, marginTop: 4 },
+  sectionTitle:  { color: WHITE, fontSize: 13, fontFamily: "Poppins_600SemiBold" },
+  viewAll:       { color: ORANGE, fontSize: 10, fontFamily: "Poppins_500Medium" },
+
+  horizontalList: { paddingBottom: 14 },
+
+  bikeCard:      { width: 185, backgroundColor: CARD, borderRadius: 12, overflow: "hidden", borderWidth: 1, borderColor: BORDER, marginRight: 10 },
+  bikeImage:     { width: "100%", height: 120 },
+  bikeInfo:      { padding: 8 },
+  bikeNameRow:   { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  bikeName:      { color: WHITE, fontSize: 10, fontFamily: "Poppins_600SemiBold", flex: 1 },
+  bikePrice:     { color: ORANGE, fontSize: 10, fontFamily: "Poppins_700Bold" },
+  bikeDetails:   { color: "rgba(255,255,255,0.75)", fontSize: 9, fontFamily: "Poppins_400Regular", marginTop: 4 },
+  bikeLocation:  { color: MUTED, fontSize: 8, fontFamily: "Poppins_400Regular", marginTop: 3 },
+  bikeButtonRow: { flexDirection: "row", alignItems: "center", marginTop: 7, gap: 6 },
+  viewButton:   { flex: 1, height: 28, borderRadius: 14, overflow: "hidden", alignItems: "center", justifyContent: "center" },
+  viewButtonText: { color: WHITE, fontSize: 10, fontFamily: "Poppins_600SemiBold" },
+  heartButton:  { width: 30, height: 28, alignItems: "center", justifyContent: "center" },
+
+  toolsRow:        { flexDirection: "row", justifyContent: "space-between", marginBottom: 16, gap: 10 },
+  toolCard:        { flex: 1, minHeight: 140, borderRadius: 12, overflow: "hidden", padding: 10, position: "relative" },
+  toolImageCircle: { height: 50, alignItems: "center", justifyContent: "center" },
+  toolTitle:       { color: WHITE, fontSize: 11, fontFamily: "Poppins_600SemiBold", marginTop: 4 },
+  toolDescription: { color: "rgba(255,255,255,0.65)", fontSize: 8, fontFamily: "Poppins_400Regular", lineHeight: 12, marginTop: 4 },
+  toolArrow:       { color: ORANGE, fontSize: 24, position: "absolute", right: 8, bottom: 8 },
+
+  serviceCard:     { minHeight: 52, backgroundColor: CARD, borderRadius: 12, marginBottom: 8, paddingHorizontal: 12, paddingVertical: 10, flexDirection: "row", alignItems: "center", overflow: "hidden", borderWidth: 1, borderColor: BORDER },
+  serviceText:     { flex: 1, marginLeft: 12 },
+  serviceTitle:    { color: WHITE, fontSize: 10, fontFamily: "Poppins_600SemiBold" },
+  serviceSubtitle: { color: MUTED, fontSize: 8, fontFamily: "Poppins_400Regular", marginTop: 3, lineHeight: 12 },
 });

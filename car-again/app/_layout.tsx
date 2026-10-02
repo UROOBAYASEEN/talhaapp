@@ -220,6 +220,7 @@ function RootLayoutNav() {
         <Stack.Screen name="profile/claim"             options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="profile/terms"             options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="insurance/compare-plans"   options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="insurance/compare-detail" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="insurance/plan-details"       options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="insurance/application-submit"  options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="insurance/upload-documents"    options={{ animation: 'slide_from_right' }} />

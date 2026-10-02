@@ -95,10 +95,12 @@ export default function AdminVideoAdsScreen() {
   async function handlePublish() {
     if (!agreed)            { Alert.alert('Terms Required', 'Please accept the terms and conditions.'); return; }
     if (!videoTitle.trim()) { Alert.alert('Title Required', 'Please enter a video title.'); return; }
+    if (!uploadedFile)      { Alert.alert('Video Required', 'Please upload a video file first.'); return; }
 
     setPublishing(true);
     try {
       const mediaUrl = await uploadMedia();
+      if (!mediaUrl) throw new Error('Video upload failed. Please try again.');
 
       const res = await fetch(`${API_BASE}/video-ads/create`, {
         method: 'POST',

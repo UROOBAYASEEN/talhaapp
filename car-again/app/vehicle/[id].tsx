@@ -10,6 +10,7 @@ import {
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAppColors } from '@/constants/theme';
+import DealerConfirmationModal from '@/components/shared/DealerConfirmationModal';
 
 const { width: W } = Dimensions.get('window');
 const ORANGE  = '#e2671b';
@@ -38,6 +39,10 @@ export default function VehicleDetailScreen() {
   const [imgIdx,       setImgIdx]       = useState(0);
   const [saved,        setSaved]        = useState(false);
   const [contacting,   setContacting]   = useState(false);
+  const [reserving,    setReserving]    = useState(false);
+  const [testDriving,  setTestDriving]  = useState(false);
+  const [confirmVisible, setConfirmVisible] = useState(false);
+  const [callDone,     setCallDone]     = useState(false);
   const [expanded,     setExpanded]     = useState<Record<string, boolean>>({});
   const [avatarError,  setAvatarError]  = useState(false);
   const [sellerAvatar, setSellerAvatar] = useState<string | null>(null);
@@ -191,6 +196,38 @@ export default function VehicleDetailScreen() {
     Linking.openURL(`https://wa.me/${num}?text=Hi! I'm interested in your ${vehicle.title}`);
   }
 
+  async function handleReserve() {
+    if (!token) { Alert.alert('Login Required', 'Please login to reserve.'); return; }
+    setReserving(true);
+    try {
+      const res = await fetch(`${API_BASE}/vehicles/${id}/reserve`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({}),
+      });
+      const d = await res.json();
+      Alert.alert('Reserved!', d.message || 'Vehicle reserved successfully.');
+    } catch {
+      Alert.alert('Error', 'Network error.');
+    } finally { setReserving(false); }
+  }
+
+  async function handleTestDrive() {
+    if (!token) { Alert.alert('Login Required', 'Please login.'); return; }
+    setTestDriving(true);
+    try {
+      const res = await fetch(`${API_BASE}/vehicles/${id}/test-drive`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({}),
+      });
+      const d = await res.json();
+      Alert.alert('Booked!', d.message || 'Test drive booked.');
+    } catch {
+      Alert.alert('Error', 'Network error.');
+    } finally { setTestDriving(false); }
+  }
+
   async function handleReport() {
     if (!token) { Alert.alert('Login Required', 'Please login to report this ad.'); return; }
     Alert.alert('Report Ad', 'Select reason:', [
@@ -243,11 +280,14 @@ export default function VehicleDetailScreen() {
   const interiorF  = (vehicle.features || []).filter((f: string) => interiorKw.some(k => f.toLowerCase().includes(k)));
   const comfortF   = (vehicle.features || []).filter((f: string) => !safetyKw.some(k => f.toLowerCase().includes(k)) && !interiorKw.some(k => f.toLowerCase().includes(k)));
 
+  // ── Same rule as buy/car-detail: dealer/new ads get dealer CTA, individual ads get seller CTA ──
+  const isDealer = vehicle.seller?.role === 'dealership_owner' || vehicle.condition === 'new';
+
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: aC.bg }]}>
       <StatusBar barStyle={aC.isDark ? "light-content" : "dark-content"} backgroundColor={aC.bg} />
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40, backgroundColor: aC.bg }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 230, backgroundColor: aC.bg }}>
 
         {/* ── Car Image ── */}
         <View style={styles.imgWrap}>
@@ -518,35 +558,90 @@ export default function VehicleDetailScreen() {
         </TouchableOpacity>
       )}
 
-      {/* ── Fixed Bottom Call Seller ── */}
+      {/* ── Fixed Bottom CTA: dealer vs individual (same as buy/car-detail) ── */}
       <View style={[styles.callBox, { backgroundColor: aC.isDark ? DARK_BG : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.12)' }]}>
-        <TouchableOpacity activeOpacity={0.85} onPress={handleCall}>
-          <LinearGradient
-            colors={['#0d2f7a', '#7a3f5a', '#e25500']}
-            start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-            style={styles.callBtn}
-          >
-            <Text style={styles.callTxt}>Call Seller</Text>
-          </LinearGradient>
-        </TouchableOpacity>
+        {isDealer ? (
+          <>
+            <TouchableOpacity
+              style={styles.dealerCtaPrimary}
+              onPress={() => vehicle?.seller_id && router.push({ pathname: '/buy/dealer-profile', params: { id: vehicle.seller_id } } as any)}
+              activeOpacity={0.88}
+            >
+              <LinearGradient colors={['#032a69', '#e2671b']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+              <Text style={styles.callTxt}>Contact Dealer</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.dealerCtaSecondary, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.4)' : 'rgba(3,42,105,0.12)' }]}
+              onPress={() => {
+                if (callDone) {
+                  router.push({ pathname: '/buy/reserve', params: { id } } as any);
+                } else {
+                  setConfirmVisible(true);
+                }
+              }}
+              activeOpacity={0.88}
+            >
+              {reserving ? <ActivityIndicator color={aC.isDark ? WHITE : '#010a1f'} /> : <Text style={[styles.dealerCtaSecondaryTxt, { color: aC.isDark ? WHITE : '#010a1f' }]}>{vehicle?.category === 'bike' ? 'Reserve your bike' : 'Reserve your car'}</Text>}
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.dealerCtaSecondary, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.4)' : 'rgba(3,42,105,0.12)' }]}
+              onPress={() => router.push({ pathname: '/buy/test-drive', params: { id } } as any)}
+              activeOpacity={0.88}
+            >
+              {testDriving ? <ActivityIndicator color={aC.isDark ? WHITE : '#010a1f'} /> : <Text style={[styles.dealerCtaSecondaryTxt, { color: aC.isDark ? WHITE : '#010a1f' }]}>Test Drive</Text>}
+            </TouchableOpacity>
+          </>
+        ) : (
+          <>
+            <TouchableOpacity activeOpacity={0.85} onPress={handleCall}>
+              <LinearGradient
+                colors={['#0d2f7a', '#7a3f5a', '#e25500']}
+                start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                style={styles.callBtn}
+              >
+                <Text style={styles.callTxt}>Call Seller</Text>
+              </LinearGradient>
+            </TouchableOpacity>
 
-        <View style={styles.contactRow}>
-          <TouchableOpacity style={styles.contactItem} onPress={handleSMS}>
-            <Ionicons name="chatbubble-ellipses-outline" size={26} color={ORANGE} />
-            <Text style={[styles.contactTxt, { color: aC.isDark ? MUTED : '#475569' }]}>SMS</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.contactItem} onPress={handleContact} disabled={contacting}>
-            <Ionicons name="chatbubble-ellipses-outline" size={26} color={ORANGE} />
-            <Text style={[styles.contactTxt, { color: aC.isDark ? MUTED : '#475569' }]}>Chat</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.contactItem} onPress={handleWhatsApp}>
-            <View style={styles.waCircle}>
-              <Ionicons name="logo-whatsapp" size={16} color={WHITE} />
+            <View style={styles.contactRow}>
+              <TouchableOpacity style={styles.contactItem} onPress={handleSMS}>
+                <Ionicons name="chatbubble-ellipses-outline" size={26} color={ORANGE} />
+                <Text style={[styles.contactTxt, { color: aC.isDark ? MUTED : '#475569' }]}>SMS</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.contactItem} onPress={handleContact} disabled={contacting}>
+                <Ionicons name="chatbubble-ellipses-outline" size={26} color={ORANGE} />
+                <Text style={[styles.contactTxt, { color: aC.isDark ? MUTED : '#475569' }]}>Chat</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.contactItem} onPress={handleWhatsApp}>
+                <View style={styles.waCircle}>
+                  <Ionicons name="logo-whatsapp" size={16} color={WHITE} />
+                </View>
+                <Text style={[styles.contactTxt, { color: aC.isDark ? MUTED : '#475569' }]}>WhatsApp</Text>
+              </TouchableOpacity>
             </View>
-            <Text style={[styles.contactTxt, { color: aC.isDark ? MUTED : '#475569' }]}>WhatsApp</Text>
-          </TouchableOpacity>
-        </View>
+          </>
+        )}
       </View>
+
+      {/* ── Dealer confirmation — shows first on Reserve press ── */}
+      <DealerConfirmationModal
+        visible={confirmVisible}
+        onClose={() => setConfirmVisible(false)}
+        onCancel={() => {
+          setConfirmVisible(false);
+          router.push({ pathname: '/buy/reserve', params: { id } } as any);
+        }}
+        onCallDealer={() => {
+          const ph = vehicle?.contact_phone || vehicle?.seller?.phone;
+          setCallDone(true);
+          setConfirmVisible(false);
+          if (ph) {
+            Linking.openURL(`tel:${String(ph).replace(/\D/g, '')}`);
+          } else {
+            Alert.alert('Not Available', 'No dealer phone number listed. You can continue with reservation.');
+          }
+        }}
+      />
 
     </SafeAreaView>
   );
@@ -631,9 +726,12 @@ const styles = StyleSheet.create({
   publishBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 52, marginHorizontal: 20, marginBottom: 8, borderRadius: 26, overflow: 'hidden' },
   publishTxt: { color: WHITE, fontSize: 15, fontFamily: 'Poppins_700Bold' },
 
-  callBox:    { backgroundColor: DARK_BG, paddingHorizontal: 20, paddingTop: 12, paddingBottom: 16, borderTopWidth: 1, borderColor: BORDER },
+  callBox:    { backgroundColor: DARK_BG, paddingHorizontal: 20, paddingTop: 12, paddingBottom: 16, borderTopWidth: 1, borderColor: BORDER, gap: 10 },
   callBtn:    { height: 50, borderRadius: 25, alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
   callTxt:    { color: WHITE, fontSize: 16, fontFamily: 'Poppins_700Bold' },
+  dealerCtaPrimary: { height: 52, borderRadius: 30, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexDirection: 'row' },
+  dealerCtaSecondary: { height: 52, borderRadius: 30, borderWidth: 1, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  dealerCtaSecondaryTxt: { fontSize: 15, fontFamily: 'Poppins_600SemiBold' },
   contactRow: { flexDirection: 'row', justifyContent: 'space-around' },
   contactItem:{ alignItems: 'center', gap: 4 },
   contactTxt: { color: MUTED, fontSize: 11, fontFamily: 'Poppins_400Regular' },

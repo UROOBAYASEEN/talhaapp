@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  FlatList, Modal, ActivityIndicator, RefreshControl, Image,
+  FlatList, Modal, ActivityIndicator, RefreshControl, Image, Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { ChevronLeft, Share2, Heart, Star, ShieldCheck } from 'lucide-react-native';
+import { ChevronLeft, Share2, Heart, Star, ShieldCheck, ArrowLeftRight } from 'lucide-react-native';
 import { AppColors, useAppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 
@@ -215,7 +215,24 @@ export default function ComparePlansScreen() {
           <ChevronLeft size={24} color={aC.textPrimary} strokeWidth={2} />
         </TouchableOpacity>
         <Text style={[s.headerTitle, { color: aC.textPrimary }]}>Compare Insurance Plans</Text>
-        <View style={{ width: 36 }} />
+        <TouchableOpacity
+          onPress={() => {
+            const picked = plans.filter(p => liked[String(p.id)]).slice(0, 2);
+            if (picked.length < 2) {
+              Alert.alert('Select Plans', 'Please like at least 2 plans to compare.');
+              return;
+            }
+            router.push({
+              pathname: '/insurance/compare-detail' as any,
+              params: { aData: JSON.stringify(picked[0]), bData: JSON.stringify(picked[1]) },
+            });
+          }}
+          style={s.compareBtn}
+          activeOpacity={0.7}
+        >
+          <ArrowLeftRight size={13} color="#e2671b" />
+          <Text style={[s.compareTxt, { color: '#e2671b' }]}>Compare</Text>
+        </TouchableOpacity>
       </View>
 
       <AddonsModal visible={showAddons} onClose={() => setShowAddons(false)} plan={selectedPlan} claimId={claimId} />
@@ -337,6 +354,8 @@ const s = StyleSheet.create({
   safe:   { flex: 1, backgroundColor: C.bg },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, height: 56 },
   backBtn:     { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+  compareBtn:  { minWidth: 36, height: 36, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 },
+  compareTxt:  { fontSize: 11, fontFamily: 'Poppins_600SemiBold' },
   headerTitle: { color: C.textPrimary, fontSize: 14, fontFamily: 'Poppins_600SemiBold', flex: 1, textAlign: 'center' },
   filtersRow:      { paddingHorizontal: 20, gap: 10, paddingBottom: 16 },
   filterPill:      { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 30, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', backgroundColor: C.glassBg },

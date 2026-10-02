@@ -600,7 +600,12 @@ export default function HomeScreen() {
             6 · VEHICLE SEARCH
         ════════════════════════════════════════════════════ */}
         <View style={[styles.sec, styles.pad]}>
-          <View style={[styles.vehicleSearchWrapper, { backgroundColor: aC.isDark ? '#061B4A' : '#dde8ff' }]}>
+          <LinearGradient
+            colors={['#e2671b', '#032a69']}
+            start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }}
+            style={{ borderRadius: 18, padding: 1.5 }}
+          >
+          <View style={[styles.vehicleSearchWrapper, { backgroundColor: aC.isDark ? '#061B4A' : '#dde8ff', borderWidth: 0 }]}>
             <LinearGradient
               colors={['transparent', 'rgba(226,103,27,0.55)']}
               start={{ x: 0.5, y: 0.6 }}
@@ -610,6 +615,7 @@ export default function HomeScreen() {
             />
             <VehicleSearch />
           </View>
+          </LinearGradient>
         </View>
 
         {/* ════════════════════════════════════════════════════
@@ -625,7 +631,7 @@ export default function HomeScreen() {
             8 · FEATURED CARS
         ════════════════════════════════════════════════════ */}
         <View style={[styles.sec, styles.pad]}>
-          <SH title="Featured Cars" onViewAll={() => router.push('/(tabs)/explore')} />
+          <SH title="Featured Cars" onViewAll={() => router.push({ pathname: '/buy/search-results', params: { category: 'car', title: 'Featured Cars' } } as any)} />
           {loading ? (
             <ActivityIndicator color="#e2671b" style={{ paddingVertical: 28 }} />
           ) : featured.length === 0 ? (
@@ -654,7 +660,7 @@ export default function HomeScreen() {
             9 · FEATURED BIKES
         ════════════════════════════════════════════════════ */}
         <View style={[styles.sec, styles.pad]}>
-          <SH title="Featured Bikes" onViewAll={() => router.push({ pathname: '/(tabs)/explore', params: { category: 'bike' } } as any)} />
+          <SH title="Featured Bikes" onViewAll={() => router.push({ pathname: '/buy/search-results', params: { category: 'bike', title: 'Featured Bikes' } } as any)} />
           {bikes.length === 0 ? (
             <View style={[styles.emptyBox, { backgroundColor: aC.glassBg, borderColor: aC.divider }]}>
               <Ionicons name="bicycle-outline" size={40} color={aC.textSecondary} />
@@ -1098,7 +1104,7 @@ const styles = StyleSheet.create({
   servGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   /* Figma: Glass Button bg=#061b4a, blue glow shadow, orange border tint — compact size */
   servCard: {
-    width: SERV_W, height: 68,
+    width: SERV_W, height: 78,
     backgroundColor: 'rgba(3,12,40,0.6)',
     borderRadius: 10,
     borderWidth: 1,
@@ -1108,7 +1114,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     overflow: 'hidden',
   },
-  servLabel: { fontSize: 8, fontFamily: 'Poppins_500Medium', color: '#baacb6', textAlign: 'center', lineHeight: 10 },
+  servLabel: { fontSize: 10.5, fontFamily: 'Poppins_500Medium', color: '#baacb6', textAlign: 'center', lineHeight: 14 },
   servDots: { flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: 12 },
   servDot: { width: 5, height: 5, borderRadius: 3 },
 
@@ -1260,7 +1266,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e2671b',
     borderRadius: 16,
-    paddingVertical: 16,
+    paddingVertical: 8,
     overflow: 'hidden',
     backgroundColor: '#061B4A',
   },
