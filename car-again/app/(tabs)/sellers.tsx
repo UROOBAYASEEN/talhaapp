@@ -38,6 +38,14 @@ function formatPrice(p: number) {
   return `PKR ${p.toLocaleString()}`;
 }
 
+const SERVER_BASE = API_BASE.replace('/api/v1', '');
+function imgUrl(url?: string) {
+  if (!url) return null;
+  if (url.startsWith('file://')) return null;
+  if (url.startsWith('http')) return url;
+  return `${SERVER_BASE}${url}`;
+}
+
 export default function AdsScreen() {
   const router = useRouter();
   const aC = useAppColors();
@@ -93,6 +101,7 @@ export default function AdsScreen() {
     const mileage = item.mileage ?? item.mileage_km ?? item.km_driven ?? item.distance_km ?? item.kilometers;
     const mileageNumber = Number(String(mileage ?? '').replace(/[^\d.]/g, ''));
     const mileageLabel = mileage != null && String(mileage).trim() ? `${Number.isFinite(mileageNumber) ? mileageNumber.toLocaleString() : String(mileage)}Km` : '210,000Km';
+    const photo = imgUrl(item.images?.[0]);
     return (
       <View style={[styles.card, { backgroundColor: aC.isDark ? '#010A1F' : '#ffffff', borderColor: aC.isDark ? '#82a5d5' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? '#638ed0' : 'rgba(3,42,105,0.12)', shadowOffset: { width: 0, height: 0 }, shadowOpacity: aC.isDark ? 0.15 : 0.08, shadowRadius: 5, elevation: aC.isDark ? 2 : 3 }]}>
         {aC.isDark ? (
@@ -107,9 +116,13 @@ export default function AdsScreen() {
           </>
         )}
         <View style={styles.cardTop}>
-          {/* Image */}
+          {/* Image — database photo, fallback to local asset */}
           <View style={styles.cardImgBox}>
-            <Image source={FALLBACK_CAR} style={styles.cardCarImage} resizeMode="contain" />
+            {photo ? (
+              <Image source={{ uri: photo }} style={styles.cardCarImage} resizeMode="cover" />
+            ) : (
+              <Image source={FALLBACK_CAR} style={styles.cardCarImage} resizeMode="contain" />
+            )}
           </View>
 
           {/* Info */}
@@ -157,7 +170,7 @@ export default function AdsScreen() {
           <TouchableOpacity
             style={styles.viewBtn}
             activeOpacity={0.85}
-            onPress={() => router.push({ pathname: '/vehicle/[id]', params: { id: item.id } })}
+            onPress={() => router.push({ pathname: '/buy/car-detail', params: { id: item.id } } as any)}
           >
             <LinearGradient
               colors={[NAVY, ORANGE]}
