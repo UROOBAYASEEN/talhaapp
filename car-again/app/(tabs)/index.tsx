@@ -738,7 +738,7 @@ export default function HomeScreen() {
             8 · FEATURED CARS
         ════════════════════════════════════════════════════ */}
         <View style={[styles.sec, styles.pad]}>
-          <SH title="Featured Cars" onViewAll={() => router.push('/(tabs)/explore')} />
+          <SH title="Featured Cars" onViewAll={() => router.push({ pathname: '/buy/search-results', params: { category: 'car', title: 'Featured Cars' } } as any)} />
           {loading ? (
             <ActivityIndicator color="#e2671b" style={{ paddingVertical: 28 }} />
           ) : featured.length === 0 ? (
@@ -768,9 +768,12 @@ export default function HomeScreen() {
             9 · FEATURED BIKES
         ════════════════════════════════════════════════════ */}
         <View style={[styles.sec, styles.pad]}>
-          <SH title="Featured Bikes" onViewAll={() => router.push({ pathname: '/(tabs)/explore', params: { category: 'bike' } } as any)} />
-          {loading ? (
-            <ActivityIndicator color="#e2671b" style={{ paddingVertical: 28 }} />
+          <SH title="Featured Bikes" onViewAll={() => router.push({ pathname: '/buy/search-results', params: { category: 'bike', title: 'Featured Bikes' } } as any)} />
+          {bikes.length === 0 ? (
+            <View style={[styles.emptyBox, { backgroundColor: aC.glassBg, borderColor: aC.divider }]}>
+              <Ionicons name="bicycle-outline" size={40} color={aC.textSecondary} />
+              <Text style={[styles.emptyTxt, { color: aC.textSecondary }]}>No bikes listed yet</Text>
+            </View>
           ) : (
             <FlatList
               horizontal

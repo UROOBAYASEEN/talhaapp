@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  FlatList, Modal, ActivityIndicator, RefreshControl, Image,
+  FlatList, Modal, ActivityIndicator, RefreshControl, Image, Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { ChevronLeft, Share2, Heart, Star, ShieldCheck } from 'lucide-react-native';
+import { ChevronLeft, Share2, Heart, Star, ShieldCheck, ArrowLeftRight } from 'lucide-react-native';
 import { AppColors, useAppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';

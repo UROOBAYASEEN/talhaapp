@@ -138,6 +138,13 @@ const vpm = StyleSheet.create({
 });
 
 /* ── Helpers ── */
+const SERVER_BASE = API_BASE.replace('/api/v1', '');
+function resolveMedia(url?: string | null) {
+  if (!url) return null;
+  if (url.startsWith('http')) return url;
+  return `${SERVER_BASE}${url.startsWith('/') ? url : `/${url}`}`;
+}
+
 function daysLeft(expiresAt: string) {
   return Math.max(0, Math.ceil((new Date(expiresAt).getTime() - Date.now()) / 86400000));
 }
@@ -414,8 +421,9 @@ export default function AdminAdvertisementScreen() {
                       video={v}
                       onDelete={() => deleteVideo(v.id)}
                       onPlay={() => {
-                        if (!v.media_url) { Alert.alert('No video', 'This ad has no video file.'); return; }
-                        setPlayVideo({ uri: v.media_url, title: v.title });
+                        const uri = resolveMedia(v.media_url);
+                        if (!uri) { Alert.alert('No video', 'This ad has no video file.'); return; }
+                        setPlayVideo({ uri, title: v.title });
                       }}
                       onDetail={() => {}}
                     />
@@ -429,8 +437,9 @@ export default function AdminAdvertisementScreen() {
                           video={v}
                           onDelete={() => deleteVideo(v.id)}
                           onPlay={() => {
-                            if (!v.media_url) { Alert.alert('No video', 'This ad has no video file.'); return; }
-                            setPlayVideo({ uri: v.media_url, title: v.title });
+                            const uri = resolveMedia(v.media_url);
+                            if (!uri) { Alert.alert('No video', 'This ad has no video file.'); return; }
+                            setPlayVideo({ uri, title: v.title });
                           }}
                           onDetail={() => {}}
                         />

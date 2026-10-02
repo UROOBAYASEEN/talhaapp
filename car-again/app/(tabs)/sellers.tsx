@@ -482,12 +482,13 @@ const styles = StyleSheet.create({
     marginBottom: 12, marginTop: 8,
   },
 
-  needsRow: { flexDirection: 'row', gap: 12, marginBottom: 20 },
+  needsRow: { flexDirection: 'row', gap: 12, marginBottom: 20, alignItems: 'stretch' },
   needCard: { flex: 1, borderRadius: 16, overflow: 'hidden' },
-  needGrad: { padding: 10, minHeight: 186, justifyContent: 'flex-end' },
+  needGrad: { padding: 12, minHeight: 210, justifyContent: 'flex-start', alignItems: 'center' },
+  needImgWrap: { height: 84, width: '100%', alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
   needTitleRow: {
-    flexDirection: 'row', alignItems: 'center',
-    justifyContent: 'space-between', marginBottom: 4,
+    flexDirection: 'row', alignItems: 'center', width: '100%',
+    justifyContent: 'space-between', marginBottom: 4, minHeight: 44,
   },
   needTitle: { color: WHITE, fontSize: 16, fontFamily: 'Poppins_500Medium', textTransform: 'capitalize' },
   needImg: { width: 96, height: 70, marginBottom: 8, alignSelf: 'center' },

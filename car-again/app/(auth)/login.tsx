@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
+import * as Linking from 'expo-linking';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   Alert,
   Image,
@@ -18,6 +19,7 @@ import AuthGlowBackground from '@/components/auth/AuthGlowBackground';
 import { SocialButtons } from '@/components/auth/AuthGlow';
 import { GlassField, GradientButton, OrDivider, ScreenHeader } from '@/components/shared/GlowUI';
 import { API_BASE } from '@/constants/api';
+import { GOOGLE_CLIENT_ID, GOOGLE_PROXY_REDIRECT } from '@/constants/google';
 import { useAuth } from '@/contexts/AuthContext';
 
 WebBrowser.maybeCompleteAuthSession();
@@ -30,22 +32,40 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
-  function handleGooglePress() {
-    Alert.alert(
-      'Google Sign-In',
-      'Google login is available in the production app. Please use email and password to login.',
-      [{ text: 'OK' }]
-    );
-  }
-
-  async function handleGoogleLogin(accessToken: string) {
-    setLoading(true);
+  async function handleGooglePress() {
+    if (googleLoading || loading) return;
+    setGoogleLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/auth/google`, {
+      const redirectUri = GOOGLE_PROXY_REDIRECT;
+      const authUrl =
+        'https://accounts.google.com/o/oauth2/v2/auth' +
+        `?client_id=${encodeURIComponent(GOOGLE_CLIENT_ID)}` +
+        `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+        '&response_type=code' +
+        `&scope=${encodeURIComponent('openid profile email')}` +
+        '&access_type=offline' +
+        '&prompt=select_account';
+      const returnUrl = Linking.createURL('expo-auth-session');
+      const startUrl =
+        `${GOOGLE_PROXY_REDIRECT}/start?authUrl=${encodeURIComponent(authUrl)}` +
+        `&returnUrl=${encodeURIComponent(returnUrl)}`;
+      const result = await WebBrowser.openAuthSessionAsync(startUrl, returnUrl);
+      if (result.type !== 'success') return;
+      const url = (result as any).url || '';
+      const code = url.match(/[?&]code=([^&]+)/)?.[1]
+        ? decodeURIComponent(url.match(/[?&]code=([^&]+)/)![1])
+        : null;
+      if (!code) {
+        if (/[?&]error=/.test(url)) return;
+        throw new Error('No authorization code received. Please try again.');
+      }
+      setLoading(true);
+      const res = await fetch(`${API_BASE}/auth/google/code`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ access_token: accessToken }),
+        body: JSON.stringify({ code, redirect_uri: redirectUri }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || 'Google login failed');
@@ -67,8 +87,9 @@ export default function LoginScreen() {
         router.replace('/(tabs)');
       }
     } catch (err: any) {
-      Alert.alert('Error', err.message);
+      Alert.alert('Google Sign-In Failed', err.message || 'Please try again.');
     } finally {
+      setGoogleLoading(false);
       setLoading(false);
     }
   }

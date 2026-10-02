@@ -330,7 +330,7 @@ export default function SearchResultsScreen() {
     year?: string; color?: string; sellerType?: string;
     brand?: string; dealerId?: string; make?: string;
     condition?: string; min_price?: string; max_price?: string;
-    search?: string; hot?: string; category?: string; featured?: string; from?: string;
+    search?: string; hot?: string; category?: string; featured?: string; from?: string; title?: string;
   }>();
 
   const isHot = params.hot === 'true' || params.hot === '1';
@@ -387,6 +387,11 @@ export default function SearchResultsScreen() {
       if (params.condition)  query.set('condition',  params.condition);
       if (params.category)   query.set('category',   params.category);
       if (params.dealerId)   query.set('seller_id',  params.dealerId);
+      if (params.city && params.city !== 'All Cities')         query.set('city', params.city);
+      if (params.make && params.make !== 'All Brands')         query.set('make', params.make);
+      if (params.year && params.year !== 'Any Year')           query.set('year', params.year);
+      if (params.variant && params.variant !== 'Any Variant') query.set('variant', params.variant);
+      if (params.color && params.color !== 'Any Color')        query.set('color', params.color);
       // URL params (from used-car search form)
       if (params.min_price)  query.set('min_price',  params.min_price);
       if (params.max_price)  query.set('max_price',  params.max_price);
@@ -487,7 +492,7 @@ export default function SearchResultsScreen() {
 
             {/* Heading */}
             <View style={styles.headingContainer}>
-              <Text style={[styles.heading, { color: aC.isDark ? '#FFFFFF' : '#010a1f' }]}>{isHot ? (params.category === 'bike' ? 'Hot Selling Bikes' : 'Hot Selling Cars') : (params.category === 'bike' ? `Bikes In ${city}` : `Cars In ${city}`)}</Text>
+              <Text style={[styles.heading, { color: aC.isDark ? '#FFFFFF' : '#010a1f' }]}>{params.title || (isHot ? (params.category === 'bike' ? 'Hot Selling Bikes' : 'Hot Selling Cars') : (params.category === 'bike' ? `Bikes In ${city}` : `Cars In ${city}`))}</Text>
               <Text style={[styles.results, { color: aC.isDark ? '#AEB4C3' : '#64748b' }]}>{total} Results Found</Text>
             </View>
 
