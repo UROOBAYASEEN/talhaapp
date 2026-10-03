@@ -129,16 +129,8 @@ export default function BecomeSellerInventoryScreen() {
 
   useEffect(() => { fetchVehicles(); }, []);
 
-  const DUMMY_VEHICLES = [
-    { id: 1, title: 'Toyota Corolla Altis 1.8', make: 'Toyota', model: 'Corolla', variant: 'Altis 1.8 CVT', color: 'Silver Metallic', status: 'Available',  is_promoted: true,  location: 'Karachi',   images: ['https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?auto=format&fit=crop&w=400&q=80'], price: 5200000, created_at: new Date().toISOString() },
-    { id: 2, title: 'Honda City 1.5L Aspire',   make: 'Honda',  model: 'City',    variant: '1.5L Aspire CVT', color: 'Pearl White',  status: 'Available',  is_promoted: false, location: 'Lahore',    images: ['https://images.unsplash.com/photo-1590362891991-f776e747a588?auto=format&fit=crop&w=400&q=80'], price: 4100000, created_at: new Date().toISOString() },
-    { id: 3, title: 'Suzuki Swift GL Plus',      make: 'Suzuki', model: 'Swift',   variant: 'GL Plus CVT',     color: 'Magma Grey',  status: 'Sold Out',   is_promoted: false, location: 'Islamabad', images: ['https://images.unsplash.com/photo-1541443131876-9c64947e1742?auto=format&fit=crop&w=400&q=80'], price: 3200000, created_at: new Date().toISOString() },
-    { id: 4, title: 'Kia Sportage AWD 2024',     make: 'Kia',    model: 'Sportage', variant: 'AWD FWD',        color: 'Clear White', status: 'Available',  is_promoted: true,  location: 'Karachi',   images: ['https://images.unsplash.com/photo-1609752963462-7dee0a6ca7ba?auto=format&fit=crop&w=400&q=80'], price: 8900000, created_at: new Date().toISOString() },
-    { id: 5, title: 'Hyundai Tucson 2.0 GLS',   make: 'Hyundai', model: 'Tucson', variant: '2.0 GLS AWD',     color: 'Phantom Black', status: 'Available', is_promoted: false, location: 'Multan',    images: ['https://images.unsplash.com/photo-1617469767053-d3b523a0b982?auto=format&fit=crop&w=400&q=80'], price: 9500000, created_at: new Date().toISOString() },
-  ];
-
   async function fetchVehicles() {
-    if (!token || !user?.id) { setVehicles(DUMMY_VEHICLES); setLoading(false); return; }
+    if (!token || !user?.id) { setVehicles([]); setLoading(false); return; }
     try {
       const res = await fetch(`${API_BASE}/vehicles/my?limit=100`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -146,11 +138,11 @@ export default function BecomeSellerInventoryScreen() {
       if (res.ok) {
         const d = await res.json();
         const items = d.items || d || [];
-        setVehicles(items.length > 0 ? items : DUMMY_VEHICLES);
+        setVehicles(items);
       } else {
-        setVehicles(DUMMY_VEHICLES);
+        setVehicles([]);
       }
-    } catch { setVehicles(DUMMY_VEHICLES); }
+    } catch { setVehicles([]); }
     finally { setLoading(false); }
   }
 

@@ -66,7 +66,7 @@ export default function LoginScreen() {
         return;
       }
       if (googleUser?.role === 'individual_seller') {
-        router.replace('/(seller)' as any);
+        router.replace('/Become_a_Seller' as any);
       } else {
         router.replace('/(tabs)');
       }
@@ -119,7 +119,7 @@ export default function LoginScreen() {
         return;
       }
       if (loggedInUser?.role === 'individual_seller') {
-        router.replace('/(seller)' as any);
+        router.replace('/Become_a_Seller' as any);
       } else {
         router.replace('/(tabs)');
       }

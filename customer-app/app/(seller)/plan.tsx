@@ -1,13 +1,7 @@
-import React from 'react';
-import PlanScreen from '@/components/shared/PlanScreen';
+import { Redirect } from 'expo-router';
 
-export default function SellerPlanScreen() {
-  return (
-    <PlanScreen
-      role="seller"
-      dealerColors
-      promoTitle={'Boost Your\nSales with\nAutoWizor'}
-      promoDesc={'Choose the best plan to\nlist more vehicles and\nreach thousands of\nserious buyers.'}
-    />
-  );
+// Seller panel is merged into Become_a_Seller (single seller panel).
+// This screen only forwards to its counterpart.
+export default function SellerPlanRedirect() {
+  return <Redirect href="/Become_a_Seller/plan" />;
 }

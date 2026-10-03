@@ -1,3 +1,4 @@
+import { API_BASE } from '@/constants/api';
 import { useAppColors } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';

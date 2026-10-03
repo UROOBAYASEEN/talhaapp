@@ -93,8 +93,10 @@ const VIDEO_IMAGE =
 const SERVER_BASE = API_BASE.replace('/api/v1', '');
 function imgUrl(url?: string) {
   if (!url) return null;
-  if (url.startsWith('http')) return url;
-  return `${SERVER_BASE}${url}`;
+  // Old listings may hold absolute URLs with a previous server IP —
+  // rewrite any http://IP:port to the current server (codebase convention).
+  if (url.startsWith('http')) return url.replace(/http:\/\/[\d.]+:\d+/, SERVER_BASE);
+  return `${SERVER_BASE}${url.startsWith('/') ? url : '/' + url}`;
 }
 
 function formatPrice(p: number) {
@@ -142,8 +144,8 @@ function DealerInventoryCard({ item, onPress }: { item: any; onPress: () => void
 }
 
 // ── Car Card ─────────────────────────────────────────────────────────────────
-function CarCard({ item, onPress, onSave, saved }: {
-  item: any; onPress: () => void; onSave: () => void; saved: boolean;
+function CarCard({ item, onPress, onSave, saved, onContact }: {
+  item: any; onPress: () => void; onSave: () => void; saved: boolean; onContact: () => void;
 }) {
   const aC = useAppColors();
   const carImg = imgUrl(item.images?.[0]);
@@ -225,7 +227,7 @@ function CarCard({ item, onPress, onSave, saved }: {
           </LinearGradient>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.contactButton} activeOpacity={0.85}>
+        <TouchableOpacity style={styles.contactButton} activeOpacity={0.85} onPress={onContact}>
           <Text style={styles.buttonText}>Contact Dealer</Text>
         </TouchableOpacity>
       </View>
@@ -272,7 +274,7 @@ function CarCard({ item, onPress, onSave, saved }: {
             <Text style={styles.buttonText}>View Details</Text>
           </LinearGradient>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.contactButton, { backgroundColor: '#ffffff', borderColor: 'rgba(3,42,105,0.12)' }]} activeOpacity={0.85}>
+        <TouchableOpacity style={[styles.contactButton, { backgroundColor: '#ffffff', borderColor: 'rgba(3,42,105,0.12)' }]} activeOpacity={0.85} onPress={onContact}>
           <Text style={[styles.buttonText, { color: '#032a69' }]}>Contact Dealer</Text>
         </TouchableOpacity>
       </View>
@@ -582,6 +584,15 @@ export default function SearchResultsScreen() {
             saved={savedIds.has(item.id)}
             onPress={() => router.push({ pathname: '/buy/car-detail', params: { id: item.id } } as any)}
             onSave={() => toggleSave(item.id)}
+            onContact={() => {
+              const sid = item.seller_id || item.seller?.id;
+              if (!sid) return;
+              if (item.seller?.role === 'dealership_owner') {
+                router.push({ pathname: '/buy/dealer-profile', params: { id: sid, category: item.category || 'car' } } as any);
+              } else {
+                router.push({ pathname: '/seller/[id]', params: { id: sid } } as any);
+              }
+            }}
           />
         )}
       />

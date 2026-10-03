@@ -81,7 +81,7 @@ export default function LoginScreen() {
       } else if (googleUser?.role === 'tracker_provider') {
         router.replace('/(tracker)' as any);
       } else if (googleUser?.role === 'individual_seller') {
-        router.replace('/(seller)' as any);
+        router.replace('/Become_a_Seller' as any);
       } else {
         router.replace('/(tabs)');
       }
@@ -134,7 +134,7 @@ export default function LoginScreen() {
       } else if (loggedInUser?.role === 'tracker_provider') {
         router.replace('/(tracker)' as any);
       } else if (loggedInUser?.role === 'individual_seller') {
-        router.replace('/(seller)' as any);
+        router.replace('/Become_a_Seller' as any);
       } else {
         router.replace('/(tabs)');
       }

@@ -73,7 +73,7 @@ export default function VerificationStatusScreen() {
     else if (role === 'bank_representative') router.replace('/(bank)' as any);
     else if (role === 'insurance_provider')  router.replace('/(insurance_provider)' as any);
     else if (role === 'tracker_provider')    router.replace('/(tracker)' as any);
-    else if (role === 'individual_seller')   router.replace('/(seller)' as any);
+    else if (role === 'individual_seller')   router.replace('/Become_a_Seller' as any);
     else                                     router.replace('/(tabs)');
   }
 

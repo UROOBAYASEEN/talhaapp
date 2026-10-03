@@ -53,18 +53,13 @@ export default function BecomeSellerLayout() {
         }}
       />
       <Tabs.Screen
-        name="plan"
-        options={{
-          tabBarIcon: ({ focused }) => <PillTabIcon label="Plan" focused={focused} renderIcon={img(require('@/assets/DealerPanelIcons/planIcon.png'))} />,
-        }}
-      />
-      <Tabs.Screen
         name="profile"
         options={{
           tabBarIcon: ({ focused }) => <PillTabIcon label="Profile" focused={focused} renderIcon={ion('person-outline')} />,
         }}
       />
       {/* hidden tabs */}
+      <Tabs.Screen name="plan"      options={{ href: null }} />
       <Tabs.Screen name="my-ads"    options={{ href: null }} />
       <Tabs.Screen name="chats"     options={{ href: null }} />
       <Tabs.Screen name="settings"  options={{ href: null }} />

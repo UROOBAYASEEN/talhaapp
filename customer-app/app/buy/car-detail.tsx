@@ -93,8 +93,8 @@ function GlassInset() {
 const SERVER_BASE = API_BASE.replace('/api/v1', '');
 function imgUrl(url?: string) {
   if (!url || url.startsWith('file://')) return null;
-  if (url.startsWith('http')) return url;
-  return `${SERVER_BASE}${url}`;
+  if (url.startsWith('http')) return url.replace(/http:\/\/[\d.]+:\d+/, SERVER_BASE);
+  return `${SERVER_BASE}${url.startsWith('/') ? url : '/' + url}`;
 }
 function formatPrice(p: number) {
   if (p >= 10_000_000) return `PKR ${(p / 10_000_000).toFixed(2)} Crore`;
@@ -123,9 +123,9 @@ export default function CarDetailScreen() {
   const [imgIdx,          setImgIdx]          = useState(0);
   const [saved,           setSaved]           = useState(false);
   const [selectedVariant, setSelectedVariant] = useState(0);
-  // Second variant chosen by the user; the default (selectedVariant) always stays selected.
-  const [secondVariant, setSecondVariant] = useState<number | null>(null);
-  const [compareModal, setCompareModal] = useState(false);
+  // Other cars (different vehicles) to compare against the current one.
+  const [otherCars, setOtherCars] = useState<any[]>([]);
+  const [showCarPicker, setShowCarPicker] = useState(false);
   const [openFeature,     setOpenFeature]     = useState<string>('exterior');
   const [tax,             setTax]             = useState<any>(null);
   const [reserving,       setReserving]       = useState(false);
@@ -145,10 +145,23 @@ export default function CarDetailScreen() {
         fetch(`${API_BASE}/vehicles/${id}`, { headers: h }),
         fetch(`${API_BASE}/vehicles/${id}/tax`, { headers: h }),
       ]);
-      if (vRes.ok) { const d = await vRes.json(); setVehicle(d); setSaved(d.is_saved ?? false); }
+      if (vRes.ok) { const d = await vRes.json(); setVehicle(d); setSaved(d.is_saved ?? false); loadOtherCars(d); }
       if (tRes.ok) setTax(await tRes.json());
     } catch { }
     finally { setLoading(false); }
+  }
+
+  // Other vehicles of the same category (excluding this one) for compare
+  async function loadOtherCars(v: any) {
+    try {
+      const h: any = token ? { Authorization: `Bearer ${token}` } : {};
+      const res = await fetch(`${API_BASE}/vehicles?category=${v.category || 'car'}&limit=10`, { headers: h });
+      if (res.ok) {
+        const d = await res.json();
+        const items = d.items || d || [];
+        setOtherCars(items.filter((o: any) => String(o.id) !== String(id)).slice(0, 6));
+      }
+    } catch { }
   }
 
   async function toggleSave() {
@@ -228,9 +241,9 @@ export default function CarDetailScreen() {
   const variants = (vehicle.variants && vehicle.variants.length > 0)
     ? vehicle.variants
     : [
-        { name: `${vehicle.variant || '1.2 MT'}`,       cc: vehicle.engine_cc ? `${vehicle.engine_cc} cc` : '1199 cc', fuel: vehicle.fuel_type || 'Petrol', trans: 'Manual',    delivery: 'Immediate', price: vehicle.price },
-        { name: `${vehicle.variant || '1.5 Aspire MT'}`,cc: vehicle.engine_cc ? `${vehicle.engine_cc} cc` : '1498 cc', fuel: vehicle.fuel_type || 'Petrol', trans: 'Manual',    delivery: 'Immediate', price: vehicle.price },
-        { name: `${vehicle.variant || '1.5 Aspire CVT'}`,cc: vehicle.engine_cc ? `${vehicle.engine_cc} cc` : '1498 cc',fuel: vehicle.fuel_type || 'Petrol', trans: 'Automatic', delivery: 'Immediate', price: vehicle.price },
+        { name: vehicle.variant ? `${vehicle.variant} (Base)` : '1.2 MT',       cc: vehicle.engine_cc ? `${vehicle.engine_cc} cc` : '1199 cc', fuel: vehicle.fuel_type || 'Petrol', trans: 'Manual',    delivery: 'Immediate', price: vehicle.price },
+        { name: vehicle.variant ? `${vehicle.variant} (Mid)` : '1.5 Aspire MT', cc: vehicle.engine_cc ? `${vehicle.engine_cc} cc` : '1498 cc', fuel: vehicle.fuel_type || 'Petrol', trans: 'Manual',    delivery: 'Immediate', price: vehicle.price },
+        { name: vehicle.variant ? `${vehicle.variant} (Top)` : '1.5 Aspire CVT',cc: vehicle.engine_cc ? `${vehicle.engine_cc} cc` : '1498 cc',fuel: vehicle.fuel_type || 'Petrol', trans: 'Automatic', delivery: 'Immediate', price: vehicle.price },
       ];
   const isDealer   = vehicle.seller?.role === 'dealership_owner';
   const dealerName = vehicle.seller?.dealership_name || vehicle.seller?.full_name || 'Dealer';
@@ -406,9 +419,9 @@ export default function CarDetailScreen() {
 
           {/* ── Variant Cards ── */}
           {variants.length > 0 && variants.map((v: any, i: number) => {
-            const sel = selectedVariant === i || secondVariant === i;
+            const sel = selectedVariant === i;
             return (
-              <TouchableOpacity key={i} onPress={() => { if (i !== selectedVariant) { setSecondVariant(i); setCompareModal(true); } }} activeOpacity={0.85} style={{ marginTop: 10 }}>
+              <TouchableOpacity key={i} onPress={() => setSelectedVariant(i)} activeOpacity={0.85} style={{ marginTop: 10 }}>
                 {/* Saved-card effect only on selected variants; others keep the original card look */}
                 <View style={sel ? [s.savedOuterCard, {
                   backgroundColor: aC.isDark ? '#010A1F' : '#ffffff',
@@ -440,6 +453,12 @@ export default function CarDetailScreen() {
               </TouchableOpacity>
             );
           })}
+
+          {/* ── Compare with a different car ── */}
+          <TouchableOpacity style={s.selBtn} activeOpacity={0.88} onPress={() => setShowCarPicker(true)}>
+            <LinearGradient colors={['#0b3a82', '#7a4a4a', '#e2671b']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+            <Text style={s.selBtnTxt}>Compare with Another Car</Text>
+          </TouchableOpacity>
 
           {/* ── Specification ── */}
           <Text style={[s.secTitle, { color: aC.isDark ? WHITE : '#010a1f' }]}>Specification</Text>
@@ -595,10 +614,10 @@ export default function CarDetailScreen() {
         }}
       />
 
-      {/* ── Selected Car modal — opens when the user picks the second variant ── */}
-      <Modal visible={compareModal && secondVariant !== null} transparent animationType="fade" onRequestClose={() => setCompareModal(false)}>
+      {/* ── Pick another car to compare with ── */}
+      <Modal visible={showCarPicker} transparent animationType="fade" onRequestClose={() => setShowCarPicker(false)}>
         <View style={s.selOverlay}>
-          <TouchableOpacity style={StyleSheet.absoluteFillObject} activeOpacity={1} onPress={() => setCompareModal(false)} />
+          <TouchableOpacity style={StyleSheet.absoluteFillObject} activeOpacity={1} onPress={() => setShowCarPicker(false)} />
           <View style={[s.selCard, {
             backgroundColor: aC.isDark ? '#010A1F' : '#ffffff',
             borderColor: aC.isDark ? '#82a5d5' : 'rgba(3,42,105,0.12)',
@@ -610,61 +629,44 @@ export default function CarDetailScreen() {
           }]}>
             <SavedCardEffect />
 
-            <Text style={[s.selTitle, { color: aC.isDark ? '#d6cfd6' : '#010a1f' }]}>{vehicle?.category === 'bike' ? 'Selected Bike' : 'Selected Car'}</Text>
-            <TouchableOpacity style={s.selClose} onPress={() => setCompareModal(false)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <Text style={[s.selTitle, { color: aC.isDark ? '#d6cfd6' : '#010a1f' }]}>Select Car to Compare</Text>
+            <TouchableOpacity style={s.selClose} onPress={() => setShowCarPicker(false)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
               <Ionicons name="close" size={26} color={aC.isDark ? '#d6cfd6' : '#010a1f'} />
             </TouchableOpacity>
 
-            {/* Dashed divider with car badge */}
-            <View style={s.selBadgeRow}>
-              <View style={[s.selDash, { borderColor: aC.isDark ? 'rgba(255,255,255,0.55)' : 'rgba(3,42,105,0.3)' }]} />
-              <View style={[s.selBadge, { borderColor: aC.isDark ? 'rgba(255,255,255,0.7)' : 'rgba(3,42,105,0.35)' }]}>
-                <LinearGradient colors={['#1b3a78', '#0a1a3d']} style={[StyleSheet.absoluteFillObject, { borderRadius: 40 }]} />
-                <MaterialCommunityIcons name="car-outline" size={40} color="#ffffff" />
-              </View>
-            </View>
-
-            {[
-              { label: vehicle?.category === 'bike' ? 'First Bike' : 'First Car', v: variants[selectedVariant] },
-              { label: vehicle?.category === 'bike' ? 'Second Bike' : 'Second Car', v: secondVariant !== null ? variants[secondVariant] : null },
-            ].map((row) => (
-              <View key={row.label} style={{ marginTop: 14 }}>
-                <View style={s.selLabelRow}>
-                  <View style={s.selLabelIcon}><MaterialCommunityIcons name="car" size={13} color="#1e293b" /></View>
-                  <Text style={[s.selLabel, { color: aC.isDark ? '#c9c2cc' : '#334155' }]}>{row.label}</Text>
-                  <MaterialCommunityIcons name="check-decagram" size={14} color="#1d8cf8" />
-                </View>
-                <View style={[s.selField, { backgroundColor: aC.isDark ? '#07142f' : '#f8fafc', borderColor: aC.isDark ? 'rgba(120,160,225,0.7)' : 'rgba(3,42,105,0.15)' }]}>
-                  {aC.isDark && (
-                    <LinearGradient colors={['rgba(40,80,150,0.45)', 'rgba(7,20,47,0)', 'rgba(7,20,47,0)', 'rgba(40,80,150,0.35)']} locations={[0, 0.3, 0.7, 1]} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                  )}
-                  <Text style={[s.selFieldTxt, { color: aC.isDark ? WHITE : '#010a1f' }]} numberOfLines={1}>
-                    {`${vehicle.make || ''} ${row.v?.name || ''}`.trim()}
-                  </Text>
-                </View>
-              </View>
-            ))}
-
-            <TouchableOpacity
-              style={s.selBtn}
-              activeOpacity={0.88}
-              onPress={() => {
-                if (secondVariant === null) return;
-                const toData = (v: any) => JSON.stringify({
-                  ...vehicle,
-                  title: `${vehicle.make || ''} ${v?.name || ''}`.trim(),
-                  variant: v?.name,
-                  price: v?.price || vehicle.price,
-                  fuel_type: v?.fuel || vehicle.fuel_type,
-                  transmission: v?.trans || vehicle.transmission,
-                });
-                setCompareModal(false);
-                router.push({ pathname: '/compare-result', params: { aData: toData(variants[selectedVariant]), bData: toData(variants[secondVariant]) } } as any);
-              }}
-            >
-              <LinearGradient colors={['#0b3a82', '#7a4a4a', '#e2671b']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
-              <Text style={s.selBtnTxt}>Compare your Vehicle</Text>
-            </TouchableOpacity>
+            {otherCars.length === 0 ? (
+              <Text style={{ color: aC.isDark ? '#BAB6C4' : '#64748b', fontSize: 13, fontFamily: 'Poppins_400Regular', textAlign: 'center', marginVertical: 24 }}>
+                No other cars found to compare.
+              </Text>
+            ) : (
+              <ScrollView style={{ marginTop: 12, maxHeight: 380 }} showsVerticalScrollIndicator={false}>
+                {otherCars.map((o: any) => {
+                  const oImg = imgUrl(o.images?.[0]);
+                  return (
+                    <TouchableOpacity
+                      key={String(o.id)}
+                      activeOpacity={0.85}
+                      style={[s.pickRow, { borderColor: aC.isDark ? 'rgba(120,160,225,0.35)' : 'rgba(3,42,105,0.12)', backgroundColor: aC.isDark ? '#07142f' : '#f8fafc' }]}
+                      onPress={() => {
+                        setShowCarPicker(false);
+                        router.push({ pathname: '/compare-result', params: { aId: String(id), bId: String(o.id) } } as any);
+                      }}
+                    >
+                      {oImg
+                        ? <Image source={{ uri: oImg }} style={s.pickImg} resizeMode="cover" />
+                        : <View style={[s.pickImg, { alignItems: 'center', justifyContent: 'center', backgroundColor: aC.isDark ? '#0d1e3d' : '#eef2f7' }]}>
+                            <Ionicons name="car-outline" size={22} color="#929DB1" />
+                          </View>}
+                      <View style={{ flex: 1 }}>
+                        <Text style={[s.pickTitle, { color: aC.isDark ? WHITE : '#010a1f' }]} numberOfLines={1}>{o.title || `${o.make || ''} ${o.model || ''}`.trim()}</Text>
+                        <Text style={[s.pickPrice, { color: aC.isDark ? '#BAB6C4' : '#64748b' }]}>{o.price ? `Rs ${Number(o.price).toLocaleString()}` : ''}</Text>
+                      </View>
+                      <Ionicons name="chevron-forward" size={20} color="#e2671b" />
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            )}
           </View>
         </View>
       </Modal>
@@ -688,6 +690,10 @@ const s = StyleSheet.create({
   selFieldTxt:  { fontSize: 12.5, fontFamily: 'Poppins_500Medium' },
   selBtn:       { height: 48, borderRadius: 24, marginTop: 18, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   selBtnTxt:    { color: '#f2eef2', fontSize: 14, fontFamily: 'Poppins_500Medium' },
+  pickRow:      { flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 1, borderRadius: 16, padding: 10, marginTop: 10 },
+  pickImg:      { width: 64, height: 48, borderRadius: 10, overflow: 'hidden' },
+  pickTitle:    { fontSize: 13, fontFamily: 'Poppins_500Medium' },
+  pickPrice:    { fontSize: 12, fontFamily: 'Poppins_400Regular', marginTop: 2 },
 
   root: { flex: 1, backgroundColor: BG },
 

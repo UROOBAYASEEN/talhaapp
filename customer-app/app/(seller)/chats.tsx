@@ -1,20 +1,7 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { AppColors } from '@/constants/theme';
+import { Redirect } from 'expo-router';
 
-export default function SellerChatsScreen() {
-  return (
-    <SafeAreaView style={s.safe}>
-      <View style={s.center}>
-        <Text style={s.text}>Chats</Text>
-      </View>
-    </SafeAreaView>
-  );
+// Seller panel is merged into Become_a_Seller (single seller panel).
+// This screen only forwards to its counterpart.
+export default function SellerChatsRedirect() {
+  return <Redirect href="/Become_a_Seller/chats" />;
 }
-
-const s = StyleSheet.create({
-  safe:   { flex: 1, backgroundColor: AppColors.bg },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  text:   { color: AppColors.textPrimary, fontSize: 16, fontFamily: 'Poppins_600SemiBold' },
-});

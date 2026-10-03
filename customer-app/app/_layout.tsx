@@ -49,9 +49,9 @@ function AuthGuard() {
         router.replace('/(auth)/suspended' as any);
       }
     } else if (token && inAuth && user) {
-      // Customer app — seller goes to the seller panel, everyone else to customer tabs
+      // Customer app — seller goes to the Become_a_Seller panel, everyone else to customer tabs
       if (user.role === 'individual_seller') {
-        router.replace('/(seller)' as any);
+        router.replace('/Become_a_Seller' as any);
       } else {
         router.replace('/(tabs)');
       }

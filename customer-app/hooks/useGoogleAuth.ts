@@ -12,7 +12,7 @@ WebBrowser.maybeCompleteAuthSession();
 /** Same post-login routing everywhere (login / register / onboarding). */
 export function routeUserByRole(router: any, user: any) {
   if (user?.role === 'individual_seller') {
-    router.replace('/(seller)' as any);
+    router.replace('/Become_a_Seller' as any);
   } else {
     router.replace('/(tabs)' as any);
   }

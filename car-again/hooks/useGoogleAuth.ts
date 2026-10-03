@@ -22,7 +22,7 @@ export function routeUserByRole(router: any, user: any) {
   } else if (user?.role === 'tracker_provider') {
     router.replace('/(tracker)' as any);
   } else if (user?.role === 'individual_seller') {
-    router.replace('/(seller)' as any);
+    router.replace('/Become_a_Seller' as any);
   } else {
     router.replace('/(tabs)' as any);
   }

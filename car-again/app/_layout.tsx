@@ -52,7 +52,7 @@ function AuthGuard() {
         else if (user.role === 'bank_representative') router.replace('/(bank)' as any);
         else if (user.role === 'insurance_provider')  router.replace('/(insurance_provider)' as any);
         else if (user.role === 'tracker_provider')    router.replace('/(tracker)' as any);
-        else if (user.role === 'individual_seller')   router.replace('/(seller)' as any);
+        else if (user.role === 'individual_seller')   router.replace('/Become_a_Seller' as any);
       } else {
         // customer
         router.replace('/(tabs)');

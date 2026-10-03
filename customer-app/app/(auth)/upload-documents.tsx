@@ -167,7 +167,7 @@ export default function UploadDocumentsScreen() {
         await setAuth(authToken, refresh_token);
       }
     } catch { /* still navigate — tokens were issued at OTP verify */ }
-    if (role === 'individual_seller')      { router.replace('/(seller)' as any); return; }
+    if (role === 'individual_seller')      { router.replace('/Become_a_Seller' as any); return; }
     router.replace('/(tabs)' as any);
   }
 

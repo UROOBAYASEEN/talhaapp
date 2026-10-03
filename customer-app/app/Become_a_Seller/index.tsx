@@ -29,7 +29,6 @@ const GREEN   = '#2ECC71';
 const QUICK_ACTIONS = [
   { title: 'Add Vehicle',       icon: DICON.add,            route: '/dealer-panel/add-vehicle' },
   { title: 'Customers',         icon: DICON.customers,      route: '/Become_a_Seller/leads' },
-  { title: 'Subscription',      icon: DICON.subscription,   route: '/Become_a_Seller/plan' },
   { title: 'Add special offer', icon: DICON.addVideoAdd,    route: '/dealer-panel/special-offer' },
   { title: 'Add Video',         icon: DICON.addVideoAdd,    route: '/dealer-panel/video-ads' },
   { title: 'Advertisement',     icon: DICON.advertisement,  route: '/dealer-panel/advertisement' },
@@ -431,6 +430,7 @@ export default function BecomeSellerHomeScreen() {
 
           {/* ── QUICK ACTIONS ── */}
           <View style={s.quickSection}>
+            <Text style={s.sectionTitle}>Quick Actions</Text>
             <View style={s.actionsGrid}>
               {QUICK_ACTIONS.map((action, i) => (
                 <TouchableOpacity

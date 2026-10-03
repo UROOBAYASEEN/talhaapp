@@ -69,7 +69,7 @@ export default function VerificationStatusScreen() {
     }
     await refreshUser();
     const role = user?.role;
-    if (role === 'individual_seller')   router.replace('/(seller)' as any);
+    if (role === 'individual_seller')   router.replace('/Become_a_Seller' as any);
     else                                router.replace('/(tabs)');
   }
 

@@ -25,8 +25,8 @@ interface Checkout {
 export default function PromotePaymentScreen() {
   const router = useRouter();
   const { token, user } = useAuth();
-  // Home after payment: Seller → (seller), Become_a_Seller (customer account) → its own panel, else Dealer
-  const panelHome = (user as any)?.role === 'individual_seller' ? '/(seller)' : (user as any)?.role === 'customer' ? '/Become_a_Seller' : '/(dealer)';
+  // Home after payment: Seller (single Become_a_Seller panel) → Become_a_Seller, else Dealer
+  const panelHome = (user as any)?.role === 'individual_seller' ? '/Become_a_Seller' : (user as any)?.role === 'customer' ? '/Become_a_Seller' : '/(dealer)';
   const params = useLocalSearchParams<{
     vehicle_ids: string;
     plan_title:  string;

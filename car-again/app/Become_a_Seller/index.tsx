@@ -423,6 +423,7 @@ export default function BecomeSellerHomeScreen() {
 
           {/* ── QUICK ACTIONS ── */}
           <View style={s.quickSection}>
+            <Text style={s.sectionTitle}>Quick Actions</Text>
             <View style={s.actionsGrid}>
               {QUICK_ACTIONS.map((action, i) => (
                 <TouchableOpacity

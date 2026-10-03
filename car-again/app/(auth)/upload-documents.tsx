@@ -171,7 +171,7 @@ export default function UploadDocumentsScreen() {
     if (role === 'bank_representative')    { router.replace('/(bank)' as any); return; }
     if (role === 'insurance_provider')     { router.replace('/(insurance_provider)' as any); return; }
     if (role === 'tracker_provider')       { router.replace('/(tracker)' as any); return; }
-    if (role === 'individual_seller')      { router.replace('/(seller)' as any); return; }
+    if (role === 'individual_seller')      { router.replace('/Become_a_Seller' as any); return; }
     router.replace('/(tabs)' as any);
   }
 
