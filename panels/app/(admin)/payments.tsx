@@ -34,11 +34,11 @@ const ROLE_LABELS: Record<string, string> = {
 
 const OVERVIEW_FALLBACK = [
   { label: "Total Dealers", value: "0" },
-  { label: "Active Subscriptions", value: "0" },
+  { label: "Registration Fees", value: "0" },
   { label: "Expired / Cancelled", value: "0" },
 ];
 
-const FILTERS = ["All", "Subscription", "Ads", "Reserver", "Tracker", "Advertisement", "Promote Vehicle", "Insurance"];
+const FILTERS = ["All", "Registration Fee", "Ads", "Reserver", "Tracker", "Advertisement", "Promote Vehicle", "Insurance"];
 
 // Display labels (spelling/label fix)
 const FILTER_LABELS: Record<string, string> = {
@@ -51,6 +51,7 @@ const PAYMENTS: any[] = [];
 function paymentIcon(type?: string) {
   const t = String(type || '').toLowerCase();
   if (t.includes('reserv')) return 'car-outline';
+  if (t.includes('regist')) return 'file-document-outline';
   if (t.includes('subscr')) return 'file-document-outline';
   if (t.includes('service')) return 'wrench-outline';
   if (t.includes('tracker')) return 'crosshairs-gps';
@@ -81,7 +82,7 @@ export default function PaymentsScreen() {
           const o = await r2.json();
           setOverview([
             { label: "Total Dealers", value: String(o.total_dealers ?? 0) },
-            { label: "Active Subscriptions", value: String(o.active_subscriptions ?? 0) },
+            { label: "Registration Fees", value: `${o.reg_count ?? 0} • PKR ${Number(o.reg_total ?? 0).toLocaleString()}` },
             { label: "Expired / Cancelled", value: String(o.expired_cancelled ?? 0) },
           ]);
         }
@@ -213,9 +214,9 @@ export default function PaymentsScreen() {
               </View>
             );
           })()}
-          {/* Subscription total payments */}
-          {filter === "Subscription" && (() => {
-            const filtered = [...PAYMENTS, ...live].filter(p => p.type === "Subscription");
+          {/* Registration Fee total payments */}
+          {filter === "Registration Fee" && (() => {
+            const filtered = [...PAYMENTS, ...live].filter(p => p.type === "Registration Fee");
             if (filtered.length === 0) return null;
             const total = filtered.reduce((s, p) => s + (Number(String(p.amount).replace(/[^0-9]/g, "")) || 0), 0);
             return (
@@ -228,7 +229,7 @@ export default function PaymentsScreen() {
                     <LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
                   </>
                 )}
-                <Text style={[styles.overviewLabel, { color: aC.isDark ? "#8090B0" : "#475569" }]}>Subscription Total</Text>
+                <Text style={[styles.overviewLabel, { color: aC.isDark ? "#8090B0" : "#475569" }]}>Registration Fee Total</Text>
                 <Text style={[styles.overviewValue, { color: aC.isDark ? WHITE : '#010a1f' }]}>PKR {total.toLocaleString()}</Text>
                 <Text style={[styles.overviewLabel, { marginBottom: 0, color: aC.isDark ? "#8090B0" : "#475569" }]}>{filtered.length} payments</Text>
               </View>
@@ -286,6 +287,11 @@ export default function PaymentsScreen() {
                     <Text style={[styles.txnTxt, { color: aC.isDark ? "#C9C6D0" : "#475569" }]}>
                       {p.txn}{p.time ? ` • ${p.date ? `${p.date} ` : ''}${p.time}` : ''}
                     </Text>
+                    {(p.email || p.role) ? (
+                      <Text style={[styles.txnTxt, { color: aC.isDark ? "#8090B0" : "#64748b", fontSize: 12 }]} numberOfLines={1}>
+                        {[ROLE_LABELS[p.role] || p.role, p.email].filter(Boolean).join(' • ')}
+                      </Text>
+                    ) : null}
                   </View>
                   <View style={styles.amountBox}>
                     <Text style={[styles.pkrLabel, { color: aC.isDark ? "#E6E1E8" : "#475569" }]}>PKR</Text>

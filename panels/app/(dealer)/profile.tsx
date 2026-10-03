@@ -11,7 +11,6 @@ import { Award } from 'lucide-react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { D, GlowCard, Verified } from '@/components/dealer/DealerUI';
 import { RatingSummary, ReviewItem } from '@/components/book/reviews';
-import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
 import { AppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
@@ -285,38 +284,7 @@ export default function DealerProfileScreen() {
             <Text style={s.seeMoreText}>See More</Text>
           </TouchableOpacity>
 
-          {/* ── PREMIUM PLAN CARD ── */}
-          <GlowCard style={s.premiumCard} radius={24}>
-            <View style={s.planHeader}>
-              <View>
-                <View style={s.currentPlanBadge}>
-                  <Text style={s.currentPlanText}>CURRENT PLAN</Text>
-                </View>
-                <Text style={s.premiumTitle}>Premium Dealer</Text>
-              </View>
-              <View style={s.badgeGlowWrap}>
-                <Svg width={120} height={120} style={StyleSheet.absoluteFill} pointerEvents="none">
-                  <Defs>
-                    <RadialGradient id="pg" cx="50%" cy="50%" r="50%">
-                      <Stop offset="0" stopColor="#E2671B" stopOpacity="0.28" />
-                      <Stop offset="1" stopColor="#E2671B" stopOpacity="0" />
-                    </RadialGradient>
-                  </Defs>
-                  <Circle cx={60} cy={60} r={60} fill="url(#pg)" />
-                </Svg>
-                <MaterialCommunityIcons name="check-decagram-outline" size={30} color={ORANGE} />
-              </View>
-            </View>
-
-            {['Verified Dealer Status','Priority Search Ranking','Unlimited Listing Slots','Exclusive Ad Campaigns'].map(f => (
-              <PlanFeature key={f} text={f}/>
-            ))}
-
-            <TouchableOpacity style={s.manageButton} activeOpacity={0.85} onPress={() => router.push('/(dealer)/plan' as any)}>
-              <LinearGradient colors={['#0B3585', '#7E4F5C', '#E8702A']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject}/>
-              <Text style={s.manageText}>Manage Plan</Text>
-            </TouchableOpacity>
-          </GlowCard>
+          {/* ── PREMIUM PLAN CARD — removed (plan route deleted) */}
 
 
         </ScrollView>
@@ -347,15 +315,6 @@ function ContactItem({ icon, title, lines }: { icon: React.ReactNode; title: str
           <Text key={i} style={s.contactText}>{line.trim()}</Text>
         ))}
       </View>
-    </View>
-  );
-}
-
-function PlanFeature({ text }: { text: string }) {
-  return (
-    <View style={s.planFeature}>
-      <Ionicons name="checkmark-circle-outline" size={22} color="#2ECC71" />
-      <Text style={s.planFeatureText}>{text}</Text>
     </View>
   );
 }

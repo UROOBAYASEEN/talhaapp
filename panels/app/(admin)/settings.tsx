@@ -19,11 +19,9 @@ const SETTINGS = [
   { title: 'Add Banner',                       icon: 'image-outline',             route: '/(admin)/add-banner'            },
   { title: 'Send Notification',               icon: 'send',              route: '/(admin)/send-notification'     },
   { title: 'Approve Listings',                icon: 'checkmark-circle',  route: '/(admin)/approve-listings'      },
-  { title: 'Manage Subscriptions & Settings', icon: 'options-outline',          route: '/(admin)/manage-subscriptions'  },
 ];
 
 const PAYMENT_ITEMS = [
-  { title: 'Subscription',           icon: 'card-outline',    route: '/(admin)/subscription' },
   { title: 'Advertisement Payment',  icon: 'cash-outline',    route: '/(admin)/ad-payment'   },
 ];
 

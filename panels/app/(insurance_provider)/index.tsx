@@ -27,7 +27,6 @@ const BLUE_BORDER = 'rgba(255,255,255,0.15)';
 const QUICK_ACTIONS = [
   { title: 'Tracker Req',        icon: <Ionicons name="locate-outline" size={24} color="#E2671B" />, route: '/(insurance_provider)/tracker-requests' },
   { title: 'Customers',          icon: <DIcon src={DICON.customers} size={24} />,     route: '/(insurance_provider)/customers' },
-  { title: 'Subscription',       icon: <DIcon src={DICON.subscription} size={24} />,  route: '/(insurance_provider)/plan' },
   { title: 'New Special\nOffer', icon: <DIcon src={DICON.addVideoAdd} size={20} />,   route: '/(insurance_provider)/special-offer' },
   { title: 'Add Video',          icon: <DIcon src={DICON.addVideoAdd} size={20} />,   route: '/(insurance_provider)/video-ads' },
   { title: 'Advertisement',      icon: <DIcon src={DICON.advertisement} size={24} />, route: '/(insurance_provider)/advertisement' },

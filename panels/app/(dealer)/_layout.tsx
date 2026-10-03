@@ -61,14 +61,6 @@ export default function DealerLayout() {
         }}
       />
       <Tabs.Screen
-        name="plan"
-        options={{
-          tabBarIcon: ({ focused }) => (
-            <PillTabIcon label="Plan" focused={focused} renderIcon={img(require('@/assets/DealerPanelIcons/planIcon.png'))} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="profile"
         options={{
           tabBarIcon: ({ focused }) => (

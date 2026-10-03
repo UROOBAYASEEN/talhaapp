@@ -11,6 +11,9 @@ import {
   View,
 } from 'react-native';
 import { useAppColors } from '@/constants/theme';
+import { useAuth } from '@/contexts/AuthContext';
+import { payWithSafePayCard } from '@/hooks/useSafePay';
+import { useRouter } from 'expo-router';
 
 export type PayMethod = 'card' | 'jazzcash' | 'easypaisa';
 
@@ -34,9 +37,11 @@ export default function PaymentSection({
   beforePayButton,
 }: Props) {
   const aC = useAppColors();
+  const { token } = useAuth();
+  const router = useRouter();
   const [method, setMethod] = useState<PayMethod>('card');
+  const [cardBusy, setCardBusy] = useState(false);
   const [walletNumbers, setWalletNumbers] = useState({ jazzcash: '', easypaisa: '' });
-  const [cardFields, setCardFields] = useState({ number: '', expiry: '', cvv: '' });
   const displayAmount = price >= 10_000_000
     ? `${Number((price / 10_000_000).toFixed(2))} Crore`
     : price >= 100_000
@@ -79,65 +84,6 @@ export default function PaymentSection({
           </View>
           <Text style={[s.methodLabel, { color: aC.isDark ? '#f9fafc' : '#010a1f' }]}>Credit / Debit Card</Text>
         </TouchableOpacity>
-        {method === 'card' && (
-          <View style={s.cardFields}>
-            <Text style={s.fieldLabel}>Card No:</Text>
-            <View style={s.fieldBox}>
-              <TextInput
-                style={s.cardInput}
-                placeholder="4242 4242 4242 4242"
-                placeholderTextColor="#c7cbd5"
-                keyboardType="number-pad"
-                maxLength={19}
-                value={cardFields.number}
-                onChangeText={value => {
-                  const digits = value.replace(/\D/g, '').slice(0, 16);
-                  setCardFields(current => ({ ...current, number: digits.replace(/(.{4})/g, '$1 ').trim() }));
-                }}
-                editable={!loading}
-              />
-              <Ionicons name="card-outline" size={20} color="#c7cbd5" />
-            </View>
-            <View style={s.fieldColumns}>
-              <View style={s.fieldColumn}>
-                <Text style={s.fieldLabel}>Expiry Date:</Text>
-                <View style={s.fieldBox}>
-                  <TextInput
-                    style={s.cardInput}
-                    placeholder="MM/YY"
-                    placeholderTextColor="#c7cbd5"
-                    keyboardType="number-pad"
-                    maxLength={5}
-                    value={cardFields.expiry}
-                    onChangeText={value => {
-                      const digits = value.replace(/\D/g, '').slice(0, 4);
-                      setCardFields(current => ({ ...current, expiry: digits.length > 2 ? `${digits.slice(0, 2)}/${digits.slice(2)}` : digits }));
-                    }}
-                    editable={!loading}
-                  />
-                  <Ionicons name="calendar-outline" size={19} color="#c7cbd5" />
-                </View>
-              </View>
-              <View style={s.fieldColumn}>
-                <Text style={s.fieldLabel}>CVV Code:</Text>
-                <View style={s.fieldBox}>
-                  <TextInput
-                    style={s.cardInput}
-                    placeholder="123"
-                    placeholderTextColor="#c7cbd5"
-                    keyboardType="number-pad"
-                    maxLength={4}
-                    secureTextEntry
-                    value={cardFields.cvv}
-                    onChangeText={value => setCardFields(current => ({ ...current, cvv: value.replace(/\D/g, '') }))}
-                    editable={!loading}
-                  />
-                  <Ionicons name="help-circle-outline" size={19} color="#c7cbd5" />
-                </View>
-              </View>
-            </View>
-          </View>
-        )}
       </View>
 
       {/* JazzCash */}
@@ -223,12 +169,26 @@ export default function PaymentSection({
       {/* Pay Button */}
       <TouchableOpacity
         activeOpacity={0.87}
-        style={[s.payBtnWrap, loading && { opacity: 0.7 }]}
-        onPress={() => onPay(method)}
-        disabled={loading}
+        style={[s.payBtnWrap, (loading || cardBusy) && { opacity: 0.7 }]}
+        onPress={async () => {
+          if (method !== 'card') { onPay(method); return; }
+          // Credit/debit card → real SafePay checkout (.env credentials)
+          if (cardBusy || loading) return;
+          setCardBusy(true);
+          try {
+            const paid = await payWithSafePayCard(price, description, token);
+            if (paid) onPay('card');
+            else router.push({ pathname: '/vehicle/payment-failed', params: { title: description, price: String(price) } } as any);
+          } catch (err: any) {
+            router.push({ pathname: '/vehicle/payment-failed', params: { title: description, price: String(price) } } as any);
+          } finally {
+            setCardBusy(false);
+          }
+        }}
+        disabled={loading || cardBusy}
       >
         <LinearGradient colors={['#032a69', '#e2671b']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.payBtn}>
-          {loading
+          {(loading || cardBusy)
             ? <ActivityIndicator color="#fff" size="small" />
             : payLabel
               ? <Text style={s.payTxt}>{payLabel}</Text>

@@ -11,7 +11,7 @@ import { useRouter } from 'expo-router';
 import {
   ChevronLeft, Eye, Bell, Settings, BadgeCheck, MoreVertical,
   Car, Star, Users, Award, MapPin, Phone, Clock3,
-  CheckCircle, ShieldCheck, Pencil, Plus,
+  Pencil, Plus,
 } from 'lucide-react-native';
 import { AppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
@@ -306,29 +306,8 @@ export default function SellerProfileScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* ── PLAN CARD ── */}
-          <GlowCard style={s.premiumCard} radius={24}>
-            <View style={s.planHeader}>
-              <View>
-                <View style={s.currentPlanBadge}>
-                  <Text style={s.currentPlanText}>CURRENT PLAN</Text>
-                </View>
-                <Text style={s.premiumTitle}>Basic Seller</Text>
-              </View>
-              <View style={s.badgeCircle}>
-                <ShieldCheck size={28} color={ORANGE} strokeWidth={2}/>
-              </View>
-            </View>
+          {/* ── PLAN CARD — removed (plan route deleted) */}
 
-            {['Verified Seller Status', 'Standard Search Ranking', '5 Active Listing Slots', 'Chat Support'].map(f => (
-              <PlanFeature key={f} text={f}/>
-            ))}
-
-            <TouchableOpacity style={s.manageButton} activeOpacity={0.85} onPress={() => router.push('/(seller)/plan' as any)}>
-              <LinearGradient colors={['#0B3585', '#7E4F5C', '#E8702A']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject}/>
-              <Text style={s.manageText}>Manage Plan</Text>
-            </TouchableOpacity>
-          </GlowCard>
 
         </ScrollView>
       </View>
@@ -456,15 +435,6 @@ function Review({ name, color, text, date, rating }: { name: string; color: stri
         </View>
         <Text style={s.reviewText} numberOfLines={2}>"{text}"</Text>
       </View>
-    </View>
-  );
-}
-
-function PlanFeature({ text }: { text: string }) {
-  return (
-    <View style={s.planFeature}>
-      <CheckCircle size={22} color="#2ECC71" strokeWidth={1.5}/>
-      <Text style={s.planFeatureText}>{text}</Text>
     </View>
   );
 }

@@ -107,6 +107,17 @@ class ConfirmResponse(BaseModel):
     message: str
 
 
+class GenericCheckoutRequest(BaseModel):
+    amount: float
+    title:  str = "Payment"
+
+
+class GenericCheckoutResponse(BaseModel):
+    checkout_url: str
+    payment_id:   str
+    amount:       float
+
+
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _calc_amount(promotion_type: str) -> float:
@@ -607,3 +618,106 @@ async def verify_tracker_payment(
     except Exception as e:
         print(f"==== VERIFY LOCAL ERROR: {e} ===")
     return {"paid": False, "state": "PENDING"}
+
+
+# ── Generic card checkout (credit/debit via SafePay) ────────────────────────
+
+@router.post("/safepay/generic-checkout", response_model=GenericCheckoutResponse)
+async def create_generic_checkout(
+    payload: GenericCheckoutRequest,
+    current_user: User = Depends(get_current_user),
+):
+    """One-off card payment for any title/amount (registration fee, extra ad…)."""
+    if not payload.amount or payload.amount <= 0:
+        raise HTTPException(status_code=400, detail="Invalid amount")
+    name = (current_user.full_name or "U").strip() or "U"
+    initials = "".join([p[0].upper() for p in name.split() if p])[:2] or "U"
+    txn = Transaction(
+        user_id=str(current_user.id),
+        initials=initials,
+        title=payload.title,
+        subtitle="SafePay card payment",
+        amount=float(payload.amount),
+        status=TransactionStatus.pending,
+    )
+    await txn.insert()
+
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            resp = await client.post(
+                f"{_API_BASE}/order/v1/init",
+                headers={"X-SFPY-MERCHANT-SECRET": _API_KEY, "Content-Type": "application/json"},
+                json={"client": _PUBLIC_KEY, "amount": float(payload.amount), "currency": "PKR", "environment": _ENV_PARAM},
+            )
+            data = resp.json()
+            if resp.status_code != 200:
+                await txn.delete()
+                raise HTTPException(status_code=502, detail=f"SafePay error: {data}")
+    except HTTPException:
+        raise
+    except Exception as exc:
+        await txn.delete()
+        raise HTTPException(status_code=502, detail=f"SafePay connection error: {exc}")
+
+    tracker = data["data"]["token"]
+    txn.safepay_tracker = tracker
+    await txn.save()
+
+    payment_id  = str(txn.id)
+    redirect_url = f"{_BACKEND_URL}/api/v1/payments/safepay/generic-redirect/{payment_id}"
+    cancel_url   = f"{_BACKEND_URL}/api/v1/payments/safepay/cancel"
+    params       = urlencode({"beacon": tracker, "env": _ENV_PARAM, "source": "mobile",
+                               "redirect_url": redirect_url, "cancel_url": cancel_url})
+    return GenericCheckoutResponse(
+        checkout_url=f"{_CHECKOUT_BASE}/pay?{params}",
+        payment_id=payment_id,
+        amount=float(payload.amount),
+    )
+
+
+@router.get("/safepay/generic-redirect/{payment_id}", response_class=HTMLResponse)
+async def safepay_generic_redirect(payment_id: str):
+    txn = await Transaction.get(payment_id)
+    if txn and txn.status != TransactionStatus.success:
+        txn.status = TransactionStatus.success
+        await txn.save()
+    return HTMLResponse(_SUCCESS_HTML)
+
+
+@router.get("/safepay/generic-status/{payment_id}", response_model=ConfirmResponse)
+async def safepay_generic_status(
+    payment_id: str,
+    current_user: User = Depends(get_current_user),
+):
+    """Frontend polls this after the SafePay checkout page."""
+    txn = await Transaction.get(payment_id)
+    if not txn:
+        raise HTTPException(status_code=404, detail="Payment not found")
+    if txn.user_id != str(current_user.id):
+        raise HTTPException(status_code=403, detail="Not your payment")
+    if txn.status == TransactionStatus.success:
+        return ConfirmResponse(success=True, status="active", message="Payment confirmed")
+
+    if _SANDBOX:
+        txn.status = TransactionStatus.success
+        await txn.save()
+        return ConfirmResponse(success=True, status="active", message="Sandbox payment confirmed")
+
+    PAID_STATES = {"PAID", "COMPLETED", "SUCCESS", "CONFIRMED", "paid", "completed", "success", "confirmed"}
+    if txn.safepay_tracker:
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                resp = await client.get(
+                    f"{_API_BASE}/order/v1/state/{txn.safepay_tracker}",
+                    headers={"X-SFPY-MERCHANT-SECRET": _API_KEY},
+                )
+                if resp.status_code == 200:
+                    data  = resp.json()
+                    state = data.get("data", {}).get("state", "") or data.get("state", "")
+                    if state in PAID_STATES:
+                        txn.status = TransactionStatus.success
+                        await txn.save()
+                        return ConfirmResponse(success=True, status="active", message="Payment confirmed")
+        except Exception as e:
+            print(f"==== SAFEPAY GENERIC STATE ERROR: {e} ====")
+    return ConfirmResponse(success=False, status="pending", message="Awaiting payment")

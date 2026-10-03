@@ -35,7 +35,6 @@ const QUICK_ACTIONS = [
   { title: 'New Special\nOffer', icon: <Ionicons name="add" size={30} color={ORANGE} />,     route: '/(tracker)/special-offer' },
   { title: 'Add Video',          icon: <Ionicons name="add" size={30} color={ORANGE} />,     route: '/(tracker)/video-ads' },
   { title: 'Advertisement',      icon: <DIcon src={DICON.advertisement} size={26} />,        route: '/(tracker)/advertisement' },
-  { title: 'Subscription',       icon: <DIcon src={DICON.subscription} size={24} />,         route: '/(tracker)/plan' },
   { title: 'Clients',            icon: <DIcon src={DICON.customers} size={24} />,            route: '/(tracker)/clients' },
 ];
 

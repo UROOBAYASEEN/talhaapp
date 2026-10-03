@@ -303,7 +303,7 @@ export default function PaymentSuccessScreen() {
           <TouchableOpacity
             style={[styles.extraSecondaryBtn, { backgroundColor: "#07142F", borderColor: "#7E9FD6", borderWidth: 1 }]}
             activeOpacity={0.85}
-            onPress={() => router.push("/(dealer)/plan" as any)}
+            onPress={() => router.push("/dealer-panel/compare-plans" as any)}
           >
             <RingGlow radius={24} peak={0.5} rings={12} />
             <Text style={styles.extraSecondaryTxt}>Upgrade Plan</Text>

@@ -773,6 +773,8 @@ async def get_payments(
             typ = "Reserver"
         elif "Tracker" in sub:
             typ = "Tracker"
+        elif "Registration" in (t.title or "") or "Registration" in sub:
+            typ = "Registration Fee"
         else:
             typ = "Subscription"
         role_val = ""
@@ -814,7 +816,12 @@ async def get_payments_overview(
     if active == 0:
         from app.models.transaction import Transaction
         active = await Transaction.find({"subtitle": {"$regex": "Subscription"}, "status": "Success"}).count()
-    return {"total_dealers": total, "active_subscriptions": active, "expired_cancelled": expired}
+    from app.models.transaction import Transaction as _Txn
+    reg_txns = await _Txn.find({"title": {"$regex": "Registration"}, "status": "Success"}).to_list()
+    reg_count = len(reg_txns)
+    reg_total = sum(float(t.amount or 0) for t in reg_txns)
+    return {"total_dealers": total, "active_subscriptions": active, "expired_cancelled": expired,
+            "reg_count": reg_count, "reg_total": reg_total}
 
 
 @router.get("/home-stats")

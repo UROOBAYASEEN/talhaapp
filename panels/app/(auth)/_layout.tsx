@@ -18,6 +18,7 @@ export default function AuthLayout() {
         <Stack.Screen name="business-info" />
         <Stack.Screen name="store-design" />
         <Stack.Screen name="upload-documents" />
+        <Stack.Screen name="registration-payment" />
         <Stack.Screen name="verification-status" />
         <Stack.Screen name="forgot-password" />
         <Stack.Screen name="create-password" />

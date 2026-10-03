@@ -120,7 +120,7 @@ export default function AdLimitReachedScreen() {
           <TouchableOpacity
             style={s.secondaryBtn}
             activeOpacity={0.8}
-            onPress={() => router.push(((user as any)?.role === 'customer' ? '/Become_a_Seller/plan' : '/(dealer)/plan') as any)}
+            onPress={() => router.push(((user as any)?.role === 'customer' ? '/Become_a_Seller/plan' : '/dealer-panel/compare-plans') as any)}
           >
             <LinearGradient
               colors={['rgba(22,64,136,0.2)','transparent']}

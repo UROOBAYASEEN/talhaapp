@@ -12,7 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { API_BASE } from '@/constants/api';
 import { D, GlowCard, Verified } from '@/components/dealer/DealerUI';
 import { RatingSummary, ReviewItem as SharedReviewItem } from '@/components/book/reviews';
-import { GlassButton, GradientButton } from '@/components/shared/GlowUI';
+import { GlassButton } from '@/components/shared/GlowUI';
 import { DUMMY_REVIEWS } from '@/constants/dummyReviews';
 
 // Dummy office photos until the company uploads its own
@@ -486,7 +486,6 @@ export default function TrackerProfileScreen() {
 
         {/* Bottom actions (Figma) */}
         <View style={s.bottomActions}>
-          <GradientButton title="View Tracker Plans" height={52} fontSize={17} onPress={() => router.push('/(tracker)/plan' as any)} />
           <GlassButton
             title="Logout from Session"
             height={52}

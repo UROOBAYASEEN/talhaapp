@@ -1,7 +1,6 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import React, { useEffect } from 'react';
-import { Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { PillTabBarHost, PillTabIcon } from '@/components/shared/PillTabBar';
@@ -12,9 +11,6 @@ function mci(name: any) {
 }
 function ion(name: any) {
   return function IonIcon(c: string) { return <Ionicons name={name} size={17} color={c} />; };
-}
-function img(src: any) {
-  return function ImgIcon(c: string) { return <Image source={src} style={{ width: 18, height: 18, tintColor: c }} resizeMode="contain" />; };
 }
 
 export default function InsuranceProviderLayout() {
@@ -55,14 +51,6 @@ export default function InsuranceProviderLayout() {
         options={{
           tabBarIcon: ({ focused }) => (
             <PillTabIcon label="Claims" focused={focused} renderIcon={ion('document-text-outline')} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="plan"
-        options={{
-          tabBarIcon: ({ focused }) => (
-            <PillTabIcon label="Plan" focused={focused} renderIcon={img(require('@/assets/DealerPanelIcons/planIcon.png'))} />
           ),
         }}
       />

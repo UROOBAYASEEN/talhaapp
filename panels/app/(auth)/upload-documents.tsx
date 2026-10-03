@@ -161,8 +161,8 @@ export default function UploadDocumentsScreen() {
       setUploadStep('');
     }
     // Seller: no verification screen — straight to the success screen
-    if (role === 'individual_seller') { router.replace('/(auth)/account-created' as any); return; }
-    router.push({ pathname: '/(auth)/verification-status', params: { role: role || '', access_token: access_token || '', refresh_token: refresh_token || '' } });
+    // Documents saved — registration fee first, then verification / dashboard
+    router.push({ pathname: '/(auth)/registration-payment', params: { role: role || '', access_token: access_token || '', refresh_token: refresh_token || '' } });
   }
 
   return (

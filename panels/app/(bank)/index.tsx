@@ -25,7 +25,6 @@ import {
   TrendingDown,
   ChevronDown,
   ChevronRight,
-  Crown,
   Plus,
   Home,
   Megaphone,
@@ -59,7 +58,6 @@ const progressPoints = [8, 22, 14, 26, 18, 34, 30, 46, 40, 58];
 
 const quickActions = [
   { Icon: Car,       label: 'Finance Case',      route: '/(bank)/inventory',   icon: <Ionicons name="car" size={30} color="#E2671B" /> },
-  { Icon: Crown,     label: 'Subscription',      route: '/(bank)/plan',        icon: <DIcon src={DICON.subscription} size={28} /> },
   { Icon: Plus,      label: 'Add special offer', route: '/bank-special-offer', icon: <Ionicons name="add" size={24} color="#E2671B" /> },
   { Icon: Plus,      label: 'Add Video',         route: '/bank-video-ads',     icon: <Ionicons name="add" size={24} color="#E2671B" /> },
   { Icon: Megaphone, label: 'Advertisement',     route: '/bank-advertisement', icon: <DIcon src={DICON.advertisement} size={28} /> },
