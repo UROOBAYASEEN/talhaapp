@@ -1,9 +1,7 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Image } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useAuth } from '@/contexts/AuthContext';
 import { PillTabBarHost, PillTabIcon } from '@/components/shared/PillTabBar';
 
 // Same bottom bar design + colours as the customer side (components/shared/PillTabBar)
@@ -19,14 +17,6 @@ function ion(name: any) {
 }
 
 export default function DealerLayout() {
-  const router = useRouter();
-  const { user } = useAuth();
-  useEffect(() => {
-    if (user && user.docs_status !== 'approved') {
-      router.replace('/(auth)/verification-status' as any);
-    }
-  }, [user?.docs_status]);
-
   return (
     <Tabs
       tabBar={props => <PillTabBarHost {...props} />}

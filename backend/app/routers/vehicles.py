@@ -90,6 +90,9 @@ async def create_listing(
         sub = await DealerSubscription.find_one({"dealer_id": str(current_user.id), "status": "active"})
         plan     = sub.plan if sub else DealerPlan.basic
         limit    = PLAN_LIMITS.get(plan, 5)
+        # Admin-set per-user limit overrides the plan (None = plan default)
+        if current_user.inventory_limit is not None:
+            limit = current_user.inventory_limit
 
         if limit != -1:   # -1 = unlimited
             active_count = await VehicleListing.find(

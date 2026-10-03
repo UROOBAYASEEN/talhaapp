@@ -70,19 +70,18 @@ export default function LoginScreen() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || 'Google login failed');
       const googleUser = await setAuth(data.access_token, data.refresh_token);
-      const BUSINESS_ROLES = ['bank_representative', 'dealership_owner', 'individual_seller', 'insurance_provider', 'tracker_provider'];
       if (googleUser?.role === 'admin') {
         router.replace('/(admin)' as any);
-      } else if (BUSINESS_ROLES.includes(googleUser?.role || '')) {
-        if (googleUser?.docs_status === 'approved') {
-          if (googleUser?.role === 'dealership_owner')        router.replace('/(dealer)' as any);
-          else if (googleUser?.role === 'bank_representative') router.replace('/(bank)' as any);
-          else if (googleUser?.role === 'insurance_provider')  router.replace('/(insurance_provider)' as any);
-          else if (googleUser?.role === 'tracker_provider')    router.replace('/(tracker)' as any);
-          else                                                 router.replace('/(tabs)');
-        } else {
-          router.replace('/(auth)/verification-status' as any);
-        }
+      } else if (googleUser?.role === 'dealership_owner') {
+        router.replace('/(dealer)' as any);
+      } else if (googleUser?.role === 'bank_representative') {
+        router.replace('/(bank)' as any);
+      } else if (googleUser?.role === 'insurance_provider') {
+        router.replace('/(insurance_provider)' as any);
+      } else if (googleUser?.role === 'tracker_provider') {
+        router.replace('/(tracker)' as any);
+      } else if (googleUser?.role === 'individual_seller') {
+        router.replace('/(seller)' as any);
       } else {
         router.replace('/(tabs)');
       }
@@ -124,19 +123,18 @@ export default function LoginScreen() {
         throw new Error(typeof detail === 'string' ? detail : 'Login failed');
       }
       const loggedInUser = await setAuth(data.access_token, data.refresh_token);
-      const BUSINESS_ROLES = ['bank_representative', 'dealership_owner', 'individual_seller', 'insurance_provider', 'tracker_provider'];
       if (loggedInUser?.role === 'admin') {
         router.replace('/(admin)' as any);
-      } else if (BUSINESS_ROLES.includes(loggedInUser?.role || '')) {
-        if (loggedInUser?.docs_status === 'approved') {
-          if (loggedInUser?.role === 'dealership_owner')        router.replace('/(dealer)' as any);
-          else if (loggedInUser?.role === 'bank_representative') router.replace('/(bank)' as any);
-          else if (loggedInUser?.role === 'insurance_provider')  router.replace('/(insurance_provider)' as any);
-          else if (loggedInUser?.role === 'tracker_provider')    router.replace('/(tracker)' as any);
-          else                                                   router.replace('/(tabs)');
-        } else {
-          router.replace('/(auth)/verification-status' as any);
-        }
+      } else if (loggedInUser?.role === 'dealership_owner') {
+        router.replace('/(dealer)' as any);
+      } else if (loggedInUser?.role === 'bank_representative') {
+        router.replace('/(bank)' as any);
+      } else if (loggedInUser?.role === 'insurance_provider') {
+        router.replace('/(insurance_provider)' as any);
+      } else if (loggedInUser?.role === 'tracker_provider') {
+        router.replace('/(tracker)' as any);
+      } else if (loggedInUser?.role === 'individual_seller') {
+        router.replace('/(seller)' as any);
       } else {
         router.replace('/(tabs)');
       }

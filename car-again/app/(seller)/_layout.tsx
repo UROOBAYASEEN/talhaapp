@@ -23,10 +23,8 @@ export default function SellerLayout() {
   useEffect(() => {
     if (user && user.is_active === false) {
       router.replace('/(auth)/suspended' as any);
-    } else if (user && user.docs_status && user.docs_status !== 'approved') {
-      router.replace('/(auth)/verification-status' as any);
     }
-  }, [user?.docs_status, user?.is_active]);
+  }, [user?.is_active]);
   return (
     <Tabs
       tabBar={props => <PillTabBarHost {...props} />}

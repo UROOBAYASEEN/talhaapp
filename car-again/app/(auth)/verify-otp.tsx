@@ -67,13 +67,15 @@ export default function VerifyOTPScreen() {
       } else {
         const BUSINESS_ROLES = ['bank_representative', 'dealership_owner', 'individual_seller', 'insurance_provider', 'tracker_provider'];
         if (BUSINESS_ROLES.includes(role || '')) {
-          // setAuth() baad mein call hogi — verification-status pe
+          // Business role → continues to business-info with tokens (setAuth happens after docs upload)
           router.replace({
             pathname: '/(auth)/business-info',
             params: { role: role || '', access_token: data.access_token, refresh_token: data.refresh_token },
           });
         } else {
+          // Customer: direct login — no further steps
           await setAuth(data.access_token, data.refresh_token);
+          router.replace('/(tabs)' as any);
         }
       }
     } catch (err: any) {

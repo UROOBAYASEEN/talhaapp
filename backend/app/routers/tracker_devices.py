@@ -5,7 +5,7 @@ CRUD for individual tracker products listed by tracker providers.
 from datetime import datetime
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel
 
 from app.models.tracker_device import TrackerDevice
@@ -114,9 +114,31 @@ async def _notify_admins(title: str, body: str, data: dict):
 @router.post("/", status_code=201)
 async def create_tracker_device(
     payload: TrackerDeviceCreate,
+    request: Request,
     current_user: User = Depends(get_current_user),
 ):
     _require_tracker_provider(current_user)
+    # ── Check tracker limit (admin-set per user, default 5; -1 = unlimited) ──
+    tracker_limit = current_user.tracker_limit if current_user.tracker_limit is not None else 5
+    if tracker_limit != -1:
+        used = await TrackerDevice.find(
+            {"provider_id": str(current_user.id), "status": {"$in": ["under_review", "published"]}}
+        ).count()
+        if used >= tracker_limit:
+            try:
+                extra_paid = request.headers.get('x-extra-paid') == 'true' or request.headers.get('X-Extra-Paid') == 'true'
+            except Exception:
+                extra_paid = False
+            if not extra_paid:
+                raise HTTPException(
+                    status_code=402,
+                    detail={
+                        "code":    "TRACKER_LIMIT_REACHED",
+                        "limit":   tracker_limit,
+                        "used":    used,
+                        "message": f"You have reached your {tracker_limit}-tracker limit.",
+                    },
+                )
     device = TrackerDevice(
         provider_id=str(current_user.id),
         **payload.model_dump(),

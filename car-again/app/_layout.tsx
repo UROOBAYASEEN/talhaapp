@@ -44,25 +44,21 @@ function AuthGuard() {
         router.replace('/(auth)/suspended' as any);
       }
     } else if (token && inAuth && user) {
-      // Business roles: only redirect to dashboard if docs are approved
-      // Otherwise stay in (auth) — verification-status/upload-docs handles it
+      // No docs gating — every role goes straight to its dashboard
       if (user.role === 'admin') {
         router.replace('/(admin)' as any);
       } else if (BUSINESS_ROLES.includes(user.role)) {
-        if (user.docs_status === 'approved') {
-          if (user.role === 'dealership_owner')        router.replace('/(dealer)' as any);
-          else if (user.role === 'bank_representative') router.replace('/(bank)' as any);
-          else if (user.role === 'insurance_provider')  router.replace('/(insurance_provider)' as any);
-          else if (user.role === 'tracker_provider')    router.replace('/(tracker)' as any);
-          else if (user.role === 'individual_seller')   router.replace('/(seller)' as any);
-        }
-        // docs_status !== 'approved' → stay in (auth), let verification-status handle it
+        if (user.role === 'dealership_owner')        router.replace('/(dealer)' as any);
+        else if (user.role === 'bank_representative') router.replace('/(bank)' as any);
+        else if (user.role === 'insurance_provider')  router.replace('/(insurance_provider)' as any);
+        else if (user.role === 'tracker_provider')    router.replace('/(tracker)' as any);
+        else if (user.role === 'individual_seller')   router.replace('/(seller)' as any);
       } else {
         // customer
         router.replace('/(tabs)');
       }
     }
-  }, [token, isLoading, user?.role, user?.docs_status, user?.is_active, segments[0]]);
+  }, [token, isLoading, user?.role, user?.is_active, segments[0]]);
 
   return null;
 }

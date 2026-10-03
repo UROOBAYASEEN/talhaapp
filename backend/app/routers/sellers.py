@@ -59,6 +59,32 @@ async def list_sellers(
     return result
 
 
+@router.get("/{seller_id}/activity")
+async def get_seller_activity(
+    seller_id: str,
+    limit: int = Query(3, ge=1, le=20),
+    current_user: User = Depends(get_current_user),
+):
+    """Recent activity for a seller home page: new listings, sales, reviews."""
+    events: list[dict] = []
+
+    listings = await VehicleListing.find({"seller_id": seller_id}).sort("-created_at").limit(10).to_list()
+    for v in listings:
+        ts = v.created_at.isoformat() if getattr(v, "created_at", None) else None
+        if (v.status or "").lower() == "sold":
+            events.append({"kind": "sale", "title": "Vehicle Sold", "message": v.title or "Vehicle", "at": ts})
+        else:
+            events.append({"kind": "listing", "title": "New Listing Added", "message": v.title or "Vehicle", "at": ts})
+
+    reviews = await DealerReview.find({"dealer_id": seller_id}).sort("-created_at").limit(10).to_list()
+    for r in reviews:
+        ts = r.created_at.isoformat() if getattr(r, "created_at", None) else None
+        events.append({"kind": "review", "title": "New Review Received", "message": r.comment or f"{r.rating} stars", "at": ts})
+
+    events.sort(key=lambda e: e["at"] or "", reverse=True)
+    return {"items": events[:limit], "total": len(events)}
+
+
 @router.get("/{seller_id}")
 async def get_seller_profile(
     seller_id: str,

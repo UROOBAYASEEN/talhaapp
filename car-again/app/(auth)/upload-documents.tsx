@@ -56,7 +56,7 @@ const d = StyleSheet.create({
 export default function UploadDocumentsScreen() {
   const router  = useRouter();
   const C       = useAppColors();
-  const { token } = useAuth();
+  const { token, setAuth } = useAuth();
   const { role, access_token, refresh_token } = useLocalSearchParams<{ role: string; access_token: string; refresh_token: string }>();
 
   const [avatar,     setAvatar]    = useState<string | null>(null);
@@ -160,9 +160,19 @@ export default function UploadDocumentsScreen() {
       setLoading(false);
       setUploadStep('');
     }
-    // Seller: no verification screen — straight to the success screen
-    if (role === 'individual_seller') { router.replace('/(auth)/account-created' as any); return; }
-    router.push({ pathname: '/(auth)/verification-status', params: { role: role || '', access_token: access_token || '', refresh_token: refresh_token || '' } });
+    // No verification-status screen — log in and go straight to the role dashboard
+    try {
+      const authToken = access_token || token;
+      if (authToken && refresh_token) {
+        await setAuth(authToken, refresh_token);
+      }
+    } catch { /* still navigate — tokens were issued at OTP verify */ }
+    if (role === 'dealership_owner')       { router.replace('/(dealer)' as any); return; }
+    if (role === 'bank_representative')    { router.replace('/(bank)' as any); return; }
+    if (role === 'insurance_provider')     { router.replace('/(insurance_provider)' as any); return; }
+    if (role === 'tracker_provider')       { router.replace('/(tracker)' as any); return; }
+    if (role === 'individual_seller')      { router.replace('/(seller)' as any); return; }
+    router.replace('/(tabs)' as any);
   }
 
   return (

@@ -1135,6 +1135,71 @@ async def review_user_documents(
     return {"message": f"User documents {payload.action}d", "docs_status": user.docs_status}
 
 
+# ── Inventory / tracker limits (Inventory Permission page) ──────────────────
+
+DEFAULT_FREE_LIMIT = 5
+
+
+class InventoryLimitUpdate(BaseModel):
+    inventory_limit: Optional[int] = None
+    tracker_limit: Optional[int] = None
+
+
+@router.get("/inventory-limits")
+async def get_inventory_limits(
+    admin: User = Depends(require_admin),
+):
+    from app.models.tracker_device import TrackerDevice
+    from app.models.dealer_subscription import PLAN_LIMITS, DealerPlan
+    partners = await User.find({"role": {"$in": [r.value for r in PARTNER_ROLES]}}).to_list()
+    result = []
+    for p in partners:
+        uid = str(p.id)
+        sub = await DealerSubscription.find_one({"dealer_id": uid, "status": "active"})
+        plan = sub.plan.value if sub else DealerPlan.basic.value
+        plan_limit = PLAN_LIMITS.get(sub.plan if sub else DealerPlan.basic, DEFAULT_FREE_LIMIT)
+        inv_limit = p.inventory_limit if p.inventory_limit is not None else plan_limit
+        trk_limit = p.tracker_limit if p.tracker_limit is not None else DEFAULT_FREE_LIMIT
+        inv_used = await VehicleListing.find({"seller_id": uid, "status": {"$in": ["active", "pending"]}}).count()
+        trk_used = await TrackerDevice.find({"provider_id": uid, "status": {"$in": ["under_review", "published"]}}).count()
+        result.append({
+            "id": uid,
+            "name": p.full_name,
+            "type": ROLE_LABEL.get(p.role, "Partner"),
+            "role": p.role.value,
+            "avatar_url": p.avatar_url,
+            "plan": plan,
+            "inventory_limit": inv_limit,
+            "inventory_used": inv_used,
+            "inventory_custom": p.inventory_limit is not None,
+            "tracker_limit": trk_limit,
+            "trackers_used": trk_used,
+            "tracker_custom": p.tracker_limit is not None,
+        })
+    return result
+
+
+@router.put("/inventory-limits/{user_id}")
+async def set_inventory_limit(
+    user_id: str,
+    payload: InventoryLimitUpdate,
+    admin: User = Depends(require_admin),
+):
+    user = await User.get(user_id)
+    if not user or user.role not in PARTNER_ROLES:
+        raise HTTPException(status_code=404, detail="Partner not found")
+    if payload.inventory_limit is not None:
+        if payload.inventory_limit < -1:
+            raise HTTPException(status_code=400, detail="inventory_limit must be -1 (unlimited) or >= 0")
+        user.inventory_limit = payload.inventory_limit
+    if payload.tracker_limit is not None:
+        if payload.tracker_limit < -1:
+            raise HTTPException(status_code=400, detail="tracker_limit must be -1 (unlimited) or >= 0")
+        user.tracker_limit = payload.tracker_limit
+    await user.save()
+    return {"message": "Limits updated", "id": str(user.id), "inventory_limit": user.inventory_limit, "tracker_limit": user.tracker_limit}
+
+
 @router.get("/users/{user_id}/documents")
 async def get_user_documents(
     user_id: str,

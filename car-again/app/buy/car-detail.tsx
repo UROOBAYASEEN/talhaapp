@@ -234,6 +234,7 @@ export default function CarDetailScreen() {
       ];
   const isDealer   = vehicle.seller?.role === 'dealership_owner';
   const dealerName = vehicle.seller?.dealership_name || vehicle.seller?.full_name || 'Dealer';
+  const sellerId   = vehicle?.seller_id ?? vehicle?.seller?.id;
 
   const safetyKw   = ['abs','airbag','brake','belt','stability','traction','parking'];
   const interiorKw = ['sunroof','leather','screen','display','ambient','speakers','audio'];
@@ -496,9 +497,9 @@ export default function CarDetailScreen() {
         {fromUsedCar || fromBook ? (
           /* ── USED CAR / BOOK A VEHICLE: Contact Dealer + Test Drive ── */
           <>
-            <TouchableOpacity style={[s.ctaPrimary, s.dealerCtaBtn]} onPress={() => vehicle?.seller_id && (fromBook
-              ? router.push({ pathname: '/book/dealer-profile', params: { id: vehicle.seller_id, category: vehicle?.category || 'car' } } as any)
-              : router.push({ pathname: '/buy/dealer-profile', params: { id: vehicle.seller_id, from: 'usedCar', category: vehicle?.category || '' } } as any))} activeOpacity={0.88}>
+            <TouchableOpacity style={[s.ctaPrimary, s.dealerCtaBtn]} onPress={() => sellerId && (fromBook
+              ? router.push({ pathname: '/book/dealer-profile', params: { id: sellerId, category: vehicle?.category || 'car' } } as any)
+              : router.push({ pathname: '/buy/dealer-profile', params: { id: sellerId, from: 'usedCar', category: vehicle?.category || '' } } as any))} activeOpacity={0.88}>
               <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
               <Text style={[s.ctaPrimaryTxt, s.dealerCtaTxt, { color: '#F2F1F5' }]}>Contact Dealer</Text>
             </TouchableOpacity>
@@ -510,7 +511,7 @@ export default function CarDetailScreen() {
         ) : isDealer ? (
           /* ── DEALER: Contact Dealer + Reserve + Test Drive ── */
           <>
-            <TouchableOpacity style={[s.ctaPrimary, s.dealerCtaBtn]} onPress={() => vehicle?.seller_id && router.push({ pathname: '/buy/dealer-profile', params: { id: vehicle.seller_id, category: vehicle?.category || '' } } as any)} activeOpacity={0.88}>
+            <TouchableOpacity style={[s.ctaPrimary, s.dealerCtaBtn]} onPress={() => sellerId && router.push({ pathname: '/buy/dealer-profile', params: { id: sellerId, category: vehicle?.category || '' } } as any)} activeOpacity={0.88}>
               <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
               {contacting ? <ActivityIndicator color={WHITE} /> : <Text style={[s.ctaPrimaryTxt, s.dealerCtaTxt, { color: '#F2F1F5' }]}>Contact Dealer</Text>}
             </TouchableOpacity>

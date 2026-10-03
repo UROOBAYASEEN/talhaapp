@@ -40,6 +40,9 @@ class User(Document):
     # Document verification
     docs_status: Optional[str] = None          # pending | approved | rejected
     docs_rejection_reason: Optional[str] = None
+    # Admin-set listing limits (None = plan default, -1 = unlimited)
+    inventory_limit: Optional[int] = None       # free vehicle ads allowed
+    tracker_limit: Optional[int] = None         # tracker devices allowed
     # Office / gallery photos
     office_photos: List[str] = []
     # Dealership-specific fields (only for dealership_owner role)

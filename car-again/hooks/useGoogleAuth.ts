@@ -9,28 +9,20 @@ import { useAuth } from '@/contexts/AuthContext';
 
 WebBrowser.maybeCompleteAuthSession();
 
-const BUSINESS_ROLES = [
-  'bank_representative',
-  'dealership_owner',
-  'individual_seller',
-  'insurance_provider',
-  'tracker_provider',
-];
-
 /** Same post-login routing everywhere (login / register / onboarding). */
 export function routeUserByRole(router: any, user: any) {
   if (user?.role === 'admin') {
     router.replace('/(admin)' as any);
-  } else if (BUSINESS_ROLES.includes(user?.role || '')) {
-    if (user?.docs_status === 'approved') {
-      if (user?.role === 'dealership_owner')        router.replace('/(dealer)' as any);
-      else if (user?.role === 'bank_representative') router.replace('/(bank)' as any);
-      else if (user?.role === 'insurance_provider')  router.replace('/(insurance_provider)' as any);
-      else if (user?.role === 'tracker_provider')    router.replace('/(tracker)' as any);
-      else                                           router.replace('/(tabs)' as any);
-    } else {
-      router.replace('/(auth)/verification-status' as any);
-    }
+  } else if (user?.role === 'dealership_owner') {
+    router.replace('/(dealer)' as any);
+  } else if (user?.role === 'bank_representative') {
+    router.replace('/(bank)' as any);
+  } else if (user?.role === 'insurance_provider') {
+    router.replace('/(insurance_provider)' as any);
+  } else if (user?.role === 'tracker_provider') {
+    router.replace('/(tracker)' as any);
+  } else if (user?.role === 'individual_seller') {
+    router.replace('/(seller)' as any);
   } else {
     router.replace('/(tabs)' as any);
   }
