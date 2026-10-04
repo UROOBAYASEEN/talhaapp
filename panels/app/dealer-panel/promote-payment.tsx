@@ -193,6 +193,21 @@ export default function PromotePaymentScreen() {
   // Per-vehicle amount from SafePay (fixed by backend)
   const totalVehicles = vehicle_ids.length;
 
+  // Payment done → go to the separate success page (not inline on this page)
+  useEffect(() => {
+    if (!paid) return;
+    router.replace({
+      pathname: '/vehicle/payment-success' as any,
+      params: {
+        kind: 'promote',
+        vid: vehicle_ids[0] || '',
+        title: title || planTitle,
+        price: String(planAmount || 0),
+        home: panelHome,
+      },
+    });
+  }, [paid]);
+
   return (
     <SafeAreaView style={s.safeArea}>
       <View style={s.container}>
@@ -207,39 +222,6 @@ export default function PromotePaymentScreen() {
             <Ionicons name="close" size={24} color="#C9C6D0" />
           </TouchableOpacity>
         </View>
-
-        {/* ── PAYMENT SUCCESS ── */}
-        {paid && (
-          <View style={s.successWrap}>
-            <Text style={s.successEmoji}>🎉</Text>
-            <Text style={s.successTitle}>Payment Successful!</Text>
-            <Text style={s.successSub}>Your vehicle is now promoted and live.</Text>
-            <TouchableOpacity
-              style={s.successBtn}
-              activeOpacity={0.85}
-              onPress={() => router.replace({
-                pathname: '/vehicle/payment-success' as any,
-                params: {
-                  kind: 'promote',
-                  vid: vehicle_ids[0] || '',
-                  title: title || planTitle,
-                  price: String(planAmount || 0),
-                  home: panelHome,
-                },
-              })}
-            >
-              <LinearGradient
-                colors={[AppColors.gradientStart, ORANGE]}
-                start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                style={StyleSheet.absoluteFillObject}
-              />
-              <Text style={s.successBtnTxt}>View Success Page</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.replace(panelHome as any)}>
-              <Text style={s.successHome}>Back to Home</Text>
-            </TouchableOpacity>
-          </View>
-        )}
 
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scrollContent}>
 

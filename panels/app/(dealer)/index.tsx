@@ -25,7 +25,6 @@ const QUICK_ACTIONS = [
   { title: 'Add Vehicle',       icon: DICON.add,            route: '/dealer-panel/add-vehicle' },
   { title: 'Reservations',      icon: DICON.reservations,   route: '/(dealer)/leads', params: { tab: 'Reservation' } },
   { title: 'Customers',         icon: DICON.customers,      route: '/(dealer)/leads' },
-  { title: 'Subscription',      icon: DICON.subscription,   route: '/dealer-panel/subscription' },
   { title: 'Add Video Ads',     icon: DICON.addVideoAdd,    route: '/dealer-panel/video-ads' },
   { title: 'Add special offer', icon: DICON.addVideoAdd,    route: '/dealer-panel/special-offer' },
   { title: 'Advertisement',     icon: DICON.advertisement,  route: '/dealer-panel/advertisement' },
@@ -105,13 +104,13 @@ export default function DealerHomeScreen() {
   async function onRefresh() { setRef(true); await load(); await loadChart(viewMode); setRef(false); }
 
   const dealerName         = user?.full_name || 'Dealer';
-  const totalVehicles      = stats?.total_vehicles      ?? 42;
-  const activeReservations = stats?.active_reservations ?? 18;
-  const customerEnquiries  = stats?.customer_enquiries  ?? 37;
-  const totalSold          = stats?.total_sold          ?? 1248;
-  const weeklyGrowth       = stats?.weekly_growth       ?? 8.2;
-  const totalLeads         = stats?.total_calls         ?? 23;
-  const profileViews       = stats?.profile_views       ?? 8600;
+  const totalVehicles      = stats?.total_vehicles      ?? 0;
+  const activeReservations = stats?.active_reservations ?? 0;
+  const customerEnquiries  = stats?.customer_enquiries  ?? 0;
+  const totalSold          = stats?.total_sold          ?? 0;
+  const weeklyGrowth       = stats?.weekly_growth       ?? 0;
+  const totalLeads         = stats?.total_calls         ?? 0;
+  const profileViews       = stats?.profile_views       ?? 0;
 
   const STATS_DATA = [
     { title: 'Total Vehicles',      value: String(totalVehicles),      change: '2 this month',  icon: DICON.totalVehicles },
@@ -148,9 +147,9 @@ export default function DealerHomeScreen() {
     : [] as any[];
 
   const bars = chartBars.length > 0 ? chartBars : [
-    { h: 38, label: '1 May' }, { h: 56, label: '' }, { h: 51, label: '3 May' },
-    { h: 77, label: '' }, { h: 65, label: '5 May' }, { h: 91, label: '' },
-    { h: 95, label: 'Today' },
+    { h: 8, label: '' }, { h: 8, label: '' }, { h: 8, label: '' },
+    { h: 8, label: '' }, { h: 8, label: '' }, { h: 8, label: '' },
+    { h: 8, label: '' },
   ];
   const CHART_H = 150;
   const [chartW, setChartW] = useState(0);
@@ -335,7 +334,7 @@ export default function DealerHomeScreen() {
               {QUICK_ACTIONS.map((action, i) => (
                 <TouchableOpacity
                   key={i}
-                  style={s.actionCard}
+                  style={[s.actionCard, i % 4 !== 3 && { marginRight: '2.66%' }]}
                   activeOpacity={0.75}
                   onPress={() =>
                     router.push(
@@ -454,7 +453,7 @@ const s = StyleSheet.create({
 
   /* QUICK ACTIONS */
   quickSection: { marginTop: 22 },
-  actionsGrid:  { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 12 },
+  actionsGrid:  { flexDirection: 'row', flexWrap: 'wrap', rowGap: 10 },
   actionCard:   { width: '23%', height: 80, borderRadius: 16, backgroundColor: D.navy, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 2 },
   actionText:   { color: '#C9BDC4', fontSize: 11, textAlign: 'center', marginTop: 6, lineHeight: 14, fontFamily: 'Poppins_400Regular' },
 

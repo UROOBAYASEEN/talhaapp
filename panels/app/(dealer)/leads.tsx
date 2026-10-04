@@ -44,6 +44,13 @@ function getInitials(name: string) {
   return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 }
 
+const BASE_URL = API_BASE.replace('/api/v1', '');
+function resolveAvatar(url?: string | null): string | null {
+  if (!url) return null;
+  if (url.startsWith('http')) return url.replace(/http:\/\/[\d.]+:\d+/, BASE_URL);
+  return `${BASE_URL}${url.startsWith('/') ? url : '/' + url}`;
+}
+
 function GlassInset() {
   // AGENTS.md — Card 4-Side Border Shade Design (0.35 opacity, 4 gradients)
   return (
@@ -77,15 +84,20 @@ function LeadCard({ lead, onPress }: { lead: any; onPress: () => void }) {
     : '09 May 2024';
 
   const isConfirmed = status.toLowerCase() === 'confirmed' || status.toLowerCase() === 'new';
+  const avatarUri = resolveAvatar(lead.buyer_avatar);
 
   return (
     <GlowCard style={lc.card} onPress={onPress} radius={22}>
       {/* TOP ROW — avatar + name + status */}
       <View style={lc.topRow}>
         <View style={[lc.avatarRing]}>
-          <View style={[lc.avatar, { backgroundColor: avatarColor }]}>
-            <Text style={lc.avatarTxt}>{initials}</Text>
-          </View>
+          {avatarUri ? (
+            <Image source={{ uri: avatarUri }} style={lc.avatar} resizeMode="cover" />
+          ) : (
+            <View style={[lc.avatar, { backgroundColor: avatarColor }]}>
+              <Text style={lc.avatarTxt}>{initials}</Text>
+            </View>
+          )}
         </View>
 
         <View style={{ flex: 1 }}>
@@ -190,9 +202,16 @@ function UserProfileModal({ lead, visible, onClose }: {
 
           {/* Avatar + Name */}
           <View style={pm.avatarSection}>
-            <View style={[pm.avatar, { backgroundColor: avatarColor }]}>
-              <Text style={pm.avatarTxt}>{initials}</Text>
-            </View>
+            {(() => {
+              const modalAvatar = resolveAvatar(lead.buyer_avatar);
+              return modalAvatar ? (
+                <Image source={{ uri: modalAvatar }} style={[pm.avatar, { backgroundColor: 'transparent' }]} resizeMode="cover" />
+              ) : (
+                <View style={[pm.avatar, { backgroundColor: avatarColor }]}>
+                  <Text style={pm.avatarTxt}>{initials}</Text>
+                </View>
+              );
+            })()}
             <Text style={pm.userName}>{name}</Text>
             <View style={[pm.statusBadge, { backgroundColor: isConfirmed ? 'rgba(0,200,100,0.12)' : 'rgba(255,105,0,0.12)', borderColor: isConfirmed ? 'rgba(0,200,100,0.35)' : 'rgba(255,105,0,0.35)' }]}>
               <Text style={[pm.statusTxt, { color: isConfirmed ? '#00d084' : ORANGE }]}>

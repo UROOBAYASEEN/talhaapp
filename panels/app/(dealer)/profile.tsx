@@ -32,8 +32,8 @@ export default function DealerProfileScreen() {
 
   function resolveUrl(url: string | null | undefined): string | null {
     if (!url) return null;
-    if (url.startsWith('http')) return url;
-    return `${BASE_URL}${url}`;
+    if (url.startsWith('http')) return url.replace(/http:\/\/[\d.]+:\d+/, BASE_URL);
+    return `${BASE_URL}${url.startsWith('/') ? url : '/' + url}`;
   }
 
   useEffect(() => {
@@ -105,6 +105,9 @@ export default function DealerProfileScreen() {
     ]);
   }
 
+  // Cover: dealer cover first, then the photo given at account creation (backend), else fallback
+  const coverUri = resolveUrl(info?.cover_url || info?.cover_photo_url || profileMe?.cover_photo_url || user?.cover_photo_url)
+    || 'https://images.unsplash.com/photo-1562519819-016930ada31b?auto=format&fit=crop&w=900&q=80';
   const name        = info?.dealership_name  || user?.full_name  || '';
   const avgRating   = Number(info?.avg_rating  ?? 0);
   const reviewCount = Number(info?.review_count ?? 0);
@@ -158,7 +161,7 @@ export default function DealerProfileScreen() {
           {/* ── COVER IMAGE (tap to change) ── */}
           <TouchableOpacity activeOpacity={0.9} onPress={handleCoverUpdate} style={s.coverContainer}>
             <Image
-              source={{ uri: info?.cover_url || 'https://images.unsplash.com/photo-1562519819-016930ada31b?auto=format&fit=crop&w=900&q=80' }}
+              source={{ uri: coverUri }}
               style={s.coverImage}
               resizeMode="cover"
             />
@@ -230,7 +233,7 @@ export default function DealerProfileScreen() {
           <View style={s.contactRow}>
             <ContactItem icon={<Ionicons name="location-outline" size={20} color={ORANGE}/>} title="Location"     lines={location.split(',')} />
             <ContactItem icon={<Ionicons name="call-outline" size={20} color={ORANGE}/>}     title="Contact"      lines={[phone, user?.email || 'honda@gmail.com']} />
-            <ContactItem icon={<Ionicons name="time-outline" size={20} color={ORANGE}/>}     title="Working hour" lines={hours.split('\n')} />
+            <ContactItem icon={<Ionicons name="time-outline" size={20} color={ORANGE}/>}     title="Working hour" lines={[...hours.split('\n').filter(Boolean), 'Monday to Friday']} />
           </View>
 
           {/* ── ACHIEVEMENTS ── */}

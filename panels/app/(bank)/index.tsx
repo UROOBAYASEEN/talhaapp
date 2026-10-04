@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   Image,
   Dimensions,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -170,6 +171,42 @@ export default function BankHomeScreen() {
     const period = viewMode === 'Daily View' ? 'daily' : viewMode === 'Monthly View' ? 'monthly' : 'weekly';
     fetchChart(period, metric);
   }, [viewMode, metric]);
+
+  // New case alert — poll latest applications, alert on unseen case ids
+  const knownCaseIds = useRef<Set<string> | null>(null);
+  useEffect(() => {
+    if (!token) return;
+    const checkNewCases = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/financing/bank/applications?limit=5`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        const items = Array.isArray(data) ? data : (data.items || []);
+        const ids = items.map((c: any) => String(c.id));
+        if (knownCaseIds.current === null) {
+          knownCaseIds.current = new Set(ids);
+          return;
+        }
+        const fresh = items.filter((c: any) => !knownCaseIds.current!.has(String(c.id)));
+        knownCaseIds.current = new Set(ids);
+        if (fresh.length > 0) {
+          const c = fresh[0];
+          Alert.alert(
+            'New Case Received',
+            `${c.full_name || 'Applicant'}${c.reference_no ? ` • ${c.reference_no}` : ''}${fresh.length > 1 ? ` (+${fresh.length - 1} more)` : ''}`,
+            [
+              { text: 'Later', style: 'cancel' },
+              { text: 'View Case', onPress: () => router.push({ pathname: '/bank-case-detail', params: { id: String(c.id) } } as any) },
+            ],
+          );
+        }
+      } catch { /* offline */ }
+    };
+    const iv = setInterval(checkNewCases, 30000);
+    return () => clearInterval(iv);
+  }, [token]);
 
   const CHART_W = SCREEN_W - 72;
   const CHART_H = 140;

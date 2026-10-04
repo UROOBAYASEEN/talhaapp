@@ -376,17 +376,17 @@ export default function ProfileAnalyticsScreen() {
             <OutlineCard style={s.demoCard}>
               <Text style={[s.sectionTitle, { fontSize: 17, fontFamily: 'Poppins_400Regular' }]}>Audience Demographics</Text>
               <Text style={s.demoSubtitle}>Top Locations</Text>
-              <View style={s.chipsRow}>
-                {(data.top_locations.length > 0 ? data.top_locations : [
-                  { name: 'Karachi', pct: 42 },
-                  { name: 'Lahore', pct: 28 },
-                  { name: 'Pindi', pct: 15 },
-                ]).map(l => (
-                  <View key={l.name} style={s.locationChip}>
-                    <Text style={s.chipTxt}>{l.name} ({l.pct}%)</Text>
-                  </View>
-                ))}
-              </View>
+              {data.top_locations.length > 0 ? (
+                <View style={s.chipsRow}>
+                  {data.top_locations.map(l => (
+                    <View key={l.name} style={s.locationChip}>
+                      <Text style={s.chipTxt}>{l.name} ({l.pct}%)</Text>
+                    </View>
+                  ))}
+                </View>
+              ) : (
+                <Text style={{ color: C.textSecondary, fontSize: 13, fontFamily: 'Poppins_400Regular' }}>No location data yet.</Text>
+              )}
             </OutlineCard>
 
             {/* ── SHARE BUTTON ── */}

@@ -17,6 +17,7 @@ import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import { Linking, Modal, Pressable } from 'react-native';
+import { Image as ExpoImage } from 'expo-image';
 import { BottomActions, D, DHeader, OutlineCard, StatusPill, WarmCard } from '@/components/dealer/DealerUI';
 import { GlassButton, GradientButton } from '@/components/shared/GlowUI';
 
@@ -26,8 +27,8 @@ const SERVER = API_BASE.replace('/api/v1', '');
 
 function resolveUrl(url?: string | null) {
   if (!url) return null;
-  if (url.startsWith('http')) return url;
-  return `${SERVER}${url}`;
+  if (url.startsWith('http')) return url.replace(/http:\/\/[\d.]+:\d+/, SERVER);
+  return `${SERVER}${url.startsWith('/') ? url : '/' + url}`;
 }
 
 function GlassInset() {
@@ -79,9 +80,21 @@ export default function BankCaseDetail() {
 
   const [app,      setApp]      = useState<any>(null);
   const [docs,     setDocs]     = useState<any[]>([]);
+  const [userDocs, setUserDocs] = useState<{ uri: string; label: string }[]>([]);
   const [loading,  setLoading]  = useState(true);
   const [updating, setUpdating] = useState(false);
   const [showDocs, setShowDocs] = useState(false);
+  const [previewDoc, setPreviewDoc] = useState<string | null>(null);
+
+  function isImgDoc(uri?: string | null) {
+    return !!uri && /\.(jpg|jpeg|png|webp)(\?|$)/i.test(uri);
+  }
+  // Images open in-app viewer; other files fall back to browser
+  function openDoc(uri?: string | null) {
+    if (!uri) return;
+    if (isImgDoc(uri)) setPreviewDoc(uri);
+    else Linking.openURL(uri);
+  }
 
   const DUMMY_DATA: Record<string, any> = {
     '1': { id: '1', reference_no: 'AWZ-2025-08421', full_name: 'Ahmed Raza',   vehicle_type: 'car', condition: 'new',  brand: 'Honda',   car_model: 'City',     variant: 'Aspire CVT', color: 'White',  year: '2024', city: 'Karachi',    vehicle_price: 4500000, down_payment: 1000000, loan_amount: 3500000, monthly_installment: 58300, tenure_years: 5, markup_rate: 13.9, rate_type: 'variable', employment_type: 'Salaried',    monthly_income: 150000, cnic: '42101-1234567-1', bank_name: 'Meezan', bank_product: 'Car Ijarah', status: 'submitted',  documents: [] },
@@ -101,7 +114,22 @@ export default function BankCaseDetail() {
           fetch(`${API_BASE}/financing/documents/${id}`,    { headers }),
         ]);
         if (aRes.ok) {
-          setApp(await aRes.json());
+          const appData = await aRes.json();
+          setApp(appData);
+          // Applicant's own uploaded documents (CNIC, license, …) — bank is authorized
+          if (appData.user_id) {
+            try {
+              const uRes = await fetch(`${API_BASE}/documents/user/${appData.user_id}`, { headers });
+              if (uRes.ok) {
+                const uDocs = await uRes.json();
+                const items = Array.isArray(uDocs) ? uDocs : (uDocs.items || []);
+                setUserDocs(items.map((d: any) => ({
+                  uri: resolveUrl(d.file_url) || d.file_url,
+                  label: d.type || d.desc || 'Document',
+                })));
+              }
+            } catch { /* no user docs */ }
+          }
         } else {
           setApp(DUMMY_DATA[id] || null);
         }
@@ -113,6 +141,18 @@ export default function BankCaseDetail() {
     }
     load();
   }, [id]);
+
+  // Prefetch gallery images so they appear instantly (disk-cached)
+  useEffect(() => {
+    const fromApp = (((app as any)?.documents || []) as string[]).map(u => resolveUrl(u) || u);
+    const urls = [
+      ...userDocs.map(d => d.uri),
+      ...docs.map((d: any) => resolveUrl(d.file_url) || d.file_url),
+      ...fromApp,
+    ].filter((u): u is string => !!u && isImgDoc(u));
+    if (urls.length > 0) ExpoImage.prefetch(urls);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [docs.length, userDocs.length, ((app as any)?.documents || []).length]);
 
   async function updateStatus(status: 'approved' | 'rejected' | 'reviewing') {
     setUpdating(true);
@@ -155,8 +195,9 @@ export default function BankCaseDetail() {
   const statusLabel = app.status === 'reviewing' ? 'Under Review' : app.status === 'submitted' ? 'New' : String(app.status || '');
   const tone: any = app.status === 'approved' ? 'green' : app.status === 'rejected' ? 'red' : app.status === 'reviewing' ? 'green' : 'orange';
 
-  // All documents (uploaded docs first, then files attached to the application)
+  // All documents — applicant's own docs first, then uploaded docs, then files on the application
   const allDocs: { uri: string; label: string }[] = [
+    ...userDocs,
     ...docs.map((d: any) => ({ uri: resolveUrl(d.file_url) || d.file_url, label: d.doc_type || 'Document' })),
     ...(((app as any).documents || []) as string[]).map((u, i) => ({ uri: resolveUrl(u) || u, label: `Document ${i + 1}` })),
   ];
@@ -285,10 +326,10 @@ export default function BankCaseDetail() {
             {allDocs.map((d, i) => {
               const isImg = d.uri?.match(/\.(jpg|jpeg|png|webp)$/i);
               return (
-                <TouchableOpacity key={i} style={s.docItem} activeOpacity={0.85} onPress={() => d.uri && Linking.openURL(d.uri)}>
-                  {isImg ? (
-                    <Image source={{ uri: d.uri }} style={s.docImg} resizeMode="cover" />
-                  ) : (
+                <TouchableOpacity key={i} style={s.docItem} activeOpacity={0.85} onPress={() => openDoc(d.uri)}>
+              {isImg ? (
+                <ExpoImage source={{ uri: d.uri }} style={s.docImg} contentFit="cover" cachePolicy="disk" transition={200} />
+              ) : (
                     <View style={[s.docImg, s.docFile]}>
                       <FileText size={24} color={ORANGE} />
                     </View>
@@ -352,12 +393,25 @@ export default function BankCaseDetail() {
               <View key={i} style={s.docRow}>
                 <View style={s.docRowIcon}><Ionicons name="document-text-outline" size={24} color={ORANGE} /></View>
                 <Text style={s.docRowTxt} numberOfLines={1}>{d.label}</Text>
-                <TouchableOpacity style={s.docViewBtn} onPress={() => d.uri && Linking.openURL(d.uri)}>
+                <TouchableOpacity style={s.docViewBtn} onPress={() => openDoc(d.uri)}>
                   <Text style={s.docViewTxt}>View</Text>
                 </TouchableOpacity>
               </View>
             ))}
           </Pressable>
+        </Pressable>
+      </Modal>
+      {/* IN-APP DOCUMENT VIEWER (images open here, not in browser) */}
+      <Modal visible={!!previewDoc} transparent animationType="fade" onRequestClose={() => setPreviewDoc(null)}>
+        <Pressable style={s.previewOverlay} onPress={() => setPreviewDoc(null)}>
+          <TouchableOpacity style={s.previewClose} onPress={() => setPreviewDoc(null)}>
+            <Ionicons name="close" size={28} color={ORANGE} />
+          </TouchableOpacity>
+          {previewDoc ? (
+            <Pressable style={{ width: '100%', height: '75%' }} onPress={() => setPreviewDoc(null)}>
+              <ExpoImage source={{ uri: previewDoc }} style={s.previewImg} contentFit="contain" cachePolicy="disk" transition={200} />
+            </Pressable>
+          ) : null}
         </Pressable>
       </Modal>
     </SafeAreaView>
@@ -418,4 +472,8 @@ const s = StyleSheet.create({
   docRowTxt:     { flex: 1, color: '#FFFFFF', fontSize: 15, fontFamily: 'Poppins_400Regular' },
   docViewBtn:    { borderRadius: 10, borderWidth: 1, borderColor: 'rgba(230,225,232,0.35)', backgroundColor: 'rgba(255,255,255,0.06)', paddingHorizontal: 14, paddingVertical: 6 },
   docViewTxt:    { color: ORANGE, fontSize: 13, fontFamily: 'Poppins_600SemiBold' },
+
+  previewOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12 },
+  previewImg:     { width: '100%', height: '100%' },
+  previewClose:   { position: 'absolute', top: 48, right: 20, zIndex: 2, width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
 });

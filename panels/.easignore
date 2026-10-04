@@ -1,0 +1,5 @@
+# EAS Build — exclude large unneeded files from the upload tarball
+screenshot/
+screenshots/
+*.log
+.DS_Store
