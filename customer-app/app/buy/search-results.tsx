@@ -329,7 +329,7 @@ export default function SearchResultsScreen() {
   const aC = useAppColors();
   const params  = useLocalSearchParams<{
     city?: string; car?: string; variant?: string;
-    year?: string; color?: string; sellerType?: string;
+    year?: string; color?: string; sellerType?: string; seller_type?: string;
     brand?: string; dealerId?: string; make?: string;
     condition?: string; min_price?: string; max_price?: string;
     search?: string; hot?: string; category?: string; featured?: string; from?: string; title?: string;
@@ -389,14 +389,18 @@ export default function SearchResultsScreen() {
       if (params.condition)  query.set('condition',  params.condition);
       if (params.category)   query.set('category',   params.category);
       if (params.dealerId)   query.set('seller_id',  params.dealerId);
+      if (params.seller_type) query.set('seller_type', params.seller_type);
       if (params.city && params.city !== 'All Cities')         query.set('city', params.city);
       if (params.make && params.make !== 'All Brands')         query.set('make', params.make);
       if (params.year && params.year !== 'Any Year')           query.set('year', params.year);
       if (params.variant && params.variant !== 'Any Variant') query.set('variant', params.variant);
-      if (params.color && params.color !== 'Any Color')        query.set('color', params.color);
+      if (params.color && params.color !== 'Any Color' && params.color !== 'All Colors')        query.set('color', params.color);
       // URL params (from used-car search form)
       if (params.min_price)  query.set('min_price',  params.min_price);
       if (params.max_price)  query.set('max_price',  params.max_price);
+      if (params.sellerType && params.sellerType !== 'All (Non Dealer + Individual)') {
+        query.set('seller_type', params.sellerType);
+      }
       if (q) query.set('search', q);
       // FilterBar filters (override URL params if set)
       if (filters.cities?.length)              query.set('city',      filters.cities[0]);
@@ -576,13 +580,13 @@ export default function SearchResultsScreen() {
         renderItem={({ item }) => isDealerInventory ? (
           <DealerInventoryCard
             item={item}
-            onPress={() => router.push({ pathname: '/buy/car-detail', params: { id: item.id } } as any)}
+            onPress={() => router.push({ pathname: '/buy/car-detail', params: { id: item.id, ...(params.from === 'newCarCash' ? { from: 'newCarCash' } : {}) } } as any)}
           />
         ) : (
           <CarCard
             item={item}
             saved={savedIds.has(item.id)}
-            onPress={() => router.push({ pathname: '/buy/car-detail', params: { id: item.id } } as any)}
+            onPress={() => router.push({ pathname: '/buy/car-detail', params: { id: item.id, ...(params.from === 'newCarCash' ? { from: 'newCarCash' } : {}) } } as any)}
             onSave={() => toggleSave(item.id)}
             onContact={() => {
               const sid = item.seller_id || item.seller?.id;

@@ -338,7 +338,7 @@ export default function BuyUsedBikeScreen() {
       const [a, b, c] = await Promise.all([
         fetch(`${API_BASE}/vehicles?condition=used&category=bike&limit=10`, { headers: h }),
         fetch(`${API_BASE}/ads/hot-selling?condition=used&category=bike&limit=10`, { headers: h }),
-        fetch(`${API_BASE}/vehicles/brands?condition=used&category=bike`, { headers: h }),
+        fetch(`${API_BASE}/brands`, { headers: h }),
       ]);
       let recentItems: any[] = [];
       if (a.ok) { const d = await a.json(); recentItems = d.items || d || []; setRecent(recentItems); }
@@ -354,7 +354,10 @@ export default function BuyUsedBikeScreen() {
           if (fb.ok) { const d = await fb.json(); setHotSelling(d.items || d || []); }
         } catch {}
       }
-      if (c.ok) { const d = await c.json(); setBrands(d || []); }
+      if (c.ok) {
+        const d = await c.json();
+        setBrands(Array.isArray(d) ? d.filter((b: any) => b?.name || typeof b === 'string') : []);
+      }
     } catch {}
     finally { setLoading(false); setRefreshing(false); }
   }
@@ -427,12 +430,17 @@ export default function BuyUsedBikeScreen() {
       if (loading) return <ActivityIndicator color={ORANGE} style={{ paddingVertical: 16 }} />;
       return (
         <View style={styles.categoryGrid}>
-          {brands.slice(0, 8).map((b: any, i: number) => {
+          {brands.map((b: any, i: number) => {
             const name = b.name || b;
+            const logo = imgUrl(b.logo_url);
             return (
               <TouchableOpacity key={i} style={[styles.categoryCard, { backgroundColor: aC.isDark ? CARD : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]} onPress={() => goSearch({ search: name })} activeOpacity={0.82}>
                 <GlassInset />
-                <MaterialCommunityIcons name="motorbike" size={24} color={ORANGE} />
+                {logo ? (
+                  <Image source={{ uri: logo }} style={{ width: 40, height: 32 }} resizeMode="contain" />
+                ) : (
+                  <MaterialCommunityIcons name="motorbike" size={24} color={ORANGE} />
+                )}
                 <Text style={styles.categoryText}>{name}</Text>
               </TouchableOpacity>
             );

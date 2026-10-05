@@ -232,7 +232,7 @@ export default function BuyNewBikeScreen() {
   const { token } = useAuth();
   const aC = useAppColors();
 
-  const [dealers,    setDealers]    = useState<any[]>([]);
+  const [brands,      setBrands]      = useState<any[]>([]);
   const [hotBikes,    setHotBikes]    = useState<any[]>([]);
   const [recentBikes, setRecentBikes] = useState<any[]>([]);
   const [savedIds,   setSavedIds]   = useState<Set<string>>(new Set());
@@ -240,13 +240,11 @@ export default function BuyNewBikeScreen() {
 
   const [modalVisible,  setModalVisible]  = useState(false);
   const [selectedBrand, setSelectedBrand] = useState('');
-  const [selectedDealerId, setSelectedDealerId] = useState('');
   const [dealerPage,    setDealerPage]    = useState(0);
   const dealerScrollRef = useRef<ScrollView>(null);
 
-  function openBrandModal(dealerName: string, dealerId: string) {
-    setSelectedBrand(dealerName);
-    setSelectedDealerId(dealerId);
+  function openBrandModal(brandName: string) {
+    setSelectedBrand(brandName);
     setModalVisible(true);
   }
 
@@ -256,12 +254,13 @@ export default function BuyNewBikeScreen() {
     try {
       const headers: any = token ? { Authorization: `Bearer ${token}` } : {};
       const [a, b, c] = await Promise.all([
-        fetch(`${API_BASE}/dealers/?limit=50`, { headers }),
+        // Admin panel (database) wale SARE brands — bike/car filter nahi
+        fetch(`${API_BASE}/brands`, { headers }),
         // Hot Selling = sirf paid ads (AdPromotion success) — promote bike ke baad yahan show ho
         fetch(`${API_BASE}/ads/hot-selling?condition=new&category=bike&limit=10`, { headers }),
         fetch(`${API_BASE}/vehicles?category=bike&condition=new&seller_type=dealership&limit=8`, { headers }),
       ]);
-      if (a.ok) { const r = await a.json(); setDealers(r || []); }
+      if (a.ok) { const r = await a.json(); setBrands(Array.isArray(r) ? r : []); }
       if (b.ok) {
         const r = await b.json();
         // New Bike page: only dealership vehicles (skip individual-seller paid ads)
@@ -332,14 +331,14 @@ export default function BuyNewBikeScreen() {
           <Text style={[styles.secTitle, { color: aC.isDark ? WHITE : '#010a1f' }]}>Select Your Brand</Text>
           {loading ? (
             <ActivityIndicator color={ORANGE} style={{ paddingVertical: 20 }}/>
-          ) : dealers.length === 0 ? (
-            <Text style={{ color: aC.isDark ? SUBTITLE : '#64748b', fontSize: 13, fontFamily: 'Poppins_400Regular' }}>No dealerships available</Text>
+          ) : brands.length === 0 ? (
+            <Text style={{ color: aC.isDark ? SUBTITLE : '#64748b', fontSize: 13, fontFamily: 'Poppins_400Regular' }}>No brands available</Text>
           ) : (() => {
               const PAGE       = 8;
-              const totalPages = Math.ceil(dealers.length / PAGE);
+              const totalPages = Math.ceil(brands.length / PAGE);
               const pageW      = W - 40;
               const chunks     = Array.from({ length: totalPages }, (_, i) =>
-                dealers.slice(i * PAGE, i * PAGE + PAGE)
+                brands.slice(i * PAGE, i * PAGE + PAGE)
               );
               return (
                 <>
@@ -355,14 +354,15 @@ export default function BuyNewBikeScreen() {
                   >
                     {chunks.map((chunk, pi) => (
                       <View key={pi} style={{ width: pageW, flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
-                        {chunk.map((dealer: any) => {
-                          const name = dealer.dealership_name || dealer.full_name || 'Dealer';
+                        {chunk.map((b: any) => {
+                          const name = b.name || 'Brand';
+                          const logo = imgUrl(b.logo_url);
                           return (
                             <TouchableOpacity
-                              key={dealer.id}
+                              key={b.id || name}
                               style={[styles.brandBtn, { backgroundColor: aC.isDark ? BG : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.4)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? '#1D53AF' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0.5 : 0.08, elevation: aC.isDark ? 6 : 3 }]}
                               activeOpacity={0.82}
-                              onPress={() => openBrandModal(name, dealer.id)}
+                              onPress={() => openBrandModal(name)}
                             >
                               {aC.isDark ? (
                                 <>
@@ -377,9 +377,9 @@ export default function BuyNewBikeScreen() {
                                   <LinearGradient colors={['transparent', 'rgba(226,103,27,0.08)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
                                 </>
                               )}
-                              {imgUrl(dealer.avatar_url) ? (
-                                <View style={{ width: 40, height: 40, borderRadius: 20, overflow: 'hidden', borderWidth: 1.5, borderColor: ORANGE }}>
-                                  <Image source={{ uri: imgUrl(dealer.avatar_url)! }} style={{ width: 40, height: 40 }} resizeMode="cover" />
+                              {logo ? (
+                                <View style={{ width: 40, height: 40, borderRadius: 20, overflow: 'hidden', borderWidth: 1.5, borderColor: ORANGE, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' }}>
+                                  <Image source={{ uri: logo }} style={{ width: 32, height: 32 }} resizeMode="contain" />
                                 </View>
                               ) : (
                                 <View style={styles.brandInitialBox}>
@@ -560,14 +560,23 @@ export default function BuyNewBikeScreen() {
       <BasicDetailsModal
         visible={modalVisible}
         brandName={selectedBrand}
-        dealerId={selectedDealerId}
         category="bike"
         onClose={() => setModalVisible(false)}
         onSearch={(data) => {
           setModalVisible(false);
           router.push({
             pathname: '/buy/search-results' as any,
-            params: { search: data.car || '', from: 'newCarCash' },
+            params: {
+              search: data.car || '',
+              make: data.make || selectedBrand || '',
+              variant: data.variant || '',
+              year: data.year || '',
+              color: data.color || '',
+              city: data.city || '',
+              condition: 'new',
+              category: 'bike',
+              from: 'newCarCash',
+            },
           });
         }}
       />

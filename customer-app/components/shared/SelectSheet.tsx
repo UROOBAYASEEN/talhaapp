@@ -2,7 +2,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
-import { Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { AppColors, useAppColors } from '@/constants/theme';
 
 const ORANGE = AppColors.gradientEnd;
@@ -27,9 +27,10 @@ function GlassInset() {
   );
 }
 
-export default function SelectSheet({ visible, title, options, selected, onSelect, onClose, loading }: {
+export default function SelectSheet({ visible, title, options, selected, onSelect, onClose, loading, getIcon }: {
   visible: boolean; title: string; options: string[];
   selected: string; onSelect: (v: string) => void; onClose: () => void; loading?: boolean;
+  getIcon?: (option: string) => any;
 }) {
   const aC = useAppColors();
   const [q, setQ] = useState('');
@@ -57,12 +58,22 @@ export default function SelectSheet({ visible, title, options, selected, onSelec
           <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 320 }} keyboardShouldPersistTaps="handled">
             {loading ? <Text style={[s.optTxt, { color: muted, padding: 18 }]}>Loading…</Text> : null}
             {!loading && filtered.length === 0 ? <Text style={[s.optTxt, { color: muted, padding: 18 }]}>No options</Text> : null}
-            {filtered.map(opt => (
+            {filtered.map(opt => {
+              const icon = getIcon?.(opt);
+              return (
               <TouchableOpacity key={opt} style={[s.option, { borderBottomColor: dark ? 'rgba(255,255,255,0.06)' : 'rgba(3,42,105,0.06)' }]} onPress={() => { onSelect(opt); setQ(''); onClose(); }}>
+                {icon ? (
+                  <Image source={icon} style={s.optIcon} resizeMode="contain" />
+                ) : title === 'Brand' && opt !== 'All Brands' ? (
+                  <View style={s.optInitialWrap}>
+                    <Text style={s.optInitial}>{opt.charAt(0).toUpperCase()}</Text>
+                  </View>
+                ) : null}
                 <Text style={[s.optTxt, { color: muted }, opt === selected && { color: ORANGE, fontFamily: 'Poppins_600SemiBold' }]}>{opt}</Text>
                 {opt === selected && <Ionicons name="checkmark" size={15} color={ORANGE} />}
               </TouchableOpacity>
-            ))}
+              );
+            })}
             <View style={{ height: 20 }} />
           </ScrollView>
         </TouchableOpacity>
@@ -80,6 +91,9 @@ const s = StyleSheet.create({
   closeBtn:    { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   searchRow:   { flexDirection: 'row', alignItems: 'center', marginHorizontal: 14, marginVertical: 10, height: 40, borderRadius: 20, borderWidth: 1, overflow: 'hidden' },
   searchInput: { flex: 1, fontSize: 12, fontFamily: 'Poppins_400Regular', paddingHorizontal: 10 },
-  option:      { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 18, paddingVertical: 13, borderBottomWidth: 1 },
+  option:      { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 18, paddingVertical: 13, borderBottomWidth: 1 },
   optTxt:      { flex: 1, fontSize: 13, fontFamily: 'Poppins_400Regular' },
+  optIcon:     { width: 28, height: 28, borderRadius: 6 },
+  optInitialWrap: { width: 28, height: 28, borderRadius: 6, backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center' },
+  optInitial:  { color: '#D8DCE6', fontSize: 14, fontFamily: 'Poppins_700Bold' },
 });

@@ -28,13 +28,16 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Appearance, Switch, useColorScheme } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-const { width: W } = Dimensions.get('window');
+// NOTE: screen width `useWindowDimensions()` se (component ke andar) li jati hai
+// taake har phone size + rotation pe widths dobara calculate hon.
+// Module-level `Dimensions.get` frozen rehta hai — is liye use nahi kiya.
 
 // ─── Figma exact colors (static — used in StyleSheet) ─────────────────────
 const C = {
@@ -103,6 +106,19 @@ const RECENT_ACTIVITY = [
   { icon: 'calendar-outline', title: 'Insurance Renewal Due', sub: 'Toyota Corolla • 2 hrs ago' },
   { icon: 'calendar-outline', title: 'Tracker Installation Pending', sub: 'Toyota Corolla • 1 day ago' },
 ];
+
+// Har activity ke hisab se alag icon (bank/insurance/tracker/...)
+const ACT_FALLBACK_ICONS = ['business-outline', 'shield-checkmark-outline', 'locate-outline', 'calendar-outline', 'cash-outline'];
+function actIconName(a: any, index: number): string {
+  const t = `${a?.title || ''} ${a?.sub || ''}`.toLowerCase();
+  if (t.includes('financ') || t.includes('bank') || t.includes('loan')) return 'bank';
+  if (t.includes('insur')) return 'shield-checkmark-outline';
+  if (t.includes('track') || t.includes('gps')) return 'locate-outline';
+  if (t.includes('payment') || t.includes('transaction') || t.includes('reserved') || t.includes('book')) return 'cash-outline';
+  if (t.includes('message') || t.includes('chat')) return 'chatbubble-outline';
+  if (t.includes('test') && t.includes('drive')) return 'car-outline';
+  return ACT_FALLBACK_ICONS[index % ACT_FALLBACK_ICONS.length];
+}
 
 // Visual cards used only when the bike API has fewer entries than Featured Cars.
 const FEATURED_BIKE_PREVIEWS = [
@@ -330,8 +346,10 @@ function DropField({
   value: string;
   showChevron?: boolean;
 }) {
+  const { width: _w } = useWindowDimensions();
+  const _dropW = (_w - 56 - 16) / 3;   // 3 columns, 2×gap-8 — har screen pe reactive
   return (
-    <View style={styles.findDropItem}>
+    <View style={[styles.findDropItem, { width: _dropW }]}>
       <Text style={styles.findDropLabel}>{label}</Text>
       <View style={styles.findDropField}>
         <Text style={styles.findDropValue} numberOfLines={1}>{value}</Text>
@@ -421,6 +439,10 @@ export default function HomeScreen() {
   const router = useRouter();
   const { user, token } = useAuth() as any;
   const aC = useAppColors();
+  // Reactive screen width — har phone size + rotation pe grid widths dobara banti hain
+  const { width: W } = useWindowDimensions();
+  const servW = (W - 24 - 36) / 4;   // All Services: 4 per row, 12px section padding and gaps
+  const findDropW = (W - 56 - 16) / 3;   // 3 columns, 2×gap-8
 
   const [featured, setFeatured] = useState<any[]>([]);
   const [bikes, setBikes] = useState<any[]>([]);
@@ -664,7 +686,7 @@ export default function HomeScreen() {
             {ALL_SERVICES.map(s => (
               <TouchableOpacity
                 key={s.label}
-                style={[styles.servCard, { backgroundColor: aC.isDark ? '#010a1f' : aC.glassBg, borderColor: aC.isDark ? '#8ba7d2' : 'rgba(100,160,255,0.6)' }]}
+                style={[styles.servCard, { width: servW, backgroundColor: aC.isDark ? '#010a1f' : aC.glassBg, borderColor: aC.isDark ? '#8ba7d2' : 'rgba(100,160,255,0.6)' }]}
                 onPress={() => {
                   if (s.p && Object.keys(s.p).length > 0) {
                     router.push({ pathname: s.route as any, params: s.p });
@@ -676,8 +698,30 @@ export default function HomeScreen() {
               >
                 {aC.isDark ? (
                   <>
-                    <LinearGradient colors={['#16408880', '#0D255480', '#010a1f', '#010a1f', '#0D255480', '#16408880']} locations={[0, 0.09, 0.23, 0.77, 0.91, 1]} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                    <LinearGradient colors={['rgba(22,64,136,0.30)', 'rgba(13,37,84,0.10)', 'transparent', 'transparent', 'rgba(13,37,84,0.10)', 'rgba(22,64,136,0.30)']} locations={[0, 0.08, 0.22, 0.78, 0.92, 1]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+                    {/* Top shade */}
+                    <LinearGradient
+                      colors={['rgba(22,64,136,0.65)', 'transparent']}
+                      start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.25 }}
+                      style={StyleSheet.absoluteFillObject} pointerEvents="none"
+                    />
+                    {/* Bottom shade */}
+                    <LinearGradient
+                      colors={['transparent', 'rgba(29,83,175,0.65)']}
+                      start={{ x: 0.5, y: 0.75 }} end={{ x: 0.5, y: 1 }}
+                      style={StyleSheet.absoluteFillObject} pointerEvents="none"
+                    />
+                    {/* Left shade */}
+                    <LinearGradient
+                      colors={['rgba(13,37,84,0.65)', 'transparent']}
+                      start={{ x: 0, y: 0.5 }} end={{ x: 0.25, y: 0.5 }}
+                      style={StyleSheet.absoluteFillObject} pointerEvents="none"
+                    />
+                    {/* Right shade */}
+                    <LinearGradient
+                      colors={['transparent', 'rgba(13,37,84,0.65)']}
+                      start={{ x: 0.75, y: 0.5 }} end={{ x: 1, y: 0.5 }}
+                      style={StyleSheet.absoluteFillObject} pointerEvents="none"
+                    />
                   </>
                 ) : (
                   <>
@@ -718,8 +762,9 @@ export default function HomeScreen() {
             end={{ x: 0.5, y: 1 }}
             style={styles.vehicleSearchWrapper}
           >
-            <View style={[styles.vehicleSearchSurface, { backgroundColor: aC.isDark ? '#061538' : '#dde8ff' }]}>
-              {aC.isDark && <LinearGradient colors={['#061538', '#071a42', '#292b45', '#72433e']} locations={[0, 0.55, 0.76, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
+            <View style={[styles.vehicleSearchSurface, { backgroundColor: aC.isDark ? '#010A1F' : '#dde8ff' }]}>
+              {/* background: linear-gradient(2.51deg, #E2671B -59.87%, #061B4A 49.25%, #010A1F 158.37%) */}
+              {aC.isDark && <LinearGradient colors={['#693D35', '#061B4A', '#041336']} locations={[0, 0.4925, 1]} start={{ x: 0.5, y: 1 }} end={{ x: 0.5, y: 0 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
               <VehicleSearch />
             </View>
           </LinearGradient>
@@ -836,27 +881,56 @@ export default function HomeScreen() {
         ════════════════════════════════════════════════════ */}
         <View style={[styles.sec, styles.pad]}>
           <SH title="Recent Activity" />
-          <View style={{ gap: 10 }}>
-            {(recentReal && recentReal.length ? recentReal : RECENT_ACTIVITY).map((a: any, index: number) => (
+          <View style={{ gap: 8 }}>
+            {(recentReal && recentReal.length ? recentReal : RECENT_ACTIVITY).map((a: any, index: number) => {
+              const iconName = actIconName(a, index);
+              return (
               <TouchableOpacity key={a.title + a.sub} style={[styles.actItem, { backgroundColor: aC.isDark ? '#010b1e' : aC.glassBg, borderColor: aC.isDark ? '#829fd0' : aC.glassBorder }]} activeOpacity={0.84}>
-                {aC.isDark && <LinearGradient colors={['#173668', '#010b1e', '#071a3a']} locations={[0, 0.24, 1]} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
-                {aC.isDark && <LinearGradient colors={['rgba(35,81,157,0.13)', 'transparent', 'transparent', 'rgba(35,81,157,0.13)']} locations={[0, 0.09, 0.91, 1]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
+                {aC.isDark ? (
+                  <>
+                    {/* Top shade (All Services wali) */}
+                    <LinearGradient
+                      colors={['rgba(22,64,136,0.65)', 'transparent']}
+                      start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.25 }}
+                      style={StyleSheet.absoluteFillObject} pointerEvents="none"
+                    />
+                    {/* Bottom shade */}
+                    <LinearGradient
+                      colors={['transparent', 'rgba(29,83,175,0.65)']}
+                      start={{ x: 0.5, y: 0.75 }} end={{ x: 0.5, y: 1 }}
+                      style={StyleSheet.absoluteFillObject} pointerEvents="none"
+                    />
+                    {/* Left shade */}
+                    <LinearGradient
+                      colors={['rgba(13,37,84,0.65)', 'transparent']}
+                      start={{ x: 0, y: 0.5 }} end={{ x: 0.25, y: 0.5 }}
+                      style={StyleSheet.absoluteFillObject} pointerEvents="none"
+                    />
+                    {/* Right shade */}
+                    <LinearGradient
+                      colors={['transparent', 'rgba(13,37,84,0.65)']}
+                      start={{ x: 0.75, y: 0.5 }} end={{ x: 1, y: 0.5 }}
+                      style={StyleSheet.absoluteFillObject} pointerEvents="none"
+                    />
+                  </>
+                ) : null}
                 <View style={[styles.actIcon, { backgroundColor: aC.isDark ? '#061b4a' : '#e8eeff', borderColor: aC.isDark ? 'transparent' : aC.divider }]}>
-                  {index === 0 && a.title === 'Financing Application Submitted' ? (
+                  {iconName === 'bank' ? (
                     <Image source={require('@/assets/images/hugeicons_bank.png')} style={styles.activityBankIcon} resizeMode="contain" />
                   ) : (
-                    <Ionicons name={a.icon as any} size={24} color="#e2671b" />
+                    <Ionicons name={iconName as any} size={20} color="#e2671b" />
                   )}
                 </View>
-                <View style={{ flex: 1, gap: 2 }}>
-                  <Text style={[styles.actTitle, { color: aC.textPrimary }]}>{a.title}</Text>
-                  <Text style={[styles.actSub, { color: aC.textSecondary }]}>{a.sub}</Text>
+                <View style={{ flex: 1, gap: 1 }}>
+                  <Text style={[styles.actTitle, { color: aC.textPrimary }]} numberOfLines={1}>{a.title}</Text>
+                  <Text style={[styles.actSub, { color: aC.textSecondary }]} numberOfLines={1}>{a.sub}</Text>
                 </View>
                 <View style={styles.actArrow}>
-                  <Ionicons name="chevron-forward" size={24} color="#e2671b" />
+                  <Ionicons name="chevron-forward" size={18} color="#e2671b" />
                 </View>
               </TouchableOpacity>
-            ))}
+              );
+            })}
           </View>
         </View>
 
@@ -871,14 +945,8 @@ export default function HomeScreen() {
 }
 
 // ─── Styles (exact Figma values) ──────────────────────────────────────────
-const SERV_W = (W - 24 - 36) / 4;   // 4 per row, 12px section padding and gaps
-const EXPL_W = (W - 32 - 10) / 2;   // 2 per row
-
-// Find Your Perfect Vehicle — exact widths to prevent overflow
-// Card inner width = screen - pad(16×2) - cardPadH(12×2) = W - 56
-const FIND_INNER = W - 56;
-const FIND_BTN = (FIND_INNER - 9) / 2;   // 2 buttons, gap-9
-const FIND_DROP = (FIND_INNER - 16) / 3;   // 3 columns, 2×gap-8
+// NOTE: grid widths (servCard, findDropItem) component mein `useWindowDimensions()`
+// se reactive calculate hote hain — yahan frozen module-level widths nahi rakhi gayin.
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: 'rgba(1,10,31,1)' },
@@ -1229,9 +1297,10 @@ const styles = StyleSheet.create({
 
   /* ── All Services (node 1986:11312) ── */
   servGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: -5 },
-  /* Figma: Glass Button bg=#061b4a, blue glow shadow, orange border tint — compact size */
+  /* Figma: Glass Button bg=#061b4a, blue glow shadow, orange border tint — compact size
+     width har screen pe reactive (component mein useWindowDimensions se) */
   servCard: {
-    width: SERV_W, height: 82,
+    height: 82,
     backgroundColor: 'rgba(3,12,40,0.6)',
     borderRadius: 16,
     borderWidth: 1,
@@ -1263,12 +1332,12 @@ const styles = StyleSheet.create({
     fontSize: 12, fontFamily: 'Poppins_500Medium',
     color: '#f9fafc', textTransform: 'capitalize',
   },
-  /* Options row — fixed gap, buttons use FIND_BTN exact width */
+  /* Options row — fixed gap, buttons use flex exact width */
   findRow2: { flexDirection: 'row', gap: 9 },
 
-  /* Cash/Finance — FIND_BTN exact width prevents overflow */
+  /* Cash/Finance — dead style (unused, kept for reference, no frozen width) */
   findOptBtn: {
-    width: FIND_BTN, height: 48, borderRadius: 16,
+    height: 48, borderRadius: 16,
     alignItems: 'center', justifyContent: 'center',
   },
   findOptBtnActive: { borderWidth: 1, borderColor: 'rgba(255,255,255,1)' },
@@ -1276,16 +1345,16 @@ const styles = StyleSheet.create({
   findOptTxtActive: { fontSize: 12, fontFamily: 'Poppins_600SemiBold', color: '#e2671b' },
   findOptTxtInactive: { fontSize: 12, fontFamily: 'Poppins_500Medium', color: '#f9fafc' },
 
-  /* Cars/Bikes — FIND_BTN exact width, h-67, icon+label gap-2 */
+  /* Cars/Bikes — dead style (unused, kept for reference, no frozen width) */
   findTypeCardBtn: {
-    width: FIND_BTN, height: 67, borderRadius: 16,
+    height: 67, borderRadius: 16,
     alignItems: 'center', justifyContent: 'center', gap: 2,
   },
   findTypeTxtLabel: { fontSize: 12, fontFamily: 'Poppins_500Medium', color: '#fff' },
 
-  /* New/Used Cars — FIND_BTN exact width, h-58, rounded-14, px-20 */
+  /* New/Used Cars — dead style (unused, kept for reference, no frozen width) */
   findCondBtn: {
-    width: FIND_BTN, height: 58, borderRadius: 14,
+    height: 58, borderRadius: 14,
     flexDirection: 'row', alignItems: 'center',
     paddingHorizontal: 20, gap: 12,
   },
@@ -1299,10 +1368,10 @@ const styles = StyleSheet.create({
   },
   findCondTxt: { fontSize: 13, fontFamily: 'Poppins_500Medium', color: '#f9fafc' },
 
-  /* 3×3 Dropdown grid — FIND_DROP exact column width prevents overflow */
+  /* 3×3 Dropdown grid — column width har screen pe reactive (DropField mein) */
   findDropGrid: { gap: 12 },
   findDropRow: { flexDirection: 'row', gap: 8 },
-  findDropItem: { width: FIND_DROP, gap: 8 },
+  findDropItem: { gap: 8 },
   /* Drop label: 10px Poppins Regular #baacb6 */
   findDropLabel: { fontSize: 10, fontFamily: 'Poppins_400Regular', color: '#baacb6' },
   /* Drop field: bg #061b4a rounded-8 p-10, row, justify-between */
@@ -1344,7 +1413,7 @@ const styles = StyleSheet.create({
   /* ── Explore More (node 1986:11634) ── */
   exploreGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   exploreCard: {
-    width: EXPL_W, borderRadius: 14,
+    borderRadius: 14,
     backgroundColor: C.glass, borderWidth: 1, borderColor: C.divider,
     overflow: 'hidden', padding: 12, gap: 8,
   },
@@ -1372,19 +1441,19 @@ const styles = StyleSheet.create({
 
   /* ── Recent Activity (node 1986:11792) ── */
   actItem: {
-    flexDirection: 'row', alignItems: 'center', gap: 12,
-    backgroundColor: 'rgba(3,12,40,0.6)', borderRadius: 18,
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    backgroundColor: 'rgba(3,12,40,0.6)', borderRadius: 14,
     borderWidth: 1, borderColor: 'rgba(100,160,255,0.5)',
-    paddingHorizontal: 16, paddingVertical: 13,
+    paddingHorizontal: 12, paddingVertical: 9,
     overflow: 'hidden',
   },
   actIcon: {
-    width: 46, height: 46, borderRadius: 23, backgroundColor: C.glassDark,
+    width: 38, height: 38, borderRadius: 19, backgroundColor: C.glassDark,
     borderWidth: 0, borderColor: C.divider,
     alignItems: 'center', justifyContent: 'center', flexShrink: 0,
   },
-  activityBankIcon: { width: 24, height: 24 },
-  actTitle: { fontSize: 12, fontFamily: 'Poppins_500Medium', color: C.textPrimary },
+  activityBankIcon: { width: 20, height: 20 },
+  actTitle: { fontSize: 11, fontFamily: 'Poppins_500Medium', color: C.textPrimary },
   actSub: { fontSize: 9, fontFamily: 'Poppins_400Regular', color: C.textSec },
   actArrow: {
     width: 24, alignItems: 'center', justifyContent: 'center',

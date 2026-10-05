@@ -50,18 +50,35 @@ const L = {
   mitsubishi: require('@/assets/images/brands/mitsubishi.png'),
 };
 export const CAR_BRANDS: Brand[] = [
-  { name: 'Suzuki', logo: L.suzuki }, { name: 'Honda', logo: L.honda }, { name: 'Toyota', logo: L.toyota }, { name: 'Hyundai', logo: L.hyundai },
-  { name: 'BMW', logo: L.bmw }, { name: 'Audi', logo: L.audi }, { name: 'Nissan', logo: L.nissan }, { name: 'Mitsubishi', logo: L.mitsubishi },
-  { name: 'KIA' }, { name: 'Changan' }, { name: 'MG' }, { name: 'Haval' },
-  { name: 'Mercedes' }, { name: 'Proton' }, { name: 'DFSK' }, { name: 'Prince' },
-  { name: 'Chery' }, { name: 'BAIC' }, { name: 'Lexus' }, { name: 'Peugeot' },
-  { name: 'Tesla' }, { name: 'Isuzu' }, { name: 'FAW' }, { name: 'JAC' },
+  { name: 'Suzuki', logo: L.suzuki }, { name: 'Toyota', logo: L.toyota }, { name: 'Honda', logo: L.honda }, { name: 'KIA' },
+  { name: 'Hyundai', logo: L.hyundai }, { name: 'Changan' }, { name: 'MG' }, { name: 'BYD' },
+  { name: 'BMW', logo: L.bmw }, { name: 'Audi', logo: L.audi }, { name: 'Mercedes Benz' }, { name: 'Prince' },
+  { name: 'Isuzu' }, { name: 'Haval' }, { name: 'BAIC' }, { name: 'Peugeot' },
+  { name: 'JAC' }, { name: 'ORA' }, { name: 'JW Forland' }, { name: 'Tank' },
+  { name: 'Chery' }, { name: 'GUGO' }, { name: 'Seres' }, { name: 'Deepal' },
 ];
 export const BIKE_BRANDS: Brand[] = [
   { name: 'Honda', logo: L.honda }, { name: 'Suzuki', logo: L.suzuki }, { name: 'Yamaha' }, { name: 'United' },
   { name: 'Road Prince' }, { name: 'Super Power' }, { name: 'Unique' }, { name: 'Hi Speed' },
   { name: 'Crown' }, { name: 'Super Star' }, { name: 'Metro' }, { name: 'Jolta' },
 ];
+
+// Brand name → logo (case-insensitive). Jiske paas PNG nahi, uska undefined → initial letter dikhega.
+export const BRAND_LOGOS: Record<string, any> = {
+  suzuki: L.suzuki,
+  honda: L.honda,
+  toyota: L.toyota,
+  hyundai: L.hyundai,
+  bmw: L.bmw,
+  audi: L.audi,
+  nissan: L.nissan,
+  mitsubishi: L.mitsubishi,
+};
+export function getBrandLogo(name?: string | null) {
+  if (!name) return undefined;
+  const key = name.trim().toLowerCase();
+  return (BRAND_LOGOS as any)[key];
+}
 
 const COLORS = ['White', 'Black', 'Silver', 'Grey', 'Red', 'Blue', 'Beige', 'Green', 'Brown', 'Maroon', 'Gold', 'Orange'];
 const YEARS  = Array.from({ length: 27 }, (_, i) => String(2026 - i));

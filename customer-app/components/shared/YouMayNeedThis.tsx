@@ -35,10 +35,10 @@ export default function YouMayNeedThis() {
                 <Image source={typeof item.img === 'string' ? { uri: item.img } : item.img} style={styles.img} resizeMode="contain" />
               </View>
               <View style={styles.titleRow}>
-                <Text style={[styles.title, { color: C.isDark ? '#f9fafc' : '#032a69' }]}>{item.title}</Text>
-                <Ionicons name="chevron-forward" size={14} color={C.isDark ? '#f9fafc' : '#032a69'} />
+                <Text style={[styles.title, { color: C.isDark ? '#f9fafc' : '#032a69' }]} numberOfLines={2}>{item.title}</Text>
+                <Ionicons name="chevron-forward" size={14} color="#e2671b" />
               </View>
-              <Text style={[styles.sub, { color: C.isDark ? '#baacb6' : '#555566' }]}>{item.sub}</Text>
+              <Text style={[styles.sub, { color: C.isDark ? '#baacb6' : '#555566' }]} numberOfLines={3}>{item.sub}</Text>
             </LinearGradient>
           </TouchableOpacity>
         ))}
@@ -52,13 +52,13 @@ const styles = StyleSheet.create({
   heading: { fontSize: 16, fontFamily: 'Poppins_600SemiBold', color: '#f9fafc' },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   card: { width: '47.5%', borderRadius: 16, overflow: 'hidden', height: 200 },
-  grad: { flex: 1, padding: 12, justifyContent: 'flex-end' },
+  grad: { flex: 1, padding: 12, justifyContent: 'flex-start' },
   titleRow: {
-    flexDirection: 'row', alignItems: 'flex-end',
+    flexDirection: 'row', alignItems: 'center', height: 34,
     justifyContent: 'space-between', marginBottom: 4,
   },
-  title: { color: '#f9fafc', fontSize: 12, fontFamily: 'Poppins_500Medium', textTransform: 'capitalize', flex: 1 },
+  title: { color: '#f9fafc', fontSize: 12, lineHeight: 15, fontFamily: 'Poppins_500Medium', textTransform: 'capitalize', flex: 1 },
   imgWrap: { height: 76, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
   img: { width: 84, height: 68 },
-  sub: { color: '#baacb6', fontSize: 10, fontFamily: 'Poppins_400Regular', lineHeight: 14 },
+  sub: { color: '#baacb6', fontSize: 10, fontFamily: 'Poppins_400Regular', lineHeight: 14, height: 42 },
 });

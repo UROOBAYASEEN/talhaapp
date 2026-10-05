@@ -173,15 +173,15 @@ const sh = StyleSheet.create({
 export default function CompareVehicle() {
   const router = useRouter();
   const aC = useAppColors();
-  const { category: initialCategory, from } = useLocalSearchParams<{ category?: string; from?: string }>();
+  const { category: initialCategory, from, brand: initialBrand, variant: initialVariant } = useLocalSearchParams<{ category?: string; from?: string; brand?: string; variant?: string }>();
   const [vehicleType, setVehicleType] = useState<'Cars' | 'Bikes'>(initialCategory === 'bike' ? 'Bikes' : 'Cars');
   const category = vehicleType === 'Cars' ? 'car' : 'bike';
 
-  const [v1Brand, setV1Brand] = useState('All Brands');
+  const [v1Brand, setV1Brand] = useState(initialBrand || 'All Brands');
   const [v1Car, setV1Car] = useState('All Models');
-  const [v1Variant, setV1Variant] = useState('Any Variant');
+  const [v1Variant, setV1Variant] = useState(initialVariant || 'Any Variant');
 
-  const [v2Brand, setV2Brand] = useState('All Brands');
+  const [v2Brand, setV2Brand] = useState(initialBrand || 'All Brands');
   const [v2Car, setV2Car] = useState('All Models');
   const [v2Variant, setV2Variant] = useState('Any Variant');
 

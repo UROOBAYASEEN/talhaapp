@@ -10,7 +10,7 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef, useState } from 'react';
-import { Animated, StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
+import { Animated, StyleSheet, Text, TextInput, TouchableOpacity, useColorScheme, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import 'react-native-reanimated';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
@@ -18,6 +18,14 @@ import { AppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 
 SplashScreen.preventAutoHideAsync();
+
+// ── Font-scaling lock ───────────────────────────────────────────────────────
+// Phone ki Settings mein font size chhota/bara ho, UI har phone pe same rahe.
+// Is liye system font-scale ko 1x pe cap kiya (poori app pe lagoo hoga).
+const _TextDefaults = Text as any;
+_TextDefaults.defaultProps = { ...(_TextDefaults.defaultProps || {}), maxFontSizeMultiplier: 1 };
+const _InputDefaults = TextInput as any;
+_InputDefaults.defaultProps = { ...(_InputDefaults.defaultProps || {}), maxFontSizeMultiplier: 1 };
 
 export const unstable_settings = {
   anchor: '(auth)',

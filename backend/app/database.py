@@ -27,6 +27,7 @@ async def init_db():
     from app.models.tracker_booking import TrackerBooking
     from app.models.financing import FinancingBank, FinancingApplication, FinancingDocument
     from app.models.subscription_plan import SubscriptionPlan
+    from app.models.brand import Brand
     await init_beanie(
         database=client[settings.MONGODB_DB_NAME],
         document_models=[
@@ -48,5 +49,6 @@ async def init_db():
             TrackerBooking,
             FinancingBank, FinancingApplication, FinancingDocument,
             SubscriptionPlan,
+            Brand,
         ],
     )

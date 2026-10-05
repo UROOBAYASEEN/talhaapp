@@ -248,13 +248,12 @@ export default function CompareResult() {
       }));
 
   function handleCallDealer() {
-    const raw = selected?.seller?.phone || selected?.contact_phone || '';
-    const ph = String(raw).replace(/\D/g, '');
-    if (!ph) {
-      Alert.alert('Not Available', 'Dealer phone number is not listed.');
+    const sid = selected?.seller_id ?? selected?.seller?.id;
+    if (!sid) {
+      Alert.alert('Not Available', 'Dealer profile nahi mila.');
       return;
     }
-    Linking.openURL(`tel:${ph}`);
+    router.push({ pathname: '/buy/dealer-profile', params: { id: String(sid), category: selected?.category || '' } } as any);
   }
 
   function handleReserveSelected() {

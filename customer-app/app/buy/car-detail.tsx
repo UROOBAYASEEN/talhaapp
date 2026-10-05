@@ -116,6 +116,9 @@ export default function CarDetailScreen() {
   const fromUsedCar = from === 'usedCar';
   // Came from Book a vehicle → same screen, bottom shows Contact Dealer + Test Drive (Book flow screens)
   const fromBook = from === 'book';
+  // Came from Buy New Car in Cash (brand search) → hamesha dealer wala view:
+  // Contact Dealer + Reserve + Test Drive (+ Call), chahe seller role aye ya na aye
+  const fromNewCarCash = from === 'newCarCash';
   const { token, user } = useAuth();
 
   const [vehicle,         setVehicle]         = useState<any>(null);
@@ -123,9 +126,6 @@ export default function CarDetailScreen() {
   const [imgIdx,          setImgIdx]          = useState(0);
   const [saved,           setSaved]           = useState(false);
   const [selectedVariant, setSelectedVariant] = useState(0);
-  // Other cars (different vehicles) to compare against the current one.
-  const [otherCars, setOtherCars] = useState<any[]>([]);
-  const [showCarPicker, setShowCarPicker] = useState(false);
   const [openFeature,     setOpenFeature]     = useState<string>('exterior');
   const [tax,             setTax]             = useState<any>(null);
   const [reserving,       setReserving]       = useState(false);
@@ -133,8 +133,17 @@ export default function CarDetailScreen() {
   const [contacting,      setContacting]      = useState(false);
   const [confirmVisible,  setConfirmVisible]  = useState(false);
   const [callDone,        setCallDone]        = useState(false);
-  const [ctaHeight,       setCtaHeight]       = useState(210);
+  // Selected-Car compare modal (screenshot): First Car = detail wali car (fix),
+  // Second Car = user select kare — usi car ke dosre variants + 2 random cars
+  const [cmpVisible,   setCmpVisible]   = useState(false);
+  const [cmpFirst,     setCmpFirst]     = useState(0);
+  const [cmpSecondKey, setCmpSecondKey] = useState<string | null>(null);
+  const [cmpOpen2,     setCmpOpen2]     = useState(false);
+  const [cmpLoading,   setCmpLoading]   = useState(false);
+  const [randCars,     setRandCars]     = useState<any[]>([]);
   const flatRef = useRef<FlatList>(null);
+  // newCarCash flow mein individual seller na ho to dealer wala CTA (neeche use hota hai)
+  const forceDealerCta = fromNewCarCash && vehicle?.seller?.role !== 'individual_seller';
 
   useEffect(() => { if (id) load(); }, [id]);
 
@@ -145,23 +154,10 @@ export default function CarDetailScreen() {
         fetch(`${API_BASE}/vehicles/${id}`, { headers: h }),
         fetch(`${API_BASE}/vehicles/${id}/tax`, { headers: h }),
       ]);
-      if (vRes.ok) { const d = await vRes.json(); setVehicle(d); setSaved(d.is_saved ?? false); loadOtherCars(d); }
+      if (vRes.ok) { const d = await vRes.json(); setVehicle(d); setSaved(d.is_saved ?? false); }
       if (tRes.ok) setTax(await tRes.json());
     } catch { }
     finally { setLoading(false); }
-  }
-
-  // Other vehicles of the same category (excluding this one) for compare
-  async function loadOtherCars(v: any) {
-    try {
-      const h: any = token ? { Authorization: `Bearer ${token}` } : {};
-      const res = await fetch(`${API_BASE}/vehicles?category=${v.category || 'car'}&limit=10`, { headers: h });
-      if (res.ok) {
-        const d = await res.json();
-        const items = d.items || d || [];
-        setOtherCars(items.filter((o: any) => String(o.id) !== String(id)).slice(0, 6));
-      }
-    } catch { }
   }
 
   async function toggleSave() {
@@ -224,6 +220,102 @@ export default function CarDetailScreen() {
     Linking.openURL(`tel:${ph}`);
   }
 
+  function variantLabel(i: number) {
+    const v = showVariants[i];
+    if (!v) return '';
+    const mk = (vehicle?.make || '').trim();
+    return mk ? `${mk} ${v.name}` : String(v.name || '');
+  }
+
+  function openCompare(i: number) {
+    setSelectedVariant(i);
+    setCmpFirst(i);
+    setCmpSecondKey(null);
+    setCmpOpen2(false);
+    setRandCars([]);
+    setCmpVisible(true);
+    // 2 random cars (same category, is car ke ilawa) — Second Car options ke liye
+    (async () => {
+      try {
+        const h: any = token ? { Authorization: `Bearer ${token}` } : {};
+        const res = await fetch(`${API_BASE}/vehicles?category=${vehicle?.category || 'car'}&limit=10`, { headers: h });
+        if (res.ok) {
+          const d = await res.json();
+          const items: any[] = d.items || d || [];
+          setRandCars(items.filter((o: any) => String(o.id) !== String(id)).slice(0, 2));
+        }
+      } catch { /* ignore */ }
+    })();
+  }
+
+  // Second Car options: usi car ke dosre variants + 2 random cars
+  function secondOpts(): { key: string; label: string }[] {
+    const opts: { key: string; label: string }[] = [];
+    showVariants.forEach((_: any, i: number) => {
+      if (i !== cmpFirst) opts.push({ key: `v:${i}`, label: variantLabel(i) });
+    });
+    randCars.forEach((c: any) => {
+      opts.push({ key: `c:${c.id}`, label: c.title || `${c.make || ''} ${c.model || ''}`.trim() || 'Vehicle' });
+    });
+    return opts;
+  }
+
+  function effectiveSecondKey(): string | null {
+    if (cmpSecondKey) return cmpSecondKey;
+    const opts = secondOpts();
+    return opts.length ? opts[0].key : null;
+  }
+
+  function secondLabel(): string {
+    const k = effectiveSecondKey();
+    if (!k) return 'Select second car';
+    const hit = secondOpts().find(o => o.key === k);
+    return hit ? hit.label : 'Select second car';
+  }
+
+  async function resolveListing(variantName: string) {
+    try {
+      const q = new URLSearchParams({ category: vehicle?.category || 'car', limit: '20' });
+      if (vehicle?.make) q.set('make', vehicle.make);
+      const h: any = token ? { Authorization: `Bearer ${token}` } : {};
+      const res = await fetch(`${API_BASE}/vehicles?${q}`, { headers: h });
+      if (!res.ok) return null;
+      const d = await res.json();
+      const items: any[] = d.items || d || [];
+      if (!items.length) return null;
+      const key = (variantName || '').trim().toLowerCase();
+      const exact = items.find((v: any) => String(v.variant ?? '').trim().toLowerCase() === key);
+      if (exact) return exact;
+      const incl = items.find((v: any) => String(v.title ?? '').toLowerCase().includes(key));
+      return incl || items[0];
+    } catch { return null; }
+  }
+
+  async function handleCompareVehicles() {
+    const sk = effectiveSecondKey();
+    if (!sk) { Alert.alert('No options', 'Compare ke liye dosri car nahi mili.'); return; }
+    setCmpLoading(true);
+    try {
+      let b: any = null;
+      if (sk.startsWith('c:')) {
+        b = randCars.find((c: any) => `c:${c.id}` === sk) || null;
+      } else {
+        const vi = Number(sk.split(':')[1]);
+        b = await resolveListing(showVariants[vi]?.name || '');
+      }
+      if (!b) {
+        Alert.alert('Not found', 'Second car ki listing nahi mili.');
+        return;
+      }
+      if (String(b.id) === String(id)) {
+        Alert.alert('Same vehicle', 'Do alag cars select karein.');
+        return;
+      }
+      setCmpVisible(false);
+      router.push({ pathname: '/compare-result', params: { aId: String(id), bId: String(b.id) } } as any);
+    } finally { setCmpLoading(false); }
+  }
+
   if (loading)
     return <View style={{ flex: 1, backgroundColor: aC.bg, alignItems: 'center', justifyContent: 'center' }}><ActivityIndicator color={ORANGE} size="large" /></View>;
 
@@ -240,11 +332,15 @@ export default function CarDetailScreen() {
   const hasImgs    = images.length > 0;
   const variants = (vehicle.variants && vehicle.variants.length > 0)
     ? vehicle.variants
-    : [
-        { name: vehicle.variant ? `${vehicle.variant} (Base)` : '1.2 MT',       cc: vehicle.engine_cc ? `${vehicle.engine_cc} cc` : '1199 cc', fuel: vehicle.fuel_type || 'Petrol', trans: 'Manual',    delivery: 'Immediate', price: vehicle.price },
-        { name: vehicle.variant ? `${vehicle.variant} (Mid)` : '1.5 Aspire MT', cc: vehicle.engine_cc ? `${vehicle.engine_cc} cc` : '1498 cc', fuel: vehicle.fuel_type || 'Petrol', trans: 'Manual',    delivery: 'Immediate', price: vehicle.price },
-        { name: vehicle.variant ? `${vehicle.variant} (Top)` : '1.5 Aspire CVT',cc: vehicle.engine_cc ? `${vehicle.engine_cc} cc` : '1498 cc',fuel: vehicle.fuel_type || 'Petrol', trans: 'Automatic', delivery: 'Immediate', price: vehicle.price },
-      ];
+    : (vehicle.variant
+      ? [{ name: vehicle.variant, cc: vehicle.engine_cc ? `${vehicle.engine_cc} cc` : '—', fuel: vehicle.fuel_type || 'Petrol', trans: vehicle.transmission || '—', delivery: 'Immediate', price: vehicle.price }]
+      : [
+        { name: '1.2 MT',       cc: vehicle.engine_cc ? `${vehicle.engine_cc} cc` : '1199 cc', fuel: vehicle.fuel_type || 'Petrol', trans: 'Manual',    delivery: 'Immediate', price: vehicle.price },
+        { name: '1.5 Aspire MT', cc: vehicle.engine_cc ? `${vehicle.engine_cc} cc` : '1498 cc', fuel: vehicle.fuel_type || 'Petrol', trans: 'Manual',    delivery: 'Immediate', price: vehicle.price },
+        { name: '1.5 Aspire CVT',cc: vehicle.engine_cc ? `${vehicle.engine_cc} cc` : '1498 cc',fuel: vehicle.fuel_type || 'Petrol', trans: 'Automatic', delivery: 'Immediate', price: vehicle.price },
+      ]);
+  // Zyada se zyada 3 variants dikhao — kam hon to jitne hain utne
+  const showVariants = variants.slice(0, 3);
   const isDealer   = vehicle.seller?.role === 'dealership_owner';
   const dealerName = vehicle.seller?.dealership_name || vehicle.seller?.full_name || 'Dealer';
   const sellerId   = vehicle?.seller_id ?? vehicle?.seller?.id;
@@ -268,9 +364,9 @@ export default function CarDetailScreen() {
   const priceRows = [
     { label: 'Vehicle Price',                  value: formatPrice(vehicle.price),                             highlight: false },
     { label: 'Withholding Tax (Filer)',        value: tax ? formatPrice(tax.filer_tax)     : '—',             highlight: false },
-    { label: 'Estimated Total (Filer)',        value: filerTotal    ? formatPrice(filerTotal)    : '—',       highlight: true  },
+    { label: 'Estimated Total (Filer)',        value: filerTotal    ? formatPrice(filerTotal)    : '—',       highlight: false },
     { label: 'Withholding Tax (Non-Filer)',    value: tax ? formatPrice(tax.non_filer_tax) : '—',             highlight: false },
-    { label: 'Estimated Total (Non-Filer)',    value: nonFilerTotal ? formatPrice(nonFilerTotal) : '—',       highlight: true  },
+    { label: 'Estimated Total (Non-Filer)',    value: nonFilerTotal ? formatPrice(nonFilerTotal) : '—',       highlight: false },
   ];
 
   const specs = [
@@ -283,11 +379,96 @@ export default function CarDetailScreen() {
     ...(vehicle.chassis_no ? [{ label: 'Chasis No.', value: vehicle.chassis_no }] : []),
   ];
 
+  // ── CTA buttons (screenshot: body card mein — Contact Dealer / Reserve / Test Drive) ──
+  const ctaButtons = (
+    <>
+      {fromUsedCar || fromBook ? (
+        /* ── USED CAR / BOOK A VEHICLE: Contact Dealer + Test Drive ── */
+        <>
+          <TouchableOpacity style={[s.ctaPrimary, s.dealerCtaBtn]} onPress={() => sellerId && (fromBook
+            ? router.push({ pathname: '/book/dealer-profile', params: { id: sellerId, category: vehicle?.category || 'car' } } as any)
+            : router.push({ pathname: '/buy/dealer-profile', params: { id: sellerId, from: 'usedCar', category: vehicle?.category || '' } } as any))} activeOpacity={0.88}>
+            <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+            <Text style={[s.ctaPrimaryTxt, s.dealerCtaTxt, { color: '#F2F1F5' }]}>Contact Dealer</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[s.ctaSecondary, s.dealerCtaBtn, { backgroundColor: aC.isDark ? '#07142F' : '#ffffff', borderColor: aC.isDark ? '#7E9FD6' : 'rgba(3,42,105,0.12)' }]} onPress={() => router.push({ pathname: fromBook ? '/book/test-drive' : '/buy/test-drive', params: { id } } as any)} activeOpacity={0.88}>
+            {aC.isDark ? <RingGlow radius={26} peak={0.5} rings={12} /> : <GlassInset />}
+            <Text style={[s.ctaSecondaryTxt, { fontSize: 16, fontFamily: 'Poppins_400Regular', color: aC.isDark ? '#C9C6D0' : '#010a1f' }]}>Test Drive</Text>
+          </TouchableOpacity>
+        </>
+      ) : (isDealer || forceDealerCta) ? (
+        /* ── DEALER: Contact Dealer + Reserve + Test Drive ── */
+        <>
+          <TouchableOpacity style={[s.ctaPrimary, s.dealerCtaBtn]} onPress={() => sellerId && router.push({ pathname: '/buy/dealer-profile', params: { id: sellerId, category: vehicle?.category || '' } } as any)} activeOpacity={0.88}>
+            <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+            {contacting ? <ActivityIndicator color={WHITE} /> : <Text style={[s.ctaPrimaryTxt, s.dealerCtaTxt, { color: '#F2F1F5' }]}>Contact Dealer</Text>}
+          </TouchableOpacity>
+          <TouchableOpacity style={[s.ctaSecondary, s.dealerCtaBtn, { backgroundColor: aC.isDark ? '#07142F' : '#ffffff', borderColor: aC.isDark ? '#7E9FD6' : 'rgba(3,42,105,0.12)' }]} onPress={() => {
+            if (callDone) {
+              router.push({ pathname: '/buy/reserve', params: { id, variantName: variants[selectedVariant]?.name } } as any);
+            } else {
+              setConfirmVisible(true);
+            }
+          }} activeOpacity={0.88}>
+            {aC.isDark ? <RingGlow radius={26} peak={0.5} rings={12} /> : <GlassInset />}
+            {reserving ? <ActivityIndicator color={aC.isDark ? WHITE : '#010a1f'} /> : <Text style={[s.ctaSecondaryTxt, s.dealerCtaTxt, { color: aC.isDark ? '#C9C6D0' : '#010a1f' }]}>{vehicle?.category === 'bike' ? 'Reserve your bike' : 'Reserve your car'}</Text>}
+          </TouchableOpacity>
+          <TouchableOpacity style={[s.ctaSecondary, s.dealerCtaBtn, { backgroundColor: aC.isDark ? '#07142F' : '#ffffff', borderColor: aC.isDark ? '#7E9FD6' : 'rgba(3,42,105,0.12)' }]} onPress={() => router.push({ pathname: '/buy/test-drive', params: { id } } as any)} activeOpacity={0.88}>
+            {aC.isDark ? <RingGlow radius={26} peak={0.5} rings={12} /> : <GlassInset />}
+            <Text style={[s.ctaSecondaryTxt, s.dealerCtaTxt, { color: aC.isDark ? '#C9C6D0' : '#010a1f' }]}>Test Drive</Text>
+          </TouchableOpacity>
+        </>
+      ) : (
+        /* ── INDIVIDUAL SELLER: same as vehicle/[id].tsx footer ── */
+        <>
+          <TouchableOpacity activeOpacity={0.85} onPress={handleCall}>
+            <LinearGradient
+              colors={['#0d2f7a', '#7a3f5a', '#e25500']}
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+              style={s.sellerCallBtn}
+            >
+              <Text style={s.ctaPrimaryTxt}>Call Seller</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+
+          <View style={s.sellerContactRow}>
+            <TouchableOpacity style={s.sellerContactItem} onPress={() => {
+              const ph = vehicle?.contact_phone || vehicle?.seller?.phone;
+              if (!ph) { Alert.alert('Not Available', 'No phone number listed.'); return; }
+              Linking.openURL(`sms:${ph}`);
+            }}>
+              <Ionicons name="chatbubble-ellipses-outline" size={26} color={ORANGE} />
+              <Text style={[s.sellerContactTxt, { color: aC.isDark ? MUTED : '#475569' }]}>SMS</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={s.sellerContactItem} onPress={() => {
+              const ph = vehicle?.contact_phone || vehicle?.seller?.phone;
+              if (!ph) { Alert.alert('Not Available', 'No WhatsApp number listed.'); return; }
+              Linking.openURL(`https://wa.me/${ph.replace(/\D/g, '')}`);
+            }}>
+              <View style={s.waCircle}>
+                <Ionicons name="logo-whatsapp" size={16} color={WHITE} />
+              </View>
+              <Text style={[s.sellerContactTxt, { color: aC.isDark ? MUTED : '#475569' }]}>WhatsApp</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={s.sellerContactItem} onPress={() => {
+              const email = vehicle?.seller?.email;
+              if (!email) { Alert.alert('Not Available', 'No email listed.'); return; }
+              Linking.openURL(`mailto:${email}?subject=Inquiry about ${vehicle?.title}`);
+            }}>
+              <Ionicons name="mail-outline" size={26} color={ORANGE} />
+              <Text style={[s.sellerContactTxt, { color: aC.isDark ? MUTED : '#475569' }]}>Email</Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
+    </>
+  );
+
   return (
     <SafeAreaView style={[s.root, { backgroundColor: aC.bg }]} edges={["top"]}>
       <StatusBar barStyle={aC.isDark ? "light-content" : "dark-content"} backgroundColor={aC.bg} />
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: ctaHeight, backgroundColor: aC.bg }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40, backgroundColor: aC.bg }}>
 
         {/* ── Hero Image ── */}
         <View style={s.heroWrap}>
@@ -379,17 +560,17 @@ export default function CarDetailScreen() {
           {/* Spec Strip */}
           <View style={[s.specStrip, { borderTopColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.08)', borderBottomColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.08)' }]}>
             <View style={s.specItem}>
-              <View style={[s.specIconBox, { backgroundColor: aC.isDark ? 'rgba(226,103,27,0.1)' : '#eef2ff' }]}><Ionicons name="git-branch-outline" size={14} color={ORANGE} /></View>
+              <Ionicons name="git-branch-outline" size={16} color={ORANGE} />
               <Text style={[s.specTxt, { color: aC.isDark ? WHITE : '#010a1f' }]}>{vehicle.transmission || 'Automatic'}</Text>
             </View>
             <View style={[s.specSep, { backgroundColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.08)' }]} />
             <View style={s.specItem}>
-              <View style={[s.specIconBox, { backgroundColor: aC.isDark ? 'rgba(226,103,27,0.1)' : '#eef2ff' }]}><Ionicons name="water-outline" size={14} color={ORANGE} /></View>
+              <Ionicons name="water-outline" size={16} color={ORANGE} />
               <Text style={[s.specTxt, { color: aC.isDark ? WHITE : '#010a1f' }]}>{vehicle.fuel_type || 'Petrol'}</Text>
             </View>
             <View style={[s.specSep, { backgroundColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.08)' }]} />
             <View style={s.specItem}>
-              <View style={[s.specIconBox, { backgroundColor: aC.isDark ? 'rgba(226,103,27,0.1)' : '#eef2ff' }]}><Ionicons name="speedometer-outline" size={14} color={ORANGE} /></View>
+              <Ionicons name="speedometer-outline" size={16} color={ORANGE} />
               <Text style={[s.specTxt, { color: aC.isDark ? WHITE : '#010a1f' }]}>{vehicle.engine_cc ? `${vehicle.engine_cc} cc` : '—'}</Text>
             </View>
           </View>
@@ -411,17 +592,16 @@ export default function CarDetailScreen() {
             </View>
           ))}
 
-          {/* ── Compare Variants ── */}
-          {variants.length > 0 && (
+          {/* ── Compare Variants: isi brand ke dosre variant se compare ── */}
+          {showVariants.length > 0 && (
             <Text style={[s.secTitle, { color: aC.isDark ? WHITE : '#010a1f' }]}>Compare Variants</Text>
           )}
 
-
           {/* ── Variant Cards ── */}
-          {variants.length > 0 && variants.map((v: any, i: number) => {
+          {showVariants.length > 0 && showVariants.map((v: any, i: number) => {
             const sel = selectedVariant === i;
             return (
-              <TouchableOpacity key={i} onPress={() => setSelectedVariant(i)} activeOpacity={0.85} style={{ marginTop: 10 }}>
+              <TouchableOpacity key={i} onPress={() => openCompare(i)} activeOpacity={0.85} style={{ marginTop: 10 }}>
                 {/* Saved-card effect only on selected variants; others keep the original card look */}
                 <View style={sel ? [s.savedOuterCard, {
                   backgroundColor: aC.isDark ? '#010A1F' : '#ffffff',
@@ -447,18 +627,13 @@ export default function CarDetailScreen() {
                       <Text style={[s.variantMeta, { color: aC.isDark ? MUTED : '#475569' }]}>Delivery: {v.delivery || 'Immediate'}</Text>
                     </View>
                     <Text style={[s.variantPrice2, { paddingBottom: 2 }]}>{v.price ? `Rs ${Number(v.price).toLocaleString()}` : formatPrice(vehicle.price)}</Text>
+                    <Ionicons name="chevron-forward" size={18} color="#e2671b" style={{ paddingBottom: 2, marginLeft: 4 }} />
                   </View>
                 </View>
                 </View>
               </TouchableOpacity>
             );
           })}
-
-          {/* ── Compare with a different car ── */}
-          <TouchableOpacity style={s.selBtn} activeOpacity={0.88} onPress={() => setShowCarPicker(true)}>
-            <LinearGradient colors={['#0b3a82', '#7a4a4a', '#e2671b']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
-            <Text style={s.selBtnTxt}>Compare with Another Car</Text>
-          </TouchableOpacity>
 
           {/* ── Specification ── */}
           <Text style={[s.secTitle, { color: aC.isDark ? WHITE : '#010a1f' }]}>Specification</Text>
@@ -508,90 +683,11 @@ export default function CarDetailScreen() {
 
         </View>
       </ScrollView>
-      {/* ── Fixed Bottom CTA ── */}
-      <View onLayout={(e) => setCtaHeight(Math.ceil(e.nativeEvent.layout.height))} style={[s.ctaBox, { backgroundColor: aC.isDark ? '#0f1830' : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.08)', shadowColor: aC.isDark ? '#000' : 'rgba(3,42,105,0.12)' }]}>
+      {/* ── Fixed Footer CTA: Contact Dealer / Reserve / Test Drive ── */}
+      <View style={[s.ctaBox, { backgroundColor: aC.isDark ? '#0f1830' : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.08)', shadowColor: aC.isDark ? '#000' : 'rgba(3,42,105,0.12)' }]}>
         {aC.isDark && <CtaPanelGlass />}
         <View style={[s.ctaHandle, { backgroundColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.12)' }]} />
-
-        {fromUsedCar || fromBook ? (
-          /* ── USED CAR / BOOK A VEHICLE: Contact Dealer + Test Drive ── */
-          <>
-            <TouchableOpacity style={[s.ctaPrimary, s.dealerCtaBtn]} onPress={() => sellerId && (fromBook
-              ? router.push({ pathname: '/book/dealer-profile', params: { id: sellerId, category: vehicle?.category || 'car' } } as any)
-              : router.push({ pathname: '/buy/dealer-profile', params: { id: sellerId, from: 'usedCar', category: vehicle?.category || '' } } as any))} activeOpacity={0.88}>
-              <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
-              <Text style={[s.ctaPrimaryTxt, s.dealerCtaTxt, { color: '#F2F1F5' }]}>Contact Dealer</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[s.ctaSecondary, s.dealerCtaBtn, { backgroundColor: aC.isDark ? '#07142F' : '#ffffff', borderColor: aC.isDark ? '#7E9FD6' : 'rgba(3,42,105,0.12)' }]} onPress={() => router.push({ pathname: fromBook ? '/book/test-drive' : '/buy/test-drive', params: { id } } as any)} activeOpacity={0.88}>
-              {aC.isDark ? <RingGlow radius={26} peak={0.5} rings={12} /> : <GlassInset />}
-              <Text style={[s.ctaSecondaryTxt, { fontSize: 16, fontFamily: 'Poppins_400Regular', color: aC.isDark ? '#C9C6D0' : '#010a1f' }]}>Test Drive</Text>
-            </TouchableOpacity>
-          </>
-        ) : isDealer ? (
-          /* ── DEALER: Contact Dealer + Reserve + Test Drive ── */
-          <>
-            <TouchableOpacity style={[s.ctaPrimary, s.dealerCtaBtn]} onPress={() => sellerId && router.push({ pathname: '/buy/dealer-profile', params: { id: sellerId, category: vehicle?.category || '' } } as any)} activeOpacity={0.88}>
-              <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
-              {contacting ? <ActivityIndicator color={WHITE} /> : <Text style={[s.ctaPrimaryTxt, s.dealerCtaTxt, { color: '#F2F1F5' }]}>Contact Dealer</Text>}
-            </TouchableOpacity>
-            <TouchableOpacity style={[s.ctaSecondary, s.dealerCtaBtn, { backgroundColor: aC.isDark ? '#07142F' : '#ffffff', borderColor: aC.isDark ? '#7E9FD6' : 'rgba(3,42,105,0.12)' }]} onPress={() => {
-              if (callDone) {
-                router.push({ pathname: '/buy/reserve', params: { id, variantName: variants[selectedVariant]?.name } } as any);
-              } else {
-                setConfirmVisible(true);
-              }
-            }} activeOpacity={0.88}>
-              {aC.isDark ? <RingGlow radius={26} peak={0.5} rings={12} /> : <GlassInset />}
-              {reserving ? <ActivityIndicator color={aC.isDark ? WHITE : '#010a1f'} /> : <Text style={[s.ctaSecondaryTxt, s.dealerCtaTxt, { color: aC.isDark ? '#C9C6D0' : '#010a1f' }]}>{vehicle?.category === 'bike' ? 'Reserve your bike' : 'Reserve your car'}</Text>}
-            </TouchableOpacity>
-            <TouchableOpacity style={[s.ctaSecondary, s.dealerCtaBtn, { backgroundColor: aC.isDark ? '#07142F' : '#ffffff', borderColor: aC.isDark ? '#7E9FD6' : 'rgba(3,42,105,0.12)' }]} onPress={() => router.push({ pathname: '/buy/test-drive', params: { id } } as any)} activeOpacity={0.88}>
-              {aC.isDark ? <RingGlow radius={26} peak={0.5} rings={12} /> : <GlassInset />}
-              <Text style={[s.ctaSecondaryTxt, s.dealerCtaTxt, { color: aC.isDark ? '#C9C6D0' : '#010a1f' }]}>Test Drive</Text>
-            </TouchableOpacity>
-          </>
-        ) : (
-          /* ── INDIVIDUAL SELLER: same as vehicle/[id].tsx footer ── */
-          <>
-            <TouchableOpacity activeOpacity={0.85} onPress={handleCall}>
-              <LinearGradient
-                colors={['#0d2f7a', '#7a3f5a', '#e25500']}
-                start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                style={s.sellerCallBtn}
-              >
-                <Text style={s.ctaPrimaryTxt}>Call Seller</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-
-            <View style={s.sellerContactRow}>
-              <TouchableOpacity style={s.sellerContactItem} onPress={() => {
-                const ph = vehicle?.contact_phone || vehicle?.seller?.phone;
-                if (!ph) { Alert.alert('Not Available', 'No phone number listed.'); return; }
-                Linking.openURL(`sms:${ph}`);
-              }}>
-                <Ionicons name="chatbubble-ellipses-outline" size={26} color={ORANGE} />
-                <Text style={[s.sellerContactTxt, { color: aC.isDark ? MUTED : '#475569' }]}>SMS</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={s.sellerContactItem} onPress={() => {
-                const ph = vehicle?.contact_phone || vehicle?.seller?.phone;
-                if (!ph) { Alert.alert('Not Available', 'No WhatsApp number listed.'); return; }
-                Linking.openURL(`https://wa.me/${ph.replace(/\D/g, '')}`);
-              }}>
-                <View style={s.waCircle}>
-                  <Ionicons name="logo-whatsapp" size={16} color={WHITE} />
-                </View>
-                <Text style={[s.sellerContactTxt, { color: aC.isDark ? MUTED : '#475569' }]}>WhatsApp</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={s.sellerContactItem} onPress={() => {
-                const email = vehicle?.seller?.email;
-                if (!email) { Alert.alert('Not Available', 'No email listed.'); return; }
-                Linking.openURL(`mailto:${email}?subject=Inquiry about ${vehicle?.title}`);
-              }}>
-                <Ionicons name="mail-outline" size={26} color={ORANGE} />
-                <Text style={[s.sellerContactTxt, { color: aC.isDark ? MUTED : '#475569' }]}>Email</Text>
-              </TouchableOpacity>
-            </View>
-          </>
-        )}
+        {ctaButtons}
       </View>
 
       {/* ── Dealer confirmation — shows first on Reserve press ── */}
@@ -603,70 +699,80 @@ export default function CarDetailScreen() {
           router.push({ pathname: '/buy/reserve', params: { id, variantName: variants[selectedVariant]?.name } } as any);
         }}
         onCallDealer={() => {
-          const ph = vehicle?.contact_phone || vehicle?.seller?.phone;
           setCallDone(true);
           setConfirmVisible(false);
-          if (ph) {
-            Linking.openURL(`tel:${String(ph).replace(/\D/g, '')}`);
+          if (sellerId) {
+            router.push({ pathname: '/buy/dealer-profile', params: { id: sellerId, category: vehicle?.category || '' } } as any);
           } else {
-            Alert.alert('Not Available', 'No dealer phone number listed. You can continue with reservation.');
+            Alert.alert('Not Available', 'Dealer profile nahi mila.');
           }
         }}
       />
 
-      {/* ── Pick another car to compare with ── */}
-      <Modal visible={showCarPicker} transparent animationType="fade" onRequestClose={() => setShowCarPicker(false)}>
-        <View style={s.selOverlay}>
-          <TouchableOpacity style={StyleSheet.absoluteFillObject} activeOpacity={1} onPress={() => setShowCarPicker(false)} />
-          <View style={[s.selCard, {
-            backgroundColor: aC.isDark ? '#010A1F' : '#ffffff',
-            borderColor: aC.isDark ? '#82a5d5' : 'rgba(3,42,105,0.12)',
-            shadowColor: aC.isDark ? '#638ed0' : 'rgba(3,42,105,0.12)',
-            shadowOffset: { width: 0, height: 0 },
-            shadowOpacity: aC.isDark ? 0.15 : 0.08,
-            shadowRadius: aC.isDark ? 5 : 10,
-            elevation: aC.isDark ? 2 : 8,
-          }]}>
-            <SavedCardEffect />
-
-            <Text style={[s.selTitle, { color: aC.isDark ? '#d6cfd6' : '#010a1f' }]}>Select Car to Compare</Text>
-            <TouchableOpacity style={s.selClose} onPress={() => setShowCarPicker(false)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-              <Ionicons name="close" size={26} color={aC.isDark ? '#d6cfd6' : '#010a1f'} />
+      {/* ── Selected Car compare modal (screenshot) ── */}
+      <Modal visible={cmpVisible} transparent animationType="slide" onRequestClose={() => setCmpVisible(false)}>
+        <View style={s.cmpOverlay}>
+          <TouchableOpacity style={StyleSheet.absoluteFillObject} activeOpacity={1} onPress={() => setCmpVisible(false)} />
+          <View style={s.cmpCard}>
+            <Text style={s.cmpTitle}>Selected Car</Text>
+            <TouchableOpacity style={s.cmpClose} onPress={() => setCmpVisible(false)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+              <Ionicons name="close" size={26} color="#E8E4EC" />
             </TouchableOpacity>
 
-            {otherCars.length === 0 ? (
-              <Text style={{ color: aC.isDark ? '#BAB6C4' : '#64748b', fontSize: 13, fontFamily: 'Poppins_400Regular', textAlign: 'center', marginVertical: 24 }}>
-                No other cars found to compare.
-              </Text>
-            ) : (
-              <ScrollView style={{ marginTop: 12, maxHeight: 380 }} showsVerticalScrollIndicator={false}>
-                {otherCars.map((o: any) => {
-                  const oImg = imgUrl(o.images?.[0]);
-                  return (
-                    <TouchableOpacity
-                      key={String(o.id)}
-                      activeOpacity={0.85}
-                      style={[s.pickRow, { borderColor: aC.isDark ? 'rgba(120,160,225,0.35)' : 'rgba(3,42,105,0.12)', backgroundColor: aC.isDark ? '#07142f' : '#f8fafc' }]}
-                      onPress={() => {
-                        setShowCarPicker(false);
-                        router.push({ pathname: '/compare-result', params: { aId: String(id), bId: String(o.id) } } as any);
-                      }}
-                    >
-                      {oImg
-                        ? <Image source={{ uri: oImg }} style={s.pickImg} resizeMode="cover" />
-                        : <View style={[s.pickImg, { alignItems: 'center', justifyContent: 'center', backgroundColor: aC.isDark ? '#0d1e3d' : '#eef2f7' }]}>
-                            <Ionicons name="car-outline" size={22} color="#929DB1" />
-                          </View>}
-                      <View style={{ flex: 1 }}>
-                        <Text style={[s.pickTitle, { color: aC.isDark ? WHITE : '#010a1f' }]} numberOfLines={1}>{o.title || `${o.make || ''} ${o.model || ''}`.trim()}</Text>
-                        <Text style={[s.pickPrice, { color: aC.isDark ? '#BAB6C4' : '#64748b' }]}>{o.price ? `Rs ${Number(o.price).toLocaleString()}` : ''}</Text>
-                      </View>
-                      <Ionicons name="chevron-forward" size={20} color="#e2671b" />
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
+            <View style={s.cmpBadgeRow}>
+              <View style={s.cmpDash} />
+              <View style={s.cmpBadge}>
+                <MaterialCommunityIcons name="car" size={40} color="#E8E4EC" />
+              </View>
+            </View>
+
+            <View style={s.cmpLabelRow}>
+              <View style={s.cmpCarDot}>
+                <MaterialCommunityIcons name="car" size={13} color="#010a1f" />
+              </View>
+              <Text style={s.cmpNameLabel}>First Car</Text>
+              <Ionicons name="checkmark-circle" size={15} color="#3b82f6" />
+            </View>
+            <View style={s.cmpField}>
+              <Text style={s.cmpFieldTxt} numberOfLines={1}>{variantLabel(cmpFirst)}</Text>
+            </View>
+
+            <View style={s.cmpLabelRow}>
+              <View style={s.cmpCarDot}>
+                <MaterialCommunityIcons name="car" size={13} color="#010a1f" />
+              </View>
+              <Text style={s.cmpNameLabel}>Second Car</Text>
+              <Ionicons name="checkmark-circle" size={15} color="#3b82f6" />
+            </View>
+            <TouchableOpacity style={s.cmpField} activeOpacity={0.85} onPress={() => setCmpOpen2(v => !v)}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Text style={s.cmpFieldTxt} numberOfLines={1}>{secondLabel()}</Text>
+                <Ionicons name={cmpOpen2 ? 'chevron-up' : 'chevron-down'} size={18} color="#C9C6D0" />
+              </View>
+            </TouchableOpacity>
+            {cmpOpen2 && (
+              <View style={s.cmpOpts}>
+                {secondOpts().length === 0 && (
+                  <Text style={[s.cmpOptTxt, { paddingHorizontal: 20, paddingVertical: 13 }]}>No other cars found</Text>
+                )}
+                {secondOpts().map(o => (
+                  <TouchableOpacity
+                    key={o.key}
+                    style={s.cmpOpt}
+                    onPress={() => { setCmpSecondKey(o.key); setCmpOpen2(false); }}
+                  >
+                    <Text style={[s.cmpOptTxt, effectiveSecondKey() === o.key && { color: '#e2671b', fontFamily: 'Poppins_600SemiBold' }]} numberOfLines={1}>{o.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
             )}
+
+            <TouchableOpacity style={s.cmpBtn} activeOpacity={0.88} onPress={handleCompareVehicles} disabled={cmpLoading}>
+              <LinearGradient colors={['#032a69', '#e2671b']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+              {cmpLoading
+                ? <ActivityIndicator color="#fff" />
+                : <Text style={s.cmpBtnTxt}>Compare your Vehicle</Text>}
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -676,24 +782,24 @@ export default function CarDetailScreen() {
 }
 
 const s = StyleSheet.create({
-  selOverlay:   { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16 },
-  selCard:      { width: '100%', maxWidth: 400, borderRadius: 22, borderWidth: 1, paddingHorizontal: 14, paddingTop: 14, paddingBottom: 34, overflow: 'hidden' },
-  selTitle:     { textAlign: 'center', fontSize: 19, fontFamily: 'Poppins_500Medium' },
-  selClose:     { position: 'absolute', top: 10, right: 12, zIndex: 2 },
-  selBadgeRow:  { height: 80, marginTop: 8, marginHorizontal: -14, alignItems: 'center', justifyContent: 'center' },
-  selDash:      { position: 'absolute', left: 0, right: 0, top: '50%', borderTopWidth: 1, borderStyle: 'dashed' },
-  selBadge:     { width: 78, height: 78, borderRadius: 39, borderWidth: 1, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  selLabelRow:  { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
-  selLabelIcon: { width: 20, height: 20, borderRadius: 10, backgroundColor: '#c9c2cc', alignItems: 'center', justifyContent: 'center' },
-  selLabel:     { fontSize: 14, fontFamily: 'Poppins_500Medium' },
-  selField:     { height: 48, borderRadius: 24, borderWidth: 1, paddingHorizontal: 20, justifyContent: 'center', overflow: 'hidden' },
-  selFieldTxt:  { fontSize: 12.5, fontFamily: 'Poppins_500Medium' },
-  selBtn:       { height: 48, borderRadius: 24, marginTop: 18, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  selBtnTxt:    { color: '#f2eef2', fontSize: 14, fontFamily: 'Poppins_500Medium' },
-  pickRow:      { flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 1, borderRadius: 16, padding: 10, marginTop: 10 },
-  pickImg:      { width: 64, height: 48, borderRadius: 10, overflow: 'hidden' },
-  pickTitle:    { fontSize: 13, fontFamily: 'Poppins_500Medium' },
-  pickPrice:    { fontSize: 12, fontFamily: 'Poppins_400Regular', marginTop: 2 },
+  /* Selected-Car compare modal (screenshot) */
+  cmpOverlay:   { flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'flex-end' },
+  cmpCard:      { backgroundColor: '#010A1F', borderTopLeftRadius: 28, borderTopRightRadius: 28, borderWidth: 1, borderBottomWidth: 0, borderColor: 'rgba(130,165,213,0.4)', paddingHorizontal: 20, paddingTop: 18, paddingBottom: 40 },
+  cmpTitle:     { textAlign: 'center', fontSize: 20, fontFamily: 'Poppins_600SemiBold', color: '#E8E4EC' },
+  cmpClose:     { position: 'absolute', top: 14, right: 16, zIndex: 2 },
+  cmpBadgeRow:  { height: 84, marginTop: 10, alignItems: 'center', justifyContent: 'center' },
+  cmpDash:      { position: 'absolute', left: -20, right: -20, top: '50%', borderTopWidth: 1, borderStyle: 'dashed', borderColor: 'rgba(200,200,210,0.5)' },
+  cmpBadge:     { width: 78, height: 78, borderRadius: 39, borderWidth: 1, borderStyle: 'dashed', borderColor: 'rgba(200,200,210,0.6)', backgroundColor: '#0A1F4C', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  cmpLabelRow:  { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 14, marginBottom: 8 },
+  cmpCarDot:    { width: 22, height: 22, borderRadius: 11, backgroundColor: '#c9c2cc', alignItems: 'center', justifyContent: 'center' },
+  cmpNameLabel: { fontSize: 15, fontFamily: 'Poppins_500Medium', color: '#E8E4EC' },
+  cmpField:     { minHeight: 52, borderRadius: 26, borderWidth: 1, borderColor: 'rgba(130,165,213,0.55)', backgroundColor: '#0A1F4C', paddingHorizontal: 20, paddingVertical: 14, justifyContent: 'center', overflow: 'hidden' },
+  cmpFieldTxt:  { fontSize: 14, fontFamily: 'Poppins_500Medium', color: '#F2F1F5' },
+  cmpOpts:      { marginTop: 8, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(130,165,213,0.35)', backgroundColor: '#07142F', overflow: 'hidden' },
+  cmpOpt:       { paddingHorizontal: 20, paddingVertical: 13, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' },
+  cmpOptTxt:    { fontSize: 14, fontFamily: 'Poppins_400Regular', color: '#F2F1F5' },
+  cmpBtn:       { height: 52, borderRadius: 26, marginTop: 20, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  cmpBtnTxt:    { color: '#fff', fontSize: 16, fontFamily: 'Poppins_600SemiBold' },
 
   root: { flex: 1, backgroundColor: BG },
 
@@ -727,7 +833,6 @@ const s = StyleSheet.create({
 
   specStrip:  { flexDirection: 'row', alignItems: 'center', borderTopWidth: 1, borderBottomWidth: 1, borderColor: BORDER, marginTop: 14, paddingVertical: 10 },
   specItem:   { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
-  specIconBox:{ width: 24, height: 24, borderRadius: 6, backgroundColor: 'rgba(226,103,27,0.1)', alignItems: 'center', justifyContent: 'center' },
   specTxt:    { color: WHITE, fontSize: 12, fontFamily: 'Poppins_400Regular' },
   specSep:    { width: 1, height: 18, backgroundColor: BORDER },
 

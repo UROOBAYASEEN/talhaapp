@@ -66,12 +66,14 @@ const BRANDS: Record<string, string[]> = {
   "Other":         ["Other"],
 };
 
-const ALL_BRANDS = [...Object.keys(BRANDS)].sort();
+// NOTE: Brand list backend `/brands` API se aati hai (brandOptions) — static list yahan nahi use hoti.
 
 const YEARS = Array.from({ length: 2026 - 1970 }, (_, i) => String(2025 - i));
 
 const FUEL_TYPES   = ["Petrol","Diesel","CNG","Hybrid","Electric","LPG","Other"];
 const COLORS       = ["White","Silver","Black","Grey","Red","Blue","Green","Brown","Beige","Gold","Orange","Yellow","Maroon","Navy Blue","Sky Blue","Pearl White","Other"];
+// Pakistan ke main cities (Search Smart wali list — same)
+const SELL_CITIES  = ["All Cities","Karachi","Lahore","Islamabad","Rawalpindi","Faisalabad","Multan","Peshawar","Quetta","Hyderabad","Sialkot","Gujranwala","Bahawalpur","Sargodha","Abbottabad","Gujrat","Jhang","Sahiwal","Sukkur","Larkana","Mardan","Sheikhupura","Kasur","Okara","Dera Ghazi Khan","Jhelum","Wah Cantt","Muzaffarabad","Gilgit","Gwadar"];
 const AD_DURATIONS = ["1 Week","2 Weeks","1 Month","3 Months","6 Months"];
 const TRANSMISSIONS = ["Automatic","Manual","Other"];
 const CONDITIONS   = ["Used","New"];
@@ -99,9 +101,10 @@ function Step2FigmaField({ label, value, sample, onPress, onChangeText, numeric 
 }
 
 // ── Picker Modal ─────────────────────────────────────────────────────────────
-function PickerModal({ visible, title, options, onSelect, onClose }: {
+function PickerModal({ visible, title, options, onSelect, onClose, getIcon }: {
   visible: boolean; title: string; options: string[];
   onSelect: (v: string) => void; onClose: () => void;
+  getIcon?: (opt: string) => any;
 }) {
   const [search, setSearch] = useState("");
   const C = useAppColors();
@@ -129,7 +132,12 @@ function PickerModal({ visible, title, options, onSelect, onClose }: {
           keyboardShouldPersistTaps="always"
           renderItem={({ item }) => (
             <TouchableOpacity style={[pm.item, { borderBottomColor: C.divider }]} onPress={() => { onSelect(item); onClose(); setSearch(""); }}>
-              <Text style={[pm.itemTxt, { color: C.textPrimary }]}>{item}</Text>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 10, flex: 1 }}>
+                {getIcon?.(item) ? (
+                  <Image source={getIcon(item)} style={{ width: 28, height: 28, borderRadius: 6 }} resizeMode="contain" />
+                ) : null}
+                <Text style={[pm.itemTxt, { color: C.textPrimary }]}>{item}</Text>
+              </View>
               {item === "Other" && <Ionicons name="create-outline" size={16} color={C.textSecondary} />}
             </TouchableOpacity>
           )}
@@ -163,6 +171,7 @@ export default function SellMyVehicle() {
   // Step 2 — basic details
   const [brand,        setBrand]        = useState("");
   const [carModel,     setCarModel]     = useState("");
+  const [city,         setCity]         = useState("");
   const [year,         setYear]         = useState("");
   const [variant,      setVariant]      = useState("");
   const [adDuration,   setAdDuration]   = useState("");
@@ -177,6 +186,34 @@ export default function SellMyVehicle() {
   const [otherModel,   setOtherModel]   = useState("");
   const [otherColor,   setOtherColor]   = useState("");
   const [otherFuel,    setOtherFuel]    = useState("");
+
+  // Backend brands (admin panel se) — Step 2 Brand mein yahe aate hain, logo ke sath
+  const [apiBrands, setApiBrands] = useState<{ name: string; logo_url?: string | null }[]>([]);
+  const SERVER = API_BASE.replace("/api/v1", "");
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const res = await fetch(`${API_BASE}/brands?category=${selectedVehicle}`);
+        if (res.ok) {
+          const d = await res.json();
+          if (alive && Array.isArray(d)) {
+            setApiBrands(d.filter((b: any) => b?.name).map((b: any) => ({ name: b.name, logo_url: b.logo_url ?? null })));
+          }
+        }
+      } catch { /* offline → sirf Any */ }
+    })();
+    return () => { alive = false; };
+  }, [selectedVehicle]);
+  const brandOptions = [...apiBrands.map(b => b.name), "Any"];
+  function brandLogo(name?: string | null) {
+    if (!name) return undefined;
+    const hit = apiBrands.find(b => b.name.trim().toLowerCase() === name.trim().toLowerCase());
+    if (hit?.logo_url) {
+      return { uri: hit.logo_url.startsWith("http") ? hit.logo_url : `${SERVER}${hit.logo_url}` };
+    }
+    return undefined;
+  }
 
   // Active picker
   const [pickerFor,  setPickerFor]  = useState<string | null>(null);
@@ -213,12 +250,13 @@ export default function SellMyVehicle() {
     }
   }, [currentStep, user]);
 
-  const effectiveBrand = brand === "Other" ? otherBrand : brand;
+  // "Any" select karne pe user khud brand likhta hai — wahe DB mein store hota hai
+  const effectiveBrand = brand === "Any" ? otherBrand : brand;
   const effectiveModel = carModel === "Other" ? otherModel : carModel;
   const effectiveColor = color === "Other" ? otherColor : color;
   const effectiveFuel  = fuelType === "Other" ? otherFuel : fuelType;
 
-  const modelOptions = brand && brand !== "Other" ? (BRANDS[brand] || ["Other"]) : ["Other"];
+  const modelOptions = brand && brand !== "Any" ? (BRANDS[brand] || ["Other"]) : ["Other"];
 
   function handleBack() {
     if (currentStep > 1) setCurrentStep(s => s - 1);
@@ -244,6 +282,7 @@ export default function SellMyVehicle() {
     setSubmitting(true);
     try {
       const uploadedImages = await Promise.all(photos.map(uploadPhoto));
+      const stepCity = (city && city !== "All Cities" ? city : location.split(" ")[0]) || "Karachi";
       const payload = {
         title:            adTitle || `${effectiveBrand} ${effectiveModel} ${variant} ${year}`.trim(),
         make:             effectiveBrand  || "Other",
@@ -259,13 +298,13 @@ export default function SellMyVehicle() {
         color:            effectiveColor  || null,
         description,
         images:           uploadedImages,
-        city:             location.split(" ")[0] || "Karachi",
+        city:             stepCity,
         features,
         ad_duration:      adDuration      || "1 week",
         contact_phone:    contactPhone,
         contact_whatsapp: whatsappEnabled ? whatsapp : null,
         assembly:         "Local",
-        registered_city:  location.split(" ")[0] || "Karachi",
+        registered_city:  stepCity,
       };
       const res = await fetch(`${API_BASE}/vehicles/`, {
         method: "POST",
@@ -456,7 +495,8 @@ export default function SellMyVehicle() {
             </View>
 
             {/* Picker modals */}
-            <PickerModal visible={pickerFor === "brand"}    title="Select Brand"        options={ALL_BRANDS}    onSelect={v => { setBrand(v); setCarModel(""); }} onClose={() => setPickerFor(null)} />
+            <PickerModal visible={pickerFor === "brand"}    title="Select Brand"        options={brandOptions}    getIcon={brandLogo} onSelect={v => { setBrand(v); setCarModel(""); }} onClose={() => setPickerFor(null)} />
+            <PickerModal visible={pickerFor === "city"}     title="Select City"         options={SELL_CITIES}   onSelect={setCity}        onClose={() => setPickerFor(null)} />
             <PickerModal visible={pickerFor === "model"}    title="Select Model"        options={modelOptions}  onSelect={setCarModel}    onClose={() => setPickerFor(null)} />
             <PickerModal visible={pickerFor === "year"}     title="Select Year"         options={YEARS}         onSelect={setYear}         onClose={() => setPickerFor(null)} />
             <PickerModal visible={pickerFor === "fuel"}     title="Select Fuel Type"    options={FUEL_TYPES}    onSelect={setFuelType}     onClose={() => setPickerFor(null)} />
@@ -480,10 +520,9 @@ export default function SellMyVehicle() {
                 </>
               )}
               {/* Vehicle Type selection is handled in Step 1; the duplicate Step 2 toggle is intentionally commented out. */}
-              <Step2FigmaField label="Brand" value={brand} sample="Honda" onPress={() => setPickerFor("brand")} dark={aC.isDark} />
-              {brand === "Other" && <TextInput value={otherBrand} onChangeText={setOtherBrand} placeholder="Enter brand" placeholderTextColor="#b8acba" style={[styles.step2OtherInput, { color: aC.textPrimary }]} />}
-              <Step2FigmaField label="Car" value={carModel} sample="City" onPress={() => setPickerFor("model")} dark={aC.isDark} />
-              {carModel === "Other" && <TextInput value={otherModel} onChangeText={setOtherModel} placeholder="Enter model" placeholderTextColor="#b8acba" style={[styles.step2OtherInput, { color: aC.textPrimary }]} />}
+              <Step2FigmaField label="Brand" value={brand === "Any" ? otherBrand || "Any" : brand} sample="Honda" onPress={() => setPickerFor("brand")} dark={aC.isDark} />
+              {brand === "Any" && <TextInput value={otherBrand} onChangeText={setOtherBrand} placeholder="Which brand?" placeholderTextColor="#b8acba" style={[styles.step2OtherInput, { color: aC.textPrimary }]} />}
+              <Step2FigmaField label="City" value={city} sample="Karachi" onPress={() => setPickerFor("city")} dark={aC.isDark} />
               <Step2FigmaField label="Year" value={year} sample="2024" onPress={() => setPickerFor("year")} dark={aC.isDark} />
               <Step2FigmaField label="Variant" value={variant} sample="1.2 Aspire CVT" onChangeText={setVariant} dark={aC.isDark} />
               <Step2FigmaField label="Ad Duration" value={adDuration} sample="1 week" onPress={() => setPickerFor("duration")} dark={aC.isDark} />

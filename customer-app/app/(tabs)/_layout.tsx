@@ -156,7 +156,7 @@ export default function TabLayout() {
         name="sellers"
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon name="megaphone-outline" label="My Ads" focused={focused} />
+            <TabIcon name="megaphone-outline" label="Ads" focused={focused} />
           ),
         }}
       />

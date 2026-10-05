@@ -25,6 +25,7 @@ export default function AdminLayout() {
       <Stack.Screen name="advertisement"          options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="video-ads"             options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="alerts"                options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen name="brands"                options={{ animation: 'slide_from_right' }} />
     </Stack>
   );
 }

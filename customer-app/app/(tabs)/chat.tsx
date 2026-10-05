@@ -135,7 +135,19 @@ export default function ChatListScreen() {
     const name = getName(item).toLowerCase();
     const msg  = getLastMsg(item).toLowerCase();
     const q    = searchQuery.toLowerCase().trim();
-    return q === '' || name.includes(q) || msg.includes(q);
+    if (!(q === '' || name.includes(q) || msg.includes(q))) return false;
+    if (activeTab === 'All') return true;
+    const t = String(item.type || item.chat_type || '').toLowerCase();
+    const hasVehicle = !!(item.vehicle_id || item.vehicleId || item.ad_id || item.adId || item.vehicle);
+    const parts: any[] = item.participant_info || [];
+    const isSupport = t.includes('support') || !!item.is_support ||
+      parts.some((p: any) => ['support', 'admin'].includes(String(p.role || '').toLowerCase()));
+    const isCall = t.includes('call') || !!item.call_id || !!item.has_call || !!item.is_call;
+    if (activeTab === 'Call') return isCall;
+    if (activeTab === 'Message') return !hasVehicle && !isSupport && !isCall;
+    if (activeTab === 'Ads') return hasVehicle;
+    if (activeTab === 'Support') return isSupport;
+    return true;
   });
 
   return (
@@ -183,6 +195,7 @@ export default function ChatListScreen() {
         <FlatList
           data={filteredConversations}
           keyExtractor={i => i.id}
+          style={{ flex: 1 }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor="#e2671b" />}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContent}

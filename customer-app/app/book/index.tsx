@@ -3,20 +3,18 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { memo, useCallback, useMemo, useState } from 'react';
-import { Dimensions, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AskariBank from '@/components/shared/AskariBank';
 import { G, GlowBackground, ScreenHeader } from '@/components/shared/GlowUI';
 import { SavedCardEffect } from '@/components/shared/FigmaEffects';
 import { BIKE_BRANDS, Brand, CAR_BRANDS, LatestVideos, SearchModal } from '@/components/book/common';
 
-const { width: W } = Dimensions.get('window');
+// NOTE: grid widths har phone size + rotation pe reactive hain —
+// har tile apni width `useWindowDimensions()` se khud calculate karta hai.
+// Module-level frozen `Dimensions.get` use nahi hota.
 const PAD = 16;
-const PAGE_W = W - PAD * 2;
 const GAP = 12;
-const TILE_W = (PAGE_W - GAP * 3) / 4;
-const TYPE_W = (PAGE_W - 16) / 2;
-const NEED_W = (PAGE_W - 16) / 2;
 
 const IMG_COMPARE_VEHICLE   = require('@/assets/images/compareVehicle.png');
 const IMG_BIKE              = require('@/assets/Icons/bikeWhite.png');
@@ -26,11 +24,13 @@ const IMG_COMPARE_INSURANCE = require('@/assets/images/compareInsurance.png');
 // so switching Cars/Bikes and brand pages re-renders instantly.
 
 const BrandTile = memo(function BrandTile({ b, onPress }: { b: Brand; onPress: (name: string) => void }) {
+  const { width: W } = useWindowDimensions();
+  const tileW = (W - PAD * 2 - GAP * 3) / 4;
   return (
-    <TouchableOpacity style={[st.tile, st.tileOn]} activeOpacity={0.85} onPress={() => onPress(b.name)}>
+    <TouchableOpacity style={[st.tile, st.tileOn, { width: tileW }]} activeOpacity={0.85} onPress={() => onPress(b.name)}>
       <SavedCardEffect band={12} />
       {b.logo
-        ? <Image source={b.logo} style={st.tileLogo} resizeMode="contain" />
+        ? <Image source={b.logo} style={[st.tileLogo, { width: tileW * 0.52 }]} resizeMode="contain" />
         : <Text style={st.tileInitial}>{b.name[0]}</Text>}
       <Text style={st.tileName} numberOfLines={1}>{b.name.toUpperCase()}</Text>
     </TouchableOpacity>
@@ -40,9 +40,11 @@ const BrandTile = memo(function BrandTile({ b, onPress }: { b: Brand; onPress: (
 // Both tiles always keep the same structure/style keys — only colours and the glow's opacity change.
 // (Mounting/unmounting the glow layer and toggling the border made the other tile's icon/text vanish.)
 function TypeTile({ k, label, sel, onPress }: { k: 'car' | 'bike'; label: string; sel: boolean; onPress: (k: 'car' | 'bike') => void }) {
+  const { width: W } = useWindowDimensions();
+  const typeW = (W - PAD * 2 - 16) / 2;
   return (
     <TouchableOpacity
-      style={[st.typeTile, sel ? st.typeTileOn : st.typeTileOff]}
+      style={[st.typeTile, sel ? st.typeTileOn : st.typeTileOff, { width: typeW }]}
       activeOpacity={0.88}
       onPress={() => onPress(k)}
     >
@@ -61,6 +63,9 @@ function TypeTile({ k, label, sel, onPress }: { k: 'car' | 'bike'; label: string
 
 export default function BookVehicleScreen() {
   const router = useRouter();
+  const { width: W } = useWindowDimensions();
+  const pageW = W - PAD * 2;
+  const needW = (W - PAD * 2 - 16) / 2;
   const [type, setType] = useState<'car' | 'bike'>('car');
   const [page, setPage] = useState(0);
   const [brand, setBrand] = useState('');
@@ -94,7 +99,7 @@ export default function BookVehicleScreen() {
           {/* Select Your Brand */}
           <Text style={st.sec}>Select Your Brand</Text>
           {/* Fixed grid (no scrolling) — tap a dot to show the next set of brands */}
-          <View style={[st.page, { marginHorizontal: PAD }]}>
+          <View style={[st.page, { marginHorizontal: PAD, width: pageW }]}>
             {(pages[page] || pages[0]).map(b => (
               <BrandTile key={`${type}-${b.name}`} b={b} onPress={openBrand} />
             ))}
@@ -121,7 +126,7 @@ export default function BookVehicleScreen() {
               { img: IMG_COMPARE_VEHICLE, title: 'Compare\nVehicle', sub: 'Compare vehicle features, prices, and specifications.', go: () => router.push({ pathname: '/compare-vehicle', params: { category: type, from: 'book' } } as any) },
               { img: IMG_COMPARE_INSURANCE, title: 'Compare\nInsurance Plans', sub: 'Compare coverage, benefits, and prices to find the right plan.', go: () => router.push('/insurance-search' as any) },
             ].map(c => (
-              <TouchableOpacity key={c.title} style={st.needCard} activeOpacity={0.88} onPress={c.go}>
+              <TouchableOpacity key={c.title} style={[st.needCard, { width: needW }]} activeOpacity={0.88} onPress={c.go}>
                 <LinearGradient colors={['#061845', '#0A1F4C', '#2B2947', '#7E5048']} locations={[0, 0.5, 0.76, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={st.needGrad}>
                   <Image source={c.img} style={st.needImg} resizeMode="contain" />
                   <View style={st.needTitleRow}>
@@ -162,7 +167,7 @@ export default function BookVehicleScreen() {
 const st = StyleSheet.create({
   sec:      { color: G.white, fontSize: 16, fontFamily: 'Poppins_400Regular', marginTop: 10, marginBottom: 12, paddingHorizontal: PAD },
   typeRow:  { flexDirection: 'row', gap: 16, paddingHorizontal: PAD, marginBottom: 8 },
-  typeTile:    { width: TYPE_W, height: 94, borderRadius: 20, overflow: 'hidden', borderWidth: 1, elevation: 0 },
+  typeTile:    { height: 94, borderRadius: 20, overflow: 'hidden', borderWidth: 1, elevation: 0 },
   // Same as app/insurance-search.tsx typeCard: selected = #010A1F + #82a5d5 border + soft shadow + glow,
   // unselected = flat #0B1D4A (same border width, transparent, so nothing shifts when toggling)
   typeTileOn:  { backgroundColor: '#010A1F', borderColor: '#82a5d5', shadowColor: '#638ed0', shadowOpacity: 0.15, shadowRadius: 5, shadowOffset: { width: 0, height: 0 } },
@@ -171,10 +176,10 @@ const st = StyleSheet.create({
   typeContent: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 4 },
   typeTxt:  { color: G.white, fontSize: 18, fontFamily: 'Poppins_400Regular' },
 
-  page:        { width: PAGE_W, flexDirection: 'row', flexWrap: 'wrap', columnGap: GAP, rowGap: 18 },
+  page:        { flexDirection: 'row', flexWrap: 'wrap', columnGap: GAP, rowGap: 18 },
   tileOn:      { backgroundColor: '#010A1F', borderWidth: 1, borderColor: '#82a5d5', shadowColor: '#638ed0', shadowOpacity: 0.15, shadowRadius: 5, shadowOffset: { width: 0, height: 0 }, elevation: 2 },
-  tile:        { width: TILE_W, height: 76, borderRadius: 16, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', gap: 6 },
-  tileLogo:    { width: TILE_W * 0.52, height: 30 },
+  tile:        { height: 76, borderRadius: 16, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', gap: 6 },
+  tileLogo:    { height: 30 },
   tileInitial: { color: '#D8DCE6', fontSize: 24, fontFamily: 'Poppins_700Bold', lineHeight: 30 },
   tileName:    { color: '#FFFFFF', fontSize: 9, fontFamily: 'Poppins_500Medium', paddingHorizontal: 2 },
   dots:        { flexDirection: 'row', justifyContent: 'center', gap: 8, marginTop: 14 },
@@ -182,7 +187,7 @@ const st = StyleSheet.create({
   dotOn:       { backgroundColor: '#FFFFFF' },
 
   needRow:      { flexDirection: 'row', gap: 16, paddingHorizontal: PAD },
-  needCard:     { width: NEED_W, height: 190, borderRadius: 16, overflow: 'hidden' },
+  needCard:     { height: 190, borderRadius: 16, overflow: 'hidden' },
   needGrad:     { flex: 1, paddingHorizontal: 11, paddingTop: 10, paddingBottom: 12 },
   needImg:      { width: 96, height: 72, alignSelf: 'center', marginBottom: 6 },
   needTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 },

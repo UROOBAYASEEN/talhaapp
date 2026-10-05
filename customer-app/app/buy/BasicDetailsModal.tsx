@@ -23,14 +23,16 @@ type Props = {
   dealerId?: string;
   category?: string;
   onSearch?: (data: any) => void;
+  onCompare?: (data: any) => void;
 };
 
 const cities = [
-  "Karachi", "Lahore", "Islamabad", "Rawalpindi", "Peshawar", "Quetta",
-  "Faisalabad", "Multan", "Hyderabad", "Gujranwala", "Sialkot", "Bahawalpur",
-  "Sargodha", "Sukkur", "Larkana", "Sheikhupura", "Rahim Yar Khan", "Jhang",
-  "Gujrat", "Mardan", "Abbottabad", "Mirpur", "Muzaffarabad", "Nawabshah",
-  "Sahiwal", "Okara", "Mingora", "Dera Ghazi Khan", "Chiniot", "Kamoke",
+  "All Cities",
+  "Karachi", "Lahore", "Islamabad", "Rawalpindi", "Faisalabad", "Multan",
+  "Peshawar", "Quetta", "Hyderabad", "Sialkot", "Gujranwala", "Bahawalpur",
+  "Sargodha", "Abbottabad", "Gujrat", "Jhang", "Sahiwal", "Sukkur", "Larkana",
+  "Mardan", "Sheikhupura", "Kasur", "Okara", "Dera Ghazi Khan", "Jhelum",
+  "Wah Cantt", "Muzaffarabad", "Gilgit", "Gwadar",
 ];
 
 const variants = [
@@ -49,6 +51,10 @@ const variants = [
 
 const years = Array.from({ length: 27 }, (_, i) => String(2026 - i));
 
+// New car mein sirf current year + peechle 2 saal
+const _CY = new Date().getFullYear();
+const NEW_CAR_YEARS = [String(_CY), String(_CY - 1), String(_CY - 2)];
+
 const colors = [
   "White", "Pearl White", "Solid White",
   "Black", "Jet Black", "Midnight Black",
@@ -64,46 +70,78 @@ const colors = [
 
 const sellerTypes = ["All (Dealership + Individual)", "Dealership", "Individual"];
 
-export default function BasicDetailsModal({ visible, onClose, brandName, dealerId, category = 'car', onSearch }: Props) {
+export default function BasicDetailsModal({ visible, onClose, brandName, dealerId, category = 'car', onSearch, onCompare }: Props) {
   const { token } = useAuth();
   const aC = useAppColors();
 
-  const [city,         setCity]         = useState("Karachi");
+  // Search car-name ki base pe (first priority) — city default All taake car kahein ki bhi mile
+  const [city,         setCity]         = useState("All Cities");
   const [car,          setCar]          = useState("");
-  const [variant,      setVariant]      = useState(variants[0]);
-  const [year,         setYear]         = useState("2026");
-  const [color,        setColor]        = useState("");
-  const [sellerType,   setSellerType]   = useState(sellerTypes[0]);
+  const [variant,      setVariant]      = useState("All");
+  const [year,         setYear]         = useState("All");
+  const [color,        setColor]        = useState("All");
+  const [sellerType,   setSellerType]   = useState("All Dealership");
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [customValues, setCustomValues] = useState<Record<string, string>>({});
   const [cityQuery, setCityQuery] = useState("");
 
   const [carOptions,  setCarOptions]  = useState<string[]>([]);
   const [carLoading,  setCarLoading]  = useState(false);
+  const [brandItems,  setBrandItems]  = useState<any[]>([]);
 
-  // Fetch available car/bike names for this dealer when modal opens
+  // Har bar modal khule to fresh selection (nayi brand ke hisab se)
+  // Fetch: brand (make) se filter — warna dealer (seller_id) se (bike flow same)
   useEffect(() => {
     if (!visible) return;
+    setCar("");
+    setVariant("All");
+    setYear("All");
+    setColor("All");
+    setSellerType("All Dealership");
+    setCustomValues({});
+    setCityQuery("");
+    setOpenDropdown(null);
     fetchCars();
-  }, [visible, dealerId, category]);
+  }, [visible, dealerId, brandName, category]);
+
+  const distinct = (vals: any[]) =>
+    Array.from(new Set(vals.map(v => String(v ?? "").trim()).filter(Boolean))).sort() as string[];
+
+  // Brand ki base pe filter karke sari options select fields mein (DB se, warna static)
+  // Car (new-car flow) mein Year sirf current + peechle 2 saal
+  const variantOptions = brandItems.length ? ["All", ...distinct(brandItems.map(v => v.variant))] : ["All", ...variants];
+  const yearOptions    = category === "car"
+    ? ["All", ...NEW_CAR_YEARS]
+    : (brandItems.length ? ["All", ...distinct(brandItems.map(v => v.year)).sort((a, b) => Number(b) - Number(a))] : ["All", ...years]);
+  // Color: selected variant mein jitne available colors hain wo sare (DB se, warna static)
+  const _vKey = variant === "Other" ? (customValues.variant || "").trim().toLowerCase() : variant.trim().toLowerCase();
+  const _colorSource = (_vKey && _vKey !== "all")
+    ? brandItems.filter(v => String(v.variant ?? "").trim().toLowerCase() === _vKey)
+    : brandItems;
+  const _cols = distinct(_colorSource.map(v => v.color));
+  const colorOptions = _cols.length ? ["All", ..._cols] : ["All", ...colors];
 
   async function fetchCars() {
     setCarLoading(true);
     try {
       const params = new URLSearchParams({ limit: "100", category });
       if (dealerId) params.set("seller_id", dealerId);
+      else if (brandName) params.set("make", brandName);
       const headers: any = token ? { Authorization: `Bearer ${token}` } : {};
       const res = await fetch(`${API_BASE}/vehicles?${params}`, { headers });
       if (res.ok) {
         const d = await res.json();
         const items: any[] = d.items || [];
+        setBrandItems(items);
         const names = Array.from(new Set(
           items.map((v: any) => v.title || `${v.make || ""} ${v.model || ""}`.trim()).filter(Boolean)
         )).sort() as string[];
         setCarOptions(names);
         if (names.length > 0 && !car) setCar(names[0]);
+      } else {
+        setBrandItems([]);
       }
-    } catch {}
+    } catch { setBrandItems([]); }
     finally { setCarLoading(false); }
   }
 
@@ -118,6 +156,8 @@ export default function BasicDetailsModal({ visible, onClose, brandName, dealerI
     const isOpen  = openDropdown === field;
     const isOther = value === "Other";
     const isCity  = field === "city";
+    // Seller Type locked hai — sirf "All Dealership", select option nahi khulta
+    const locked  = field === "sellerType";
     const visibleOptions = isCity && cityQuery.trim()
       ? options.filter(o => o.toLowerCase().includes(cityQuery.trim().toLowerCase()))
       : options;
@@ -132,9 +172,11 @@ export default function BasicDetailsModal({ visible, onClose, brandName, dealerI
             shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)',
             shadowOpacity: aC.isDark ? 0 : 0.06,
             elevation: aC.isDark ? 0 : 2,
-            overflow: 'hidden'
+            overflow: 'hidden',
+            opacity: locked ? 0.7 : 1,
           }]}
-          onPress={() => setOpenDropdown(isOpen ? null : field)}
+          disabled={locked}
+          onPress={locked ? undefined : () => setOpenDropdown(isOpen ? null : field)}
         >
           {aC.isDark ? (
             <>
@@ -160,12 +202,12 @@ export default function BasicDetailsModal({ visible, onClose, brandName, dealerI
             </>
           )}
           <Text style={[styles.dropdownText, { color: !value ? '#8f8f8f' : (aC.isDark ? '#f9fafc' : '#010a1f') }, !value && styles.placeholder]}>
-            {isOther && customValues[field] ? customValues[field] : (value || "Select")}
+            {locked ? "All Dealership" : (isOther && customValues[field] ? customValues[field] : (value || "Select"))}
           </Text>
-          {loading
+          {locked ? null : (loading
             ? <ActivityIndicator size="small" color="#e2671b" style={{ marginRight: 16 }} />
             : <Text style={[styles.arrow, { color: aC.isDark ? '#f9fafc' : '#010a1f' }, isOpen && styles.arrowUp]}>⌄</Text>
-          }
+          )}
         </Pressable>
 
         {isOther && (
@@ -178,7 +220,7 @@ export default function BasicDetailsModal({ visible, onClose, brandName, dealerI
           />
         )}
 
-        {isOpen && (
+        {!locked && isOpen && (
           <View style={[styles.optionsContainer, { backgroundColor: aC.isDark ? '#061b4a' : '#ffffff', borderColor: aC.isDark ? 'rgba(255,255,255,0.15)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 4 }]}>
             {isCity && (
               <View style={[styles.citySearchWrap, { borderBottomColor: aC.isDark ? 'rgba(255,255,255,0.08)' : 'rgba(3,42,105,0.06)', backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#f8fafc' }]}>
@@ -231,11 +273,13 @@ export default function BasicDetailsModal({ visible, onClose, brandName, dealerI
   }
 
   function resolveVal(field: string, val: string) {
+    if (val === "All") return "";
     return val === "Other" ? (customValues[field] || "") : val;
   }
 
   function handleSearch() {
     onSearch?.({
+      make:       brandName || "",
       city:       resolveVal("city",       city),
       car:        resolveVal("car",        car),
       variant:    resolveVal("variant",    variant),
@@ -265,11 +309,11 @@ export default function BasicDetailsModal({ visible, onClose, brandName, dealerI
             keyboardShouldPersistTaps="handled"
             nestedScrollEnabled
           >
-            {renderDropdown("City",        city,       cities,      "city",       setCity)}
+            {renderDropdown("City",        city,       cities,         "city",       setCity)}
             {renderDropdown(category === 'bike' ? "Bike" : "Car", car, carOptions, "car", setCar, carLoading)}
-            {renderDropdown("Variant",     variant,    variants,    "variant",    setVariant)}
-            {renderDropdown("Year",        year,       years,       "year",       setYear)}
-            {renderDropdown("Color",       color,      colors,      "color",      setColor)}
+            {renderDropdown("Variant",     variant,    variantOptions, "variant",  (v) => { setVariant(v); setColor("All"); })}
+            {renderDropdown("Year",        year,       yearOptions,    "year",     setYear)}
+            {renderDropdown("Color",       color,      colorOptions,   "color",    setColor)}
             {renderDropdown("Seller Type", sellerType, sellerTypes, "sellerType", setSellerType)}
 
             {/* Search Button */}

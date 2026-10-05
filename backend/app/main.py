@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import init_db
-from app.routers import auth, vehicles, chat, sellers, notifications, profile, documents, transactions, insurance, ad_promotions, upload, reviews, calls, users as users_router, payments, dealers, video_ads, banner_ads, ad_analytics, trackers, tracker_devices, tracker_bookings, financing, admin, plans, chatbot
+from app.routers import auth, vehicles, chat, sellers, notifications, profile, documents, transactions, insurance, ad_promotions, upload, reviews, calls, users as users_router, payments, dealers, video_ads, banner_ads, ad_analytics, trackers, tracker_devices, tracker_bookings, financing, admin, plans, chatbot, brands
 from fastapi.staticfiles import StaticFiles
 import os
 
@@ -51,6 +51,7 @@ app.include_router(financing.router,        prefix="/api/v1")
 app.include_router(admin.router,            prefix="/api/v1")
 app.include_router(plans.router,            prefix="/api/v1")
 app.include_router(chatbot.router,          prefix="/api/v1")
+app.include_router(brands.router,           prefix="/api/v1")
 
 os.makedirs("uploads", exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")

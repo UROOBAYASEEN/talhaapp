@@ -69,6 +69,12 @@ const actions = [
     route: "/(admin)/advertisement",
   },
   {
+    title: "Brands",
+    icon: "pricetag-outline",
+    image: null,
+    route: "/(admin)/brands",
+  },
+  {
     title: "Payments",
     icon: null,
     image: require("@/screenshot/subcription.png"),

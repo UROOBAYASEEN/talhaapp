@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -17,7 +17,7 @@ import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { Plus, X } from 'lucide-react-native';
 import {
-  AddChip, BottomActions, Chip, D, DField, DHeader, OutlineCard, PlanOption, PromoCard,
+  AddChip, BottomActions, Chip, D, DField, DHeader, DSelect, OutlineCard, PlanOption, PromoCard,
   SaveDraftAction, TermsRow, UploadBox,
 } from '@/components/dealer/DealerUI';
 import { GlassButton, GradientButton } from '@/components/shared/GlowUI';
@@ -25,10 +25,14 @@ import { AppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 import PromoteModal from '@/components/dealer/PromoteModal';
+import SelectSheet from '@/components/shared/SelectSheet';
 import { GlowPublishButton, GlowDraftButton } from "@/components/shared/ActionFooterGlow";
 
 const ORANGE = '#E2671B';
 const C      = AppColors;
+
+// Pakistan ke main cities (customer-app wali same list)
+const SELL_CITIES = ['All Cities','Karachi','Lahore','Islamabad','Rawalpindi','Faisalabad','Multan','Peshawar','Quetta','Hyderabad','Sialkot','Gujranwala','Bahawalpur','Sargodha','Abbottabad','Gujrat','Jhang','Sahiwal','Sukkur','Larkana','Mardan','Sheikhupura','Kasur','Okara','Dera Ghazi Khan','Jhelum','Wah Cantt','Muzaffarabad','Gilgit','Gwadar'];
 
 /* ── Input Field (glass pill) ── */
 function InputField({
@@ -100,7 +104,8 @@ export default function AddVehicleScreen() {
 
   const [vehicleType, setVehicleType]   = useState<'car' | 'bike'>('car');
   const [brand, setBrand]               = useState('');
-  const [model, setModel]               = useState('');
+  const [city, setCity]                 = useState('');
+  const [citySheet, setCitySheet]       = useState(false);
   const [variant, setVariant]           = useState('');
   const [modelYear, setModelYear]       = useState('2026');
   const [bodyType, setBodyType]         = useState('');
@@ -117,6 +122,40 @@ export default function AddVehicleScreen() {
 
   const [colors,        setColors]        = useState(['Wine Red', 'Black', 'White', 'Silver', 'Blue', 'Grey']);
   const [selectedColor, setSelectedColor] = useState<string>('');
+
+  // Brands admin panel (database) se — type nahi karna, select karna hai
+  const [apiBrands, setApiBrands] = useState<{ name: string; logo_url?: string | null }[]>([]);
+  const [brandsLoading, setBrandsLoading] = useState(false);
+  const [brandSheet, setBrandSheet] = useState(false);
+  const SERVER = API_BASE.replace('/api/v1', '');
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        setBrandsLoading(true);
+        // SARE brands (car/bike filter nahi) — admin panel se
+        const res = await fetch(`${API_BASE}/brands`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        if (res.ok) {
+          const d = await res.json();
+          if (alive && Array.isArray(d)) {
+            setApiBrands(d.filter((b: any) => b?.name).map((b: any) => ({ name: b.name, logo_url: b.logo_url ?? null })));
+          }
+        }
+      } catch { /* offline */ }
+      finally { if (alive) setBrandsLoading(false); }
+    })();
+    return () => { alive = false; };
+  }, []);
+  function brandLogo(name?: string | null) {
+    if (!name) return undefined;
+    const hit = apiBrands.find(b => b.name.trim().toLowerCase() === name.trim().toLowerCase());
+    if (hit?.logo_url) {
+      return { uri: hit.logo_url.startsWith('http') ? hit.logo_url : `${SERVER}${hit.logo_url}` };
+    }
+    return undefined;
+  }
   const [showColorInput, setShowColorInput] = useState(false);
   const [customColor,    setCustomColor]    = useState('');
   const [features, setFeatures] = useState([
@@ -193,10 +232,10 @@ export default function AddVehicleScreen() {
 
   async function handlePublish() {
     if (!brand.trim()) {
-      Alert.alert('Required', 'Please enter the vehicle Brand.'); return;
+      Alert.alert('Required', 'Please select the vehicle Brand.'); return;
     }
-    if (!model.trim()) {
-      Alert.alert('Required', 'Please enter the vehicle Model.'); return;
+    if (!city.trim() || city === 'All Cities') {
+      Alert.alert('Required', 'Please select the City.'); return;
     }
     if (!modelYear.trim()) {
       Alert.alert('Required', 'Please enter the Model Year.'); return;
@@ -217,12 +256,13 @@ export default function AddVehicleScreen() {
       // Non-dealer (individual seller) inventory used me jata hai taake Buy Used me show ho
       const isIndividual = (user as any)?.role === 'individual_seller';
       const payload = {
-        title:    `${brand} ${model}${variant ? ' ' + variant : ''}`,
+        title:    `${brand}${variant ? ' ' + variant : ''}`,
         make:     brand,
-        model,
+        model:    'Other',
         variant:  variant || undefined,
         year:     parseInt(modelYear) || new Date().getFullYear(),
         price,
+        city,
         category: vehicleType,
         condition: isIndividual ? 'used' : 'new',
         color:    selectedColor || undefined,
@@ -339,13 +379,31 @@ export default function AddVehicleScreen() {
           <Text style={s.label}>Vehicle Type</Text>
           <View style={s.typeRow}>
             {(['car', 'bike'] as const).map(t => (
-              <Chip key={t} label={t === 'car' ? 'Car' : 'Bike'} selected={vehicleType === t} onPress={() => setVehicleType(t)} />
+              <Chip key={t} label={t === 'car' ? 'Car' : 'Bike'} selected={vehicleType === t} onPress={() => { setVehicleType(t); setBrand(''); }} />
             ))}
           </View>
 
           {/* BASIC FIELDS */}
-          <InputField label="Brand"      placeholder="e.g. Honda"          value={brand}     onChangeText={setBrand} />
-          <InputField label="Model"      placeholder="e.g. City"           value={model}     onChangeText={setModel} />
+          <DSelect label="Brand" value={brand} placeholder="Select brand" onPress={() => setBrandSheet(true)} />
+          <SelectSheet
+            visible={brandSheet}
+            title="Select Brand"
+            options={apiBrands.map(b => b.name)}
+            selected={brand}
+            onSelect={setBrand}
+            onClose={() => setBrandSheet(false)}
+            loading={brandsLoading}
+            getIcon={brandLogo}
+          />
+          <DSelect label="City" value={city} placeholder="Select city" onPress={() => setCitySheet(true)} />
+          <SelectSheet
+            visible={citySheet}
+            title="City"
+            options={SELL_CITIES}
+            selected={city}
+            onSelect={setCity}
+            onClose={() => setCitySheet(false)}
+          />
           <InputField label="Variant"    placeholder="e.g. 1.2 Aspire CVT" value={variant}   onChangeText={setVariant} />
           <InputField label="Model Year" placeholder="2026"                value={modelYear} onChangeText={setModelYear} keyboardType="numeric" />
           <InputField label="Body Type"  placeholder="e.g. Sedan"          value={bodyType}  onChangeText={setBodyType} />

@@ -91,7 +91,7 @@ export default function DealerProfileScreen() {
       const res = await fetch(`${API_BASE}/dealers/${id}/follow`, {
         method: 'POST', headers: { Authorization: `Bearer ${token}` },
       });
-      if (res.ok) { const d = await res.json(); setFollowing(d.following); }
+      if (res.ok) { const d = await res.json(); setFollowing(d.is_following ?? d.following ?? false); }
     } catch { }
     finally { setToggling(false); }
   }
@@ -166,6 +166,7 @@ export default function DealerProfileScreen() {
     );
 
   const name       = dealer.dealership_name || dealer.full_name || 'Dealer';
+  const isDealer   = dealer.role === 'dealership_owner';
   const cover      = resolveUrl(dealer.cover_photo_url);
   const avatar     = resolveUrl(dealer.avatar_url);
   const initial    = name[0]?.toUpperCase();
@@ -185,7 +186,7 @@ export default function DealerProfileScreen() {
   const contactInfo = [
     { icon: 'location-outline' as const, title: 'Location',     lines: [dealer.city || '—', 'Pakistan'] },
     { icon: 'call-outline'     as const, title: 'Contact',      lines: [dealer.phone || '—', dealer.email || '—'] },
-    { icon: 'time-outline'     as const, title: 'Working Hours', lines: workingHours },
+    { icon: 'time-outline'     as const, title: 'Working hour', lines: workingHours },
   ];
 
   return (
@@ -232,7 +233,7 @@ export default function DealerProfileScreen() {
                 <Text style={s.name}>{name}</Text>
                 <Ionicons name="checkmark-circle" size={17} color="#3b82f6" style={{ marginLeft: 5 }} />
               </View>
-              <Text style={s.subtitle}>Official Dealership</Text>
+              <Text style={s.subtitle}>{isDealer ? 'Official Dealership' : 'Non Dealership'}</Text>
             </View>
             <View style={s.iconRow}>
               <TouchableOpacity><Ionicons name="share-social-outline" size={18} color={ORANGE} /></TouchableOpacity>
@@ -286,7 +287,7 @@ export default function DealerProfileScreen() {
               <View key={i} style={s.contactItem}>
                 <Ionicons name={c.icon} size={18} color={ORANGE} style={{ marginBottom: 6 }} />
                 <Text style={s.contactTitle}>{c.title}</Text>
-                {c.lines.map((line, li) => (
+                {c.lines.map((line: any, li: any) => (
                   <Text key={li} style={s.contactLine}>{line}</Text>
                 ))}
               </View>
@@ -382,7 +383,7 @@ export default function DealerProfileScreen() {
         <CtaPanelGlass />
         <View style={s.ctaHandle} />
 
-        {fromUsedCar ? (
+        {fromUsedCar || !isDealer ? (
           <>
             <TouchableOpacity style={s.ctaPrimary} onPress={() => router.push({ pathname: '/buy/search-results' as any, params: { dealerId: id, brand: name, ...(isBike ? { category: 'bike' } : {}) } })} activeOpacity={0.88}>
               <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
@@ -412,7 +413,7 @@ export default function DealerProfileScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity style={s.ctaPrimary} onPress={() => router.push('/buy/reserve' as any)} activeOpacity={0.88}>
-          <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+          <LinearGradient colors={['#0B2452', '#6B3F2A', '#e2671b'] as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
           <Text style={[s.ctaPrimaryTxt, { color: '#D9D6DF' }]}>{isBike ? 'Reserve your bike' : 'Reserve your car'}</Text>
         </TouchableOpacity>
 
