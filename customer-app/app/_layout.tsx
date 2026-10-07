@@ -10,11 +10,13 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef, useState } from 'react';
-import { Animated, StyleSheet, Text, TextInput, TouchableOpacity, useColorScheme, View } from 'react-native';
+import { Animated, Platform, StyleSheet, Text, TextInput, TouchableOpacity, useColorScheme, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import 'react-native-reanimated';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { AppColors } from '@/constants/theme';
+import { useAndroidKeyboardHeight } from '@/hooks/use-android-keyboard-height';
 import { API_BASE } from '@/constants/api';
 
 SplashScreen.preventAutoHideAsync();
@@ -158,14 +160,41 @@ const nb = StyleSheet.create({
   close:  { padding: 4, flexShrink: 0 },
 });
 
+// ── Android nav bar (back button) safe space ─────────────────────────────────
+// Edge-to-edge ki wajah se screen ke last buttons/text device ke back button bar
+// ke peeche chhup jate thay. Har screen ke neeche utni jagah chhodi jati hai.
+// Ye screens/groups pehle se khud bottom inset handle karti hain — inko skip karo
+// warna double jagah ban jayegi.
+const HANDLES_OWN_BOTTOM_INSET = new Set([
+  '(tabs)', '(seller)', 'Become_a_Seller',
+  'book/dealer-profile', 'book/test-drive', 'book/booked', 'book/test-drive-success',
+  'book/vehicle-detail', 'book/reserve', 'book/reviews',
+  'buy/test-drive',
+  'insurance/company-profile', 'insurance/reviews',
+  'dealer-panel/add-vehicle', 'dealer-panel/special-offer', 'dealer-panel/video-ads',
+  'insurance-application-detail',
+]);
+
 // ── Root Layout ─────────────────────────────────────────────────────────────
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
+  const insets = useSafeAreaInsets();
+  // Android: keyboard khulne pe screen utni chhoti ho jaye (adjustResize jaisa), taake focused field scroll ho kar upar aa jaye
+  const keyboardH = useAndroidKeyboardHeight();
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <AuthGuard />
       <NotifBanner />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: AppColors.bg } }}>
+      <View style={{ flex: 1, paddingBottom: keyboardH, backgroundColor: AppColors.bg }}>
+      <Stack
+        screenOptions={({ route }) => ({
+          headerShown: false,
+          contentStyle: {
+            backgroundColor: AppColors.bg,
+            paddingBottom: Platform.OS === 'android' && !HANDLES_OWN_BOTTOM_INSET.has(route.name) ? insets.bottom : 0,
+          },
+        })}
+      >
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="(seller)" />
@@ -218,6 +247,7 @@ function RootLayoutNav() {
         <Stack.Screen name="notifications/index"     options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="modal"                  options={{ presentation: 'modal' }} />
       </Stack>
+      </View>
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
     </ThemeProvider>
   );

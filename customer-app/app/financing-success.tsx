@@ -65,7 +65,7 @@ export default function FinancingSuccessScreen() {
       </View>
 
       <View style={[s.footer, { backgroundColor: aC.bg, borderTopWidth: aC.isDark ? 0 : 1, borderTopColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)' }]}>
-        <TouchableOpacity style={[s.homeBtn, aC.isDark ? { backgroundColor: '#07142F', borderWidth: 1, borderColor: '#7E9FD6' } : null]} onPress={() => router.push('/(tabs)/' as any)} activeOpacity={0.88}>
+        <TouchableOpacity style={[s.homeBtn, aC.isDark ? { backgroundColor: '#07142F', borderWidth: 1, borderColor: '#7E9FD6' } : null]} onPress={() => router.dismissTo('/(tabs)' as any)} activeOpacity={0.88}>
           {aC.isDark
             ? <RingGlow radius={26} peak={0.5} rings={12} />
             : <LinearGradient colors={[NAVY, ORANGE]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />}

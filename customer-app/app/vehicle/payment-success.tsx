@@ -21,6 +21,7 @@ import * as Sharing from "expo-sharing";
 import { useAppColors } from "@/constants/theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { PRIMARY_BTN_COLORS, RingGlow, SavedCardEffect } from "@/components/shared/FigmaEffects";
+import InnerGlow from "@/components/shared/InnerGlow";
 
 const BG = "#010a1f";
 const WHITE = "#f9fafc";
@@ -151,15 +152,14 @@ export default function PaymentSuccessScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.extraSecondaryBtn, styles.promoteSecondaryBtn]}
+            style={[styles.extraSecondaryBtn, styles.promoteSecondaryBtn, { backgroundColor: 'transparent', borderWidth: 0 }]}
             activeOpacity={0.85}
-            onPress={() => router.replace(homeRoute)}
+            onPress={() => router.dismissTo(homeRoute)}
           >
-            <LinearGradient colors={['#16408880', '#0D255480', '#00000001', '#00000001', '#0D255480', '#16408880']} locations={[0, 0.08, 0.22, 0.78, 0.92, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <LinearGradient colors={['#16408880', '#0D255480', '#00000001', '#00000001', '#0D255480', '#16408880']} locations={[0, 0.04, 0.12, 0.88, 0.96, 1]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <LinearGradient colors={['rgba(22,64,136,0.28)', 'rgba(0,0,0,0.36)', 'rgba(0,0,0,0.36)', 'rgba(22,64,136,0.28)']} locations={[0, 0.15, 0.85, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <LinearGradient colors={['rgba(22,64,136,0.24)', 'rgba(0,0,0,0.32)', 'rgba(0,0,0,0.32)', 'rgba(22,64,136,0.24)']} locations={[0, 0.1, 0.9, 1]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <Text style={styles.promoteSecondaryText}>Back to home</Text>
+            {/* Figma glass pill — same as GlowDraftButton (components/shared/ActionFooterGlow): blue inner glow, light-blue border, warm tint on the right */}
+            <InnerGlow radius={25} fill="#131F38" glowColor="#2C55A0" blur={14} borderColors={['#6F8CC0', '#5873A6']} borderWidth={1} />
+            <LinearGradient colors={['transparent', 'transparent', 'rgba(58,36,42,0.45)', 'transparent']} locations={[0, 0.5, 0.82, 1]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={[StyleSheet.absoluteFillObject, { top: 10, bottom: 10 }]} pointerEvents="none" />
+            <Text style={[styles.promoteSecondaryText, { fontFamily: 'Poppins_400Regular' }]}>Back to home</Text>
           </TouchableOpacity>
           {!!vid && <TouchableOpacity style={styles.promoteViewAd} onPress={() => router.replace({ pathname: '/buy/car-detail', params: { id: String(vid) } } as any)}><Text style={styles.promoteViewAdText}>View Ad</Text></TouchableOpacity>}
         </View>
@@ -238,7 +238,7 @@ export default function PaymentSuccessScreen() {
           {/* Back to home */}
           <TouchableOpacity
             style={[styles.homeBtn, styles.rHomeBtn, { backgroundColor: "#07142F", borderColor: "#7E9FD6", marginBottom: 10 }]}
-            onPress={() => router.replace("/(tabs)" as any)}
+            onPress={() => router.dismissTo("/(tabs)" as any)}
             activeOpacity={0.88}
           >
             <RingGlow radius={24} peak={0.5} rings={12} />
@@ -288,7 +288,7 @@ export default function PaymentSuccessScreen() {
           <TouchableOpacity
             style={styles.extraPrimaryBtn}
             activeOpacity={0.85}
-            onPress={() => router.replace("/(dealer)" as any)}
+            onPress={() => router.dismissTo("/(dealer)" as any)}
           >
             <LinearGradient
               colors={PRIMARY_BTN_COLORS as any}
@@ -610,7 +610,7 @@ export default function PaymentSuccessScreen() {
         {/* Back to home */}
         <TouchableOpacity
           style={[styles.homeBtn, { backgroundColor: "transparent", borderColor: aC.isDark ? "rgba(91,152,213,0.5)" : "rgba(3,42,105,0.14)" }, styles.rHomeBtn, aC.isDark && { backgroundColor: "#07142F", borderColor: "#7E9FD6" }]}
-          onPress={() => router.push("/(tabs)")}
+          onPress={() => router.dismissTo("/(tabs)")}
           activeOpacity={0.88}
         >
           {aC.isDark && <RingGlow radius={24} peak={0.5} rings={12} />}

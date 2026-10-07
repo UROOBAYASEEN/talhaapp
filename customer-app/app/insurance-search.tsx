@@ -218,7 +218,6 @@ export default function InsuranceSearchScreen() {
                 onChangeText={v => { setRegNumber(v); setErrors(p => ({ ...p, regNumber: '' })); }}
                 autoCapitalize="characters"
               />
-              <Ionicons name="chevron-down" size={20} color={dark ? '#F2F1F5' : '#64748b'} />
             </View>
           </View>
           {!!errors.regNumber && <Text style={s.errTxt}>{errors.regNumber}</Text>}

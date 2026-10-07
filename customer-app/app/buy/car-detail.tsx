@@ -7,12 +7,13 @@ import {
   Image, Modal, ScrollView, StyleSheet, Text, Linking,
   TouchableOpacity, View, StatusBar,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppColors, useAppColors } from '@/constants/theme';
 import DealerConfirmationModal from '@/components/shared/DealerConfirmationModal';
 import { CtaPanelGlass, PRIMARY_BTN_COLORS, RingGlow } from '@/components/shared/FigmaEffects';
+import { GlowDraftButton, GlowPublishButton } from '@/components/shared/ActionFooterGlow';
 
 const { width: W } = Dimensions.get('window');
 
@@ -108,8 +109,31 @@ const SERVICES = [
   { icon: 'shield-checkmark-outline'as const, title: 'Protect Your Vehicle with Insurance',  desc: 'Pick the Right Coverage and Get Insured Easily.' },
 ];
 
+// app/profile/saved.tsx — search input effect (Selected Car modal fields)
+function CmpInputEffect() {
+  return (
+    <>
+      <LinearGradient
+        colors={['#163565', '#061124', '#061124', '#0D2146']}
+        locations={[0, 0.24, 0.76, 1]}
+        style={StyleSheet.absoluteFillObject}
+        pointerEvents="none"
+      />
+      <LinearGradient
+        colors={['#24518F8F', '#16356552', 'transparent', 'transparent', '#16356552', '#24518F8F']}
+        locations={[0, 0.025, 0.075, 0.925, 0.975, 1]}
+        start={{ x: 0, y: 0.5 }}
+        end={{ x: 1, y: 0.5 }}
+        style={[StyleSheet.absoluteFillObject, { borderRadius: 22 }]}
+        pointerEvents="none"
+      />
+    </>
+  );
+}
+
 export default function CarDetailScreen() {
   const router = useRouter();
+  const cmpInsets = useSafeAreaInsets();
   const aC = useAppColors();
   const { id, from } = useLocalSearchParams<{ id: string; from?: string }>();
   // Came from Buy Used Car → Contact Dealer + Test Drive (Figma)
@@ -132,6 +156,8 @@ export default function CarDetailScreen() {
   const [testDriving,     setTestDriving]     = useState(false);
   const [contacting,      setContacting]      = useState(false);
   const [confirmVisible,  setConfirmVisible]  = useState(false);
+  // Fixed footer ki height — scroll ke end pe utni jagah, taake Browse More Services buttons ke peeche na chhupe
+  const [ctaH,            setCtaH]            = useState(0);
   const [callDone,        setCallDone]        = useState(false);
   // Selected-Car compare modal (screenshot): First Car = detail wali car (fix),
   // Second Car = user select kare — usi car ke dosre variants + 2 random cars
@@ -382,7 +408,13 @@ export default function CarDetailScreen() {
   // ── CTA buttons (screenshot: body card mein — Contact Dealer / Reserve / Test Drive) ──
   const ctaButtons = (
     <>
-      {fromUsedCar || fromBook ? (
+      {fromUsedCar && aC.isDark ? (
+        /* ── USED CAR (dark): "Publish Banner / Save as Draft" effect — components/shared/ActionFooterGlow ── */
+        <>
+          <GlowPublishButton title="Contact Dealer" height={52} radius={26} onPress={() => sellerId && router.push({ pathname: '/buy/dealer-profile', params: { id: sellerId, from: 'usedCar', category: vehicle?.category || '' } } as any)} />
+          <GlowDraftButton title="Test Drive" height={52} radius={26} onPress={() => router.push({ pathname: '/buy/test-drive', params: { id } } as any)} />
+        </>
+      ) : fromUsedCar || fromBook ? (
         /* ── USED CAR / BOOK A VEHICLE: Contact Dealer + Test Drive ── */
         <>
           <TouchableOpacity style={[s.ctaPrimary, s.dealerCtaBtn]} onPress={() => sellerId && (fromBook
@@ -468,7 +500,7 @@ export default function CarDetailScreen() {
     <SafeAreaView style={[s.root, { backgroundColor: aC.bg }]} edges={["top"]}>
       <StatusBar barStyle={aC.isDark ? "light-content" : "dark-content"} backgroundColor={aC.bg} />
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40, backgroundColor: aC.bg }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: ctaH > 0 ? ctaH + 16 : 40, backgroundColor: aC.bg }}>
 
         {/* ── Hero Image ── */}
         <View style={s.heroWrap}>
@@ -684,7 +716,7 @@ export default function CarDetailScreen() {
         </View>
       </ScrollView>
       {/* ── Fixed Footer CTA: Contact Dealer / Reserve / Test Drive ── */}
-      <View style={[s.ctaBox, { backgroundColor: aC.isDark ? '#0f1830' : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.08)', shadowColor: aC.isDark ? '#000' : 'rgba(3,42,105,0.12)' }]}>
+      <View onLayout={e => setCtaH(Math.round(e.nativeEvent.layout.height))} style={[s.ctaBox, { backgroundColor: aC.isDark ? '#0f1830' : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.08)', shadowColor: aC.isDark ? '#000' : 'rgba(3,42,105,0.12)' }]}>
         {aC.isDark && <CtaPanelGlass />}
         <View style={[s.ctaHandle, { backgroundColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.12)' }]} />
         {ctaButtons}
@@ -713,42 +745,72 @@ export default function CarDetailScreen() {
       <Modal visible={cmpVisible} transparent animationType="slide" onRequestClose={() => setCmpVisible(false)}>
         <View style={s.cmpOverlay}>
           <TouchableOpacity style={StyleSheet.absoluteFillObject} activeOpacity={1} onPress={() => setCmpVisible(false)} />
-          <View style={s.cmpCard}>
+          <View style={[s.cmpCard, { paddingBottom: 28 + cmpInsets.bottom }]}>
+            {/* app/profile/saved.tsx — vehicle card effect */}
+            <LinearGradient
+              colors={['#16408880', 'transparent', 'transparent', '#16408880']}
+              locations={[0, 0.03, 0.97, 1]}
+              style={StyleSheet.absoluteFillObject}
+              pointerEvents="none"
+            />
+            <LinearGradient
+              colors={['#16408880', 'transparent', 'transparent', '#16408880']}
+              locations={[0, 0.02, 0.98, 1]}
+              start={{ x: 0, y: 0.5 }}
+              end={{ x: 1, y: 0.5 }}
+              style={StyleSheet.absoluteFillObject}
+              pointerEvents="none"
+            />
             <Text style={s.cmpTitle}>Selected Car</Text>
             <TouchableOpacity style={s.cmpClose} onPress={() => setCmpVisible(false)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-              <Ionicons name="close" size={26} color="#E8E4EC" />
+              <Ionicons name="close" size={22} color="#BAACB6" />
             </TouchableOpacity>
 
             <View style={s.cmpBadgeRow}>
-              <View style={s.cmpDash} />
+              {/* Left + right dashed line (badge ke peeche se guzarti hai) */}
+              <View style={s.cmpDash} pointerEvents="none">
+                {Array.from({ length: 90 }).map((_, i) => <View key={i} style={s.cmpDashSeg} />)}
+              </View>
               <View style={s.cmpBadge}>
-                <MaterialCommunityIcons name="car" size={40} color="#E8E4EC" />
+                <LinearGradient
+                  colors={['#16408866', 'transparent', 'transparent', '#16408866']}
+                  locations={[0, 0.22, 0.78, 1]}
+                  start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }}
+                  style={StyleSheet.absoluteFillObject}
+                  pointerEvents="none"
+                />
+                <LinearGradient
+                  colors={['#16408866', 'transparent', 'transparent', '#16408866']}
+                  locations={[0, 0.22, 0.78, 1]}
+                  style={StyleSheet.absoluteFillObject}
+                  pointerEvents="none"
+                />
+                <Image source={require('@/assets/images/selectedCar.png')} style={{ width: 44, height: 44 }} resizeMode="contain" />
               </View>
             </View>
 
-            <View style={s.cmpLabelRow}>
+            <View style={[s.cmpLabelRow, { marginTop: 2 }]}>
               <View style={s.cmpCarDot}>
-                <MaterialCommunityIcons name="car" size={13} color="#010a1f" />
+                <MaterialCommunityIcons name="car" size={10} color="#010B1E" />
               </View>
               <Text style={s.cmpNameLabel}>First Car</Text>
-              <Ionicons name="checkmark-circle" size={15} color="#3b82f6" />
+              <MaterialCommunityIcons name="check-decagram" size={11} color="#178BFB" />
             </View>
             <View style={s.cmpField}>
+              <CmpInputEffect />
               <Text style={s.cmpFieldTxt} numberOfLines={1}>{variantLabel(cmpFirst)}</Text>
             </View>
 
             <View style={s.cmpLabelRow}>
               <View style={s.cmpCarDot}>
-                <MaterialCommunityIcons name="car" size={13} color="#010a1f" />
+                <MaterialCommunityIcons name="car" size={10} color="#010B1E" />
               </View>
               <Text style={s.cmpNameLabel}>Second Car</Text>
-              <Ionicons name="checkmark-circle" size={15} color="#3b82f6" />
+              <MaterialCommunityIcons name="check-decagram" size={11} color="#178BFB" style={{ marginLeft: 4 }} />
             </View>
             <TouchableOpacity style={s.cmpField} activeOpacity={0.85} onPress={() => setCmpOpen2(v => !v)}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Text style={s.cmpFieldTxt} numberOfLines={1}>{secondLabel()}</Text>
-                <Ionicons name={cmpOpen2 ? 'chevron-up' : 'chevron-down'} size={18} color="#C9C6D0" />
-              </View>
+              <CmpInputEffect />
+              <Text style={s.cmpFieldTxt} numberOfLines={1}>{secondLabel()}</Text>
             </TouchableOpacity>
             {cmpOpen2 && (
               <View style={s.cmpOpts}>
@@ -784,22 +846,24 @@ export default function CarDetailScreen() {
 const s = StyleSheet.create({
   /* Selected-Car compare modal (screenshot) */
   cmpOverlay:   { flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'flex-end' },
-  cmpCard:      { backgroundColor: '#010A1F', borderTopLeftRadius: 28, borderTopRightRadius: 28, borderWidth: 1, borderBottomWidth: 0, borderColor: 'rgba(130,165,213,0.4)', paddingHorizontal: 20, paddingTop: 18, paddingBottom: 40 },
-  cmpTitle:     { textAlign: 'center', fontSize: 20, fontFamily: 'Poppins_600SemiBold', color: '#E8E4EC' },
-  cmpClose:     { position: 'absolute', top: 14, right: 16, zIndex: 2 },
-  cmpBadgeRow:  { height: 84, marginTop: 10, alignItems: 'center', justifyContent: 'center' },
-  cmpDash:      { position: 'absolute', left: -20, right: -20, top: '50%', borderTopWidth: 1, borderStyle: 'dashed', borderColor: 'rgba(200,200,210,0.5)' },
-  cmpBadge:     { width: 78, height: 78, borderRadius: 39, borderWidth: 1, borderStyle: 'dashed', borderColor: 'rgba(200,200,210,0.6)', backgroundColor: '#0A1F4C', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  cmpLabelRow:  { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 14, marginBottom: 8 },
-  cmpCarDot:    { width: 22, height: 22, borderRadius: 11, backgroundColor: '#c9c2cc', alignItems: 'center', justifyContent: 'center' },
-  cmpNameLabel: { fontSize: 15, fontFamily: 'Poppins_500Medium', color: '#E8E4EC' },
-  cmpField:     { minHeight: 52, borderRadius: 26, borderWidth: 1, borderColor: 'rgba(130,165,213,0.55)', backgroundColor: '#0A1F4C', paddingHorizontal: 20, paddingVertical: 14, justifyContent: 'center', overflow: 'hidden' },
-  cmpFieldTxt:  { fontSize: 14, fontFamily: 'Poppins_500Medium', color: '#F2F1F5' },
+  /* Figma "Selected Car" — saved.tsx vehicle card effect */
+  cmpCard:      { backgroundColor: '#010A1F', borderRadius: 20, borderWidth: 1, borderColor: '#82a5d5', shadowColor: '#638ed0', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.15, shadowRadius: 5, elevation: 2, paddingHorizontal: 19, paddingTop: 15, paddingBottom: 28, overflow: 'hidden' },
+  cmpTitle:     { textAlign: 'center', fontSize: 17, lineHeight: 24, fontFamily: 'Poppins_500Medium', color: '#BAACB6' },
+  cmpClose:     { position: 'absolute', top: 14, right: 14, zIndex: 2 },
+  cmpBadgeRow:  { height: 72, marginTop: 9, alignItems: 'center', justifyContent: 'center' },
+  cmpDash:      { position: 'absolute', left: -19, right: -19, top: 36, height: 1, flexDirection: 'row', gap: 2, overflow: 'hidden' },
+  cmpDashSeg:   { width: 2.5, height: 1, backgroundColor: '#BAACB6' },
+  cmpBadge:     { width: 72, height: 72, borderRadius: 36, borderWidth: 1, borderStyle: 'dashed', borderColor: '#BAACB6', backgroundColor: '#061433', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  cmpLabelRow:  { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 16, marginBottom: 6 },
+  cmpCarDot:    { width: 14, height: 14, borderRadius: 7, backgroundColor: '#BAACB6', alignItems: 'center', justifyContent: 'center' },
+  cmpNameLabel: { fontSize: 13, lineHeight: 20, fontFamily: 'Poppins_500Medium', color: '#BAACB6' },
+  cmpField:     { height: 44, borderRadius: 22, borderWidth: 1, borderColor: '#829fd0', backgroundColor: 'rgba(3,12,40,0.6)', paddingHorizontal: 20, justifyContent: 'center', overflow: 'hidden' },
+  cmpFieldTxt:  { fontSize: 11, fontFamily: 'Poppins_500Medium', color: '#F9FAFC' },
   cmpOpts:      { marginTop: 8, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(130,165,213,0.35)', backgroundColor: '#07142F', overflow: 'hidden' },
   cmpOpt:       { paddingHorizontal: 20, paddingVertical: 13, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' },
   cmpOptTxt:    { fontSize: 14, fontFamily: 'Poppins_400Regular', color: '#F2F1F5' },
-  cmpBtn:       { height: 52, borderRadius: 26, marginTop: 20, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  cmpBtnTxt:    { color: '#fff', fontSize: 16, fontFamily: 'Poppins_600SemiBold' },
+  cmpBtn:       { height: 44, borderRadius: 22, marginTop: 18, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  cmpBtnTxt:    { color: '#fff', fontSize: 13, fontFamily: 'Poppins_500Medium' },
 
   root: { flex: 1, backgroundColor: BG },
 

@@ -13,6 +13,7 @@ import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppColors } from '@/constants/theme';
+import { useAndroidKeyboardHeight } from '@/hooks/use-android-keyboard-height';
 
 // Figma bottom bar (exact colours sampled from the design):
 // bar #071C49 · active circle navy → orange with orange ring · white outline icons,
@@ -82,6 +83,9 @@ function SellTabButton({ style }: { style?: any }) {
 const BAR_H = 60;
 function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
+  // Android: keyboard khula ho to floating tab bar keyboard ke upar na aaye
+  const keyboardH = useAndroidKeyboardHeight();
+  if (keyboardH > 0) return null;
   return (
     <View style={[styles.bar, { bottom: insets.bottom + 4 }]}>
       {state.routes.map((route, index) => {

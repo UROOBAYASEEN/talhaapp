@@ -93,7 +93,6 @@ function Step2FigmaField({ label, value, sample, onPress, onChangeText, numeric 
       ) : (
         <View style={{ height: 48, borderRadius: 9, backgroundColor: dark ? '#091e4e' : '#eef3ff', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14 }}>
           <TextInput value={value} onChangeText={onChangeText} placeholder={sample} placeholderTextColor={dark ? '#f9fafc' : '#64748b'} keyboardType={numeric ? 'numeric' : 'default'} style={{ flex: 1, color: dark ? '#f9fafc' : '#010a1f', fontSize: 15, fontFamily: 'Poppins_500Medium', padding: 0 }} />
-          <Ionicons name="chevron-down" size={21} color="#e2671b" />
         </View>
       )}
     </View>
@@ -662,20 +661,27 @@ export default function SellMyVehicle() {
 
             <Text style={[styles.photoCounter, { color: aC.textSecondary }]}>{photos.length}/{MAX_PHOTOS} photos added</Text>
 
-            <View style={[styles.tipCard, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? ORANGE : 'rgba(3,42,105,0.14)', overflow: 'hidden', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, shadowRadius: 8, elevation: aC.isDark ? 0 : 2 }]}>
-              {aC.isDark ? (
-                <LinearGradient colors={['transparent', 'rgba(226,103,27,0.25)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-              ) : (
-                <>
-                  <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                  <LinearGradient colors={['transparent', 'rgba(226,103,27,0.14)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                </>
-              )}
-              <Ionicons name="bulb-outline" size={16} color={ORANGE} style={{ marginRight: 10 }} />
-              <Text style={[styles.tipText, { color: aC.isDark ? '#baacb6' : '#475569' }]}>
-                Tip: Add at least 5 photos for better visibility
-              </Text>
-            </View>
+            {/* Dark: gradient border — top orange → bottom blue (Figma) */}
+            <LinearGradient
+              colors={aC.isDark ? [ORANGE, '#1E3D7A'] : ['transparent', 'transparent']}
+              start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }}
+              style={{ marginTop: 16, borderRadius: 14, padding: aC.isDark ? 1 : 0 }}
+            >
+              <View style={[styles.tipCard, { marginTop: 0 }, aC.isDark && { borderWidth: 0, borderRadius: 13 }, { backgroundColor: aC.isDark ? '#020B24' : '#ffffff', borderColor: aC.isDark ? ORANGE : 'rgba(3,42,105,0.14)', overflow: 'hidden', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, shadowRadius: 8, elevation: aC.isDark ? 0 : 2 }]}>
+                {aC.isDark ? (
+                  <LinearGradient colors={['transparent', 'rgba(226,103,27,0.25)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+                ) : (
+                  <>
+                    <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+                    <LinearGradient colors={['transparent', 'rgba(226,103,27,0.14)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+                  </>
+                )}
+                <Ionicons name="bulb-outline" size={16} color={ORANGE} style={{ marginRight: 10 }} />
+                <Text style={[styles.tipText, { color: aC.isDark ? '#baacb6' : '#475569' }]}>
+                  Tip: Add at least 5 photos for better visibility
+                </Text>
+              </View>
+            </LinearGradient>
           </>
         )}
 

@@ -8,7 +8,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AskariBank from '@/components/shared/AskariBank';
 import { G, GlowBackground, ScreenHeader } from '@/components/shared/GlowUI';
 import { SavedCardEffect } from '@/components/shared/FigmaEffects';
-import { BIKE_BRANDS, Brand, CAR_BRANDS, LatestVideos, SearchModal } from '@/components/book/common';
+import { BIKE_BRANDS, Brand, CAR_BRANDS, SearchModal } from '@/components/book/common';
+import LatestVideoSection from '@/components/shared/LatestVideoSection';
 
 // NOTE: grid widths har phone size + rotation pe reactive hain —
 // har tile apni width `useWindowDimensions()` se khud calculate karta hai.
@@ -133,7 +134,7 @@ export default function BookVehicleScreen() {
                     <Text style={st.needTitle}>{c.title}</Text>
                     <Ionicons name="chevron-forward" size={20} color={G.orange} />
                   </View>
-                  <Text style={st.needSub}>{c.sub}</Text>
+                  <Text style={st.needSub} numberOfLines={3}>{c.sub}</Text>
                 </LinearGradient>
               </TouchableOpacity>
             ))}
@@ -142,7 +143,7 @@ export default function BookVehicleScreen() {
           {/* Latest Video */}
           <Text style={[st.sec, { fontSize: 18, marginTop: 22 }]}>Latest Video</Text>
           <View style={{ paddingHorizontal: PAD }}>
-            <LatestVideos count={2} />
+            <LatestVideoSection count={2} savedCardStyle hideHeading noTopMargin />
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -189,8 +190,8 @@ const st = StyleSheet.create({
   needRow:      { flexDirection: 'row', gap: 16, paddingHorizontal: PAD },
   needCard:     { height: 190, borderRadius: 16, overflow: 'hidden' },
   needGrad:     { flex: 1, paddingHorizontal: 11, paddingTop: 10, paddingBottom: 12 },
-  needImg:      { width: 96, height: 72, alignSelf: 'center', marginBottom: 6 },
+  needImg:      { width: 96, height: 68, alignSelf: 'center', marginBottom: 4 },
   needTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 },
-  needTitle:    { flex: 1, color: G.white, fontSize: 15, fontFamily: 'Poppins_400Regular', lineHeight: 21 },
-  needSub:      { color: G.muted, fontSize: 11, fontFamily: 'Poppins_400Regular', lineHeight: 15 },
+  needTitle:    { flex: 1, color: G.white, fontSize: 15, fontFamily: 'Poppins_400Regular', lineHeight: 20 },
+  needSub:      { color: G.muted, fontSize: 11, fontFamily: 'Poppins_400Regular', lineHeight: 14.5 },
 });

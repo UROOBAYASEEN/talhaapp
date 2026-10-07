@@ -33,6 +33,21 @@ const DealerConfirmationModal = ({
     >
       <View style={styles.overlay}>
         <View style={styles.modalContainer}>
+          {/* app/profile/saved.tsx — vehicle card effect */}
+          <LinearGradient
+            colors={['#16408880', 'transparent', 'transparent', '#16408880']}
+            locations={[0, 0.08, 0.92, 1]}
+            style={StyleSheet.absoluteFillObject}
+            pointerEvents="none"
+          />
+          <LinearGradient
+            colors={['#16408880', 'transparent', 'transparent', '#16408880']}
+            locations={[0, 0.05, 0.95, 1]}
+            start={{ x: 0, y: 0.5 }}
+            end={{ x: 1, y: 0.5 }}
+            style={StyleSheet.absoluteFillObject}
+            pointerEvents="none"
+          />
 
           {/* Close Button */}
           <TouchableOpacity
@@ -42,8 +57,8 @@ const DealerConfirmationModal = ({
           >
             <Ionicons
               name="close"
-              size={20}
-              color="#B7B4C2"
+              size={22}
+              color="#BAACB6"
             />
           </TouchableOpacity>
 
@@ -52,7 +67,7 @@ const DealerConfirmationModal = ({
             <Ionicons
               name="bulb"
               size={26}
-              color="#FF7415"
+              color="#E0672A"
             />
           </View>
 
@@ -74,7 +89,7 @@ const DealerConfirmationModal = ({
               style={styles.buttonWrapper}
             >
               <LinearGradient
-                colors={["#073A89", "#FF6B12"]}
+                colors={["#0A2D65", "#DB662A"]}
                 start={{ x: 0, y: 0.5 }}
                 end={{ x: 1, y: 0.5 }}
                 style={styles.callButton}
@@ -91,6 +106,21 @@ const DealerConfirmationModal = ({
               onPress={onCancel ?? onClose}
               style={styles.cancelButton}
             >
+              {/* app/profile/saved.tsx — search input effect */}
+              <LinearGradient
+                colors={['#163565', '#061124', '#061124', '#0D2146']}
+                locations={[0, 0.24, 0.76, 1]}
+                style={StyleSheet.absoluteFillObject}
+                pointerEvents="none"
+              />
+              <LinearGradient
+                colors={['#24518F8F', '#16356552', 'transparent', 'transparent', '#16356552', '#24518F8F']}
+                locations={[0, 0.025, 0.075, 0.925, 0.975, 1]}
+                start={{ x: 0, y: 0.5 }}
+                end={{ x: 1, y: 0.5 }}
+                style={StyleSheet.absoluteFillObject}
+                pointerEvents="none"
+              />
               <Text style={styles.cancelText}>
                 Cancel
               </Text>
@@ -114,17 +144,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
   },
 
+  // Figma — screen width - 32, saved.tsx vehicle card background
   modalContainer: {
-    width: width * 0.85,
-    backgroundColor: "#020D25",
-    borderRadius: 24,
+    width: width - 32,
+    backgroundColor: "#010A1F",
+    borderRadius: 15,
 
     borderWidth: 1,
-    borderColor: "#12458C",
+    borderColor: "#163A75",
 
-    paddingTop: 24,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingTop: 23,
+    paddingHorizontal: 25,
+    paddingBottom: 26,
+    overflow: "hidden",
 
     // Android shadow
     elevation: 20,
@@ -141,8 +173,8 @@ const styles = StyleSheet.create({
 
   closeButton: {
     position: "absolute",
-    top: 8,
-    right: 8,
+    top: 1,
+    right: 6,
     width: 32,
     height: 32,
     justifyContent: "center",
@@ -151,43 +183,35 @@ const styles = StyleSheet.create({
   },
 
   iconCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 45,
+    height: 45,
+    borderRadius: 22.5,
 
-    backgroundColor: "#06235B",
+    backgroundColor: "#071C49",
 
     justifyContent: "center",
     alignItems: "center",
 
     alignSelf: "center",
 
-    marginBottom: 14,
-
-    shadowColor: "#1260D0",
-    shadowOffset: {
-      width: 0,
-      height: 0,
-    },
-    shadowOpacity: 0.35,
-    shadowRadius: 15,
-    elevation: 8,
+    marginBottom: 10,
   },
 
   message: {
-    color: "#C3C0CB",
-    fontSize: 13,
-    lineHeight: 20,
-    fontWeight: "400",
-    textAlign: "center",
+    color: "#BAACB6",
+    fontSize: 12.5,
+    lineHeight: 18.5,
+    fontFamily: "Poppins_400Regular",
+    textAlign: "left",
 
-    marginBottom: 16,
+    marginBottom: 15,
   },
 
   buttonsContainer: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    gap: 9,
+    marginHorizontal: 9,
   },
 
   buttonWrapper: {
@@ -195,8 +219,8 @@ const styles = StyleSheet.create({
   },
 
   callButton: {
-    height: 46,
-    borderRadius: 23,
+    height: 36,
+    borderRadius: 18,
 
     justifyContent: "center",
     alignItems: "center",
@@ -205,38 +229,30 @@ const styles = StyleSheet.create({
   },
 
   callButtonText: {
-    color: "#EDEBF0",
-    fontSize: 14,
-    fontWeight: "700",
+    color: "#D2D2D2",
+    fontSize: 10.5,
+    fontFamily: "Poppins_600SemiBold",
   },
 
   cancelButton: {
     flex: 1,
-    height: 46,
+    height: 36,
 
-    borderRadius: 23,
+    borderRadius: 18,
 
     justifyContent: "center",
     alignItems: "center",
 
-    backgroundColor: "#0B2856",
+    backgroundColor: "#061124",
 
     borderWidth: 1,
-    borderColor: "#4E80C5",
-
-    shadowColor: "#2E65A9",
-    shadowOffset: {
-      width: 0,
-      height: 0,
-    },
-    shadowOpacity: 0.35,
-    shadowRadius: 8,
-    elevation: 5,
+    borderColor: "#7A93BD",
+    overflow: "hidden",
   },
 
   cancelText: {
-    color: "#C7C5CF",
-    fontSize: 14,
-    fontWeight: "400",
+    color: "#C1C5CC",
+    fontSize: 13,
+    fontFamily: "Poppins_400Regular",
   },
 });

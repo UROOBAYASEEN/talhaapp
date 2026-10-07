@@ -571,7 +571,6 @@ export default function BuyUsedCarScreen() {
                   placeholder="Honda City"
                   placeholderTextColor={aC.isDark ? '#BAB6C4' : '#94a3b8'}
                 />
-                <Ionicons name="chevron-down" size={16} color={aC.isDark ? '#F2F1F5' : '#64748b'} />
               </View>
             </View>
             <DropdownField fkey="variant" icon="steering" />
@@ -657,7 +656,7 @@ export default function BuyUsedCarScreen() {
         </View>
         <View style={styles.needRow}>
           {[
-            { img: IMG_NEED_COMPARE, title: "Compare\nVehicle",          desc: "Compare vehicle features, prices, and specifications.",   route: "/compare-vehicle" },
+            { img: IMG_NEED_COMPARE, title: "Compare\nVehicle",          desc: "Compare vehicle features, prices, and specifications.",   route: "/compare-vehicle?from=usedCar" },
             { img: IMG_NEED_FINANCE, title: "Smart Finance\nCalculator",  desc: "Compare financing plans and calculate your monthly payments.", route: "/auto-financing" },
           ].map((t, i) => (
             <TouchableOpacity key={i} style={[styles.needCard, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderWidth: aC.isDark ? 0 : 1, borderColor: 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }]} onPress={() => router.push(t.route as any)} activeOpacity={0.85}>
@@ -695,7 +694,7 @@ export default function BuyUsedCarScreen() {
           <Text style={styles.sectionTitle}>Latest Video</Text>
         </View>
         */}
-        <LatestVideoSection count={2} />
+        <LatestVideoSection count={2} savedCardStyle />
 
         <View style={{ height: 80 }} />
       </ScrollView>

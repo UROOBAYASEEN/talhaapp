@@ -700,26 +700,26 @@ export default function HomeScreen() {
                   <>
                     {/* Top shade */}
                     <LinearGradient
-                      colors={['rgba(22,64,136,0.65)', 'transparent']}
-                      start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.25 }}
+                      colors={['rgba(22,64,136,0.55)', 'transparent']}
+                      start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.2 }}
                       style={StyleSheet.absoluteFillObject} pointerEvents="none"
                     />
                     {/* Bottom shade */}
                     <LinearGradient
-                      colors={['transparent', 'rgba(29,83,175,0.65)']}
-                      start={{ x: 0.5, y: 0.75 }} end={{ x: 0.5, y: 1 }}
+                      colors={['transparent', 'rgba(29,83,175,0.45)']}
+                      start={{ x: 0.5, y: 0.8 }} end={{ x: 0.5, y: 1 }}
                       style={StyleSheet.absoluteFillObject} pointerEvents="none"
                     />
                     {/* Left shade */}
                     <LinearGradient
-                      colors={['rgba(13,37,84,0.65)', 'transparent']}
-                      start={{ x: 0, y: 0.5 }} end={{ x: 0.25, y: 0.5 }}
+                      colors={['rgba(13,37,84,0.6)', 'transparent']}
+                      start={{ x: 0, y: 0.5 }} end={{ x: 0.2, y: 0.5 }}
                       style={StyleSheet.absoluteFillObject} pointerEvents="none"
                     />
                     {/* Right shade */}
                     <LinearGradient
-                      colors={['transparent', 'rgba(13,37,84,0.65)']}
-                      start={{ x: 0.75, y: 0.5 }} end={{ x: 1, y: 0.5 }}
+                      colors={['transparent', 'rgba(13,37,84,0.6)']}
+                      start={{ x: 0.8, y: 0.5 }} end={{ x: 1, y: 0.5 }}
                       style={StyleSheet.absoluteFillObject} pointerEvents="none"
                     />
                   </>
@@ -866,14 +866,14 @@ export default function HomeScreen() {
             14 · BROWSE MORE SERVICES
         ════════════════════════════════════════════════════ */}
         <View style={[styles.sec, styles.pad]}>
-          <BrowseMoreServices />
+          <BrowseMoreServices hideIconCircle />
         </View>
 
         {/* ════════════════════════════════════════════════════
             15 · LATEST VIDEO
         ════════════════════════════════════════════════════ */}
         <View style={[styles.sec, styles.pad]}>
-          <LatestVideoSection count={2} />
+          <LatestVideoSection count={2} savedCardStyle />
         </View>
 
         {/* ════════════════════════════════════════════════════
@@ -885,31 +885,31 @@ export default function HomeScreen() {
             {(recentReal && recentReal.length ? recentReal : RECENT_ACTIVITY).map((a: any, index: number) => {
               const iconName = actIconName(a, index);
               return (
-              <TouchableOpacity key={a.title + a.sub} style={[styles.actItem, { backgroundColor: aC.isDark ? '#010b1e' : aC.glassBg, borderColor: aC.isDark ? '#829fd0' : aC.glassBorder }]} activeOpacity={0.84}>
+              <TouchableOpacity key={a.title + a.sub} style={[styles.actItem, { backgroundColor: aC.isDark ? '#010b1e' : aC.glassBg, borderColor: aC.isDark ? '#7D96C0' : aC.glassBorder }]} activeOpacity={0.84}>
                 {aC.isDark ? (
                   <>
                     {/* Top shade (All Services wali) */}
                     <LinearGradient
-                      colors={['rgba(22,64,136,0.65)', 'transparent']}
+                      colors={['rgba(22,64,136,0.68)', 'transparent']}
                       start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.25 }}
                       style={StyleSheet.absoluteFillObject} pointerEvents="none"
                     />
                     {/* Bottom shade */}
                     <LinearGradient
-                      colors={['transparent', 'rgba(29,83,175,0.65)']}
-                      start={{ x: 0.5, y: 0.75 }} end={{ x: 0.5, y: 1 }}
+                      colors={['transparent', 'rgba(29,83,175,0.28)']}
+                      start={{ x: 0.5, y: 0.65 }} end={{ x: 0.5, y: 1 }}
                       style={StyleSheet.absoluteFillObject} pointerEvents="none"
                     />
                     {/* Left shade */}
                     <LinearGradient
-                      colors={['rgba(13,37,84,0.65)', 'transparent']}
-                      start={{ x: 0, y: 0.5 }} end={{ x: 0.25, y: 0.5 }}
+                      colors={['rgba(30,60,110,0.72)', 'transparent']}
+                      start={{ x: 0, y: 0.5 }} end={{ x: 0.085, y: 0.5 }}
                       style={StyleSheet.absoluteFillObject} pointerEvents="none"
                     />
                     {/* Right shade */}
                     <LinearGradient
-                      colors={['transparent', 'rgba(13,37,84,0.65)']}
-                      start={{ x: 0.75, y: 0.5 }} end={{ x: 1, y: 0.5 }}
+                      colors={['transparent', 'rgba(30,60,110,0.7)']}
+                      start={{ x: 0.935, y: 0.5 }} end={{ x: 1, y: 0.5 }}
                       style={StyleSheet.absoluteFillObject} pointerEvents="none"
                     />
                   </>
@@ -926,7 +926,7 @@ export default function HomeScreen() {
                   <Text style={[styles.actSub, { color: aC.textSecondary }]} numberOfLines={1}>{a.sub}</Text>
                 </View>
                 <View style={styles.actArrow}>
-                  <Ionicons name="chevron-forward" size={18} color="#e2671b" />
+                  <Ionicons name="chevron-forward" size={24} color="#e2671b" />
                 </View>
               </TouchableOpacity>
               );
@@ -1441,20 +1441,20 @@ const styles = StyleSheet.create({
 
   /* ── Recent Activity (node 1986:11792) ── */
   actItem: {
-    flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: 'rgba(3,12,40,0.6)', borderRadius: 14,
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    backgroundColor: 'rgba(3,12,40,0.6)', borderRadius: 16,
     borderWidth: 1, borderColor: 'rgba(100,160,255,0.5)',
-    paddingHorizontal: 12, paddingVertical: 9,
+    paddingLeft: 16, paddingRight: 12, paddingVertical: 12,
     overflow: 'hidden',
   },
   actIcon: {
-    width: 38, height: 38, borderRadius: 19, backgroundColor: C.glassDark,
+    width: 40, height: 40, borderRadius: 20, backgroundColor: C.glassDark,
     borderWidth: 0, borderColor: C.divider,
     alignItems: 'center', justifyContent: 'center', flexShrink: 0,
   },
-  activityBankIcon: { width: 20, height: 20 },
-  actTitle: { fontSize: 11, fontFamily: 'Poppins_500Medium', color: C.textPrimary },
-  actSub: { fontSize: 9, fontFamily: 'Poppins_400Regular', color: C.textSec },
+  activityBankIcon: { width: 21, height: 21 },
+  actTitle: { fontSize: 12, lineHeight: 18, fontFamily: 'Poppins_500Medium', color: C.textPrimary },
+  actSub: { fontSize: 8, lineHeight: 12, marginTop: 3, fontFamily: 'Poppins_400Regular', color: C.textSec },
   actArrow: {
     width: 24, alignItems: 'center', justifyContent: 'center',
   },

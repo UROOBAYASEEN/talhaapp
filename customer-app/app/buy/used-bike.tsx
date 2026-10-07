@@ -573,7 +573,6 @@ export default function BuyUsedBikeScreen() {
                   placeholder="Honda CG 125"
                   placeholderTextColor={aC.isDark ? '#BAB6C4' : '#94a3b8'}
                 />
-                <Ionicons name="chevron-down" size={16} color={aC.isDark ? '#F2F1F5' : '#64748b'} />
               </View>
             </View>
             <DropdownField fkey="variant" icon="steering" />
@@ -697,7 +696,7 @@ export default function BuyUsedBikeScreen() {
           <Text style={styles.sectionTitle}>Latest Video</Text>
         </View>
         */}
-        <LatestVideoSection count={2} />
+        <LatestVideoSection count={2} savedCardStyle />
 
         <View style={{ height: 80 }} />
       </ScrollView>

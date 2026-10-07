@@ -552,7 +552,7 @@ export default function BuyNewBikeScreen() {
 
         {/* ══ 7 · LATEST VIDEO ══ */}
         <View style={styles.sec}>
-          <LatestVideoSection count={2} />
+          <LatestVideoSection count={2} savedCardStyle />
         </View>
 
       </ScrollView>

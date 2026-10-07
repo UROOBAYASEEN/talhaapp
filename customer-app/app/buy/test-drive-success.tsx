@@ -84,7 +84,7 @@ export default function TestDriveSuccessScreen() {
         <View style={{ flex: 1, minHeight: 60 }} />
 
         {/* Back to home */}
-        <TouchableOpacity style={s.homeBtn} activeOpacity={0.88} onPress={() => router.push('/(tabs)' as any)}>
+        <TouchableOpacity style={s.homeBtn} activeOpacity={0.88} onPress={() => router.dismissTo('/(tabs)' as any)}>
           <RingGlow radius={28} peak={0.5} rings={14} />
           <Text style={s.homeTxt}>Back to home</Text>
         </TouchableOpacity>

@@ -338,7 +338,7 @@ export default function CompareVehicle() {
       }
       // Navigate to detailed compare page (HTML wala design)
       if (from === 'book') router.push({ pathname: '/book/compare' as any, params: { aId: a.id, bId: b.id } });
-      else router.push({ pathname: '/compare-result' as any, params: { aId: a.id, bId: b.id, from: 'compareVehicle' } });
+      else router.push({ pathname: '/compare-result' as any, params: { aId: a.id, bId: b.id, from: 'compareVehicle', ...(from === 'usedCar' ? { hideBuy: '1' } : {}) } });
       // keep inline result as fallback if user stays
       setCompareResult({ a, b });
     } catch (e: any) {
@@ -674,9 +674,10 @@ export default function CompareVehicle() {
                   <View style={styles.vsContainer} pointerEvents="none">
                     <Text style={styles.vsText}>VS</Text>
                   </View>
+                  {/* "Use this pair" — hidden (kept for later)
                   <TouchableOpacity style={[styles.pairUseBtn, { backgroundColor: aC.isDark ? 'rgba(255,107,0,0.18)' : '#ffffff', borderColor: aC.isDark ? 'rgba(255,107,0,0.4)' : 'rgba(3,42,105,0.12)' }]} onPress={() => fillTrendingPair(pIdx)}>
                     <Text style={styles.pairUseTxt}>Use this pair</Text>
-                  </TouchableOpacity>
+                  </TouchableOpacity> */}
                 </View>
               ));
             })()}
@@ -684,7 +685,7 @@ export default function CompareVehicle() {
         )}
 
         {/* LATEST VIDEO — Home page wala component reuse */}
-        <LatestVideoSection count={2} />
+        <LatestVideoSection count={2} savedCardStyle />
 
         <View style={{ height: 30 }} />
       </ScrollView>

@@ -92,7 +92,7 @@ export default function PaymentFailedScreen() {
         <TouchableOpacity
           style={s.homeBtn}
           activeOpacity={0.85}
-          onPress={() => router.push("/(tabs)" as any)}
+          onPress={() => router.dismissTo("/(tabs)" as any)}
         >
           <Text style={s.homeTxt}>Back to Home</Text>
         </TouchableOpacity>

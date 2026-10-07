@@ -162,7 +162,7 @@ export default function CompanyProfileScreen() {
             <View style={styles.companyLogoWrapper}>
               <View style={styles.companyLogo}>
                 {avatarUrl ? (
-                  <Image source={{ uri: avatarUrl }} style={{ width: 80, height: 80, borderRadius: 40 }} resizeMode="cover" />
+                  <Image source={{ uri: avatarUrl }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
                 ) : (
                   <>
                     <Ionicons name="shield-checkmark" size={28} color={ORANGE} />
@@ -519,7 +519,7 @@ const styles = StyleSheet.create({
 
   scrollContent: { paddingBottom: 100 },
 
-  coverContainer: { height: 190, position: "relative" },
+  coverContainer: { height: 190, position: "relative", zIndex: 2, elevation: 2 },
   coverImage:     { width: "100%", height: "100%" },
 
   companyLogoWrapper: { position: "absolute", left: 10, bottom: -40, width: 68, height: 68 },

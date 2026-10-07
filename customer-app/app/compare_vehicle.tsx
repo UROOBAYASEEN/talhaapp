@@ -704,7 +704,7 @@ export default function CompareVehicle() {
         )}
 
         {/* LATEST VIDEO — Home page wala component reuse */}
-        <LatestVideoSection count={2} />
+        <LatestVideoSection count={2} savedCardStyle />
 
         <View style={{ height: 30 }} />
       </ScrollView>

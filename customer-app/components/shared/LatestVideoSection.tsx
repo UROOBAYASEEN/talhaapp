@@ -18,17 +18,38 @@ const BORDER   = 'rgba(255,255,255,0.15)';
 
 interface Props {
   count?: number;   // how many video cards to show (default 2)
+  savedCardStyle?: boolean;   // app/profile/saved.tsx vehicle card effect
+  hideHeading?: boolean;      // screen apna heading khud dikhati ho
+  noTopMargin?: boolean;
 }
 
-function VideoCard({ item, onPlay }: { item: any; onPlay: () => void }) {
+function VideoCard({ item, onPlay, savedStyle }: { item: any; onPlay: () => void; savedStyle?: boolean }) {
   const SERVER = API_BASE.replace('/api/v1', '');
   const C = useAppColors();
   const thumb = item.media_url?.startsWith('http') ? item.media_url : item.media_url ? `${SERVER}${item.media_url}` : VIDEO_IMG;
   const title = item.title || 'Video Ad';
   const isVideo = (item.media_url || '').match(/\.(mp4|mov|webm)$/i);
   return (
-    <TouchableOpacity style={[s.card, { backgroundColor: C.isDark ? C.glassBg : '#ffffff', borderColor: C.isDark ? 'rgba(100,160,255,0.5)' : 'rgba(3,42,105,0.12)', shadowColor: C.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOffset: { width: 0, height: 4 }, shadowOpacity: C.isDark ? 0 : 0.08, shadowRadius: 10, elevation: C.isDark ? 0 : 3 }]} activeOpacity={0.86} onPress={onPlay}>
-      {C.isDark ? (
+    <TouchableOpacity style={[s.card, { backgroundColor: C.isDark ? C.glassBg : '#ffffff', borderColor: C.isDark ? 'rgba(100,160,255,0.5)' : 'rgba(3,42,105,0.12)', shadowColor: C.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOffset: { width: 0, height: 4 }, shadowOpacity: C.isDark ? 0 : 0.08, shadowRadius: 10, elevation: C.isDark ? 0 : 3 }, C.isDark && savedStyle && s.savedCard]} activeOpacity={0.86} onPress={onPlay}>
+      {C.isDark && savedStyle ? (
+        <>
+          {/* app/profile/saved.tsx — vehicle card effect */}
+          <LinearGradient
+            colors={['#16408880', 'transparent', 'transparent', '#16408880']}
+            locations={[0, 0.08, 0.92, 1]}
+            style={StyleSheet.absoluteFillObject}
+            pointerEvents="none"
+          />
+          <LinearGradient
+            colors={['#16408880', 'transparent', 'transparent', '#16408880']}
+            locations={[0, 0.05, 0.95, 1]}
+            start={{ x: 0, y: 0.5 }}
+            end={{ x: 1, y: 0.5 }}
+            style={StyleSheet.absoluteFillObject}
+            pointerEvents="none"
+          />
+        </>
+      ) : C.isDark ? (
         <>
           <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
           <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
@@ -49,7 +70,7 @@ function VideoCard({ item, onPlay }: { item: any; onPlay: () => void }) {
           <Text style={s.durTxt}>{isVideo ? 'Video Ad' : 'Ad'}</Text>
         </View>
       </View>
-      <View style={s.info}>
+      <View style={[s.info, savedStyle && { gap: 5 }]}>
         <Text style={[s.title, { color: C.textPrimary }]} numberOfLines={1}>{title}</Text>
         <Text style={[s.subtitle, { color: C.textSecondary }]} numberOfLines={1}>{item.user_type || 'All Users'} • {item.cities?.[0] || 'All Cities'}</Text>
         <View style={[s.divider, { backgroundColor: C.divider }]} />
@@ -63,7 +84,7 @@ function VideoCard({ item, onPlay }: { item: any; onPlay: () => void }) {
             <Text style={[s.metaTxt, { color: C.textSecondary }]}>{item.created_at ? new Date(item.created_at).toLocaleDateString() : 'Recently'}</Text>
           </View>
         </View>
-        <View style={s.watchBtn}>
+        <View style={[s.watchBtn, savedStyle && { alignSelf: 'flex-end' }]}>
           <Ionicons name="play" size={12} color="#ff383c" />
           <Text style={s.watchTxt}>Watch Video</Text>
           <Ionicons name="chevron-forward" size={12} color="#ff383c" />
@@ -73,7 +94,7 @@ function VideoCard({ item, onPlay }: { item: any; onPlay: () => void }) {
   );
 }
 
-export default function LatestVideoSection({ count = 2 }: Props) {
+export default function LatestVideoSection({ count = 2, savedCardStyle = false, hideHeading = false, noTopMargin = false }: Props) {
   const C = useAppColors();
   const SERVER = API_BASE.replace('/api/v1', '');
   const [videos, setVideos] = useState<any[]>([]);
@@ -109,14 +130,17 @@ export default function LatestVideoSection({ count = 2 }: Props) {
   }
 
   return (
-    <View style={s.wrap}>
-      <View style={s.header}>
-        <Text style={[s.heading, { color: C.textPrimary }]}>Latest Video</Text>
-      </View>
+    <View style={[s.wrap, noTopMargin && { marginTop: 0 }]}>
+      {!hideHeading && (
+        <View style={s.header}>
+          <Text style={[s.heading, { color: C.textPrimary }]}>Latest Video</Text>
+        </View>
+      )}
       {list.map((v: any) => (
         <VideoCard
           key={v.id || v._id || v.title}
           item={v}
+          savedStyle={savedCardStyle}
           onPlay={() => {
             const uri = playUrl(v);
             if (!uri) return;
@@ -162,6 +186,11 @@ const s = StyleSheet.create({
     borderRadius: 16, padding: 10, marginBottom: 10,
     backgroundColor: 'rgba(3,12,40,0.6)',
     overflow: 'hidden',
+  },
+  savedCard: {
+    borderRadius: 20, backgroundColor: '#010A1F', borderColor: '#82a5d5',
+    shadowColor: '#638ed0', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.15, shadowRadius: 5, elevation: 2,
+    paddingVertical: 16, gap: 16,
   },
   thumb:    { width: 144, height: 117, borderRadius: 16, overflow: 'hidden', flexShrink: 0 },
   thumbImg: { width: 144, height: 117 },

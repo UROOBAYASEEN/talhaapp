@@ -359,7 +359,7 @@ export default function AdsScreen() {
               </View>
 
               <BrowseMoreServices />
-              <LatestVideoSection count={2} />
+              <LatestVideoSection count={2} savedCardStyle />
             </>
           ) : null
         }

@@ -235,7 +235,7 @@ export default function PromotePaymentScreen() {
               />
               <Text style={s.successBtnTxt}>View Success Page</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.replace(panelHome as any)}>
+            <TouchableOpacity onPress={() => router.dismissTo(panelHome as any)}>
               <Text style={s.successHome}>Back to Home</Text>
             </TouchableOpacity>
           </View>

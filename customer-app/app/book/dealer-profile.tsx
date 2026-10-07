@@ -10,6 +10,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { G, Glass, GlassButton, GradientButton } from '@/components/shared/GlowUI';
+import { CtaPanelGlass } from '@/components/shared/FigmaEffects';
 import { authHeaders, imgUrl } from '@/components/book/common';
 import { RatingSummary, ReviewItem } from '@/components/book/reviews';
 
@@ -226,7 +227,8 @@ export default function BookDealerProfile() {
 
       {/* Fixed bottom: View Available Cars + Call / Chat / WhatsApp */}
       <View style={[s.cta, { paddingBottom: Math.max(insets.bottom, 10) + 4 }]} onLayout={e => setCtaH(Math.ceil(e.nativeEvent.layout.height))}>
-        <Glass radius={0} blur={30} fill="#07112B" glow="#25407A" />
+        {/* Same background effect as Buy Used Car → dealer profile footer (app/buy/dealer-profile.tsx) */}
+        <CtaPanelGlass />
         <GradientButton
           title={`View Available ${isBike ? 'Bikes' : 'Cars'}`}
           height={48}
@@ -279,7 +281,7 @@ const s = StyleSheet.create({
   infoLine:  { color: G.muted, fontSize: 11, fontFamily: 'Poppins_400Regular', textAlign: 'center', lineHeight: 16 },
   seeMore:   { color: '#E6E1E8', fontSize: 14, fontFamily: 'Poppins_400Regular', textDecorationLine: 'underline' },
 
-  cta:       { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 16, overflow: 'hidden' },
+  cta:       { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 16, overflow: 'hidden', borderTopLeftRadius: 20, borderTopRightRadius: 20, borderTopWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
   actions:   { flexDirection: 'row', justifyContent: 'space-around', marginTop: 14 },
   action:    { flexDirection: 'row', alignItems: 'center', gap: 10 },
   actionTxt: { color: '#E6E1E8', fontSize: 17, fontFamily: 'Poppins_400Regular' },

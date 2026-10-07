@@ -41,7 +41,7 @@ function NeedThisSection({ variant = 'newCar' }: { variant?: 'newCar' | 'usedCar
   const aC = useAppColors();
   const cards = variant === 'usedCar'
     ? [
-        { img: IMG_NEED_COMPARE,   title: 'Compare\nVehicle',          sub: 'Compare vehicle features, prices, and specifications.',        route: '/compare-vehicle' },
+        { img: IMG_NEED_COMPARE,   title: 'Compare\nVehicle',          sub: 'Compare vehicle features, prices, and specifications.',        route: '/compare-vehicle?from=usedCar' },
         { img: IMG_NEED_INSURANCE, title: 'Compare\nInsurance Plans',  sub: 'Compare coverage, benefits, and prices to find the right plan.', route: '/insurance-search' },
       ]
     : [
@@ -569,7 +569,7 @@ export default function SearchResultsScreen() {
             {!loading && !isDealerInventory && (
               <>
                 {fromNewCarCash ? <NeedThisSection /> : fromUsedCar ? <NeedThisSection variant="usedCar" /> : <BrowseMoreServices />}
-                <LatestVideoSection count={2} />
+                <LatestVideoSection count={2} savedCardStyle />
               </>
             )}
 

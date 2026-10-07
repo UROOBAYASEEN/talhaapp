@@ -33,7 +33,7 @@ const SERVICES = [
   },
 ];
 
-export default function BrowseMoreServices() {
+export default function BrowseMoreServices({ hideIconCircle = false }: { hideIconCircle?: boolean }) {
   const router = useRouter();
   const C = useAppColors();
 
@@ -48,7 +48,7 @@ export default function BrowseMoreServices() {
           activeOpacity={0.84}
           onPress={() => router.push({ pathname: item.route as any, params: item.params })}
         >
-          <View style={[s.iconWrap, { backgroundColor: C.isDark ? DARK_NAV : '#e8eeff', borderColor: C.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(3,12,40,0.1)' }]}>
+          <View style={[s.iconWrap, hideIconCircle ? { backgroundColor: 'transparent', borderWidth: 0 } : { backgroundColor: C.isDark ? DARK_NAV : '#e8eeff', borderColor: C.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(3,12,40,0.1)' }]}>
             <Ionicons name={item.icon} size={22} color={ORANGE} />
           </View>
           <View style={s.txt}>

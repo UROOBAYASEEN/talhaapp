@@ -146,7 +146,6 @@ export default function TrackerBookingScreen() {
             placeholder="Toyota Corolla · LEA-1234"
             placeholderTextColor={aC.isDark ? '#E6E4EA' : '#94a3b8'}
           />
-          <Ionicons name="chevron-down" size={20} color={aC.isDark ? '#E6E4EA' : '#64748b'} />
         </View>
         {errors.vehicle && <Text style={s.errText}>{errors.vehicle}</Text>}
 
@@ -166,7 +165,6 @@ export default function TrackerBookingScreen() {
             placeholder="DHA Phase 5 Center"
             placeholderTextColor={aC.isDark ? '#E6E4EA' : '#94a3b8'}
           />
-          <Ionicons name="chevron-down" size={20} color={aC.isDark ? '#E6E4EA' : '#64748b'} />
         </View>
         {errors.center && <Text style={s.errText}>{errors.center}</Text>}
 

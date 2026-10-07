@@ -403,11 +403,11 @@ export default function VehicleSearch() {
         <>
           <View style={styles.fullField}>
             <View style={styles.fieldLabelRow}>
-              <Ionicons name="car-outline" size={16} color="#e2671b" />
+              <Image source={require('@/screenshot/dealershiplogo.png')} style={{ width: 16, height: 16, tintColor: '#e2671b' }} resizeMode="contain" />
               <Text style={[styles.fieldLabel, { color: C.textPrimary }]}>Non Dealers</Text>
             </View>
-            <TouchableOpacity activeOpacity={1} disabled onPress={() => setOpenSheet('sellerType')} style={[styles.fullDropdown, { backgroundColor: C.isDark ? 'rgba(91,54,67,0.27)' : C.glassBg, borderColor: C.isDark ? '#8a7b85' : 'rgba(3,12,40,0.12)', overflow: 'hidden', opacity: 0.7 }]}>
-              <Text style={[styles.dropdownTxt, { color: '#c9cedb' }]} numberOfLines={1}>{sellerType}</Text>
+            <TouchableOpacity activeOpacity={1} disabled onPress={() => setOpenSheet('sellerType')} style={[styles.fullDropdown, { backgroundColor: C.isDark ? 'rgba(91,54,67,0.27)' : C.glassBg, borderColor: C.isDark ? '#8a7b85' : 'rgba(3,12,40,0.12)', overflow: 'hidden' }]}>
+              <Text style={[styles.dropdownTxt, { color: '#ffffff' }]} numberOfLines={1}>{sellerType === 'All (Non Dealer + Individual)' ? 'All( Showroom + Sellers)' : sellerType}</Text>
             </TouchableOpacity>
           </View>
           <View style={styles.fullField}>

@@ -173,7 +173,6 @@ export default function TrackerSearchScreen() {
                 onChangeText={setRegNumber}
                 autoCapitalize="characters"
               />
-              <Ionicons name="chevron-down" size={20} color={dark ? '#F2F1F5' : '#64748b'} />
             </View>
           </View>
 

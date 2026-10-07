@@ -23,15 +23,15 @@ function imgUrl(u?: string) {
 function fmtPrice(p: any) {
   if (p == null) return '—';
   const n = Number(p);
-  if (n >= 10000000) return `PKR ${(n / 10000000).toFixed(1)} Lacacs`;
-  if (n >= 100000) return `PKR ${(n / 100000).toFixed(1)} Lacacs`;
+  if (n >= 10000000) return `PKR ${(n / 10000000).toFixed(1)} Lacs`;
+  if (n >= 100000) return `PKR ${(n / 100000).toFixed(1)} Lacs`;
   return `PKR ${n.toLocaleString()}`;
 }
 
 // Figma text colours
-const TXT_HEAD  = '#E6E4EA';
+const TXT_HEAD = '#E6E4EA';
 const TXT_LABEL = '#D2CFD8';
-const TXT_VAL   = '#BAB6C4';
+const TXT_VAL = '#BAB6C4';
 
 // Rounded inner glow, equal on all four sides (selected cards / glass buttons)
 function RingGlow({ radius = 16, peak = 0.45, rings = 10 }: { radius?: number; peak?: number; rings?: number }) {
@@ -106,8 +106,10 @@ function SpecHeader() {
 export default function CompareResult() {
   const router = useRouter();
   const aC = useAppColors();
-  const params = useLocalSearchParams<{ aId?: string; bId?: string; aData?: string; bData?: string; from?: string }>();
+  const params = useLocalSearchParams<{ aId?: string; bId?: string; aData?: string; bData?: string; from?: string; hideBuy?: string }>();
   const fromCompareVehicle = params.from === 'compareVehicle';
+  // Buy Used Car → Compare Vehicle se aaye to Buy New Car / Buy Used Car buttons nahi dikhane
+  const hideBuyBtns = params.hideBuy === '1';
   const [a, setA] = useState<any>(null);
   const [b, setB] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -121,8 +123,8 @@ export default function CompareResult() {
       try {
         // Try to parse passed JSON first
         if (params.aData && params.bData) {
-          try { setA(JSON.parse(String(params.aData))); } catch {}
-          try { setB(JSON.parse(String(params.bData))); } catch {}
+          try { setA(JSON.parse(String(params.aData))); } catch { }
+          try { setB(JSON.parse(String(params.bData))); } catch { }
           setLoading(false);
           return;
         }
@@ -135,13 +137,13 @@ export default function CompareResult() {
             const [ta, tb] = await Promise.all([fetch(`${API_BASE}/vehicles/${params.aId}/tax`), fetch(`${API_BASE}/vehicles/${params.bId}/tax`)]);
             if (ta.ok) setTaxA(await ta.json());
             if (tb.ok) setTaxB(await tb.json());
-          } catch {}
+          } catch { }
         } else {
           // fallback to static demo (HTML ke exact values)
           setA(null);
           setB(null);
         }
-      } catch {}
+      } catch { }
       finally { setLoading(false); }
     })();
   }, []);
@@ -190,7 +192,7 @@ export default function CompareResult() {
     body_type: a?.body_type || '—',
     fuel_type: a?.fuel_type || '—',
     transmission: a?.transmission || '—',
-    engine: a?.engine_cc ? `${(a.engine_cc/1000).toFixed(1)}L` : '—',
+    engine: a?.engine_cc ? `${(a.engine_cc / 1000).toFixed(1)}L` : '—',
     displacement: a?.engine_cc ? `${a.engine_cc} cc` : '—',
     horsepower: a?.horsepower || '—',
     torque: a?.torque || '—',
@@ -207,7 +209,7 @@ export default function CompareResult() {
     body_type: b?.body_type || '—',
     fuel_type: b?.fuel_type || '—',
     transmission: b?.transmission || '—',
-    engine: b?.engine_cc ? `${(b.engine_cc/1000).toFixed(1)}L` : '—',
+    engine: b?.engine_cc ? `${(b.engine_cc / 1000).toFixed(1)}L` : '—',
     displacement: b?.engine_cc ? `${b.engine_cc} cc` : '—',
     horsepower: b?.horsepower || '—',
     torque: b?.torque || '—',
@@ -233,19 +235,19 @@ export default function CompareResult() {
   const selectedIsBike = !isDemo && selected?.category === 'bike';
   const variantRows = isDemo
     ? [
-        { key: 'a' as const, name: '1.2 MT', meta: '1199 cc • Petrol • Manual', delivery: 'Immediate', price: 'Rs 5,667,000' },
-        { key: 'b' as const, name: '1.5 Aspire MT', meta: '1498 cc • Petrol • Manual', delivery: 'Immediate', price: 'Rs 5,667,000' },
-      ]
+      { key: 'a' as const, name: '1.2 MT', meta: '1199 cc • Petrol • Manual', delivery: 'Immediate', price: 'Rs 5,667,000' },
+      { key: 'b' as const, name: '1.5 Aspire MT', meta: '1498 cc • Petrol • Manual', delivery: 'Immediate', price: 'Rs 5,667,000' },
+    ]
     : ([
-        { key: 'a' as const, v: a },
-        { key: 'b' as const, v: b },
-      ] as const).map(({ key, v }: any) => ({
-        key,
-        name: v?.variant || v?.title || `${v?.make || ''} ${v?.model || ''}`.trim() || (key === 'a' ? 'Vehicle 1' : 'Vehicle 2'),
-        meta: `${v?.engine_cc ? `${v.engine_cc} cc` : ''}${v?.engine_cc && v?.fuel_type ? ' • ' : ''}${v?.fuel_type ? String(v.fuel_type).charAt(0).toUpperCase() + String(v.fuel_type).slice(1) : ''}${v?.transmission ? ` • ${v.transmission}` : ''}` || '—',
-        delivery: 'Immediate',
-        price: typeof v?.price === 'number' ? `Rs ${Number(v.price).toLocaleString()}` : fmtPrice(v?.price),
-      }));
+      { key: 'a' as const, v: a },
+      { key: 'b' as const, v: b },
+    ] as const).map(({ key, v }: any) => ({
+      key,
+      name: v?.variant || v?.title || `${v?.make || ''} ${v?.model || ''}`.trim() || (key === 'a' ? 'Vehicle 1' : 'Vehicle 2'),
+      meta: `${v?.engine_cc ? `${v.engine_cc} cc` : ''}${v?.engine_cc && v?.fuel_type ? ' • ' : ''}${v?.fuel_type ? String(v.fuel_type).charAt(0).toUpperCase() + String(v.fuel_type).slice(1) : ''}${v?.transmission ? ` • ${v.transmission}` : ''}` || '—',
+      delivery: 'Immediate',
+      price: typeof v?.price === 'number' ? `Rs ${Number(v.price).toLocaleString()}` : fmtPrice(v?.price),
+    }));
 
   function handleCallDealer() {
     const sid = selected?.seller_id ?? selected?.seller?.id;
@@ -288,18 +290,18 @@ export default function CompareResult() {
         {/* Cards Row */}
         <View style={s.cardsRow}>
           {[left, right].map((car, idx) => (
-            <LinearGradient key={idx} colors={aC.isDark ? ['#1A3268', '#9FAAC4', '#B07A66'] : ['rgba(3,42,105,0.12)', 'rgba(3,42,105,0.12)']} locations={aC.isDark ? [0, 0.55, 1] : undefined} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={s.carCardBorder}>
-            <View style={[s.carCard, { borderWidth: 0, borderRadius: 13, backgroundColor: aC.isDark ? '#0B1D4A' : '#ffffff', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }]}>
-              {aC.isDark
-                ? <LinearGradient colors={['#0B1D4A', '#0E2152', '#3A2F4A', '#7D4B3C']} locations={[0, 0.45, 0.75, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} />
-                : <GlassInset />}
-              <Image source={{ uri: car.img }} style={s.carImg} resizeMode="cover" />
-              <View style={s.carBody}>
-                <Text style={[s.carName, { color: aC.isDark ? '#F2F1F5' : '#010a1f' }]} numberOfLines={2}>{car.title}</Text>
-                <View style={[s.carDivider, { backgroundColor: aC.isDark ? 'rgba(255,255,255,0.28)' : 'rgba(3,42,105,0.12)' }]} />
-                <Text style={[s.carPrice, { color: aC.isDark ? '#CFCAD3' : '#475569' }]}>{typeof car.price === 'number' ? fmtPrice(car.price) : car.price}</Text>
+            <LinearGradient key={idx} colors={aC.isDark ? ['#BAACB6', 'rgba(186,172,182,0.35)', 'rgba(186,172,182,0)'] : ['rgba(3,42,105,0.12)', 'rgba(3,42,105,0.12)']} locations={aC.isDark ? [0, 0.04, 0.14] : undefined} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={s.carCardBorder}>
+              <View style={[s.carCard, { borderWidth: 0, borderRadius: 13, backgroundColor: aC.isDark ? '#0B1D4A' : '#ffffff', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }]}>
+                {aC.isDark
+                  ? <LinearGradient colors={['#051537', '#071B48', '#1A2345', '#3A2D3E', '#673D36']} locations={[0, 0.47, 0.6, 0.76, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} />
+                  : <GlassInset />}
+                <Image source={{ uri: car.img }} style={s.carImg} resizeMode="contain" />
+                <View style={s.carBody}>
+                  <Text style={[s.carName, { color: aC.isDark ? '#F2F1F5' : '#010a1f' }]} numberOfLines={2}>{car.title}</Text>
+                  <View style={[s.carDivider, { backgroundColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)' }]} />
+                  <Text style={[s.carPrice, { color: aC.isDark ? '#F9FAFC' : '#475569' }]}>{typeof car.price === 'number' ? fmtPrice(car.price) : car.price}</Text>
+                </View>
               </View>
-            </View>
             </LinearGradient>
           ))}
           <View style={s.vsWrap} pointerEvents="none"><Text style={s.vsBadge}>VS</Text></View>
@@ -414,8 +416,8 @@ export default function CompareResult() {
               onPress={() => setPreferred(row.key)}
               style={[s.variantCard, aC.isDark
                 ? (sel
-                    ? { backgroundColor: '#07122C', borderColor: '#8FAEE3', shadowColor: '#4F7FD0', shadowOpacity: 0.35, shadowRadius: 8, shadowOffset: { width: 0, height: 0 }, elevation: 4 }
-                    : { backgroundColor: '#0D2152', borderColor: 'rgba(120,160,225,0.25)' })
+                  ? { backgroundColor: '#07122C', borderColor: '#8FAEE3', shadowColor: '#4F7FD0', shadowOpacity: 0.35, shadowRadius: 8, shadowOffset: { width: 0, height: 0 }, elevation: 4 }
+                  : { backgroundColor: '#0D2152', borderColor: 'rgba(120,160,225,0.25)' })
                 : { backgroundColor: '#ffffff', borderColor: sel ? ORANGE : 'rgba(3,42,105,0.12)' }]}
             >
               {aC.isDark ? (sel && <RingGlow radius={16} />) : <GlassInset />}
@@ -453,10 +455,10 @@ export default function CompareResult() {
         </TouchableOpacity>
 
         {/* Compare Vehicle flow — Buy New Car / Buy Used Car (Figma) */}
-        {fromCompareVehicle && (
+        {fromCompareVehicle && !hideBuyBtns && (
           <View style={s.buyWrap}>
             {[
-              { label: 'Buy New Car',  route: '/buy/new-car' },
+              { label: 'Buy New Car', route: '/buy/new-car' },
               { label: 'Buy Used Car', route: '/buy/used-car' },
             ].map(btn => (
               <TouchableOpacity key={btn.label} style={s.buyBtn} activeOpacity={0.88} onPress={() => router.push(btn.route as any)}>
@@ -512,7 +514,7 @@ export default function CompareResult() {
   );
 }
 
-const CARD_GAP = 34;
+const CARD_GAP = 29;
 
 const s = StyleSheet.create({
   safe: { flex: 1 },
@@ -524,13 +526,14 @@ const s = StyleSheet.create({
   cardsRow: { flexDirection: 'row', gap: CARD_GAP, paddingHorizontal: 16, paddingBottom: 22, position: 'relative' },
   carCardBorder: { flex: 1, borderRadius: 14, padding: 1 },
   carCard: { flex: 1, borderRadius: 14, borderWidth: 1, overflow: 'hidden' },
-  carImg: { width: '100%', height: 92 },
-  carBody: { paddingHorizontal: 8, paddingTop: 10, paddingBottom: 10, alignItems: 'center' },
-  carName: { fontSize: 12.5, fontFamily: 'Poppins_500Medium', textAlign: 'center', lineHeight: 17, minHeight: 34 },
-  carDivider: { alignSelf: 'stretch', height: 1, marginTop: 8, marginBottom: 7 },
-  carPrice: { fontSize: 11, fontFamily: 'Poppins_400Regular', textAlign: 'center' },
-  vsWrap: { position: 'absolute', left: 0, right: 0, top: 108, alignItems: 'center' },
-  vsBadge: { color: ORANGE, fontSize: 15, fontFamily: 'Poppins_700Bold' },
+  carImg: { width: '72%', height: 50, alignSelf: 'center', marginTop: 22 },
+  carBody: { paddingHorizontal: 8, paddingTop: 18, paddingBottom: 12, alignItems: 'center' },
+  carName: { fontSize: 12.5, fontFamily: 'Poppins_500Medium', textAlign: 'center', lineHeight: 16, minHeight: 32 },
+  carDivider: { alignSelf: 'stretch', height: 1, marginTop: 6, marginBottom: 6 },
+  carPrice: { fontSize: 12, fontFamily: 'Poppins_400Regular', textAlign: 'center' },
+  // VS — dono cards ke beech, horizontal + vertical center
+  vsWrap: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 22, alignItems: 'center', justifyContent: 'center' },
+  vsBadge: { color: ORANGE, fontSize: 14, fontFamily: 'Poppins_600SemiBold' },
 
   /* Sections */
   section: { borderTopWidth: 1, borderTopColor: BORDER, paddingHorizontal: 20, paddingTop: 18, paddingBottom: 10 },

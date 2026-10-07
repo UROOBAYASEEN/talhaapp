@@ -7,7 +7,7 @@ import {
   Modal, Platform, ScrollView, StyleSheet, Text, TextInput,
   TouchableOpacity, View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { PRIMARY_BTN_COLORS, RingGlow, SearchInputEffect } from '@/components/shared/FigmaEffects';
@@ -270,6 +270,7 @@ const cal = StyleSheet.create({
 // ── Main Screen ────────────────────────────────────────────────────────────────
 export default function TestDriveScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { token, user } = useAuth();
 
@@ -347,7 +348,7 @@ export default function TestDriveScreen() {
   const carPrice = vehicle ? formatPrice(vehicle.price) : '—';
 
   return (
-    <SafeAreaView style={s.root}>
+    <SafeAreaView style={s.root} edges={['top']}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
 
         {/* ── Header ── */}
@@ -361,7 +362,7 @@ export default function TestDriveScreen() {
 
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={s.scroll}
+          contentContainerStyle={[s.scroll, { paddingBottom: 30 + insets.bottom }]}
           keyboardShouldPersistTaps="handled"
         >
 

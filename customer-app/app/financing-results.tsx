@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
-  ScrollView, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator,
+  ScrollView, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator, Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { ChevronDown, ChevronLeft } from 'lucide-react-native';
+import { Check, ChevronDown, ChevronLeft, X } from 'lucide-react-native';
 import { API_BASE } from '@/constants/api';
 import { useAppColors } from '@/constants/theme';
 import { PRIMARY_BTN_COLORS, SavedCardEffect } from '@/components/shared/FigmaEffects';
@@ -40,8 +40,8 @@ function GlassInset() {
   );
 }
 
-function Dropdown({ value, onChange, options, loading }: {
-  value: string; onChange: (v: string) => void; options: string[]; loading?: boolean;
+function Dropdown({ value, onChange, options, loading, title }: {
+  value: string; onChange: (v: string, index: number) => void; options: string[]; loading?: boolean; title?: string;
 }) {
   const aC = useAppColors();
   const [open, setOpen] = useState(false);
@@ -59,30 +59,48 @@ function Dropdown({ value, onChange, options, loading }: {
         <Text style={[s.ddVal, { color: aC.isDark ? '#fff' : '#010a1f' }]} numberOfLines={1}>{value}</Text>
         <ChevronDown size={18} color={ORANGE} />
       </TouchableOpacity>
-      {open && (
-        <View style={[s.ddList, { backgroundColor: aC.isDark ? 'rgba(9,24,66,0.99)' : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.3)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.12, shadowRadius: 12, elevation: aC.isDark ? 0 : 8 }]}>
-          {aC.isDark ? (
-            <>
-              <LinearGradient colors={['rgba(22,64,136,0.35)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.25 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <LinearGradient colors={['transparent', 'rgba(29,83,175,0.35)']} start={{ x: 0.5, y: 0.75 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-            </>
-          ) : (
-            <>
-              <LinearGradient colors={['rgba(3,42,105,0.03)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.3 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <LinearGradient colors={['transparent', 'rgba(226,103,27,0.06)']} start={{ x: 0.5, y: 0.7 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-            </>
-          )}
-          {options.map(opt => (
-            <TouchableOpacity
-              key={opt}
-              style={[s.ddOption, { borderBottomColor: aC.isDark ? 'rgba(255,255,255,0.06)' : 'rgba(3,42,105,0.06)' }, value === opt && { backgroundColor: aC.isDark ? 'rgba(226,103,27,0.1)' : 'rgba(226,103,27,0.08)' }]}
-              onPress={() => { onChange(opt); setOpen(false); }}
-            >
-              <Text style={[s.ddOptTxt, { color: value === opt ? ORANGE : (aC.isDark ? '#fff' : '#010a1f') }]}>{opt}</Text>
-            </TouchableOpacity>
-          ))}
+      {/* Options sheet — Modal mein, taake card ke overflow / zIndex se kat na jaye */}
+      <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
+        <View style={s.ddOverlay}>
+          <TouchableOpacity style={StyleSheet.absoluteFillObject} activeOpacity={1} onPress={() => setOpen(false)} />
+          <View style={[s.ddSheet, { backgroundColor: aC.isDark ? 'rgba(1,6,20,1)' : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.5)' : 'rgba(3,42,105,0.12)' }]}>
+            {aC.isDark ? (
+              <>
+                <LinearGradient colors={['rgba(22,64,136,0.35)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.25 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+                <LinearGradient colors={['transparent', 'rgba(29,83,175,0.35)']} start={{ x: 0.5, y: 0.75 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+                <LinearGradient colors={['rgba(13,37,84,0.35)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.25, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+                <LinearGradient colors={['transparent', 'rgba(13,37,84,0.35)']} start={{ x: 0.75, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+              </>
+            ) : <GlassInset />}
+            <View style={s.ddHead}>
+              <Text style={[s.ddTitle, { color: aC.isDark ? '#f9fafc' : '#010a1f' }]}>{title || 'Select'}</Text>
+              <TouchableOpacity onPress={() => setOpen(false)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                <X size={20} color={aC.isDark ? '#BAACB6' : '#475569'} />
+              </TouchableOpacity>
+            </View>
+            {options.length === 0 ? (
+              <Text style={[s.ddEmpty, { color: aC.isDark ? '#BAACB6' : '#475569' }]}>{loading ? 'Loading...' : 'No options available'}</Text>
+            ) : (
+              <ScrollView showsVerticalScrollIndicator={false} style={{ flexGrow: 0 }}>
+                {options.map((opt, i) => {
+                  const active = value === opt;
+                  return (
+                    <TouchableOpacity
+                      key={`${opt}-${i}`}
+                      style={[s.ddOption, { borderColor: active ? ORANGE : (aC.isDark ? 'rgba(100,160,255,0.25)' : 'rgba(3,42,105,0.1)'), backgroundColor: active ? (aC.isDark ? 'rgba(226,103,27,0.12)' : 'rgba(226,103,27,0.08)') : (aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff') }]}
+                      onPress={() => { onChange(opt, i); setOpen(false); }}
+                      activeOpacity={0.85}
+                    >
+                      <Text style={[s.ddOptTxt, { color: active ? ORANGE : (aC.isDark ? '#f9fafc' : '#010a1f') }]} numberOfLines={2}>{opt}</Text>
+                      {active && <Check size={16} color={ORANGE} />}
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            )}
+          </View>
         </View>
-      )}
+      </Modal>
     </View>
   );
 }
@@ -197,11 +215,12 @@ export default function FinancingResultsScreen() {
               <Dropdown
                 value={selectedLbl}
                 loading={banksLoading}
-                onChange={label => {
-                  const b = banks.find(b => `${b.name} - ${b.product_name}` === label);
+                onChange={(_label, i) => {
+                  const b = banks[i];
                   if (b) setSelectedBank(b);
                 }}
                 options={bankLabels}
+                title="Select Bank"
               />
             </Field>
 
@@ -222,7 +241,7 @@ export default function FinancingResultsScreen() {
 
             {/* Down Payment */}
             <Field label="Down payment">
-              <Dropdown value={downPayment} onChange={setDownPayment} options={DOWN_PAYMENTS} />
+              <Dropdown value={downPayment} onChange={setDownPayment} options={DOWN_PAYMENTS} title="Down Payment" />
             </Field>
 
             {/* Rate Type */}
@@ -233,7 +252,7 @@ export default function FinancingResultsScreen() {
 
             {/* Tenure */}
             <Field label="Tenure">
-              <Dropdown value={tenure} onChange={setTenure} options={TENURES} />
+              <Dropdown value={tenure} onChange={setTenure} options={TENURES} title="Tenure" />
             </Field>
 
             {/* Markup info from real bank (Figma: under Tenure) */}
@@ -272,10 +291,14 @@ const s = StyleSheet.create({
   ddWrap:        { zIndex: 1 },
   ddBtn:         { height: 44, borderRadius: 8, borderWidth: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, overflow: 'hidden' },
   ddVal:         { color: '#fff', fontSize: 12, fontFamily: 'Poppins_500Medium', flex: 1 },
-  ddList:        { position: 'absolute', top: 48, left: 0, right: 0, backgroundColor: 'rgba(9,24,66,0.99)', borderRadius: 10, borderWidth: 1, borderColor: 'rgba(100,160,255,0.3)', overflow: 'hidden', zIndex: 100 },
-  ddOption:      { paddingHorizontal: 14, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' },
+  ddOverlay:     { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', paddingHorizontal: 20 },
+  ddSheet:       { maxHeight: '65%', borderRadius: 16, borderWidth: 1, paddingHorizontal: 14, paddingTop: 14, paddingBottom: 6, overflow: 'hidden' },
+  ddHead:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, paddingHorizontal: 4 },
+  ddTitle:       { fontSize: 16, fontFamily: 'Poppins_500Medium' },
+  ddEmpty:       { fontSize: 13, fontFamily: 'Poppins_400Regular', textAlign: 'center', paddingVertical: 20 },
+  ddOption:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10, minHeight: 46, borderRadius: 23, borderWidth: 1, paddingHorizontal: 18, paddingVertical: 10, marginBottom: 8 },
   ddOptionActive:{ backgroundColor: 'rgba(226,103,27,0.1)' },
-  ddOptTxt:      { color: '#fff', fontSize: 13, fontFamily: 'Poppins_400Regular' },
+  ddOptTxt:      { flex: 1, color: '#fff', fontSize: 13, fontFamily: 'Poppins_400Regular' },
   inputWrap: { height: 44, borderRadius: 8, borderWidth: 1, overflow: 'hidden', justifyContent: 'center' },
   input:     { paddingHorizontal: 12, color: '#fff', fontSize: 12, fontFamily: 'Poppins_500Medium' },
   rateRow:           { flexDirection: 'row', gap: 12, marginBottom: 12 },
