@@ -6,6 +6,7 @@ import {
   ActivityIndicator, Alert, Dimensions, FlatList,
   Image, Modal, ScrollView, StyleSheet, Text, Linking,
   TouchableOpacity, View, StatusBar,
+  Platform,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { API_BASE } from '@/constants/api';
@@ -15,6 +16,7 @@ import DealerConfirmationModal from '@/components/shared/DealerConfirmationModal
 import { CtaPanelGlass, PRIMARY_BTN_COLORS, RingGlow } from '@/components/shared/FigmaEffects';
 import { GlowDraftButton, GlowPublishButton } from '@/components/shared/ActionFooterGlow';
 
+import SheetModal from '@/components/shared/SheetModal';
 const { width: W } = Dimensions.get('window');
 
 const BG     = '#010A1F';
@@ -742,10 +744,10 @@ export default function CarDetailScreen() {
       />
 
       {/* ── Selected Car compare modal (screenshot) ── */}
-      <Modal visible={cmpVisible} transparent animationType="slide" onRequestClose={() => setCmpVisible(false)}>
+      <SheetModal visible={cmpVisible} transparent animationType="slide" onRequestClose={() => setCmpVisible(false)}>
         <View style={s.cmpOverlay}>
           <TouchableOpacity style={StyleSheet.absoluteFillObject} activeOpacity={1} onPress={() => setCmpVisible(false)} />
-          <View style={[s.cmpCard, { paddingBottom: 28 + cmpInsets.bottom }]}>
+          <View style={[s.cmpCard, { paddingBottom: 28 + (Platform.OS === 'ios' ? cmpInsets.bottom : 0) }]}>
             {/* app/profile/saved.tsx — vehicle card effect */}
             <LinearGradient
               colors={['#16408880', 'transparent', 'transparent', '#16408880']}
@@ -837,7 +839,7 @@ export default function CarDetailScreen() {
             </TouchableOpacity>
           </View>
         </View>
-      </Modal>
+      </SheetModal>
 
     </SafeAreaView>
   );

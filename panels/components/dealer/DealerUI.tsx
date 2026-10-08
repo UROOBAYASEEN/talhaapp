@@ -273,7 +273,7 @@ export function AddChip({ onPress, small }: { onPress?: () => void; small?: bool
 }
 
 // ── Status pills ──
-export function StatusPill({ label, tone = 'green', style }: { label: string; tone?: 'green' | 'red' | 'orange' | 'blue'; style?: any }) {
+export function StatusPill({ label, tone = 'green', style, textStyle }: { label: string; tone?: 'green' | 'red' | 'orange' | 'blue'; style?: any; textStyle?: any }) {
   const c = {
     green:  { bg: '#0B2A22', fg: '#2ECC71', bd: 'rgba(46,204,113,0.35)' },
     red:    { bg: '#3A1520', fg: '#E0363A', bd: 'rgba(224,54,58,0.3)' },
@@ -282,7 +282,7 @@ export function StatusPill({ label, tone = 'green', style }: { label: string; to
   }[tone];
   return (
     <View style={[k.status, { backgroundColor: c.bg, borderColor: c.bd }, style]}>
-      <Text style={[k.statusTxt, { color: c.fg }]}>{label}</Text>
+      <Text style={[k.statusTxt, { color: c.fg }, textStyle]}>{label}</Text>
     </View>
   );
 }
@@ -314,10 +314,11 @@ export function Radio({ on, size = 22 }: { on: boolean; size?: number }) {
 // ── Fixed bottom glass panel (Publish / Save as Draft) ──
 // `glass` = reusable ActionPanelGlass background (navy centre, blue glowing edges)
 // `fx` = "Publish Banner / Save as Draft" panel effect (components/shared/ActionFooterGlow)
-export function BottomActions({ children, glass, fx }: { children: React.ReactNode; glass?: boolean; fx?: boolean }) {
+// `compact` = less empty space under the buttons (just the home-indicator inset)
+export function BottomActions({ children, glass, fx, compact }: { children: React.ReactNode; glass?: boolean; fx?: boolean; compact?: boolean }) {
   const insets = useSafeAreaInsets();
   return (
-    <View style={[k.bottom, { paddingBottom: Math.max(insets.bottom, 10) + 6 }, fx && { paddingHorizontal: 32, paddingTop: 12, gap: 11, paddingBottom: Math.max(insets.bottom + 12, 22), borderTopWidth: 0, backgroundColor: '#0A1838' }]}>
+    <View style={[k.bottom, { paddingBottom: Math.max(insets.bottom, 10) + 6 }, fx && { paddingHorizontal: 32, paddingTop: 12, gap: 11, paddingBottom: Math.max(insets.bottom + 12, 22), borderTopWidth: 0, backgroundColor: '#0A1838' }, compact && { paddingTop: 20, paddingBottom: Math.max(insets.bottom, 12) }]}>
       {fx
         ? <ActionPanelBg />
         : glass

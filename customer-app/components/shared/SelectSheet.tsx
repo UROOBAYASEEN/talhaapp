@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 import { Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { AppColors, useAppColors } from '@/constants/theme';
 
+import SheetModal from '@/components/shared/SheetModal';
 const ORANGE = AppColors.gradientEnd;
 const BORDER = 'rgba(100,160,255,0.4)';
 
@@ -39,7 +40,7 @@ export default function SelectSheet({ visible, title, options, selected, onSelec
   const txt = dark ? AppColors.textPrimary : '#010a1f';
   const muted = dark ? AppColors.textSecondary : '#475569';
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+    <SheetModal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <TouchableOpacity style={s.overlay} activeOpacity={1} onPress={onClose}>
         <TouchableOpacity activeOpacity={1} style={[s.sheet, { backgroundColor: dark ? AppColors.bg : '#ffffff', borderColor: dark ? BORDER : 'rgba(3,42,105,0.12)' }]}>
           <GlassInset />
@@ -78,7 +79,7 @@ export default function SelectSheet({ visible, title, options, selected, onSelec
           </ScrollView>
         </TouchableOpacity>
       </TouchableOpacity>
-    </Modal>
+    </SheetModal>
   );
 }
 

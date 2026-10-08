@@ -15,6 +15,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useAppColors } from "@/constants/theme";
 import { PRIMARY_BTN_COLORS, RingGlow, SearchInputEffect } from "@/components/shared/FigmaEffects";
 
+import SheetModal from '@/components/shared/SheetModal';
 const BG     = "#010a1f";
 const GLASS  = "rgba(3,12,40,0.6)";
 const BORDER = "rgba(100,160,255,0.5)";
@@ -148,7 +149,7 @@ function YearPickerSheet({ visible, selected, onSelect, onClose }: {
 }) {
   const aC = useAppColors();
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+    <SheetModal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <TouchableOpacity style={yp.overlay} activeOpacity={1} onPress={onClose}>
         <TouchableOpacity activeOpacity={1} style={[yp.sheet, { backgroundColor: aC.isDark ? BG : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.12)' }]}>
           <GlassInset />
@@ -170,7 +171,7 @@ function YearPickerSheet({ visible, selected, onSelect, onClose }: {
           </ScrollView>
         </TouchableOpacity>
       </TouchableOpacity>
-    </Modal>
+    </SheetModal>
   );
 }
 const yp = StyleSheet.create({
@@ -277,7 +278,7 @@ export default function FilterModal({ visible, onClose, onApply, figma = false }
     const citySuggestions = locationQ ? filteredCities.filter(c => !selCities.includes(c)) : [];
     const moreFeatures = FEATURES.filter(f => !selFeatures.includes(f));
     return (
-      <Modal visible={visible} animationType="slide" transparent statusBarTranslucent onRequestClose={onClose}>
+      <SheetModal visible={visible} animationType="slide" transparent statusBarTranslucent onRequestClose={onClose}>
         <View style={s.overlay}>
           <View style={f.sheet}>
             <View style={f.header}>
@@ -383,12 +384,12 @@ export default function FilterModal({ visible, onClose, onApply, figma = false }
           onSelect={y => { if (!modelChips.includes(y)) setModelChips(p => [...p, y]); }}
           onClose={() => setYearPickerOpen(false)}
         />
-      </Modal>
+      </SheetModal>
     );
   }
 
   return (
-    <Modal visible={visible} animationType="slide" transparent statusBarTranslucent onRequestClose={onClose}>
+    <SheetModal visible={visible} animationType="slide" transparent statusBarTranslucent onRequestClose={onClose}>
       <View style={s.overlay}>
         <View style={[s.sheet, { backgroundColor: aC.isDark ? BG : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.12)' }]}>
           <GlassInset />
@@ -485,7 +486,7 @@ export default function FilterModal({ visible, onClose, onApply, figma = false }
         onSelect={y => { if (!modelChips.includes(y)) setModelChips(p => [...p, y]); }}
         onClose={() => setYearPickerOpen(false)}
       />
-    </Modal>
+    </SheetModal>
   );
 }
 

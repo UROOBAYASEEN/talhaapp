@@ -12,6 +12,7 @@ import { ChevronLeft, Save, Upload, X, Trash2 } from 'lucide-react-native';
 import { AppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { DField, GlowCard } from '@/components/dealer/DealerUI';
 
 const ORANGE = '#ff6900';
 const C      = AppColors;
@@ -36,21 +37,15 @@ function InputField({ label, placeholder, value, onChangeText, keyboardType = 'd
   label: string; placeholder: string; value: string;
   onChangeText: (t: string) => void; keyboardType?: 'default' | 'numeric';
 }) {
+  // Same glass pill as the Vehicle Details (add-vehicle) inputs
   return (
-    <View style={s.inputWrap}>
-      <Text style={s.label}>{label}</Text>
-      <View style={s.inputBox}>
-        <GlassInset/>
-        <TextInput
-          style={s.input}
-          placeholder={placeholder}
-          placeholderTextColor={C.textPlaceholder}
-          value={value}
-          onChangeText={onChangeText}
-          keyboardType={keyboardType}
-        />
-      </View>
-    </View>
+    <DField
+      label={label}
+      placeholder={placeholder}
+      value={value}
+      onChangeText={onChangeText}
+      keyboardType={keyboardType}
+    />
   );
 }
 
@@ -314,25 +309,17 @@ export default function EditVehicleScreen() {
           <InputField label="Price (PKR)" placeholder="e.g. 4,500,000" value={price} onChangeText={setPrice} keyboardType="numeric"/>
 
           <Text style={s.sectionTitle}>Description</Text>
-          <View style={s.inputWrap}>
-            <View style={[s.inputBox, { height: 100 }]}>
-              <GlassInset/>
-              <TextInput
-                style={[s.input, { height: 90, textAlignVertical: 'top', paddingTop: 10 }]}
-                placeholder="Describe your vehicle..."
-                placeholderTextColor={C.textPlaceholder}
-                value={desc}
-                onChangeText={setDesc}
-                multiline
-                numberOfLines={4}
-              />
-            </View>
-          </View>
+          <DField
+            placeholder="Describe your vehicle..."
+            value={desc}
+            onChangeText={setDesc}
+            multiline
+            numberOfLines={4}
+          />
 
-          {/* FEATURES */}
+          {/* FEATURES — saved-file vehicle-card effect */}
           <Text style={s.sectionTitle}>Vehicle Features</Text>
-          <View style={s.featureBox}>
-            <GlassInset/>
+          <GlowCard radius={16} style={s.featureBox}>
             {ALL_FEATURES.map(f => {
               const active = selectedFeatures.includes(f);
               return (
@@ -344,7 +331,7 @@ export default function EditVehicleScreen() {
                 </TouchableOpacity>
               );
             })}
-          </View>
+          </GlowCard>
 
           {/* SAVE BUTTON */}
           <TouchableOpacity style={s.saveBtn} onPress={handleSave} disabled={saving} activeOpacity={0.85}>
@@ -388,7 +375,7 @@ const s = StyleSheet.create({
   inputBox:  { borderRadius: 30, borderWidth: 1, borderColor: AppColors.glassBorder, backgroundColor: AppColors.glassBg, overflow: 'hidden' },
   input:     { color: C.textPrimary, fontSize: 14, fontFamily: 'Poppins_400Regular', paddingHorizontal: 18, paddingVertical: 13 },
 
-  featureBox:        { borderRadius: 16, borderWidth: 1, borderColor: AppColors.glassBorder, backgroundColor: AppColors.glassBg, overflow: 'hidden', padding: 14, gap: 4 },
+  featureBox:        { padding: 14, gap: 4 },
   featureRow:        { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, gap: 12 },
   featureCheck:      { width: 20, height: 20, borderRadius: 10, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' },
   featureCheckActive:{ borderColor: ORANGE },

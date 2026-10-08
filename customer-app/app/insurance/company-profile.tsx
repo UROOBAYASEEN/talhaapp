@@ -13,6 +13,7 @@ import { AppColors, useAppColors } from "@/constants/theme";
 import { PRIMARY_BTN_COLORS, RingGlow } from "@/components/shared/FigmaEffects";
 import { DUMMY_REVIEWS } from "@/constants/dummyReviews";
 
+import SheetModal from '@/components/shared/SheetModal';
 // Dummy office photos until the company uploads its own
 const DUMMY_OFFICES = [
   require("@/assets/images/office.png"),
@@ -336,7 +337,7 @@ export default function CompanyProfileScreen() {
       </View>
 
       {/* ALL REVIEWS MODAL */}
-      <Modal visible={showReviews} transparent animationType="slide" onRequestClose={() => setShowReviews(false)}>
+      <SheetModal visible={showReviews} transparent animationType="slide" onRequestClose={() => setShowReviews(false)}>
         <View style={modal.overlay}>
           <View style={[modal.sheet, { backgroundColor: aC.isDark ? '#020d24' : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.12)', borderWidth: aC.isDark ? 0 : 1, shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.12, elevation: aC.isDark ? 0 : 8 }]}>
             <View style={modal.sheetHeader}>
@@ -352,10 +353,10 @@ export default function CompanyProfileScreen() {
             </ScrollView>
           </View>
         </View>
-      </Modal>
+      </SheetModal>
 
       {/* ADD REVIEW MODAL */}
-      <Modal visible={showAddReview} transparent animationType="fade" onRequestClose={() => setShowAddReview(false)}>
+      <SheetModal visible={showAddReview} transparent animationType="fade" onRequestClose={() => setShowAddReview(false)}>
         <View style={modal.overlay}>
           <View style={[modal.card, { backgroundColor: aC.isDark ? '#020d24' : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.12, elevation: aC.isDark ? 0 : 8 }]}>
             <View style={modal.cardHeader}>
@@ -386,7 +387,7 @@ export default function CompanyProfileScreen() {
             </TouchableOpacity>
           </View>
         </View>
-      </Modal>
+      </SheetModal>
     </SafeAreaView>
   );
 }

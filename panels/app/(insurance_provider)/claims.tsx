@@ -102,7 +102,7 @@ function applySortKey(list: any[], key: string) {
 function StatusPill({ status }: { status: string }) {
   // Figma tones: Under Review = warm brown/orange, Approved = green, Reject = red
   const tone = status === 'Approved' ? 'green' : status === 'Reject' ? 'red' : status === 'New' ? 'blue' : 'orange';
-  return <DStatusPill label={status} tone={tone as any} style={{ paddingHorizontal: 14, paddingVertical: 3 }} />;
+  return <DStatusPill label={status} tone={tone as any} style={{ paddingHorizontal: 9, paddingVertical: 2, borderRadius: 11 }} textStyle={{ fontSize: 10 }} />;
 }
 
 function ClaimCard({ item, onView }: { item: any; onView: () => void }) {
@@ -119,11 +119,11 @@ function ClaimCard({ item, onView }: { item: any; onView: () => void }) {
         }
         <View style={{ flex: 1, marginLeft: 6 }}>
           <View style={cc.nameRow}>
-            <Text style={cc.name}>{item.customer}</Text>
+            <Text style={cc.name} numberOfLines={1}>{item.customer}</Text>
             <StatusPill status={item.status} />
           </View>
           <Text style={cc.vehicleTxt}>{item.vehicle} • {item.reason}</Text>
-          <Text style={cc.amount}>{item.amount}</Text>
+          <Text style={cc.amount} numberOfLines={1}>{item.amount}</Text>
         </View>
       </View>
       {allPhotos.length > 1 && (
@@ -137,10 +137,10 @@ function ClaimCard({ item, onView }: { item: any; onView: () => void }) {
       <View style={cc.divider} />
 
       <View style={cc.bottomRow}>
-        <Text style={cc.dateTxt}>Claim date: {item.date}</Text>
+        <Text style={cc.dateTxt} numberOfLines={1}>Claim date: {item.date}</Text>
         <TouchableOpacity style={cc.viewBtn} onPress={onView}>
           <Text style={cc.viewTxt}>View Details</Text>
-          <ChevronRight size={18} color={ORANGE} />
+          <ChevronRight size={15} color={ORANGE} />
         </TouchableOpacity>
       </View>
     </GlowCard>
@@ -150,16 +150,16 @@ function ClaimCard({ item, onView }: { item: any; onView: () => void }) {
 const cc = StyleSheet.create({
   card:       { padding: 6, paddingBottom: 14, marginBottom: 16 },
   topRow:     { flexDirection: 'row', marginBottom: 2 },
-  carImg:     { width: 118, height: 96, borderRadius: 12, backgroundColor: '#1a2a4a', margin: 8 },
-  nameRow:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8, marginBottom: 4, paddingRight: 6 },
+  carImg:     { width: 96, height: 90, borderRadius: 12, backgroundColor: '#1a2a4a', margin: 8 },
+  nameRow:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 6, marginTop: 8, marginBottom: 4, paddingRight: 6 },
   name:       { fontSize: 15, fontFamily: 'Poppins_400Regular', color: '#FFFFFF', flexShrink: 1 },
   vehicleTxt: { fontSize: 13, fontFamily: 'Poppins_400Regular', color: '#FFFFFF', lineHeight: 20, marginBottom: 4 },
-  amount:     { fontSize: 15, fontFamily: 'Poppins_400Regular', color: ORANGE, alignSelf: 'flex-end', paddingRight: 6 },
+  amount:     { fontSize: 13, fontFamily: 'Poppins_400Regular', color: ORANGE, alignSelf: 'flex-end', paddingRight: 6 },
   divider:    { height: 1, backgroundColor: 'rgba(255,255,255,0.14)', marginHorizontal: 8, marginBottom: 12 },
   bottomRow:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 8 },
-  dateTxt:    { fontSize: 14, fontFamily: 'Poppins_500Medium', color: '#FFFFFF' },
+  dateTxt:    { fontSize: 12, fontFamily: 'Poppins_500Medium', color: '#FFFFFF', flexShrink: 1, marginRight: 8 },
   viewBtn:    { flexDirection: 'row', alignItems: 'center' },
-  viewTxt:    { fontSize: 14, fontFamily: 'Poppins_500Medium', color: ORANGE, marginRight: 2 },
+  viewTxt:    { fontSize: 12, fontFamily: 'Poppins_500Medium', color: ORANGE, marginRight: 2 },
 });
 
 export default function InsuranceClaimsScreen() {

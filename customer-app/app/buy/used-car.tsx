@@ -14,6 +14,7 @@ import AskariBank from "@/components/shared/AskariBank";
 import LatestVideoSection from "@/components/shared/LatestVideoSection";
 import { PRIMARY_BTN_COLORS, RingGlow, SavedCardEffect, WARM_CARD_COLORS, WARM_CARD_LOCATIONS } from "@/components/shared/FigmaEffects";
 
+import SheetModal from '@/components/shared/SheetModal';
 const { width } = Dimensions.get("window");
 const BG     = AppColors.bg;
 const CARD   = AppColors.glassBg;
@@ -95,85 +96,87 @@ const PRICE_MAX = 50_000_000;
 
 function RangeSlider({ onChangMin, onChangeMax }: { onChangMin: (v: string) => void; onChangeMax: (v: string) => void }) {
   const THUMB = 26;
-  const [, setTrackW] = useState(0); // re-render once the track is measured
-  const trackRef  = useRef<View>(null);
-  const trackWidth= useRef(0);
+  const MIN_GAP = 0.02;
+  const [trackW, setTrackW] = useState(0); // re-render once the track is measured
+  const usable    = Math.max(0, trackW - THUMB);
+  const usableRef = useRef(0);
+  usableRef.current = usable;
   const minPos    = useRef(new Animated.Value(0)).current;
   const maxPos    = useRef(new Animated.Value(1)).current; // 0–1 ratio
+  const one       = useRef(new Animated.Value(1)).current;
   const minRatio  = useRef(0);
   const maxRatio  = useRef(1);
+  // Latest callbacks (PanResponder sirf ek baar banta hai)
+  const cbRef = useRef({ onChangMin, onChangeMax });
+  cbRef.current = { onChangMin, onChangeMax };
+  const lastMinPrice = useRef<number | null>(null);
+  const lastMaxPrice = useRef<number | null>(null);
 
   function ratioToPrice(r: number) {
     return Math.round(PRICE_MIN + r * (PRICE_MAX - PRICE_MIN) / 100_000) * 100_000;
   }
-  function priceLabel(p: number) {
-    if (p >= 10_000_000) return `${(p / 10_000_000).toFixed(1)}Cr`;
-    if (p >= 100_000)    return `${(p / 100_000).toFixed(1)}L`;
-    return `${p}`;
-  }
 
-  const makePan = (isMin: boolean) => PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
-    onPanResponderMove: (_, g) => {
-      if (!trackWidth.current) return;
-      const tw = trackWidth.current - THUMB;
-      const ratio = Math.max(0, Math.min(1, (g.moveX - THUMB / 2) / tw));
-      if (isMin) {
-        const clamped = Math.min(ratio, maxRatio.current - 0.02);
-        minRatio.current = clamped;
-        minPos.setValue(clamped);
-        onChangMin(String(ratioToPrice(clamped)));
-      } else {
-        const clamped = Math.max(ratio, minRatio.current + 0.02);
-        maxRatio.current = clamped;
-        maxPos.setValue(clamped);
-        onChangeMax(String(ratioToPrice(clamped)));
-      }
-    },
-  });
+  // Har thumb ka apna PanResponder — drag sirf usi thumb ko move karta hai,
+  // doosra thumb apni jagah fixed rehta hai (sirf usse cross nahi ho sakta).
+  const makePan = (isMin: boolean) => {
+    let startRatio = 0;
+    return PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderTerminationRequest: () => false,
+      onShouldBlockNativeResponder: () => true,
+      onPanResponderGrant: () => {
+        startRatio = isMin ? minRatio.current : maxRatio.current;
+      },
+      onPanResponderMove: (_, g) => {
+        const tw = usableRef.current;
+        if (!tw) return;
+        const ratio = Math.max(0, Math.min(1, startRatio + g.dx / tw));
+        if (isMin) {
+          const clamped = Math.max(0, Math.min(ratio, maxRatio.current - MIN_GAP));
+          minRatio.current = clamped;
+          minPos.setValue(clamped);
+          const price = ratioToPrice(clamped);
+          if (price !== lastMinPrice.current) { lastMinPrice.current = price; cbRef.current.onChangMin(String(price)); }
+        } else {
+          const clamped = Math.min(1, Math.max(ratio, minRatio.current + MIN_GAP));
+          maxRatio.current = clamped;
+          maxPos.setValue(clamped);
+          const price = ratioToPrice(clamped);
+          if (price !== lastMaxPrice.current) { lastMaxPrice.current = price; cbRef.current.onChangeMax(String(price)); }
+        }
+      },
+    });
+  };
 
   const minPan = useRef(makePan(true)).current;
   const maxPan = useRef(makePan(false)).current;
 
-  const [minVal, setMinVal] = useState(0);
-  const [maxVal, setMaxVal] = useState(PRICE_MAX);
-
-  // Re-derive labels
-  minPos.addListener(({ value }) => setMinVal(ratioToPrice(value)));
-  maxPos.addListener(({ value }) => setMaxVal(ratioToPrice(value)));
-
   return (
     <View style={{ marginTop: 10, marginBottom: 4 }}>
-      {/* Price labels — shown in the Min / Max boxes instead (Figma)
-      <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 6 }}>
-        <Text style={{ color: ORANGE, fontSize: 10, fontFamily: "Poppins_600SemiBold" }}>{priceLabel(minVal)}</Text>
-        <Text style={{ color: ORANGE, fontSize: 10, fontFamily: "Poppins_600SemiBold" }}>{priceLabel(maxVal)}</Text>
-      </View>
-      */}
-
       {/* Track */}
       <View
-        ref={trackRef}
-        onLayout={e => { trackWidth.current = e.nativeEvent.layout.width; setTrackW(e.nativeEvent.layout.width); }}
+        onLayout={e => setTrackW(e.nativeEvent.layout.width)}
         style={{ height: THUMB, justifyContent: "center" }}
       >
         {/* Background track */}
         <View style={{ height: 6, backgroundColor: "#A7A5AE", borderRadius: 3 }} />
 
         {/* Active fill */}
-        <Animated.View style={{
+        <Animated.View pointerEvents="none" style={{
           position: "absolute", height: 6, borderRadius: 3,
           backgroundColor: "#FF6A1A",
-          left:  Animated.add(Animated.multiply(minPos, trackWidth.current - THUMB), THUMB / 2),
-          right: Animated.add(Animated.multiply(Animated.subtract(new Animated.Value(1), maxPos), trackWidth.current - THUMB), THUMB / 2),
+          left:  Animated.add(Animated.multiply(minPos, usable), THUMB / 2),
+          right: Animated.add(Animated.multiply(Animated.subtract(one, maxPos), usable), THUMB / 2),
         }} />
 
         {/* Min thumb */}
         <Animated.View
           {...minPan.panHandlers}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           style={{
             position: "absolute",
-            left: Animated.multiply(minPos, trackWidth.current - THUMB),
+            left: Animated.multiply(minPos, usable),
             width: THUMB, height: THUMB, borderRadius: THUMB / 2,
             backgroundColor: "#E6E6EA", alignItems: "center", justifyContent: "center",
           }}
@@ -184,9 +187,10 @@ function RangeSlider({ onChangMin, onChangeMax }: { onChangMin: (v: string) => v
         {/* Max thumb */}
         <Animated.View
           {...maxPan.panHandlers}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           style={{
             position: "absolute",
-            left: Animated.multiply(maxPos, trackWidth.current - THUMB),
+            left: Animated.multiply(maxPos, usable),
             width: THUMB, height: THUMB, borderRadius: THUMB / 2,
             backgroundColor: "#E6E6EA", alignItems: "center", justifyContent: "center",
           }}
@@ -206,7 +210,7 @@ function SelectSheet({ visible, title, options, selected, onSelect, onClose }: {
   const [q, setQ] = useState("");
   const filtered  = q ? options.filter(o => o.toLowerCase().includes(q.toLowerCase())) : options;
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+    <SheetModal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <TouchableOpacity style={sh.overlay} activeOpacity={1} onPress={onClose}>
         <TouchableOpacity activeOpacity={1} style={sh.sheet}>
           <GlassInset />
@@ -233,7 +237,7 @@ function SelectSheet({ visible, title, options, selected, onSelect, onClose }: {
           </ScrollView>
         </TouchableOpacity>
       </TouchableOpacity>
-    </Modal>
+    </SheetModal>
   );
 }
 const sh = StyleSheet.create({

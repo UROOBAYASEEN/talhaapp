@@ -16,7 +16,7 @@ const { width: W } = Dimensions.get('window');
 const CARD_W = (W - 32 - 34) / 2;
 
 type Side = {
-  vehicleId: string; variantName: string; title: string; price?: number; img: string | null;
+  vehicleId: string; variantName: string; vehName: string; title: string; price?: number; img: string | null;
   year?: string; body?: string; fuel?: string; trans?: string; engine?: string; cc?: string;
   hp?: string; torque?: string; mileageCity?: string; mileageHigh?: string; seats?: string; topSpeed?: string;
   features: string[]; airbags?: string; filer?: number; nonFiler?: number; phone?: string; meta: string; delivery: string;
@@ -37,7 +37,7 @@ function toSide(v: any, tax: any, variantIdx?: number): Side {
   const feats: string[] = (vr?.features && vr.features.length ? vr.features : v.features) || [];
   const airbagFeat = feats.find(f => /airbag/i.test(f));
   return {
-    vehicleId: v.id, variantName: vr?.name || v.variant || v.title, title, price,
+    vehicleId: v.id, variantName: vr?.name || v.variant || v.title, vehName: `${v.make || ''} ${v.model || ''}`.trim() || v.title, title, price,
     img: imgUrl(v.images?.[0]),
     year: str(v.year), body: cap(v.body_type), fuel: vr?.fuel || cap(v.fuel_type), trans: vr?.trans || cap(v.transmission),
     engine: v.engine || v.engine_type || (v.engine_cc ? `${(v.engine_cc / 1000).toFixed(1)}L` : undefined),
@@ -135,20 +135,24 @@ export default function BookCompare() {
     return (
       <GlowBackground>
         <SafeAreaView style={{ flex: 1 }}>
-          <ScreenHeader title="Compare Variant" />
+          <ScreenHeader title={!p.id && p.aId && p.bId ? 'Compare Vehicle' : 'Compare Variant'} />
           <Text style={[s.valTxt, { textAlign: 'center', marginTop: 60 }]}>Could not load vehicles to compare.</Text>
         </SafeAreaView>
       </GlowBackground>
     );
   }
 
+  // Compare Vehicle screen se (aId/bId) → vehicle compare; vehicle-detail ke variants se (id/a/b) → variant compare
+  const isVehicleCompare = !p.id && !!(p.aId && p.bId);
+  const colA = isVehicleCompare ? (A.vehName || 'Vehicle 1') : 'Variant 1';
+  const colB = isVehicleCompare ? (B.vehName || 'Vehicle 2') : 'Variant 2';
   const has = (side: Side, re: RegExp) => (side.features.length ? <CheckBadge ok={side.features.some(f => re.test(f))} /> : '—');
   const selected = pref === 'a' ? A : B;
 
   return (
     <GlowBackground>
       <SafeAreaView style={{ flex: 1 }} edges={['top']}>
-        <ScreenHeader title="Compare Variant" />
+        <ScreenHeader title={isVehicleCompare ? 'Compare Vehicle' : 'Compare Variant'} />
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}>
 
           {/* Cards */}
@@ -170,7 +174,7 @@ export default function BookCompare() {
           </View>
 
           <Section title="Overview">
-            <Row head l="Specification" a="Variant 1" b="Variant 2" />
+            <Row head l="Specification" a={colA} b={colB} />
             <Row l="Price" a={fmtLac(A.price, true)} b={fmtLac(B.price, true)} />
             <Row l="Year" a={A.year} b={B.year} />
             <Row l="Body Type" a={A.body} b={B.body} />
@@ -187,19 +191,19 @@ export default function BookCompare() {
           </Section>
 
           <Section title="Comfort & Convenience">
-            <Row head center l="Feature" a="Variant 1" b="Variant 2" />
+            <Row head center l="Feature" a={colA} b={colB} />
             {COMFORT.map(([l, re]) => <Row key={l} center l={l} a={has(A, re)} b={has(B, re)} />)}
           </Section>
 
           <Section title="Safety Features">
-            <Row head center l="Feature" a="Variant 1" b="Variant 2" />
+            <Row head center l="Feature" a={colA} b={colB} />
             {SAFETY.map(([l, re]) => re
               ? <Row key={l} center l={l} a={has(A, re)} b={has(B, re)} />
               : <Row key={l} center l={l} a={A.airbags} b={B.airbags} />)}
           </Section>
 
           <Section title="Estimated Total Price">
-            <Row head l="Price Details" a="Variant 1" b="Variant 2" />
+            <Row head l="Price Details" a={colA} b={colB} />
             <Row l="Estimated Total (Filer)" a={fmtRs(A.filer)} b={fmtRs(B.filer)} />
             <Row l="Estimated Total (Non-Filer)" a={fmtRs(A.nonFiler)} b={fmtRs(B.nonFiler)} />
           </Section>

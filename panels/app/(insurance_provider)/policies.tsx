@@ -46,13 +46,20 @@ const STATUS_COLOR: Record<string, string> = {
 };
 
 const SERVER_BASE = API_BASE.replace('/api/v1', '');
+
+// "4500000" / 4500000 / "4,500,000" → "PKR 4,500,000" (commas without relying on Intl)
+function pkr(v: any): string {
+  const n = Math.round(parseFloat(String(v ?? 0).replace(/[^0-9.]/g, '')) || 0);
+  return n > 0 ? `PKR ${String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}` : '—';
+}
+
 function mapApp(app: any, idx: number): any {
   const status = app.status ?? 'submitted';
   const avatar = app.customer_avatar || app.avatar_url || null;
   const premiumVal = app.premium ?? 0;
-  const premiumTxt = premiumVal ? `PKR ${Number(premiumVal).toLocaleString()}` : '—';
+  const premiumTxt = pkr(premiumVal);
   const estimatedVal = app.estimated_value ?? 0;
-  const priceTxt = estimatedVal ? `PKR ${Number(estimatedVal).toLocaleString()}` : '—';
+  const priceTxt = pkr(estimatedVal);
   const vehicle = app.vehicle || (app.brand && app.model ? `${app.brand} ${app.model} ${app.year || ''}`.trim() : '—');
   return {
     id:         app.id,
@@ -110,8 +117,8 @@ function PolicyCard({ policy }: { policy: any }) {
           )}
         </TouchableOpacity>
         <TouchableOpacity style={{ flex: 1, marginLeft: 10 }} onPress={() => policy.userId && router.push({ pathname: '/user-profile' as any, params: { id: policy.userId } })} activeOpacity={0.75}>
-          <Text style={pc.name}>{policy.name}</Text>
-          <Text style={pc.policyId}>{policy.policy_id}{policy.plan_name && policy.plan_name !== '—' ? ` • ${policy.plan_name}` : ''}</Text>
+          <Text style={pc.name} numberOfLines={1}>{policy.name}</Text>
+          <Text style={pc.policyId} numberOfLines={1}>{policy.policy_id}{policy.plan_name && policy.plan_name !== '—' ? ` • ${policy.plan_name}` : ''}</Text>
           {policy.has_tracker ? (
             <View style={{ alignSelf: 'flex-start', marginTop: 4, backgroundColor: 'rgba(232,121,43,0.15)', borderWidth: 1, borderColor: ORANGE, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 }}>
               <Text style={{ color: ORANGE, fontSize: 9, fontFamily: 'Poppins_600SemiBold' }}>Insurance + Tracker</Text>
@@ -121,7 +128,7 @@ function PolicyCard({ policy }: { policy: any }) {
         {/* Figma: approved/active = warm brown pill with orange text, others = navy pill with white text */}
         <View style={[pc.statusBadge, policy.status === 'Approved' || policy.status === 'Active' ? pc.statusWarm : pc.statusNavy]}>
           <View style={[pc.statusDot, (policy.status === 'Approved' || policy.status === 'Active') && { backgroundColor: ORANGE }]} />
-          <Text style={[pc.statusTxt, (policy.status === 'Approved' || policy.status === 'Active') && { color: ORANGE }]}>{policy.status}</Text>
+          <Text style={[pc.statusTxt, (policy.status === 'Approved' || policy.status === 'Active') && { color: ORANGE }]} numberOfLines={1}>{policy.status}</Text>
         </View>
       </View>
 
@@ -131,10 +138,10 @@ function PolicyCard({ policy }: { policy: any }) {
           <Text style={pc.fieldValue} numberOfLines={1}>{policy.vehicle}</Text>
           {policy.phone ? <Text style={[pc.fieldLabel, { marginTop: 4, color: '#9fb0cc' }]} numberOfLines={1}>{policy.phone}</Text> : null}
         </View>
-        <View style={{ alignItems: 'flex-end', flexShrink: 0 }}>
+        <View style={{ alignItems: 'flex-end', flexShrink: 0, maxWidth: '55%' }}>
           <Text style={pc.fieldLabel}>PREMIUM</Text>
-          <Text style={[pc.fieldValue, { color: ORANGE, fontSize: 20, fontFamily: 'Poppins_600SemiBold' }]}>{policy.premium}</Text>
-          <Text style={[pc.fieldLabel, { marginTop: 2, color: '#9fb0cc', fontSize: 9 }]}>Price: {policy.price}</Text>
+          <Text style={pc.premium} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>{policy.premium}</Text>
+          <Text style={[pc.fieldLabel, { marginTop: 2, color: '#9fb0cc', fontSize: 10 }]} numberOfLines={1}>Price: {policy.price}</Text>
         </View>
       </View>
 
@@ -156,15 +163,16 @@ const pc = StyleSheet.create({
   topRow:      { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 14 },
   avatar:      { width: 70, height: 70, borderRadius: 35, backgroundColor: '#1a2a4a' },
   name:        { fontSize: 20, fontFamily: 'Poppins_500Medium', color: '#FFFFFF', marginTop: 4 },
-  policyId:    { fontSize: 13, fontFamily: 'Poppins_400Regular', color: '#FFFFFF', marginTop: 1 },
-  statusBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 5, borderRadius: 16 },
+  policyId:    { fontSize: 11, fontFamily: 'Poppins_400Regular', color: '#FFFFFF', marginTop: 1 },
+  statusBadge: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 3, borderRadius: 12, marginLeft: 8, flexShrink: 0 },
   statusWarm:  { backgroundColor: '#3A2420' },
   statusNavy:  { backgroundColor: '#0B2A66' },
-  statusDot:   { width: 6, height: 6, borderRadius: 3, backgroundColor: '#fff' },
-  statusTxt:   { fontSize: 14, fontFamily: 'Poppins_400Regular', color: '#fff' },
+  statusDot:   { width: 5, height: 5, borderRadius: 3, backgroundColor: '#fff' },
+  statusTxt:   { fontSize: 11, fontFamily: 'Poppins_400Regular', color: '#fff' },
   midRow:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 },
   fieldLabel:  { fontSize: 12, fontFamily: 'Poppins_400Regular', color: '#C9BDC4', letterSpacing: 0.8, marginBottom: 1 },
   fieldValue:  { fontSize: 14, fontFamily: 'Poppins_500Medium', color: '#FFFFFF' },
+  premium:     { fontSize: 17, fontFamily: 'Poppins_600SemiBold', color: ORANGE },
   divider:     { height: 1, backgroundColor: 'rgba(255,255,255,0.14)', marginBottom: 12 },
   footer:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   expires:     { fontSize: 13, fontFamily: 'Poppins_500Medium', color: '#FFFFFF' },

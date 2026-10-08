@@ -10,8 +10,10 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
+import GradientNote from '@/components/shared/GradientNote';
 import { PRIMARY_BTN_COLORS, RingGlow, SearchInputEffect } from '@/components/shared/FigmaEffects';
 
+import SheetModal from '@/components/shared/SheetModal';
 const BG     = '#010A1F';
 const CARD   = 'rgba(3,12,40,0.6)';
 const ORANGE = '#e2671b';
@@ -92,7 +94,7 @@ function TimeModal({ visible, selected, onSelect, onClose }: {
   }
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+    <SheetModal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <TouchableOpacity style={tm.overlay} activeOpacity={1} onPress={onClose}>
         <TouchableOpacity activeOpacity={1} style={tm.container}>
           <LinearGradient colors={['rgba(22,64,136,0.25)','transparent']} start={{x:0.5,y:0}} end={{x:0.5,y:0.6}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
@@ -128,7 +130,7 @@ function TimeModal({ visible, selected, onSelect, onClose }: {
           </ScrollView>
         </TouchableOpacity>
       </TouchableOpacity>
-    </Modal>
+    </SheetModal>
   );
 }
 
@@ -446,10 +448,11 @@ export default function TestDriveScreen() {
           </View>
 
           {/* ── Info Note ── */}
-          <View style={s.infoRow}>
-            <MaterialCommunityIcons name="clipboard-text-outline" size={22} color={ORANGE} />
-            <Text style={s.infoTxt}>Dealer will confirm your test drive appointment.</Text>
-          </View>
+          <GradientNote
+            style={{ marginTop: 30 }}
+            icon={<MaterialCommunityIcons name="clipboard-list-outline" size={24} color={ORANGE} />}
+            text="Dealer will confirm your test drive appointment."
+          />
 
           <View style={{ flex: 1, minHeight: 60 }} />
 

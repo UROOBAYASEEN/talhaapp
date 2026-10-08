@@ -1,5 +1,5 @@
 // Figma: Book Test Drive
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -10,6 +10,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
+import GradientNote from '@/components/shared/GradientNote';
 import { G, Glass, GlassField, GlassSelect, GlowBackground, GradientButton, ScreenHeader } from '@/components/shared/GlowUI';
 import { authHeaders, VehicleStrip } from '@/components/book/common';
 
@@ -96,11 +97,11 @@ export default function BookTestDrive() {
             <Text style={s.label}>Phone Number</Text>
             <GlassField value={phone} onChangeText={setPhone} placeholder="+92 3XX XXXXXXX" keyboardType="phone-pad" />
 
-            <View style={s.note}>
-              <LinearGradient colors={['#5A6272', '#3A4152']} style={StyleSheet.absoluteFillObject} />
-              <Ionicons name="clipboard-outline" size={20} color={G.orange} />
-              <Text style={s.noteTxt} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>Dealer will confirm your test drive appointment.</Text>
-            </View>
+            <GradientNote
+              style={{ marginTop: 20 }}
+              icon={<MaterialCommunityIcons name="clipboard-list-outline" size={24} color={G.orange} />}
+              text="Dealer will confirm your test drive appointment."
+            />
           </ScrollView>
           <View style={{ paddingHorizontal: 16, paddingBottom: Math.max(insets.bottom, 12) + 8 }}>
             <GradientButton title="Book Test Drive" height={50} fontSize={18} loading={busy} onPress={book} />

@@ -488,7 +488,7 @@ export default function BuyNewCarScreen() {
           <SH title="You May Need This" />
           <View style={styles.needRow}>
             {/* Compare Vehicle */}
-            <TouchableOpacity style={[styles.needCard, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderWidth: aC.isDark ? 0 : 1, borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }]} activeOpacity={0.85} onPress={() => router.push({ pathname: '/compare-vehicle', params: { category: 'car' } } as any)}>
+            <TouchableOpacity style={[styles.needCard, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderWidth: aC.isDark ? 0 : 1, borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }]} activeOpacity={0.85} onPress={() => router.push({ pathname: '/compare-vehicle', params: { category: 'car', from: 'newCar' } } as any)}>
               {aC.isDark ? (
                 <LinearGradient
                   colors={['#071B48', '#0A1F4C', '#2B2947', '#80504A']}

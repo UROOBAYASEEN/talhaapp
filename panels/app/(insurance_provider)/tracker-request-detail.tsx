@@ -408,7 +408,7 @@ const s = StyleSheet.create({
   checkbox: { width: 16, height: 16, borderRadius: 8, borderWidth: 1.5, borderColor: 'rgba(100,160,255,0.5)', marginTop: 2, marginRight: 8 },
   termsText:{ flex: 1, color: C.textSecondary, fontSize: 11, fontFamily: 'Poppins_400Regular', lineHeight: 17 },
 
-  bottomActionContainer: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 16, paddingBottom: 26, backgroundColor: 'rgba(3,42,105,0.97)', borderTopWidth: 1, borderTopColor: 'rgba(100,160,255,0.2)' },
+  bottomActionContainer: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 20, paddingBottom: 14, backgroundColor: 'rgba(3,42,105,0.97)', borderTopWidth: 1, borderTopColor: 'rgba(100,160,255,0.2)' },
   approveButton:   { height: 48, borderRadius: 28, justifyContent: 'center', alignItems: 'center', backgroundColor: ORANGE, marginBottom: 10 },
   approveText:     { color: '#fff', fontSize: 15, fontFamily: 'Poppins_700Bold' },
   bottomButtonsRow:{ flexDirection: 'row', gap: 12 },

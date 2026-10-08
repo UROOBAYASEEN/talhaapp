@@ -18,6 +18,7 @@ import { AppColors, useAppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 
+import SheetModal from '@/components/shared/SheetModal';
 type Msg = { id: string; from: 'user' | 'bot'; text: string; time?: string };
 
 const BOT_GREETING = 'Welcome to Autowizor — Pakistan\'s Connected Auto Ecosystem. I\'m your assistant. How may I help you today?';
@@ -82,7 +83,7 @@ export default function Chatbot() {
         <Image source={require('@/assets/images/autowizor-logo-icon.png')} style={cb.fabLogoSimple} resizeMode="contain" />
       </TouchableOpacity>
 
-      <Modal visible={visible} transparent animationType="slide" onRequestClose={() => setVisible(false)}>
+      <SheetModal visible={visible} transparent animationType="slide" onRequestClose={() => setVisible(false)}>
         <View style={[cb.overlay, { backgroundColor: C.isDark ? 'rgba(1,10,31,0.62)' : 'rgba(0,0,0,0.35)' }]}>
           <View style={[cb.sheet, { backgroundColor: C.bg, borderColor: C.isDark ? 'rgba(100,160,255,0.22)' : 'rgba(3,12,40,0.12)' }]}>
             {/* Subtle top glow */}
@@ -175,7 +176,7 @@ export default function Chatbot() {
             </KeyboardAvoidingView>
           </View>
         </View>
-      </Modal>
+      </SheetModal>
     </>
   );
 }

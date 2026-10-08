@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TextInput,
-  TouchableOpacity, Image, ActivityIndicator, RefreshControl, ScrollView,
+  TouchableOpacity, Image, ActivityIndicator, RefreshControl, ScrollView, Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -55,7 +55,7 @@ function LeadCard({ lead, onPress }: { lead: any; onPress: () => void }) {
     ? new Date(lead.created_at).toLocaleString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
     : '04:15 PM';
   const dateStr     = isToday ? 'Today' : lead.created_at
-    ? new Date(lead.created_at).toLocaleDateString('en-US', { day: '2-digit', month: 'long', year: 'numeric' })
+    ? new Date(lead.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
     : '09 May 2024';
   const isConfirmed = status.toLowerCase() === 'confirmed' || status.toLowerCase() === 'new';
 
@@ -69,8 +69,18 @@ function LeadCard({ lead, onPress }: { lead: any; onPress: () => void }) {
           <Text style={lc.name}>{name}</Text>
           <Text style={lc.locationPhone}>{location} • {phone}</Text>
         </View>
-        <View style={lc.confirmedBadge}>
-          <Text style={lc.confirmedTxt}>{isConfirmed ? 'CONFIRMED' : status.toUpperCase()}</Text>
+        <View style={lc.topRight}>
+          <View style={lc.confirmedBadge}>
+            <Text style={lc.confirmedTxt}>{isConfirmed ? 'CONFIRMED' : status.toUpperCase()}</Text>
+          </View>
+          <TouchableOpacity
+            style={lc.callBtn}
+            activeOpacity={0.7}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            onPress={() => Linking.openURL(`tel:${phone.replace(/\s/g, '')}`)}
+          >
+            <Image source={require('@/assets/Icons/call_Icon.png')} style={lc.callIcon} resizeMode="contain" />
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -92,10 +102,10 @@ function LeadCard({ lead, onPress }: { lead: any; onPress: () => void }) {
 
       <View style={lc.bottomRow}>
         <View style={lc.timeRow}>
-          <Clock size={18} color={ORANGE} />
-          <Text style={lc.timeText}>{dateStr}  {timeStr}</Text>
+          <Clock size={14} color={ORANGE} />
+          <Text style={lc.timeText} numberOfLines={1}>{dateStr}, {timeStr}</Text>
         </View>
-        <Text style={lc.resId}>{resId}</Text>
+        <Text style={lc.resId} numberOfLines={1}>{resId}</Text>
       </View>
     </GlowCard>
   );
@@ -116,10 +126,13 @@ const lc = StyleSheet.create({
   colorRow:      { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 },
   colorDot:      { width: 12, height: 12, borderRadius: 6 },
   colorName:     { color: D.muted, fontSize: 13, fontFamily: 'Poppins_400Regular' },
-  bottomRow:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  timeRow:       { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  timeText:      { color: '#FFFFFF', fontSize: 13, fontFamily: 'Poppins_400Regular' },
-  resId:         { color: ORANGE, fontSize: 13, fontFamily: 'Poppins_400Regular' },
+  topRight:      { flexDirection: 'row', alignItems: 'center', gap: 10, alignSelf: 'flex-start' },
+  callBtn:       { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
+  callIcon:      { width: 26, height: 26 },
+  bottomRow:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingHorizontal: 2 },
+  timeRow:       { flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1 },
+  timeText:      { color: '#FFFFFF', fontSize: 11, fontFamily: 'Poppins_400Regular', flexShrink: 1 },
+  resId:         { color: ORANGE, fontSize: 11, fontFamily: 'Poppins_400Regular', flexShrink: 0, maxWidth: '45%', textAlign: 'right' },
 });
 
 export default function SellerLeadsScreen() {

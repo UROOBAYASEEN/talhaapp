@@ -484,64 +484,27 @@ export default function BuyNewBikeScreen() {
         ══════════════════════════════════════════ */}
         <View style={styles.sec}>
           <SH title="You May Need This" />
+          {/* Styling Buy Used Bike ke "You May Need This" jaisi */}
           <View style={styles.needRow}>
-            {/* Compare Vehicle */}
-            <TouchableOpacity style={[styles.needCard, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderWidth: aC.isDark ? 0 : 1, borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }]} activeOpacity={0.85} onPress={() => router.push({ pathname: '/compare-vehicle', params: { category: 'bike' } } as any)}>
-              {aC.isDark ? (
-                <LinearGradient
-                  colors={[ORANGE, DARK_NAV, BG]}
-                  start={{ x: 0, y: 1 }} end={{ x: 0, y: 0 }}
-                  style={styles.needGrad}
-                >
-                  <Image source={IMG_COMPARE} style={styles.needImgCompare} resizeMode="contain" />
-                  <View style={styles.needTitleRow}>
-                    <Text style={styles.needTitle}>{'Compare\nVehicle'}</Text>
-                    <Ionicons name="chevron-forward" size={14} color={WHITE} />
-                  </View>
-                  <Text style={styles.needSub}>Compare vehicle features, prices, and specifications.</Text>
-                </LinearGradient>
-              ) : (
-                <View style={[styles.needGrad, { backgroundColor: '#ffffff' }]}>
-                  <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                  <LinearGradient colors={['transparent', 'rgba(226,103,27,0.10)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                  <Image source={IMG_COMPARE} style={styles.needImgCompare} resizeMode="contain" />
-                  <View style={styles.needTitleRow}>
-                    <Text style={[styles.needTitle, { color: '#010a1f' }]}>{'Compare\nVehicle'}</Text>
-                    <Ionicons name="chevron-forward" size={14} color="#032a69" />
-                  </View>
-                  <Text style={[styles.needSub, { color: '#475569' }]}>Compare vehicle features, prices, and specifications.</Text>
+            {[
+              { img: IMG_COMPARE, title: 'Compare\nVehicle', desc: 'Compare vehicle features, prices, and specifications.', onPress: () => router.push({ pathname: '/compare-vehicle', params: { category: 'bike' } } as any) },
+              { img: IMG_FINANCE, title: 'Smart Finance\nCalculator', desc: 'Calculate your monthly payments.', onPress: undefined },
+            ].map((t, i) => (
+              <TouchableOpacity key={i} style={[styles.needCard, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderWidth: aC.isDark ? 0 : 1, borderColor: 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }]} onPress={t.onPress} activeOpacity={0.85}>
+                {aC.isDark
+                  ? <LinearGradient colors={['#071B48', '#0A1F4C', '#2B2947', '#80504A']} locations={[0, 0.52, 0.76, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} />
+                  : <>
+                      <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+                      <LinearGradient colors={['transparent', 'rgba(226,103,27,0.10)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+                    </>}
+                <Image source={t.img} style={styles.needImg} resizeMode="contain" />
+                <View style={styles.needTitleRow}>
+                  <Text style={[styles.needTitle, { color: aC.isDark ? '#F2F1F5' : '#010a1f' }]}>{t.title}</Text>
+                  <Ionicons name="chevron-forward" size={22} color={ORANGE} />
                 </View>
-              )}
-            </TouchableOpacity>
-
-            {/* Smart Finance Calculator */}
-            <TouchableOpacity style={[styles.needCard, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderWidth: aC.isDark ? 0 : 1, borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }]} activeOpacity={0.85}>
-              {aC.isDark ? (
-                <LinearGradient
-                  colors={[ORANGE, DARK_NAV, BG]}
-                  start={{ x: 0, y: 1 }} end={{ x: 0, y: 0 }}
-                  style={styles.needGrad}
-                >
-                  <Image source={IMG_FINANCE} style={styles.needImgFinance} resizeMode="contain" />
-                  <View style={styles.needTitleRow}>
-                    <Text style={[styles.needTitle, { fontSize: 12 }]}>{'Smart Finance\nCalculator'}</Text>
-                    <Ionicons name="chevron-forward" size={14} color={WHITE} />
-                  </View>
-                  <Text style={[styles.needSub, { fontSize: 9 }]}>Calculate your monthly payments.</Text>
-                </LinearGradient>
-              ) : (
-                <View style={[styles.needGrad, { backgroundColor: '#ffffff' }]}>
-                  <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                  <LinearGradient colors={['transparent', 'rgba(226,103,27,0.10)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                  <Image source={IMG_FINANCE} style={styles.needImgFinance} resizeMode="contain" />
-                  <View style={styles.needTitleRow}>
-                    <Text style={[styles.needTitle, { fontSize: 12, color: '#010a1f' }]}>{'Smart Finance\nCalculator'}</Text>
-                    <Ionicons name="chevron-forward" size={14} color="#032a69" />
-                  </View>
-                  <Text style={[styles.needSub, { fontSize: 9, color: '#475569' }]}>Calculate your monthly payments.</Text>
-                </View>
-              )}
-            </TouchableOpacity>
+                <Text style={[styles.needSub, { color: aC.isDark ? '#C9BDC1' : '#475569' }]}>{t.desc}</Text>
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
 
@@ -586,7 +549,7 @@ export default function BuyNewBikeScreen() {
 }
 
 // ── Styles ───────────────────────────────────────────────────────────────────
-const NEED_W = (W - 40 - 16) / 2;
+const NEED_W = (W - 40 - 14) / 2;
 
 const styles = StyleSheet.create({
   safe:   { flex: 1, backgroundColor: BG },
@@ -658,22 +621,13 @@ const styles = StyleSheet.create({
   bankLogo:  { position: 'absolute', top: 10, right: 10, width: 64, height: 18 },
   bankCar:   { position: 'absolute', bottom: -8, right: 0, width: 170, height: 125 },
 
-  /* You May Need This */
-  /* You May Need This — Figma: 167×186 each card, gap 16 */
-  needRow:       { flexDirection: 'row', gap: 16 },
-  needCard:      { width: NEED_W, height: 186, borderRadius: 16, overflow: 'hidden' },
-  needGrad:      {
-    flex: 1, paddingHorizontal: 10, paddingVertical: 12,
-    alignItems: 'center', justifyContent: 'flex-end',
-  },
-  needImgCompare:{ width: 110, height: 76, marginBottom: 8 },
-  needImgFinance:{ width: 110, height: 76, marginBottom: 8 },
-  needTitleRow:  {
-    flexDirection: 'row', alignItems: 'center',
-    justifyContent: 'space-between', width: '100%', marginBottom: 4,
-  },
-  needTitle:     { color: WHITE, fontSize: 14, fontFamily: 'Poppins_500Medium', textTransform: 'capitalize', flex: 1, lineHeight: 20 },
-  needSub:       { color: '#c0bdbf', fontSize: 10, fontFamily: 'Poppins_400Regular', lineHeight: 14, width: '100%' },
+  /* You May Need This — Buy Used Bike wali styling */
+  needRow:      { flexDirection: 'row', gap: 14 },
+  needCard:     { width: NEED_W, minHeight: 176, borderRadius: 16, overflow: 'hidden', paddingHorizontal: 10, paddingTop: 10, paddingBottom: 12, alignItems: 'center' },
+  needImg:      { width: 112, height: 76, marginBottom: 4 },
+  needTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: 4 },
+  needTitle:    { flex: 1, fontSize: 14, fontFamily: 'Poppins_500Medium', lineHeight: 20 },
+  needSub:      { width: '100%', fontSize: 10, fontFamily: 'Poppins_400Regular', lineHeight: 14 },
 
   /* Browse More Services */
   serviceItem: {

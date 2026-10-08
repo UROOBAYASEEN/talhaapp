@@ -23,6 +23,7 @@ import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAppColors } from '@/constants/theme';
 
+import SheetModal from '@/components/shared/SheetModal';
 // Figma assets
 const IMG_LOGO   = require('@/assets/images/autowizor-logo-text.png');
 const IMG_AVATAR = "https://www.figma.com/api/mcp/asset/eccd4a05-c689-4093-aff3-b20055e5d583.png";
@@ -299,7 +300,7 @@ export default function EditProfileScreen() {
       </KeyboardAvoidingView>
 
       {/* ── Photo picker bottom sheet ── */}
-      <Modal visible={showPicker} transparent animationType="slide" onRequestClose={() => setShowPicker(false)}>
+      <SheetModal visible={showPicker} transparent animationType="slide" onRequestClose={() => setShowPicker(false)}>
         <TouchableOpacity style={s.overlay} activeOpacity={1} onPress={() => setShowPicker(false)}>
           <View style={s.sheet}>
             <View style={s.sheetHandle} />
@@ -344,7 +345,7 @@ export default function EditProfileScreen() {
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
-      </Modal>
+      </SheetModal>
 
     </SafeAreaView>
   );

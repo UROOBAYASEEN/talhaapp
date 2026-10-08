@@ -14,6 +14,7 @@ import AskariBank from "@/components/shared/AskariBank";
 import LatestVideoSection from "@/components/shared/LatestVideoSection";
 import { PRIMARY_BTN_COLORS, RingGlow, SavedCardEffect, WARM_CARD_COLORS, WARM_CARD_LOCATIONS } from "@/components/shared/FigmaEffects";
 
+import SheetModal from '@/components/shared/SheetModal';
 const { width } = Dimensions.get("window");
 const BG     = AppColors.bg;
 const CARD   = AppColors.glassBg;
@@ -207,7 +208,7 @@ function SelectSheet({ visible, title, options, selected, onSelect, onClose }: {
   const [q, setQ] = useState("");
   const filtered  = q ? options.filter(o => o.toLowerCase().includes(q.toLowerCase())) : options;
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+    <SheetModal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <TouchableOpacity style={sh.overlay} activeOpacity={1} onPress={onClose}>
         <TouchableOpacity activeOpacity={1} style={sh.sheet}>
           <GlassInset />
@@ -234,7 +235,7 @@ function SelectSheet({ visible, title, options, selected, onSelect, onClose }: {
           </ScrollView>
         </TouchableOpacity>
       </TouchableOpacity>
-    </Modal>
+    </SheetModal>
   );
 }
 const sh = StyleSheet.create({

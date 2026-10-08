@@ -849,8 +849,9 @@ export default function HomeScreen() {
         {/* ════════════════════════════════════════════════════
             11 · YOU MAY NEED THIS
         ════════════════════════════════════════════════════ */}
-        <View style={[styles.sec, styles.pad]}>
-          <YouMayNeedThis />
+        <View style={[styles.sec, styles.pad]} collapsable={false}>
+          {/* Data load hone pe upar ke sections ki height badalti hai — section ko fresh mount karo taake draw miss na ho */}
+          <YouMayNeedThis key={loading ? 'loading' : 'ready'} />
         </View>
 
 

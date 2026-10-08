@@ -325,36 +325,46 @@ export default function AdsScreen() {
               {loadingMore && <ActivityIndicator color={ORANGE} style={{ marginVertical: 16 }} />}
 
               {/* You May Need This */}
-              <Text style={[styles.sectionTitle, { color: aC.textPrimary }]}>You May Need This</Text>
+              <Text style={[styles.sectionTitle, { color: aC.textPrimary, fontSize: 17, marginBottom: 14 }]}>You May Need This</Text>
               <View style={styles.needsRow}>
-                <TouchableOpacity style={[styles.needCard, { borderWidth: 1, borderColor: aC.isDark ? 'rgba(100,160,255,0.3)' : 'rgba(3,12,40,0.12)' }]} activeOpacity={0.85}>
+                <TouchableOpacity style={[styles.needCard, { backgroundColor: aC.isDark ? '#010A1F' : '#ffffff' }, !aC.isDark && { borderWidth: 1, borderColor: 'rgba(3,12,40,0.12)' }]} activeOpacity={0.85}>
                   <LinearGradient
-                    colors={aC.isDark ? [BG, DARK_NAV, 'rgba(226,103,27,0.4)'] : ['#ffffff', '#f0f4ff', 'rgba(226,103,27,0.28)']}
+                    colors={aC.isDark ? ['#051539', '#061A44', '#0D1E47', '#2A2941', '#4E343A', '#653D37'] : ['#ffffff', '#f0f4ff', 'rgba(226,103,27,0.35)']}
+                    locations={aC.isDark ? [0, 0.36, 0.52, 0.68, 0.86, 1] : undefined}
                     start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
-                    style={styles.needGrad}
-                  >
-                    <Image source={IMG_COMPARE} style={styles.needImg} resizeMode="contain" />
-                    <View style={styles.needTitleRow}>
-                      <Text style={[styles.needTitle, { color: aC.isDark ? WHITE : '#032a69' }]}>{'Compare\nVehicle'}</Text>
-                      <Ionicons name="chevron-forward" size={14} color={aC.isDark ? WHITE : '#032a69'} />
+                    style={[StyleSheet.absoluteFillObject, styles.needGradBg]}
+                    pointerEvents="none"
+                  />
+                  <View style={styles.needGrad}>
+                    <View style={styles.needImgWrap}>
+                      <Image source={IMG_COMPARE} style={styles.needImg} resizeMode="contain" />
                     </View>
-                    <Text style={[styles.needSub, { color: aC.isDark ? UNSELECT : '#555566' }]}>Compare and choose the vehicle that best fits your needs.</Text>
-                  </LinearGradient>
+                    <View style={styles.needTitleRow}>
+                      <Text style={[styles.needTitle, { color: aC.isDark ? '#f9fafc' : '#032a69' }]} numberOfLines={2}>{'Compare\nVehicle'}</Text>
+                      <Ionicons name="chevron-forward" size={18} color="#e2671b" />
+                    </View>
+                    <Text style={[styles.needSub, { color: aC.isDark ? '#c9c1cb' : '#555566' }]} numberOfLines={3}>Compare and choose the vehicle that best fits your needs.</Text>
+                  </View>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={[styles.needCard, { borderWidth: 1, borderColor: aC.isDark ? 'rgba(100,160,255,0.3)' : 'rgba(3,12,40,0.12)' }]} activeOpacity={0.85}>
+                <TouchableOpacity style={[styles.needCard, { backgroundColor: aC.isDark ? '#010A1F' : '#ffffff' }, !aC.isDark && { borderWidth: 1, borderColor: 'rgba(3,12,40,0.12)' }]} activeOpacity={0.85}>
                   <LinearGradient
-                    colors={aC.isDark ? [BG, DARK_NAV, 'rgba(226,103,27,0.4)'] : ['#ffffff', '#f0f4ff', 'rgba(226,103,27,0.28)']}
+                    colors={aC.isDark ? ['#051539', '#061A44', '#0D1E47', '#2A2941', '#4E343A', '#653D37'] : ['#ffffff', '#f0f4ff', 'rgba(226,103,27,0.35)']}
+                    locations={aC.isDark ? [0, 0.36, 0.52, 0.68, 0.86, 1] : undefined}
                     start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
-                    style={styles.needGrad}
-                  >
-                    <Image source={IMG_INSURANCE} style={styles.needImg} resizeMode="contain" />
-                    <View style={styles.needTitleRow}>
-                      <Text style={[styles.needTitle, { color: aC.isDark ? WHITE : '#032a69' }]}>{'Compare\nInsurance'}</Text>
-                      <Ionicons name="chevron-forward" size={14} color={aC.isDark ? WHITE : '#032a69'} />
+                    style={[StyleSheet.absoluteFillObject, styles.needGradBg]}
+                    pointerEvents="none"
+                  />
+                  <View style={styles.needGrad}>
+                    <View style={styles.needImgWrap}>
+                      <Image source={IMG_INSURANCE} style={styles.needImg} resizeMode="contain" />
                     </View>
-                    <Text style={[styles.needSub, { color: aC.isDark ? UNSELECT : '#555566' }]}>Compare plans, coverage, and benefits to find the right insurance.</Text>
-                  </LinearGradient>
+                    <View style={styles.needTitleRow}>
+                      <Text style={[styles.needTitle, { color: aC.isDark ? '#f9fafc' : '#032a69' }]} numberOfLines={2}>{'Compare\nInsurance'}</Text>
+                      <Ionicons name="chevron-forward" size={18} color="#e2671b" />
+                    </View>
+                    <Text style={[styles.needSub, { color: aC.isDark ? '#c9c1cb' : '#555566' }]} numberOfLines={3}>Compare plans, coverage, and benefits to find the right insurance.</Text>
+                  </View>
                 </TouchableOpacity>
               </View>
 
@@ -497,17 +507,19 @@ const styles = StyleSheet.create({
     marginBottom: 12, marginTop: 8,
   },
 
-  needsRow: { flexDirection: 'row', gap: 12, marginBottom: 20, alignItems: 'stretch' },
-  needCard: { flex: 1, borderRadius: 16, overflow: 'hidden' },
-  needGrad: { padding: 12, minHeight: 210, justifyContent: 'flex-start', alignItems: 'center' },
-  needImgWrap: { height: 84, width: '100%', alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
+  // "You May Need This" — Home (components/shared/YouMayNeedThis.tsx) jaisa styling
+  needsRow: { flexDirection: 'row', gap: 12, marginBottom: 20 },
+  needCard: { flex: 1, height: 190, borderRadius: 12 },
+  needGradBg: { borderRadius: 12 },
+  needGrad: { flex: 1, paddingHorizontal: 10, paddingTop: 8, paddingBottom: 8, justifyContent: 'flex-start' },
+  needImgWrap: { height: 74, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
   needTitleRow: {
-    flexDirection: 'row', alignItems: 'center', width: '100%',
-    justifyContent: 'space-between', marginBottom: 4, minHeight: 44,
+    flexDirection: 'row', alignItems: 'center',
+    justifyContent: 'space-between', marginBottom: 2,
   },
-  needTitle: { color: WHITE, fontSize: 16, fontFamily: 'Poppins_500Medium', textTransform: 'capitalize' },
-  needImg: { width: 96, height: 70, marginBottom: 8, alignSelf: 'center' },
-  needSub: { color: UNSELECT, fontSize: 10, fontFamily: 'Poppins_400Regular', lineHeight: 14 },
+  needTitle: { color: WHITE, fontSize: 13, lineHeight: 19, fontFamily: 'Poppins_500Medium', flex: 1 },
+  needImg: { width: 96, height: 70 },
+  needSub: { color: '#c9c1cb', fontSize: 9.5, fontFamily: 'Poppins_400Regular', lineHeight: 14 },
 
   videoCard: {
     flexDirection: 'row', gap: 14,

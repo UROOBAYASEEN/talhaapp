@@ -11,8 +11,9 @@ import {
   TextInput,
   ActivityIndicator,
   Alert,
+  Platform,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -22,6 +23,7 @@ import LatestVideoSection from '@/components/shared/LatestVideoSection';
 import { PRIMARY_BTN_COLORS, RingGlow, SavedCardEffect, SearchInputEffect, WARM_CARD_COLORS, WARM_CARD_LOCATIONS } from '@/components/shared/FigmaEffects';
 import InnerGlow from '@/components/shared/InnerGlow';
 
+import SheetModal from '@/components/shared/SheetModal';
 const BG = AppColors.bg;
 const ORANGE = AppColors.gradientEnd;
 const SERVER_BASE = API_BASE.replace('/api/v1', '');
@@ -35,6 +37,28 @@ function formatPrice(p: number) {
   if (p >= 10_000_000) return `PKR ${(p / 10_000_000).toFixed(1)} Crore`;
   if (p >= 100_000) return `PKR ${(p / 100_000).toFixed(1)} Lac`;
   return `PKR ${p.toLocaleString()}`;
+}
+
+// ── "Selected Car" modal field effect (buy/car-detail.tsx jaisa) ──
+function CmpInputEffect() {
+  return (
+    <>
+      <LinearGradient
+        colors={['#163565', '#061124', '#061124', '#0D2146']}
+        locations={[0, 0.24, 0.76, 1]}
+        style={StyleSheet.absoluteFillObject}
+        pointerEvents="none"
+      />
+      <LinearGradient
+        colors={['#24518F8F', '#16356552', 'transparent', 'transparent', '#16356552', '#24518F8F']}
+        locations={[0, 0.025, 0.075, 0.925, 0.975, 1]}
+        start={{ x: 0, y: 0.5 }}
+        end={{ x: 1, y: 0.5 }}
+        style={[StyleSheet.absoluteFillObject, { borderRadius: 22 }]}
+        pointerEvents="none"
+      />
+    </>
+  );
 }
 
 // ── Glass Inset ──
@@ -80,7 +104,7 @@ function SelectSheet({
   const [q, setQ] = useState('');
   const filtered = q ? options.filter((o) => o.toLowerCase().includes(q.toLowerCase())) : options;
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+    <SheetModal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <TouchableOpacity style={sh.overlay} activeOpacity={1} onPress={onClose}>
         <TouchableOpacity activeOpacity={1} style={[sh.sheet, { backgroundColor: aC.bg, borderColor: aC.isDark ? 'rgba(100,160,255,0.4)' : 'rgba(3,42,105,0.12)' }]}>
           <GlassInset />
@@ -120,7 +144,7 @@ function SelectSheet({
           </ScrollView>
         </TouchableOpacity>
       </TouchableOpacity>
-    </Modal>
+    </SheetModal>
   );
 }
 const sh = StyleSheet.create({
@@ -195,6 +219,10 @@ export default function CompareVehicle() {
 
   const [trending, setTrending] = useState<any[]>([]);
   const [trendingLoading, setTrendingLoading] = useState(true);
+  // Trending cards ke radio buttons — 2 select hote hi "Selected Car" modal khulta hai
+  const [radioSel, setRadioSel] = useState<any[]>([]);
+  const [cmpVisible, setCmpVisible] = useState(false);
+  const cmpInsets = useSafeAreaInsets();
 
   const [compareLoading, setCompareLoading] = useState(false);
   const [compareResult, setCompareResult] = useState<{ a: any; b: any } | null>(null);
@@ -338,7 +366,7 @@ export default function CompareVehicle() {
       }
       // Navigate to detailed compare page (HTML wala design)
       if (from === 'book') router.push({ pathname: '/book/compare' as any, params: { aId: a.id, bId: b.id } });
-      else router.push({ pathname: '/compare-result' as any, params: { aId: a.id, bId: b.id, from: 'compareVehicle', ...(from === 'usedCar' ? { hideBuy: '1' } : {}) } });
+      else router.push({ pathname: '/compare-result' as any, params: { aId: a.id, bId: b.id, from: 'compareVehicle', ...(from === 'usedCar' || from === 'newCar' ? { hideBuy: '1' } : {}) } });
       // keep inline result as fallback if user stays
       setCompareResult({ a, b });
     } catch (e: any) {
@@ -346,6 +374,36 @@ export default function CompareVehicle() {
     } finally {
       setCompareLoading(false);
     }
+  }
+
+  const trendKey = (v: any) => String(v?.id ?? v?._id ?? '');
+  const trendLabel = (v: any) => (v ? (`${v.make || ''} ${v.model || ''} ${v.variant || ''}`.replace(/\s+/g, ' ').trim() || v.title || '—') : '—');
+  function toggleTrendRadio(item: any) {
+    const k = trendKey(item);
+    const exists = radioSel.some(v => trendKey(v) === k);
+    const next = exists ? radioSel.filter(v => trendKey(v) !== k) : [...radioSel, item].slice(-2);
+    setRadioSel(next);
+    if (!exists && next.length === 2) setCmpVisible(true);
+  }
+  function closeTrendCompare() {
+    setCmpVisible(false);
+    setRadioSel([]);
+  }
+  function compareTrendSelection() {
+    const [a, b] = radioSel;
+    if (!a || !b) return;
+    setCmpVisible(false);
+    setRadioSel([]);
+    // Vehicle compare — upar wale "Compare your Vehicle" jaisa hi navigation
+    if (from === 'book') router.push({ pathname: '/book/compare' as any, params: { aId: a.id, bId: b.id } });
+    else router.push({ pathname: '/compare-result' as any, params: { aId: a.id, bId: b.id, from: 'compareVehicle', ...(from === 'usedCar' || from === 'newCar' ? { hideBuy: '1' } : {}) } });
+  }
+
+  // Trending pair (vehicle 1 vs vehicle 2) pe tap — modal nahi, direct comparison screen
+  function compareTrendingPair(a: any, b: any) {
+    if (!a || !b) return;
+    if (from === 'book') router.push({ pathname: '/book/compare' as any, params: { aId: a.id, bId: b.id } });
+    else router.push({ pathname: '/compare-result' as any, params: { aId: a.id, bId: b.id, from: 'compareVehicle', ...(from === 'usedCar' || from === 'newCar' ? { hideBuy: '1' } : {}) } });
   }
 
   function fillTrendingPair(idx: number) {
@@ -643,12 +701,13 @@ export default function CompareVehicle() {
                 <View key={pIdx} style={styles.pairRow}>
                   {pair.map((item: any, idx: number) => {
                     const uri = imgUrl(item.images?.[0]);
+                    const radioOn = radioSel.some(v => trendKey(v) === trendKey(item));
                     return (
                       <TouchableOpacity
                         key={item.id || idx}
                         style={[styles.trendingCard, { backgroundColor: aC.isDark ? '#0B1D4A' : '#ffffff', borderColor: aC.isDark ? 'rgba(143,174,227,0.45)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 2 }]}
                         activeOpacity={0.86}
-                        onPress={() => router.push({ pathname: '/vehicle/[id]', params: { id: item.id } } as any)}
+                        onPress={() => compareTrendingPair(pair[0], pair[1])}
                       >
                         {aC.isDark
                           ? <LinearGradient colors={['#0B1D4A', '#0E2152', '#3A2F4A', '#6E4538']} locations={[0, 0.5, 0.78, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
@@ -668,6 +727,17 @@ export default function CompareVehicle() {
                           {item.variant || item.transmission || '—'}
                         </Text> */}
                         <Text style={[styles.carPrice, { color: aC.isDark ? '#E6E4EA' : '#475569' }]}>{formatPrice(item.price)}</Text>
+                        {/* Radio select + "Selected Car" modal — hidden: trending pairs pehle se bane hain, tap pe direct compare
+                        <TouchableOpacity
+                          style={styles.trendRadioHit}
+                          onPress={() => toggleTrendRadio(item)}
+                          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                          activeOpacity={0.8}
+                        >
+                          <View style={[styles.trendRadio, { borderColor: radioOn ? ORANGE : (aC.isDark ? '#BAACB6' : '#94a3b8'), backgroundColor: aC.isDark ? 'rgba(1,10,31,0.7)' : '#ffffff' }]}>
+                            {radioOn && <View style={styles.trendRadioDot} />}
+                          </View>
+                        </TouchableOpacity> */}
                       </TouchableOpacity>
                     );
                   })}
@@ -696,6 +766,83 @@ export default function CompareVehicle() {
       <SelectSheet visible={openSheet === 'v1-car'} title={`Select ${vehicleType === 'Cars' ? 'Car' : 'Bike'} Model`} options={v1Models} selected={v1Car} onSelect={setV1Car} onClose={() => setOpenSheet(null)} />
       <SelectSheet visible={openSheet === 'v2-car'} title={`Select ${vehicleType === 'Cars' ? 'Car' : 'Bike'} Model`} options={v2Models} selected={v2Car} onSelect={setV2Car} onClose={() => setOpenSheet(null)} />
       <SelectSheet visible={openSheet === 'v1-variant'} title="Select Variant" options={variants1} selected={v1Variant} onSelect={setV1Variant} onClose={() => setOpenSheet(null)} />
+      {/* ── Selected Car modal (Trending radio se 2 vehicles select hone pe) ── */}
+      <SheetModal visible={cmpVisible} transparent animationType="slide" onRequestClose={closeTrendCompare}>
+        <View style={styles.cmpOverlay}>
+          <TouchableOpacity style={StyleSheet.absoluteFillObject} activeOpacity={1} onPress={closeTrendCompare} />
+          <View style={[styles.cmpCard, { paddingBottom: 28 + (Platform.OS === 'ios' ? cmpInsets.bottom : 0) }]}>
+            <LinearGradient
+              colors={['#16408880', 'transparent', 'transparent', '#16408880']}
+              locations={[0, 0.03, 0.97, 1]}
+              style={StyleSheet.absoluteFillObject}
+              pointerEvents="none"
+            />
+            <LinearGradient
+              colors={['#16408880', 'transparent', 'transparent', '#16408880']}
+              locations={[0, 0.02, 0.98, 1]}
+              start={{ x: 0, y: 0.5 }}
+              end={{ x: 1, y: 0.5 }}
+              style={StyleSheet.absoluteFillObject}
+              pointerEvents="none"
+            />
+            <Text style={styles.cmpTitle}>Selected {category === 'bike' ? 'Bike' : 'Car'}</Text>
+            <TouchableOpacity style={styles.cmpClose} onPress={closeTrendCompare} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+              <Ionicons name="close" size={22} color="#BAACB6" />
+            </TouchableOpacity>
+
+            <View style={styles.cmpBadgeRow}>
+              <View style={styles.cmpDash} pointerEvents="none">
+                {Array.from({ length: 90 }).map((_, i) => <View key={i} style={styles.cmpDashSeg} />)}
+              </View>
+              <View style={styles.cmpBadge}>
+                <LinearGradient
+                  colors={['#16408866', 'transparent', 'transparent', '#16408866']}
+                  locations={[0, 0.22, 0.78, 1]}
+                  start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }}
+                  style={StyleSheet.absoluteFillObject}
+                  pointerEvents="none"
+                />
+                <LinearGradient
+                  colors={['#16408866', 'transparent', 'transparent', '#16408866']}
+                  locations={[0, 0.22, 0.78, 1]}
+                  style={StyleSheet.absoluteFillObject}
+                  pointerEvents="none"
+                />
+                <Image source={require('@/assets/images/selectedCar.png')} style={{ width: 44, height: 44 }} resizeMode="contain" />
+              </View>
+            </View>
+
+            <View style={[styles.cmpLabelRow, { marginTop: 2 }]}>
+              <View style={styles.cmpCarDot}>
+                <MaterialCommunityIcons name={category === 'bike' ? 'motorbike' : 'car'} size={10} color="#010B1E" />
+              </View>
+              <Text style={styles.cmpNameLabel}>First {category === 'bike' ? 'Bike' : 'Car'}</Text>
+              <MaterialCommunityIcons name="check-decagram" size={11} color="#178BFB" />
+            </View>
+            <View style={styles.cmpField}>
+              <CmpInputEffect />
+              <Text style={styles.cmpFieldTxt} numberOfLines={1}>{trendLabel(radioSel[0])}</Text>
+            </View>
+
+            <View style={styles.cmpLabelRow}>
+              <View style={styles.cmpCarDot}>
+                <MaterialCommunityIcons name={category === 'bike' ? 'motorbike' : 'car'} size={10} color="#010B1E" />
+              </View>
+              <Text style={styles.cmpNameLabel}>Second {category === 'bike' ? 'Bike' : 'Car'}</Text>
+              <MaterialCommunityIcons name="check-decagram" size={11} color="#178BFB" style={{ marginLeft: 4 }} />
+            </View>
+            <View style={styles.cmpField}>
+              <CmpInputEffect />
+              <Text style={styles.cmpFieldTxt} numberOfLines={1}>{trendLabel(radioSel[1])}</Text>
+            </View>
+
+            <TouchableOpacity style={styles.cmpBtn} activeOpacity={0.88} onPress={compareTrendSelection}>
+              <LinearGradient colors={['#032a69', '#e2671b']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+              <Text style={styles.cmpBtnTxt}>Compare your Vehicle</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </SheetModal>
       <SelectSheet visible={openSheet === 'v2-variant'} title="Select Variant" options={variants2} selected={v2Variant} onSelect={setV2Variant} onClose={() => setOpenSheet(null)} />
     </SafeAreaView>
   );
@@ -754,6 +901,25 @@ const styles = StyleSheet.create({
   compareButtonText: { color: '#EDEBF0', fontSize: 16, fontFamily: 'Poppins_400Regular' },
   sectionTitle: { color: '#ffffff', fontSize: 17, fontFamily: 'Poppins_500Medium', marginTop: 17, marginBottom: 13 },
   trendingGrid: { gap: 14 },
+  trendRadioHit: { position: 'absolute', top: 6, right: 6, zIndex: 2 },
+  trendRadio: { width: 18, height: 18, borderRadius: 9, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+  trendRadioDot: { width: 9, height: 9, borderRadius: 4.5, backgroundColor: ORANGE },
+  /* "Selected Car" modal — buy/car-detail.tsx jaisa */
+  cmpOverlay:   { flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'flex-end' },
+  cmpCard:      { backgroundColor: '#010A1F', borderRadius: 20, borderWidth: 1, borderColor: '#82a5d5', shadowColor: '#638ed0', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.15, shadowRadius: 5, elevation: 2, paddingHorizontal: 19, paddingTop: 15, paddingBottom: 28, overflow: 'hidden' },
+  cmpTitle:     { textAlign: 'center', fontSize: 17, lineHeight: 24, fontFamily: 'Poppins_500Medium', color: '#BAACB6' },
+  cmpClose:     { position: 'absolute', top: 14, right: 14, zIndex: 2 },
+  cmpBadgeRow:  { height: 72, marginTop: 9, alignItems: 'center', justifyContent: 'center' },
+  cmpDash:      { position: 'absolute', left: -19, right: -19, top: 36, height: 1, flexDirection: 'row', gap: 2, overflow: 'hidden' },
+  cmpDashSeg:   { width: 2.5, height: 1, backgroundColor: '#BAACB6' },
+  cmpBadge:     { width: 72, height: 72, borderRadius: 36, borderWidth: 1, borderStyle: 'dashed', borderColor: '#BAACB6', backgroundColor: '#061433', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  cmpLabelRow:  { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 16, marginBottom: 6 },
+  cmpCarDot:    { width: 14, height: 14, borderRadius: 7, backgroundColor: '#BAACB6', alignItems: 'center', justifyContent: 'center' },
+  cmpNameLabel: { fontSize: 13, lineHeight: 20, fontFamily: 'Poppins_500Medium', color: '#BAACB6' },
+  cmpField:     { height: 44, borderRadius: 22, borderWidth: 1, borderColor: '#829fd0', backgroundColor: 'rgba(3,12,40,0.6)', paddingHorizontal: 20, justifyContent: 'center', overflow: 'hidden' },
+  cmpFieldTxt:  { fontSize: 11, fontFamily: 'Poppins_500Medium', color: '#F9FAFC' },
+  cmpBtn:       { height: 44, borderRadius: 22, marginTop: 18, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  cmpBtnTxt:    { color: '#fff', fontSize: 13, fontFamily: 'Poppins_500Medium' },
   pairRow: { flexDirection: 'row', gap: 28, position: 'relative', alignItems: 'center', marginBottom: 18 },
   trendingCard: {
     flex: 1,

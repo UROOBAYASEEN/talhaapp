@@ -158,23 +158,28 @@ export default function TrackerSearchScreen() {
             })}
           </View>
 
-          <Dropdown label="Registration City" value={city} options={CITIES} onSelect={setCity} />
+          {/* Registered = No → Registration City / Number hide */}
+          {registered === 'yes' && (
+            <>
+            <Dropdown label="Registration City" value={city} options={CITIES} onSelect={setCity} />
 
-          {/* Registration Number */}
-          <View style={s.fieldWrap}>
-            <Text style={[s.fieldLabel, { color: dark ? '#C9C6D0' : '#475569' }]}>Registration Number</Text>
-            <View style={[s.pill, { backgroundColor: dark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: dark ? '#829fd0' : 'rgba(3,42,105,0.12)' }]}>
-              <GlassInset />
-              <TextInput
-                style={[s.pillInput, { color: dark ? '#F2F1F5' : '#010a1f' }]}
-                placeholder="LEA-22-1234"
-                placeholderTextColor={dark ? '#F2F1F5' : '#94a3b8'}
-                value={regNumber}
-                onChangeText={setRegNumber}
-                autoCapitalize="characters"
-              />
+            {/* Registration Number */}
+            <View style={s.fieldWrap}>
+              <Text style={[s.fieldLabel, { color: dark ? '#C9C6D0' : '#475569' }]}>Registration Number</Text>
+              <View style={[s.pill, { backgroundColor: dark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: dark ? '#829fd0' : 'rgba(3,42,105,0.12)' }]}>
+                <GlassInset />
+                <TextInput
+                  style={[s.pillInput, { color: dark ? '#F2F1F5' : '#010a1f' }]}
+                  placeholder="LEA-22-1234"
+                  placeholderTextColor={dark ? '#F2F1F5' : '#94a3b8'}
+                  value={regNumber}
+                  onChangeText={setRegNumber}
+                  autoCapitalize="characters"
+                />
+              </View>
             </View>
-          </View>
+            </>
+          )}
 
           {/* SEARCH BUTTON */}
           <TouchableOpacity style={s.searchBtn} activeOpacity={0.85} onPress={handleSearch}>

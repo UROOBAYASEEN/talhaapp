@@ -169,7 +169,7 @@ export default function ApprovePolicyScreen() {
   const docsDone = docs.length > 0 || status !== 'PENDING REVIEW';
 
   return (
-    <SafeAreaView style={s.safeArea} edges={['top', 'bottom']}>
+    <SafeAreaView style={s.safeArea} edges={['top']}>
       <StatusBar barStyle="light-content" backgroundColor={BG} />
       <View style={s.container}>
 
@@ -288,13 +288,13 @@ export default function ApprovePolicyScreen() {
         </ScrollView>
 
         {/* BOTTOM ACTION BAR */}
-        <BottomActions fx>
-          <GlowPublishButton title={updating ? 'Updating...' : 'Approve Claim'} height={50} disabled={updating} onPress={approvePolicy} />
+        <BottomActions fx compact>
+          <GlowPublishButton title={updating ? 'Updating...' : 'Approve Claim'} height={46} disabled={updating} onPress={approvePolicy} />
           <View style={s.bottomButtonsRow}>
             <TouchableOpacity style={s.rejectButton} onPress={rejectPolicy} activeOpacity={0.8} disabled={updating}>
               <Text style={s.rejectText}>Reject</Text>
             </TouchableOpacity>
-            <GlowDraftButton title="Update Status" height={46} style={{ flex: 1 }} onPress={() => { if (!updating) updateClaimStatus(); }} />
+            <GlowDraftButton title="Update Status" height={44} style={{ flex: 1 }} onPress={() => { if (!updating) updateClaimStatus(); }} />
           </View>
         </BottomActions>
 
@@ -483,8 +483,8 @@ const s = StyleSheet.create({
   approveButton:   { height: 46, borderRadius: 25, justifyContent: 'center', alignItems: 'center', backgroundColor: ORANGE, marginBottom: 11 },
   approveText:     { color: '#fff', fontSize: 15, fontFamily: 'Poppins_700Bold' },
   bottomButtonsRow:{ flexDirection: 'row', gap: 16 },
-  rejectButton:    { flex: 1, height: 46, borderRadius: 23, borderWidth: 1.5, borderColor: '#E0363A', justifyContent: 'center', alignItems: 'center', backgroundColor: '#050A18' },
-  rejectText:      { color: '#E0363A', fontSize: 15, fontFamily: 'Poppins_500Medium' },
+  rejectButton:    { flex: 1, height: 44, borderRadius: 22, borderWidth: 1.5, borderColor: '#E0363A', justifyContent: 'center', alignItems: 'center', backgroundColor: '#050A18' },
+  rejectText:      { color: '#E0363A', fontSize: 14, fontFamily: 'Poppins_500Medium' },
   documentButton:  { flex: 1, height: 42, borderRadius: 22, borderWidth: 1, borderColor: 'rgba(99,130,183,0.8)', justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(41,70,111,0.8)' },
   documentButtonText: { color: C.textSecondary, fontSize: 14, fontFamily: 'Poppins_600SemiBold' },
 

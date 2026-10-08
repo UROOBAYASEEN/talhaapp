@@ -16,6 +16,7 @@ import { API_BASE } from "@/constants/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAppColors } from "@/constants/theme";
 
+import SheetModal from '@/components/shared/SheetModal';
 type Props = {
   visible: boolean;
   onClose: () => void;
@@ -291,7 +292,7 @@ export default function BasicDetailsModal({ visible, onClose, brandName, dealerI
   }
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+    <SheetModal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.overlay}>
         <View style={[styles.modal, { backgroundColor: aC.isDark ? '#010a1f' : '#ffffff', borderColor: aC.isDark ? 'rgba(255,255,255,0.15)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 8 }]}>
           {!aC.isDark && <><LinearGradient colors={['rgba(3,42,105,0.03)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.3 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" /><LinearGradient colors={['transparent', 'rgba(226,103,27,0.06)']} start={{ x: 0.5, y: 0.7 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" /></>}
@@ -336,7 +337,7 @@ export default function BasicDetailsModal({ visible, onClose, brandName, dealerI
           </ScrollView>
         </View>
       </View>
-    </Modal>
+    </SheetModal>
   );
 }
 

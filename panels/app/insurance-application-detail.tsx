@@ -173,7 +173,7 @@ export default function ApplicationDetailScreen() {
   ]).map((d: any, i: number) => ({ uri: resolveUrl(d.file_url) || d.file_url, label: String(d.doc_type || d.type || `DOC ${i + 1}`).toUpperCase() }));
 
   return (
-    <SafeAreaView style={[s.safe, { backgroundColor: D.bg }]} edges={['top', 'bottom']}>
+    <SafeAreaView style={[s.safe, { backgroundColor: D.bg }]} edges={['top']}>
       <DHeader title="Applications Details" />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 200 }}>
         <StatusBand compact label={statusUpper === 'SUBMITTED' ? 'PENDING REVIEW' : statusUpper} date={appliedDate} />
@@ -239,15 +239,15 @@ export default function ApplicationDetailScreen() {
       </ScrollView>
 
       {/* Footer — Approve / Reject / Document */}
-      <BottomActions fx>
-        <GlowPublishButton title="Approve Policy" height={50} loading={actionLoading === 'approved'} disabled={!!actionLoading} onPress={() => handleAction('approved')} />
+      <BottomActions fx compact>
+        <GlowPublishButton title="Approve Policy" height={46} loading={actionLoading === 'approved'} disabled={!!actionLoading} onPress={() => handleAction('approved')} />
         <View style={s.actionRow}>
           <TouchableOpacity style={s.rejectBtn} activeOpacity={0.85} onPress={() => handleAction('rejected')} disabled={!!actionLoading}>
             {actionLoading === 'rejected' ? <ActivityIndicator color="#E0363A" size="small" /> : <Text style={s.rejectTxt}>Reject</Text>}
           </TouchableOpacity>
           <GlowDraftButton
             title="Document"
-            height={50}
+            height={44}
             radius={14}
             style={{ flex: 1 }}
             onPress={() => {
@@ -286,6 +286,6 @@ const s = StyleSheet.create({
   pVal:              { color: '#FFFFFF', fontSize: 13, fontFamily: 'Poppins_600SemiBold', marginTop: 1 },
 
   actionRow: { flexDirection: 'row', gap: 16 },
-  rejectBtn: { flex: 1, height: 50, borderRadius: 14, borderWidth: 1.5, borderColor: '#E0363A', alignItems: 'center', justifyContent: 'center', backgroundColor: '#050A18' },
-  rejectTxt: { color: '#E0363A', fontSize: 16, fontFamily: 'Poppins_500Medium' },
+  rejectBtn: { flex: 1, height: 44, borderRadius: 14, borderWidth: 1.5, borderColor: '#E0363A', alignItems: 'center', justifyContent: 'center', backgroundColor: '#050A18' },
+  rejectTxt: { color: '#E0363A', fontSize: 14, fontFamily: 'Poppins_500Medium' },
 });

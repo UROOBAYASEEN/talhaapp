@@ -12,6 +12,7 @@ import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { CtaPanelGlass, PRIMARY_BTN_COLORS, RingGlow } from '@/components/shared/FigmaEffects';
 
+import SheetModal from '@/components/shared/SheetModal';
 const { width: W } = Dimensions.get('window');
 const BG     = '#010A1F';
 const ORANGE = '#e2671b';
@@ -426,7 +427,7 @@ export default function DealerProfileScreen() {
       </View>
 
       {/* ── Review Modal ── */}
-      <Modal visible={reviewModal} transparent animationType="slide" onRequestClose={() => setReviewModal(false)}>
+      <SheetModal visible={reviewModal} transparent animationType="slide" onRequestClose={() => setReviewModal(false)}>
         <TouchableOpacity style={rm.overlay} activeOpacity={1} onPress={() => setReviewModal(false)}>
           <TouchableOpacity activeOpacity={1} style={rm.sheet}>
             <LinearGradient colors={['rgba(22,64,136,0.2)','transparent']} start={{x:0.5,y:0}} end={{x:0.5,y:0.6}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
@@ -478,7 +479,7 @@ export default function DealerProfileScreen() {
             <View style={{ height: 20 }} />
           </TouchableOpacity>
         </TouchableOpacity>
-      </Modal>
+      </SheetModal>
 
     </SafeAreaView>
   );

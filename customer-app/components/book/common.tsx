@@ -5,6 +5,7 @@ import React, { memo, useEffect, useState } from 'react';
 import {
   ActivityIndicator, Image, Modal, Pressable, ScrollView, StyleSheet, Text,
   TouchableOpacity, View,
+  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { API_BASE } from '@/constants/api';
@@ -12,6 +13,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { G, Glass, GlassField, GlassSelect, GradientButton } from '@/components/shared/GlowUI';
 import { SavedCardEffect, savedCardOuter } from '@/components/shared/FigmaEffects';
 
+import SheetModal from '@/components/shared/SheetModal';
 const SERVER_BASE = API_BASE.replace('/api/v1', '');
 export function imgUrl(url?: string | null) {
   if (!url || url.startsWith('file://')) return null;
@@ -98,6 +100,7 @@ export function SearchModal({
   const { token } = useAuth();
   const insets = useSafeAreaInsets();
   const [cars, setCars] = useState<string[]>([]);
+  const [carItems, setCarItems] = useState<any[]>([]);
   const [loadingCars, setLoadingCars] = useState(false);
   const [open, setOpen] = useState<string | null>(null);
   const [form, setForm] = useState<SearchData>({ car: '', variant: '', transmission: 'Automatic', color: 'Black', year: '2026', sellerType: SELLER_TYPES[0] });
@@ -116,25 +119,36 @@ export function SearchModal({
           const names = Array.from(new Set((d.items || []).map((v: any) =>
             `${v.make || ''} ${v.model || ''}`.trim() || v.title).filter(Boolean))).sort() as string[];
           setCars(names);
-          const first = (d.items || [])[0];
-          setForm(f => ({ ...f, car: names[0] || '', variant: first?.variant || '' }));
+          setCarItems(d.items || []);
+          const first = (d.items || []).find((v: any) => carName(v) === names[0]) || (d.items || [])[0];
+          setForm(f => ({ ...f, car: names[0] || '', variant: (first && buildVariants(first)[0]?.name) || first?.variant || '' }));
         }
       } catch { }
       finally { setLoadingCars(false); }
     })();
   }, [visible, brand, category]);
 
-  const set = (k: keyof SearchData) => (v: string) => { setForm(f => ({ ...f, [k]: v })); setOpen(null); };
+  const carName = (v: any) => `${v.make || ''} ${v.model || ''}`.trim() || v.title;
+  // Selected car ke variants (listings se) — Variant dropdown ke options
+  const variantsFor = (car: string) => Array.from(new Set(
+    carItems.filter(v => carName(v) === car).flatMap(v => buildVariants(v).map(x => x.name)).filter(Boolean),
+  )) as string[];
+  const variantOptions = variantsFor(form.car);
+  const set = (k: keyof SearchData) => (v: string) => {
+    // Car badalne pe variant us car ke pehle variant pe set ho jata hai
+    setForm(f => (k === 'car' ? { ...f, car: v, variant: variantsFor(v)[0] || '' } : { ...f, [k]: v }));
+    setOpen(null);
+  };
   const chevron = <Ionicons name="chevron-down" size={20} color={G.orange} />;
 
-  function OptionList({ field, options }: { field: string; options: string[] }) {
+  function OptionList({ field, options, empty }: { field: string; options: string[]; empty?: string }) {
     if (open !== field) return null;
     return (
       <View style={m.list}>
         <Glass radius={18} blur={12} />
         <ScrollView nestedScrollEnabled style={{ maxHeight: 180 }} keyboardShouldPersistTaps="handled">
           {options.length === 0 ? (
-            <Text style={[m.opt, { color: G.muted }]}>{loadingCars ? 'Loading…' : `No ${category === 'bike' ? 'bikes' : 'cars'} listed for ${brand}`}</Text>
+            <Text style={[m.opt, { color: G.muted }]}>{loadingCars ? 'Loading…' : empty ?? `No ${category === 'bike' ? 'bikes' : 'cars'} listed for ${brand}`}</Text>
           ) : options.map(o => (
             <TouchableOpacity key={o} onPress={() => set(field as keyof SearchData)(o)} style={m.optRow}>
               <Text style={[m.opt, (form as any)[field] === o && { color: G.orange }]}>{o}</Text>
@@ -146,22 +160,23 @@ export function SearchModal({
   }
 
   return (
-    <Modal visible={visible} transparent animationType="slide" statusBarTranslucent onRequestClose={onClose}>
+    <SheetModal visible={visible} transparent animationType="slide" statusBarTranslucent onRequestClose={onClose}>
       <Pressable style={m.overlay} onPress={onClose} />
-      <View style={[m.sheet, { paddingBottom: Math.max(insets.bottom, 16) + 16 }]}>
+      <View style={[m.sheet, { paddingBottom: Math.max(Platform.OS === 'ios' ? insets.bottom : 0, 16) + 16 }]}>
         <TouchableOpacity style={m.close} onPress={onClose} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
           <Ionicons name="close" size={28} color="#C9C6D0" />
         </TouchableOpacity>
         <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingTop: 28 }}>
           <Text style={m.label}>Select your {category === 'bike' ? 'Bike' : 'Car'}</Text>
-          <GlassSelect value={form.car} placeholder={loadingCars ? 'Loading…' : brand} onPress={() => setOpen(open === 'car' ? null : 'car')} />
+          <GlassSelect value={form.car} placeholder={loadingCars ? 'Loading…' : brand} right={chevron} onPress={() => setOpen(open === 'car' ? null : 'car')} />
           <OptionList field="car" options={cars} />
 
           <Text style={m.label}>Variant</Text>
-          <GlassField value={form.variant} onChangeText={v => setForm(f => ({ ...f, variant: v }))} placeholder="Variant" />
+          <GlassSelect value={form.variant} placeholder="Variant" right={chevron} onPress={() => setOpen(open === 'variant' ? null : 'variant')} />
+          <OptionList field="variant" options={variantOptions} empty="No variants available" />
 
           <Text style={m.label}>Transmission</Text>
-          <GlassSelect value={form.transmission} onPress={() => setOpen(open === 'transmission' ? null : 'transmission')} />
+          <GlassSelect value={form.transmission} right={chevron} onPress={() => setOpen(open === 'transmission' ? null : 'transmission')} />
           <OptionList field="transmission" options={TRANSMISSIONS} />
 
           <View style={m.row2}>
@@ -180,11 +195,11 @@ export function SearchModal({
           <Text style={m.label}>Select your {category === 'bike' ? 'Bike' : 'Car'} Dealership (Optional)</Text>
           <GlassSelect value={form.sellerType} right={chevron} onPress={() => setOpen(open === 'sellerType' ? null : 'sellerType')} />
           <OptionList field="sellerType" options={SELLER_TYPES} />
-
-          <GradientButton title="Search Vehicles" height={50} fontSize={18} style={{ marginTop: 26, marginHorizontal: 4 }} onPress={() => onSearch(form)} />
         </ScrollView>
+        {/* Button scroll ke bahar — hamesha poora nazar aaye, kat ke chhupe nahi */}
+        <GradientButton title="Search Vehicles" height={50} fontSize={18} style={{ marginTop: 20, marginHorizontal: 4 }} onPress={() => onSearch(form)} />
       </View>
-    </Modal>
+    </SheetModal>
   );
 }
 

@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Image,
   StyleSheet,
@@ -77,6 +77,8 @@ export default function VehicleSearch() {
   const [minTxt, setMinTxt] = useState('0.5M');
   const [maxTxt, setMaxTxt] = useState('5.8M');
   const [barW, setBarW] = useState(0);
+  // Drag ke dauran sirf wahi thumb move hoga jo touch pe pakra gaya tha (min ya max)
+  const activeThumb = useRef<'min' | 'max' | null>(null);
   const [openSheet, setOpenSheet] = useState<string | null>(null);
 
   const [apiBrands, setApiBrands] = useState<{ name: string; logo_url?: string | null }[]>([]);
@@ -116,16 +118,26 @@ export default function VehicleSearch() {
   // Dual range slider (Used wali image ke mutabiq — Cash aur Finance dono mein same)
   const minPct = (minV - RANGE_MIN) / (RANGE_MAX - RANGE_MIN);
   const maxPct = (maxV - RANGE_MIN) / (RANGE_MAX - RANGE_MIN);
-  function setRangeByX(x: number) {
+  function grabRangeThumb(x: number) {
     if (!barW) return;
     const p = Math.min(1, Math.max(0, x / barW));
+    const dMin = Math.abs(p - minPct);
+    const dMax = Math.abs(p - maxPct);
+    // Dono thumbs ek jagah hon to touch ki direction se decide karo
+    if (dMin === dMax) activeThumb.current = p < minPct ? 'min' : 'max';
+    else activeThumb.current = dMin < dMax ? 'min' : 'max';
+    setRangeByX(x);
+  }
+  function setRangeByX(x: number) {
+    if (!barW || !activeThumb.current) return;
+    const p = Math.min(1, Math.max(0, x / barW));
     const raw = round50k(RANGE_MIN + p * (RANGE_MAX - RANGE_MIN));
-    if (Math.abs(p - minPct) <= Math.abs(p - maxPct)) {
-      const v = Math.min(raw, maxV);
-      setMinV(v); setMinTxt(fmtM(v));
+    if (activeThumb.current === 'min') {
+      const v = Math.max(RANGE_MIN, Math.min(raw, maxV));
+      if (v !== minV) { setMinV(v); setMinTxt(fmtM(v)); }
     } else {
-      const v = Math.max(raw, minV);
-      setMaxV(v); setMaxTxt(fmtM(v));
+      const v = Math.min(RANGE_MAX, Math.max(raw, minV));
+      if (v !== maxV) { setMaxV(v); setMaxTxt(fmtM(v)); }
     }
   }
   function commitMinTxt() {
@@ -437,15 +449,20 @@ export default function VehicleSearch() {
               style={styles.sliderHit}
               onLayout={(e) => setBarW(e.nativeEvent.layout.width)}
               onStartShouldSetResponder={() => true}
-              onResponderGrant={(e) => setRangeByX(e.nativeEvent.locationX)}
+              onMoveShouldSetResponder={() => true}
+              onResponderTerminationRequest={() => false}
+              onResponderGrant={(e) => grabRangeThumb(e.nativeEvent.locationX)}
               onResponderMove={(e) => setRangeByX(e.nativeEvent.locationX)}
+              onResponderRelease={() => { activeThumb.current = null; }}
+              onResponderTerminate={() => { activeThumb.current = null; }}
             >
-              <View style={styles.sliderTrack} />
-              <View style={[styles.sliderRange, { left: `${minPct * 100}%`, width: `${Math.max(0, maxPct - minPct) * 100}%` }]} />
-              <View style={[styles.sliderThumb, { left: `${minPct * 100}%` }]}>
+              {/* pointerEvents none — taake locationX hamesha track ke hisaab se aaye, thumb ke nahi */}
+              <View pointerEvents="none" style={styles.sliderTrack} />
+              <View pointerEvents="none" style={[styles.sliderRange, { left: `${minPct * 100}%`, width: `${Math.max(0, maxPct - minPct) * 100}%` }]} />
+              <View pointerEvents="none" style={[styles.sliderThumb, { left: `${minPct * 100}%` }]}>
                 <View style={styles.sliderDot} />
               </View>
-              <View style={[styles.sliderThumb, { left: `${maxPct * 100}%` }]}>
+              <View pointerEvents="none" style={[styles.sliderThumb, { left: `${maxPct * 100}%` }]}>
                 <View style={styles.sliderDot} />
               </View>
             </View>

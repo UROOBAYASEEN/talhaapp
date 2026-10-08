@@ -108,7 +108,7 @@ export default function CompareResult() {
   const aC = useAppColors();
   const params = useLocalSearchParams<{ aId?: string; bId?: string; aData?: string; bData?: string; from?: string; hideBuy?: string }>();
   const fromCompareVehicle = params.from === 'compareVehicle';
-  // Buy Used Car → Compare Vehicle se aaye to Buy New Car / Buy Used Car buttons nahi dikhane
+  // Buy Used Car / Buy New Car → Compare Vehicle se aaye to Buy New Car / Buy Used Car buttons nahi dikhane
   const hideBuyBtns = params.hideBuy === '1';
   const [a, setA] = useState<any>(null);
   const [b, setB] = useState<any>(null);
@@ -149,6 +149,11 @@ export default function CompareResult() {
   }, []);
 
   const isDemo = !a || !b;
+  // Vehicle compare (Compare Vehicle screen se) → "Compare Vehicle" + vehicle names;
+  // warna (Compare Variants) → "Compare Variant" + "Variant 1 / Variant 2"
+  const vehName = (v: any, fallback: string) => `${v?.make || ''} ${v?.model || ''}`.trim() || fallback;
+  const colA = fromCompareVehicle ? (isDemo ? 'Honda City' : vehName(a, 'Vehicle 1')) : 'Variant 1';
+  const colB = fromCompareVehicle ? (isDemo ? 'Toyota Corolla' : vehName(b, 'Vehicle 2')) : 'Variant 2';
   // Demo static values matching the HTML
   const demoA = {
     title: 'Honda City 1.2 Aspire CVT',
@@ -283,7 +288,7 @@ export default function CompareResult() {
           <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
             <Ionicons name="chevron-back" size={24} color={aC.isDark ? "#fff" : '#010a1f'} />
           </TouchableOpacity>
-          <Text style={[s.topTitle, { color: aC.isDark ? '#F2F1F5' : '#010a1f' }]}>Compare Variant</Text>
+          <Text style={[s.topTitle, { color: aC.isDark ? '#F2F1F5' : '#010a1f' }]}>{fromCompareVehicle ? 'Compare Vehicle' : 'Compare Variant'}</Text>
           <View style={{ width: 28 }} />
         </View>
 
@@ -311,8 +316,8 @@ export default function CompareResult() {
         <Section title="Overview">
           <View style={s.specRow}>
             <Text style={[s.specLabelCol, s.headTxt, { color: aC.isDark ? TXT_HEAD : '#010a1f' }]}>Specification</Text>
-            <Text style={[s.specValCol, s.headTxt, { color: aC.isDark ? TXT_HEAD : '#010a1f' }]}>Variant 1</Text>
-            <Text style={[s.specValCol, s.headTxt, { color: aC.isDark ? TXT_HEAD : '#010a1f' }]}>Variant 2</Text>
+            <Text style={[s.specValCol, s.headTxt, { color: aC.isDark ? TXT_HEAD : '#010a1f' }]}>{colA}</Text>
+            <Text style={[s.specValCol, s.headTxt, { color: aC.isDark ? TXT_HEAD : '#010a1f' }]}>{colB}</Text>
           </View>
           {[
             ['Price', typeof left.price === 'number' ? fmtPrice(left.price) : left.price, typeof right.price === 'number' ? fmtPrice(right.price) : right.price],
@@ -341,8 +346,8 @@ export default function CompareResult() {
         <Section title="Comfort & Convenience">
           <View style={s.featRow}>
             <Text style={[s.featLabelCol, s.headTxt, { color: aC.isDark ? TXT_HEAD : '#010a1f' }]}>Feature</Text>
-            <Text style={[s.featValCol, s.headTxt, { textAlign: 'center', color: aC.isDark ? TXT_HEAD : '#010a1f' }]}>Variant 1</Text>
-            <Text style={[s.featValCol, s.headTxt, { textAlign: 'center', color: aC.isDark ? TXT_HEAD : '#010a1f' }]}>Variant 2</Text>
+            <Text style={[s.featValCol, s.headTxt, { textAlign: 'center', color: aC.isDark ? TXT_HEAD : '#010a1f' }]}>{colA}</Text>
+            <Text style={[s.featValCol, s.headTxt, { textAlign: 'center', color: aC.isDark ? TXT_HEAD : '#010a1f' }]}>{colB}</Text>
           </View>
           {[
             'Air Conditioning',
@@ -367,8 +372,8 @@ export default function CompareResult() {
         <Section title="Safety Features">
           <View style={s.featRow}>
             <Text style={[s.featLabelCol, s.headTxt, { color: aC.isDark ? TXT_HEAD : '#010a1f' }]}>Feature</Text>
-            <Text style={[s.featValCol, s.headTxt, { textAlign: 'center', color: aC.isDark ? TXT_HEAD : '#010a1f' }]}>Variant 1</Text>
-            <Text style={[s.featValCol, s.headTxt, { textAlign: 'center', color: aC.isDark ? TXT_HEAD : '#010a1f' }]}>Variant 2</Text>
+            <Text style={[s.featValCol, s.headTxt, { textAlign: 'center', color: aC.isDark ? TXT_HEAD : '#010a1f' }]}>{colA}</Text>
+            <Text style={[s.featValCol, s.headTxt, { textAlign: 'center', color: aC.isDark ? TXT_HEAD : '#010a1f' }]}>{colB}</Text>
           </View>
           {[
             { f: 'ABS', a: <CheckIcon />, b: <CheckIcon /> },
@@ -389,8 +394,8 @@ export default function CompareResult() {
         <Section title="Estimated Total Price">
           <View style={s.priceRow}>
             <Text style={[s.priceLabelCol, s.priceHeadTxt, { color: aC.isDark ? TXT_HEAD : '#010a1f' }]}>Price Details</Text>
-            <Text style={[s.priceValCol, s.headTxt, { color: aC.isDark ? TXT_HEAD : '#010a1f' }]}>Variant 1</Text>
-            <Text style={[s.priceValCol, s.headTxt, { color: aC.isDark ? TXT_HEAD : '#010a1f' }]}>Variant 2</Text>
+            <Text style={[s.priceValCol, s.headTxt, { color: aC.isDark ? TXT_HEAD : '#010a1f' }]}>{colA}</Text>
+            <Text style={[s.priceValCol, s.headTxt, { color: aC.isDark ? TXT_HEAD : '#010a1f' }]}>{colB}</Text>
           </View>
           <View style={s.priceRow}>
             <Text style={[s.priceLabelCol, s.priceLabelTxt, { color: aC.isDark ? TXT_VAL : '#334155' }]}>{'Estimated Total\n(Filer)'}</Text>

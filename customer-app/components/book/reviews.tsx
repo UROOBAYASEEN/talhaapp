@@ -8,6 +8,7 @@ import {
 import { API_BASE } from '@/constants/api';
 import { G, Glass, GradientButton } from '@/components/shared/GlowUI';
 
+import SheetModal from '@/components/shared/SheetModal';
 export function timeAgo(iso?: string) {
   if (!iso) return '';
   const m = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
@@ -104,7 +105,7 @@ export function WriteReviewModal({
   }
 
   return (
-    <Modal visible={visible} transparent animationType="slide" statusBarTranslucent onRequestClose={onClose}>
+    <SheetModal visible={visible} transparent animationType="slide" statusBarTranslucent onRequestClose={onClose}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.55)' }} onPress={onClose} />
         <View style={rv.sheet}>
@@ -135,7 +136,7 @@ export function WriteReviewModal({
             : <GradientButton title="Submit Review" style={{ marginTop: 20 }} onPress={submit} />}
         </View>
       </KeyboardAvoidingView>
-    </Modal>
+    </SheetModal>
   );
 }
 

@@ -19,6 +19,7 @@ import { AppColors, useAppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 
+import SheetModal from '@/components/shared/SheetModal';
 const { width } = Dimensions.get('window');
 const ORANGE = AppColors.gradientEnd;
 const NAVY   = AppColors.gradientStart;
@@ -156,7 +157,7 @@ export default function TrackerCompanyProfileScreen() {
     <SafeAreaView style={[s.safeArea, { backgroundColor: aC.bg }]} edges={['top']}>
 
       {/* DEVICES MODAL — Available Trackers light white + orange shade */}
-      <Modal visible={showDevices} transparent animationType="slide" onRequestClose={() => setShowDevices(false)}>
+      <SheetModal visible={showDevices} transparent animationType="slide" onRequestClose={() => setShowDevices(false)}>
         <View style={s.modalOverlay}>
           <View style={[s.modalSheet, { backgroundColor: aC.isDark ? '#010A1F' : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.4)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.12, elevation: aC.isDark ? 0 : 8 }]}>
             {aC.isDark ? <LinearGradient colors={['rgba(22,64,136,0.25)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/> : <><LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/><LinearGradient colors={['transparent', 'rgba(226,103,27,0.08)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/></>}
@@ -212,7 +213,7 @@ export default function TrackerCompanyProfileScreen() {
             </TouchableOpacity>
           </View>
         </View>
-      </Modal>
+      </SheetModal>
 
       <View style={[s.container, { backgroundColor: aC.bg }]}>
 

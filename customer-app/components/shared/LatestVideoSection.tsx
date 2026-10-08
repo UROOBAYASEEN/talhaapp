@@ -27,7 +27,7 @@ function VideoCard({ item, onPlay, savedStyle }: { item: any; onPlay: () => void
   const SERVER = API_BASE.replace('/api/v1', '');
   const C = useAppColors();
   const thumb = item.media_url?.startsWith('http') ? item.media_url : item.media_url ? `${SERVER}${item.media_url}` : VIDEO_IMG;
-  const title = item.title || 'Video Ad';
+  const title = item.title || '';
   const isVideo = (item.media_url || '').match(/\.(mp4|mov|webm)$/i);
   return (
     <TouchableOpacity style={[s.card, { backgroundColor: C.isDark ? C.glassBg : '#ffffff', borderColor: C.isDark ? 'rgba(100,160,255,0.5)' : 'rgba(3,42,105,0.12)', shadowColor: C.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOffset: { width: 0, height: 4 }, shadowOpacity: C.isDark ? 0 : 0.08, shadowRadius: 10, elevation: C.isDark ? 0 : 3 }, C.isDark && savedStyle && s.savedCard]} activeOpacity={0.86} onPress={onPlay}>
@@ -66,9 +66,12 @@ function VideoCard({ item, onPlay, savedStyle }: { item: any; onPlay: () => void
         <View style={s.playBtn}>
           <Ionicons name={isVideo ? "videocam" : "play"} size={14} color={WHITE} />
         </View>
-        <View style={s.durBadge}>
-          <Text style={s.durTxt}>{isVideo ? 'Video Ad' : 'Ad'}</Text>
-        </View>
+        {/* "Video Ad" badge nahi dikhana — sirf non-video pe "Ad" */}
+        {!isVideo && (
+          <View style={s.durBadge}>
+            <Text style={s.durTxt}>Ad</Text>
+          </View>
+        )}
       </View>
       <View style={[s.info, savedStyle && { gap: 5 }]}>
         <Text style={[s.title, { color: C.textPrimary }]} numberOfLines={1}>{title}</Text>
@@ -144,7 +147,7 @@ export default function LatestVideoSection({ count = 2, savedCardStyle = false, 
           onPlay={() => {
             const uri = playUrl(v);
             if (!uri) return;
-            setPlaying({ uri, title: v.title || 'Video Ad' });
+            setPlaying({ uri, title: v.title || '' });
           }}
         />
       ))}

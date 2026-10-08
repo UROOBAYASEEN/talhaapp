@@ -13,6 +13,7 @@ import { useAppColors } from '@/constants/theme';
 import FacebookIcon from '@/assets/Icons/facebook.png';
 import BankIcon from '@/assets/images/hugeicons_bank.png';
 
+import SheetModal from '@/components/shared/SheetModal';
 const { width: W } = Dimensions.get('window');
 const ORANGE  = '#e2671b';
 const NAVY    = 'rgba(1,10,31,1)';
@@ -719,7 +720,7 @@ export default function VehicleDetailScreen() {
         </View>
       </View>
 
-      <Modal visible={compareSheet && !!secondVehicle} transparent animationType="slide" onRequestClose={() => setCompareSheet(false)}>
+      <SheetModal visible={compareSheet && !!secondVehicle} transparent animationType="slide" onRequestClose={() => setCompareSheet(false)}>
         <View style={styles.sheetOverlay}>
           <TouchableOpacity style={StyleSheet.absoluteFillObject} activeOpacity={1} onPress={() => setCompareSheet(false)} />
 
@@ -838,7 +839,7 @@ export default function VehicleDetailScreen() {
           </View>
           </View>
         </View>
-      </Modal>
+      </SheetModal>
 
     </SafeAreaView>
   );
@@ -977,7 +978,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   compareSheet: {
-    maxHeight: '88%', borderTopLeftRadius: 26, borderTopRightRadius: 26,
+    borderTopLeftRadius: 26, borderTopRightRadius: 26,
     paddingHorizontal: 18, paddingTop: 9, paddingBottom: 22,
     borderWidth: 0,
     backgroundColor: '#010A1F',

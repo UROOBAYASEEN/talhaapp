@@ -90,7 +90,7 @@ export default function InsuranceSearchScreen() {
     if (!brand.trim())     e.brand  = 'Please select a brand';
     if (!model.trim())     e.model  = 'Please select a model';
     if (!year.trim())      e.year   = 'Please select a year';
-    if (!regNumber.trim()) e.regNumber = 'Please enter registration number';
+    if (registered === 'yes' && !regNumber.trim()) e.regNumber = 'Please enter registration number';
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -203,24 +203,29 @@ export default function InsuranceSearchScreen() {
             })}
           </View>
 
-          <Dropdown label="Registration City" value={city} options={CITIES} onSelect={setCity} />
+          {/* Registered = No → Registration City / Number hide */}
+          {registered === 'yes' && (
+            <>
+            <Dropdown label="Registration City" value={city} options={CITIES} onSelect={setCity} />
 
-          {/* Registration Number */}
-          <View style={s.fieldWrap}>
-            <Text style={[s.fieldLabel, { color: dark ? '#C9C6D0' : '#475569' }]}>Registration Number</Text>
-            <View style={[s.pill, { backgroundColor: dark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: dark ? '#829fd0' : 'rgba(3,42,105,0.12)' }]}>
-              <GlassInset />
-              <TextInput
-                style={[s.pillInput, { color: dark ? '#F2F1F5' : '#010a1f' }]}
-                placeholder="LEA-22-1234"
-                placeholderTextColor={dark ? '#F2F1F5' : '#94a3b8'}
-                value={regNumber}
-                onChangeText={v => { setRegNumber(v); setErrors(p => ({ ...p, regNumber: '' })); }}
-                autoCapitalize="characters"
-              />
+            {/* Registration Number */}
+            <View style={s.fieldWrap}>
+              <Text style={[s.fieldLabel, { color: dark ? '#C9C6D0' : '#475569' }]}>Registration Number</Text>
+              <View style={[s.pill, { backgroundColor: dark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: dark ? '#829fd0' : 'rgba(3,42,105,0.12)' }]}>
+                <GlassInset />
+                <TextInput
+                  style={[s.pillInput, { color: dark ? '#F2F1F5' : '#010a1f' }]}
+                  placeholder="LEA-22-1234"
+                  placeholderTextColor={dark ? '#F2F1F5' : '#94a3b8'}
+                  value={regNumber}
+                  onChangeText={v => { setRegNumber(v); setErrors(p => ({ ...p, regNumber: '' })); }}
+                  autoCapitalize="characters"
+                />
+              </View>
             </View>
-          </View>
-          {!!errors.regNumber && <Text style={s.errTxt}>{errors.regNumber}</Text>}
+            {!!errors.regNumber && <Text style={s.errTxt}>{errors.regNumber}</Text>}
+            </>
+          )}
 
           {/* SEARCH BUTTON */}
           <TouchableOpacity style={s.searchBtn} activeOpacity={0.85} onPress={handleSearch}>

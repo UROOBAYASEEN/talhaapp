@@ -388,7 +388,7 @@ export default function InsuranceSpecialOfferScreen() {
         </ScrollView>
 
         {/* FOOTER */}
-        <BottomActions fx>
+        <BottomActions fx compact>
           <GlowPublishButton title="Publish Banner" loadingTitle="Publishing..." loading={publishing}
             style={!agreed ? { opacity: 0.6 } : undefined} onPress={handlePublish} />
           <GlowDraftButton title="Save as Draft" />

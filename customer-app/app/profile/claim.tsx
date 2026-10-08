@@ -186,8 +186,8 @@ export default function ClaimScreen() {
           year:                yearNum,
           estimated_value:     numValue,
           registered:          registered === 'yes',
-          registration_city:   city,
-          registration_number: regNum.trim(),
+          registration_city:   registered === 'yes' ? city : '',
+          registration_number: registered === 'yes' ? regNum.trim() : '',
           photos:              photoUrls,
         }),
       });
@@ -337,36 +337,41 @@ export default function ClaimScreen() {
             </View>
           </View>
 
-          <View style={s.fieldWrap}>
-            <Text style={[s.fieldLabel, { color: T.textSecondary }]}>Registration City</Text>
-            <TouchableOpacity style={inputStyle} onPress={() => setCityOpen(v => !v)} activeOpacity={0.8}>
-              <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-              <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-              <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-              <Text style={[s.inputTxt, { color: city ? T.textPrimary : T.textSecondary }]}>{city || 'Select City'}</Text>
-              <Ionicons name={cityOpen ? 'chevron-up' : 'chevron-down'} size={16} color={T.textSecondary} />
-            </TouchableOpacity>
-            {cityOpen && (
-              <View style={[s.dropList, { backgroundColor: T.glassBg, borderColor: T.glassBorder }]}>
-                {CITIES.map(c => (
-                  <TouchableOpacity key={c} style={[s.dropItem, { borderBottomColor: T.divider }]} onPress={() => { setCity(c); setCityOpen(false); }}>
-                    <Text style={[s.dropItemTxt, { color: c === city ? ORANGE : T.textPrimary }]}>{c}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-          </View>
-
-          {/* Registration Number */}
-          <View style={s.fieldWrap}>
-            <Text style={[s.fieldLabel, { color: T.textSecondary }]}>Registration Number</Text>
-            <View style={inputStyle}>
-              <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-              <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-              <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-              <TextInput style={[s.inputTxt, { flex: 1, color: T.textPrimary }]} value={regNum} onChangeText={setRegNum} placeholder="LEA-22-1234" placeholderTextColor={T.textSecondary} autoCapitalize="characters" />
+          {/* Registered = No → Registration City / Number hide */}
+          {registered === 'yes' && (
+            <>
+            <View style={s.fieldWrap}>
+              <Text style={[s.fieldLabel, { color: T.textSecondary }]}>Registration City</Text>
+              <TouchableOpacity style={inputStyle} onPress={() => setCityOpen(v => !v)} activeOpacity={0.8}>
+                <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+                <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+                <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+                <Text style={[s.inputTxt, { color: city ? T.textPrimary : T.textSecondary }]}>{city || 'Select City'}</Text>
+                <Ionicons name={cityOpen ? 'chevron-up' : 'chevron-down'} size={16} color={T.textSecondary} />
+              </TouchableOpacity>
+              {cityOpen && (
+                <View style={[s.dropList, { backgroundColor: T.glassBg, borderColor: T.glassBorder }]}>
+                  {CITIES.map(c => (
+                    <TouchableOpacity key={c} style={[s.dropItem, { borderBottomColor: T.divider }]} onPress={() => { setCity(c); setCityOpen(false); }}>
+                      <Text style={[s.dropItemTxt, { color: c === city ? ORANGE : T.textPrimary }]}>{c}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
             </View>
-          </View>
+
+            {/* Registration Number */}
+            <View style={s.fieldWrap}>
+              <Text style={[s.fieldLabel, { color: T.textSecondary }]}>Registration Number</Text>
+              <View style={inputStyle}>
+                <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+                <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+                <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+                <TextInput style={[s.inputTxt, { flex: 1, color: T.textPrimary }]} value={regNum} onChangeText={setRegNum} placeholder="LEA-22-1234" placeholderTextColor={T.textSecondary} autoCapitalize="characters" />
+              </View>
+            </View>
+            </>
+          )}
 
           {/* ── Photos Section ── */}
           <Text style={[s.sectionLabel, { color: T.textSecondary }]}>VEHICLE PHOTOS</Text>

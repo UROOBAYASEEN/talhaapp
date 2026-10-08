@@ -16,6 +16,7 @@ import {
   Switch,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import GradientNote from "@/components/shared/GradientNote";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
@@ -23,6 +24,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { API_BASE } from "@/constants/api";
 import { useAppColors } from "@/constants/theme";
 
+import SheetModal from '@/components/shared/SheetModal';
 const { width } = Dimensions.get("window");
 const MAX_PHOTOS = 6;
 const MIN_PHOTOS = 5;
@@ -76,6 +78,7 @@ const COLORS       = ["White","Silver","Black","Grey","Red","Blue","Green","Brow
 const SELL_CITIES  = ["All Cities","Karachi","Lahore","Islamabad","Rawalpindi","Faisalabad","Multan","Peshawar","Quetta","Hyderabad","Sialkot","Gujranwala","Bahawalpur","Sargodha","Abbottabad","Gujrat","Jhang","Sahiwal","Sukkur","Larkana","Mardan","Sheikhupura","Kasur","Okara","Dera Ghazi Khan","Jhelum","Wah Cantt","Muzaffarabad","Gilgit","Gwadar"];
 const AD_DURATIONS = ["1 Week","2 Weeks","1 Month","3 Months","6 Months"];
 const TRANSMISSIONS = ["Automatic","Manual","Other"];
+const VARIANTS     = ["1.0 MT","1.0 CVT","1.2 MT","1.2 CVT","1.3 MT","1.3 CVT","1.5 MT","1.5 CVT","1.8 MT","2.0 MT","Standard","GL","GLi","XLi","Grande","Alpha","Sport","AWD","Other"];
 const CONDITIONS   = ["Used","New"];
 
 function Step2FigmaField({ label, value, sample, onPress, onChangeText, numeric = false, dark }: {
@@ -109,7 +112,7 @@ function PickerModal({ visible, title, options, onSelect, onClose, getIcon }: {
   const C = useAppColors();
   const filtered = options.filter(o => o.toLowerCase().includes(search.toLowerCase()));
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+    <SheetModal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <TouchableOpacity style={pm.overlay} activeOpacity={1} onPress={onClose} />
       <View style={[pm.sheet, { backgroundColor: C.isDark ? "rgba(6,27,74,1)" : "#ffffff", borderColor: C.isDark ? "rgba(100,160,255,0.3)" : "rgba(3,12,40,0.12)" }]}>
         <View style={[pm.handle, { backgroundColor: C.isDark ? "rgba(255,255,255,0.2)" : "rgba(3,12,40,0.15)" }]} />
@@ -142,7 +145,7 @@ function PickerModal({ visible, title, options, onSelect, onClose, getIcon }: {
           )}
         />
       </View>
-    </Modal>
+    </SheetModal>
   );
 }
 
@@ -184,6 +187,7 @@ export default function SellMyVehicle() {
   const [otherBrand,   setOtherBrand]   = useState("");
   const [otherModel,   setOtherModel]   = useState("");
   const [otherColor,   setOtherColor]   = useState("");
+  const [otherVariant, setOtherVariant] = useState("");
   const [otherFuel,    setOtherFuel]    = useState("");
 
   // Backend brands (admin panel se) — Step 2 Brand mein yahe aate hain, logo ke sath
@@ -253,6 +257,7 @@ export default function SellMyVehicle() {
   const effectiveBrand = brand === "Any" ? otherBrand : brand;
   const effectiveModel = carModel === "Other" ? otherModel : carModel;
   const effectiveColor = color === "Other" ? otherColor : color;
+  const effectiveVariant = variant === "Other" ? otherVariant : variant;
   const effectiveFuel  = fuelType === "Other" ? otherFuel : fuelType;
 
   const modelOptions = brand && brand !== "Any" ? (BRANDS[brand] || ["Other"]) : ["Other"];
@@ -283,10 +288,10 @@ export default function SellMyVehicle() {
       const uploadedImages = await Promise.all(photos.map(uploadPhoto));
       const stepCity = (city && city !== "All Cities" ? city : location.split(" ")[0]) || "Karachi";
       const payload = {
-        title:            adTitle || `${effectiveBrand} ${effectiveModel} ${variant} ${year}`.trim(),
+        title:            adTitle || `${effectiveBrand} ${effectiveModel} ${effectiveVariant} ${year}`.trim(),
         make:             effectiveBrand  || "Other",
         model:            effectiveModel  || "Other",
-        variant:          variant         || null,
+        variant:          effectiveVariant || null,
         year:             parseInt(year)  || new Date().getFullYear(),
         price:            parseFloat(askingPrice.replace(/,/g, "")) || 0,
         category:         selectedVehicle,
@@ -502,6 +507,7 @@ export default function SellMyVehicle() {
             <PickerModal visible={pickerFor === "color"}    title="Select Color"        options={COLORS}        onSelect={setColor}        onClose={() => setPickerFor(null)} />
             <PickerModal visible={pickerFor === "duration"} title="Select Ad Duration"  options={AD_DURATIONS}  onSelect={setAdDuration}   onClose={() => setPickerFor(null)} />
             <PickerModal visible={pickerFor === "trans"}    title="Transmission"        options={TRANSMISSIONS} onSelect={setTransmission} onClose={() => setPickerFor(null)} />
+            <PickerModal visible={pickerFor === "variant"}  title="Select Variant"      options={VARIANTS}      onSelect={setVariant}      onClose={() => setPickerFor(null)} />
             <PickerModal visible={pickerFor === "cond"}     title="Condition"           options={CONDITIONS}    onSelect={setCondition}    onClose={() => setPickerFor(null)} />
 
             <View style={[styles.step2CardBorder, aC.isDark && styles.vehicleCardBorderGlow, { borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.14)' }]}>
@@ -523,7 +529,8 @@ export default function SellMyVehicle() {
               {brand === "Any" && <TextInput value={otherBrand} onChangeText={setOtherBrand} placeholder="Which brand?" placeholderTextColor="#b8acba" style={[styles.step2OtherInput, { color: aC.textPrimary }]} />}
               <Step2FigmaField label="City" value={city} sample="Karachi" onPress={() => setPickerFor("city")} dark={aC.isDark} />
               <Step2FigmaField label="Year" value={year} sample="2024" onPress={() => setPickerFor("year")} dark={aC.isDark} />
-              <Step2FigmaField label="Variant" value={variant} sample="1.2 Aspire CVT" onChangeText={setVariant} dark={aC.isDark} />
+              <Step2FigmaField label="Variant" value={variant} sample="1.2 Aspire CVT" onPress={() => setPickerFor("variant")} dark={aC.isDark} />
+              {variant === "Other" && <TextInput value={otherVariant} onChangeText={setOtherVariant} placeholder="Enter variant" placeholderTextColor="#b8acba" style={[styles.step2OtherInput, { color: aC.textPrimary }]} />}
               <Step2FigmaField label="Ad Duration" value={adDuration} sample="1 week" onPress={() => setPickerFor("duration")} dark={aC.isDark} />
               <Step2FigmaField label="Fuel Type" value={fuelType} sample="Petrol" onPress={() => setPickerFor("fuel")} dark={aC.isDark} />
               {fuelType === "Other" && <TextInput value={otherFuel} onChangeText={setOtherFuel} placeholder="Enter fuel type" placeholderTextColor="#b8acba" style={[styles.step2OtherInput, { color: aC.textPrimary }]} />}
@@ -934,15 +941,22 @@ export default function SellMyVehicle() {
               </Text>
             </TouchableOpacity>
 
-            <View style={[styles.privacyCard, { backgroundColor: aC.isDark ? '#384253' : '#ffffff', borderColor: aC.isDark ? '#e4e6ec' : 'rgba(3,42,105,0.12)', overflow: 'hidden', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]}>
-              {aC.isDark
-                ? <LinearGradient colors={['#687181', '#293346']} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                : <><LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" /><LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" /></>}
-              <Ionicons name="lock-closed-outline" size={16} color={ORANGE} style={{ marginRight: 10 }} />
-              <Text style={[styles.privacyText, { color: aC.isDark ? SUBTITLE : '#475569' }]}>
-                Your contact details will be visible to interested buyers only.
-              </Text>
-            </View>
+            {aC.isDark ? (
+              <GradientNote
+                icon={<Ionicons name="lock-closed-outline" size={16} color={ORANGE} />}
+                text="Your contact details will be visible to interested buyers only."
+              />
+            ) : (
+              <View style={[styles.privacyCard, { backgroundColor: aC.isDark ? '#384253' : '#ffffff', borderColor: aC.isDark ? '#e4e6ec' : 'rgba(3,42,105,0.12)', overflow: 'hidden', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]}>
+                {aC.isDark
+                  ? <LinearGradient colors={['#687181', '#293346']} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+                  : <><LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" /><LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" /></>}
+                <Ionicons name="lock-closed-outline" size={16} color={ORANGE} style={{ marginRight: 10 }} />
+                <Text style={[styles.privacyText, { color: aC.isDark ? SUBTITLE : '#475569' }]}>
+                  Your contact details will be visible to interested buyers only.
+                </Text>
+              </View>
+            )}
           </>
         )}
 
@@ -969,7 +983,7 @@ export default function SellMyVehicle() {
                 </View>
                 <View style={styles.reviewMeta}>
                   <Text style={[styles.reviewCarName, { color: aC.isDark ? '#f9fafc' : '#010a1f' }]} numberOfLines={2}>
-                    {[effectiveBrand, effectiveModel, variant, year].filter(Boolean).join(" ") || "Your Vehicle"}
+                    {[effectiveBrand, effectiveModel, effectiveVariant, year].filter(Boolean).join(" ") || "Your Vehicle"}
                   </Text>
                   <Text style={styles.reviewPrice}>
                     {askingPrice ? `PKR ${Number(askingPrice.replace(/,/g,"")).toLocaleString()}` : "—"}

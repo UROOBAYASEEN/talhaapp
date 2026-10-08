@@ -14,6 +14,7 @@ import { API_BASE } from '@/constants/api';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { PRIMARY_BTN_COLORS, SavedCardEffect, SearchInputEffect } from '@/components/shared/FigmaEffects';
 
+import SheetModal from '@/components/shared/SheetModal';
 const C      = AppColors;
 const ORANGE = '#e2671b';
 const NAVY   = '#032a69';
@@ -75,7 +76,7 @@ function VehiclePickerModal({
   }
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+    <SheetModal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <View style={pm.overlay}>
         <View style={[pm.sheet, { backgroundColor: aC.isDark ? '#010A1F' : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.3)' : 'rgba(3,42,105,0.12)' }]}>
 
@@ -148,7 +149,7 @@ function VehiclePickerModal({
           )}
         </View>
       </View>
-    </Modal>
+    </SheetModal>
   );
 }
 
