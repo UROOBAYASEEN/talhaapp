@@ -1,4 +1,5 @@
 // Figma dealer-panel UI kit — shared by every dealer screen.
+import VerifiedIcon from '@/components/shared/VerifiedIcon';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -299,7 +300,7 @@ export function MiniGradBtn({ title, onPress }: { title: string; onPress?: () =>
 }
 
 export function Verified({ size = 18 }: { size?: number }) {
-  return <MaterialIcons name="verified" size={size} color="#3B8BF6" />;
+  return <VerifiedIcon size={size} />;
 }
 
 // ── Radio (white ring, filled dot when selected) ──

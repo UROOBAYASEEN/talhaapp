@@ -1,3 +1,4 @@
+import VerifiedIcon from '@/components/shared/VerifiedIcon';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -286,7 +287,7 @@ export default function DealerProfileScreen() {
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <Text style={s.dealerName} numberOfLines={1}>{displayName}</Text>
                 {dealer.is_verified && (
-                  <Ionicons name="checkmark-circle" size={18} color="#4fc3f7" />
+                  <VerifiedIcon size={18} />
                 )}
               </View>
               <Text style={s.dealerType}>Official Dealership</Text>

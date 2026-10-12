@@ -115,8 +115,10 @@ function ReviewItem({ initial, color, name, stars, time, text }: any) {
 
 import * as ImagePicker from 'expo-image-picker';
 import { Alert } from 'react-native';
+import { useTabBarSpace } from '@/components/shared/PillTabBar';
 
 export default function TrackerProfileScreen() {
+  const tabSpace = useTabBarSpace(120);
   const { logout, user, token } = useAuth();
   const router = useRouter();
 
@@ -324,7 +326,7 @@ export default function TrackerProfileScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 120 }}
+        contentContainerStyle={{ paddingBottom: tabSpace }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={ORANGE} />}
       >
 

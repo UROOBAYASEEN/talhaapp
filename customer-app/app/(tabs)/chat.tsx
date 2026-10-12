@@ -2,6 +2,7 @@
  * Chat Screen — Figma pixel-perfect (node 399:269)
  * bg #010a1f | Glass Button cards | filter tabs
  */
+import VerifiedIcon from '@/components/shared/VerifiedIcon';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -251,7 +252,7 @@ export default function ChatListScreen() {
                   <View style={styles.convRow}>
                     <View style={styles.nameRow}>
                       <Text style={[styles.convName, { color: aC.textPrimary }]} numberOfLines={1}>{name}</Text>
-                      {item.verified && <Ionicons name="checkmark-circle" size={14} color="#0088ff" />}
+                      {item.verified && <VerifiedIcon size={14} />}
                     </View>
                     <Text style={[styles.convTime, { color: aC.textSecondary }]}>{time}</Text>
                   </View>

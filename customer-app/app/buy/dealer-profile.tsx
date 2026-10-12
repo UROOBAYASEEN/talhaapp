@@ -1,3 +1,4 @@
+import VerifiedIcon from '@/components/shared/VerifiedIcon';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -231,8 +232,8 @@ export default function DealerProfileScreen() {
           <View style={s.nameRow}>
             <View style={{ flex: 1 }}>
               <View style={s.nameVerifiedRow}>
-                <Text style={s.name}>{name}</Text>
-                <Ionicons name="checkmark-circle" size={17} color="#3b82f6" style={{ marginLeft: 5 }} />
+                <Text style={s.name} numberOfLines={2}>{name}</Text>
+                <VerifiedIcon size={17} style={{ marginLeft: 6, marginTop: 4 }} />
               </View>
               <Text style={s.subtitle}>{isDealer ? 'Official Dealership' : 'Non Dealership'}</Text>
             </View>
@@ -247,7 +248,7 @@ export default function DealerProfileScreen() {
           {/* Rating + Follow */}
           <View style={s.ratingFollowRow}>
             <View style={s.ratingRow}>
-              <Ionicons name="star" size={14} color={AMBER} />
+              <Ionicons name="star" size={17} color={ORANGE} />
               <Text style={s.ratingVal}>{avgRating > 0 ? avgRating.toFixed(1) : '0.0'}</Text>
               <Text style={s.ratingCount}>({reviewCount} {reviewCount === 1 ? 'Review' : 'Reviews'})</Text>
             </View>
@@ -414,13 +415,18 @@ export default function DealerProfileScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity style={s.ctaPrimary} onPress={() => router.push('/buy/reserve' as any)} activeOpacity={0.88}>
-          <LinearGradient colors={['#0B2452', '#6B3F2A', '#e2671b'] as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
-          <Text style={[s.ctaPrimaryTxt, { color: '#D9D6DF' }]}>{isBike ? 'Reserve your bike' : 'Reserve your car'}</Text>
+          <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+          <Text style={s.ctaPrimaryTxt}>{isBike ? 'Reserve your bike' : 'Reserve your car'}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={s.ctaGlass} onPress={() => router.push({ pathname: '/buy/search-results' as any, params: { dealerId: id, brand: name, ...(isBike ? { category: 'bike' } : {}) } })} activeOpacity={0.88}>
           <RingGlow radius={26} peak={0.5} rings={12} />
           <Text style={s.ctaGlassTxt}>{isBike ? 'View Available Bikes' : 'View Available Cars'}</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={[s.usedContactItem, { alignSelf: 'center' }]} onPress={handleWhatsApp} activeOpacity={0.8}>
+          <Ionicons name="logo-whatsapp" size={24} color="#25D366" />
+          <Text style={s.usedContactTxt}>WhatsApp</Text>
         </TouchableOpacity>
           </>
         )}
@@ -494,23 +500,23 @@ const s = StyleSheet.create({
   logoRow:    { position: 'absolute', top: 12, left: 0, right: 0, flexDirection: 'row', justifyContent: 'center' },
   logoW:      { color: WHITE,  fontSize: 18, fontFamily: 'Poppins_700Bold' },
   logoO:      { color: ORANGE, fontSize: 18, fontFamily: 'Poppins_700Bold' },
-  avatarWrap: { position: 'absolute', bottom: -32, left: 16, width: 64, height: 64, borderRadius: 32, backgroundColor: WHITE, overflow: 'hidden', borderWidth: 2, borderColor: WHITE, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 8 },
-  avatarImg:  { width: 64, height: 64 },
-  avatarFallback: { width: 64, height: 64, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' },
+  avatarWrap: { position: 'absolute', bottom: -44, left: 16, width: 80, height: 80, borderRadius: 40, backgroundColor: WHITE, overflow: 'hidden', borderWidth: 2, borderColor: WHITE, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 8 },
+  avatarImg:  { width: 76, height: 76 },
+  avatarFallback: { width: 76, height: 76, backgroundColor: ORANGE, alignItems: 'center', justifyContent: 'center' },
   avatarInitial:  { color: WHITE, fontSize: 24, fontFamily: 'Poppins_700Bold' },
 
-  body: { paddingHorizontal: 16, paddingTop: 20 },
+  body: { paddingHorizontal: 16, paddingTop: 10 },
 
-  nameRow:        { flexDirection: 'row', alignItems: 'flex-start', gap: 8, paddingLeft: W * 0.15 },
-  nameVerifiedRow:{ flexDirection: 'row', alignItems: 'center' },
-  name:           { color: WHITE, fontSize: 19, fontFamily: 'Poppins_700Bold' },
-  subtitle:       { color: WHITE, fontSize: 13, fontFamily: 'Poppins_400Regular', marginTop: 0 },
-  iconRow:        { flexDirection: 'row', gap: 14, paddingTop: 4 },
+  nameRow:        { flexDirection: 'row', alignItems: 'flex-start', gap: 8, paddingLeft: 92 },
+  nameVerifiedRow:{ flexDirection: 'row', alignItems: 'flex-start' },
+  name:           { color: WHITE, fontSize: 17, fontFamily: 'Poppins_600SemiBold', flexShrink: 1 },
+  subtitle:       { color: MUTED, fontSize: 13, fontFamily: 'Poppins_400Regular', marginTop: 0 },
+  iconRow:        { flexDirection: 'row', gap: 14, paddingTop: 3 },
 
-  ratingFollowRow:{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4, paddingLeft: W * 0.15 },
-  ratingRow:      { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  ratingVal:      { color: AMBER, fontSize: 13, fontFamily: 'Poppins_600SemiBold' },
-  ratingCount:    { color: MUTED, fontSize: 13, fontFamily: 'Poppins_400Regular' },
+  ratingFollowRow:{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 2, paddingLeft: 92 },
+  ratingRow:      { flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1 },
+  ratingVal:      { color: '#D9D6DF', fontSize: 13, fontFamily: 'Poppins_400Regular' },
+  ratingCount:    { color: '#D9D6DF', fontSize: 13, fontFamily: 'Poppins_400Regular' },
   followBtn:      { minWidth: 86, height: 34, paddingHorizontal: 20, borderRadius: 17, borderWidth: 1, borderColor: '#7E9FD6', backgroundColor: '#132C5E', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', shadowColor: '#4F7FD0', shadowOpacity: 0.35, shadowRadius: 6, shadowOffset: { width: 0, height: 0 }, elevation: 3 },
   followTxt:      { color: '#D9D6DF', fontSize: 13, fontFamily: 'Poppins_500Medium' },
 

@@ -1,3 +1,4 @@
+import VerifiedIcon from '@/components/shared/VerifiedIcon';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -185,7 +186,7 @@ export default function ReviewReservationScreen() {
           <View style={{ flex: 1 }}>
             <View style={s.dealerNameRow}>
               <Text style={s.dealerName} numberOfLines={2}>{dealerName}</Text>
-              <MaterialCommunityIcons name="check-decagram" size={18} color="#1d8cf8" style={{ marginLeft: 6, marginTop: 3 }} />
+              <VerifiedIcon size={18} style={{ marginLeft: 6, marginTop: 3 }} />
             </View>
             <Text style={s.dealerSub}>Official Dealership</Text>
             <View style={s.dealerRatingRow}>

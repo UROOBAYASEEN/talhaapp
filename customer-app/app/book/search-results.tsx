@@ -1,4 +1,5 @@
 // Figma: Cars In Karachi — search results
+import VerifiedIcon from '@/components/shared/VerifiedIcon';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -28,7 +29,7 @@ function ResultCard({ item, saved, onSave, onView, onContact }: { item: any; sav
           <Text style={c.color} numberOfLines={1}>{item.color || '—'}</Text>
           <View style={c.dealerRow}>
             <Text style={c.dealer} numberOfLines={1}>{sellerName(item)}</Text>
-            {isDealer && <MaterialIcons name="verified" size={17} color="#3B8BF6" />}
+            {isDealer && <VerifiedIcon size={17} />}
             <View style={{ flex: 1 }} />
             <TouchableOpacity onPress={onSave} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
               <Ionicons name={saved ? 'heart' : 'heart-outline'} size={22} color={G.orange} />

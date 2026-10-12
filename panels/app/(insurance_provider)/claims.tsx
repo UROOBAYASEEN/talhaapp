@@ -21,6 +21,7 @@ import { AppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'expo-router';
+import { useTabBarSpace } from '@/components/shared/PillTabBar';
 
 const SERVER = API_BASE.replace('/api/v1', '');
 function resolveUrl(url?: string): string | null {
@@ -163,6 +164,7 @@ const cc = StyleSheet.create({
 });
 
 export default function InsuranceClaimsScreen() {
+  const tabSpace = useTabBarSpace(100);
   const router = useRouter();
   const { token } = useAuth();
   const [claims,       setClaims]     = useState<any[]>([]);
@@ -220,7 +222,7 @@ export default function InsuranceClaimsScreen() {
       <FlatList
         data={filtered}
         keyExtractor={item => item.id}
-        contentContainerStyle={s.list}
+        contentContainerStyle={[s.list, { paddingBottom: tabSpace }]}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchClaims(); }} tintColor={ORANGE} />}
         renderItem={({ item }) => <ClaimCard item={item} onView={() => router.push({ pathname: '/(insurance_provider)/approve-policy' as any, params: { appId: item.id, name: item.customer, avatar: item.avatar || '', phone: item.phone || '', email: item.email || '', vehicle: item.vehicle, premium: String(item.amountVal), status: item.status, date: item.dateTs ? new Date(item.dateTs).toISOString() : '', policyId: item.id } })} />}

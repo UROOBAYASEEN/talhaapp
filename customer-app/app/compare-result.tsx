@@ -108,8 +108,6 @@ export default function CompareResult() {
   const aC = useAppColors();
   const params = useLocalSearchParams<{ aId?: string; bId?: string; aData?: string; bData?: string; from?: string; hideBuy?: string }>();
   const fromCompareVehicle = params.from === 'compareVehicle';
-  // Buy Used Car / Buy New Car → Compare Vehicle se aaye to Buy New Car / Buy Used Car buttons nahi dikhane
-  const hideBuyBtns = params.hideBuy === '1';
   const [a, setA] = useState<any>(null);
   const [b, setB] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -261,6 +259,13 @@ export default function CompareResult() {
       return;
     }
     router.push({ pathname: '/buy/dealer-profile', params: { id: String(sid), category: selected?.category || '' } } as any);
+  }
+
+  function handleWhatsApp() {
+    const wa = selected?.contact_whatsapp || selected?.contact_phone || selected?.seller?.phone;
+    if (!wa) { Alert.alert('Not Available', 'No WhatsApp number listed.'); return; }
+    const num = String(wa).replace(/[^0-9]/g, '');
+    Linking.openURL(`https://wa.me/${num}?text=Hi! I'm interested in your ${selected?.title || 'vehicle'}`);
   }
 
   function handleReserveSelected() {
@@ -459,8 +464,21 @@ export default function CompareResult() {
           <Text style={[s.reserveTxt, { color: aC.isDark ? '#C9C6D0' : '#032a69' }]}>Reserve Selected {selectedIsBike ? 'bike' : 'car'}</Text>
         </TouchableOpacity>
 
+        {/* Compare Variant flow only — WhatsApp */}
+        {!fromCompareVehicle && (
+          <TouchableOpacity
+            style={[s.reserveBtn, s.waBtn, { backgroundColor: aC.isDark ? '#07142F' : '#ffffff', borderColor: aC.isDark ? '#7E9FD6' : 'rgba(3,42,105,0.14)' }]}
+            activeOpacity={0.88}
+            onPress={handleWhatsApp}
+          >
+            {aC.isDark ? <RingGlow radius={28} peak={0.5} rings={14} /> : <GlassInset />}
+            <Ionicons name="logo-whatsapp" size={22} color="#25D366" />
+            <Text style={[s.reserveTxt, { color: aC.isDark ? '#C9C6D0' : '#032a69' }]}>WhatsApp</Text>
+          </TouchableOpacity>
+        )}
+
         {/* Compare Vehicle flow — Buy New Car / Buy Used Car (Figma) */}
-        {fromCompareVehicle && !hideBuyBtns && (
+        {fromCompareVehicle && (
           <View style={s.buyWrap}>
             {[
               { label: 'Buy New Car', route: '/buy/new-car' },
@@ -602,6 +620,7 @@ const s = StyleSheet.create({
     borderWidth: 1, overflow: 'hidden', alignItems: 'center', justifyContent: 'center',
   },
   reserveTxt: { fontSize: 15, fontFamily: 'Poppins_500Medium' },
+  waBtn: { flexDirection: 'row', gap: 10 },
   buyWrap: { paddingHorizontal: 20, paddingTop: 12, gap: 12 },
   buyBtn: { height: 50, borderRadius: 26, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
   buyTxt: { color: '#F2F1F5', fontSize: 16, fontFamily: 'Poppins_600SemiBold' },

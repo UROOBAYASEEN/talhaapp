@@ -17,6 +17,7 @@ import { AppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { D, GlowCard } from '@/components/dealer/DealerUI';
+import { useTabBarSpace } from '@/components/shared/PillTabBar';
 
 const { width } = Dimensions.get('window');
 const ORANGE = '#E2671B';
@@ -34,6 +35,7 @@ function GlassInset() {
 }
 
 export default function SellerProfileScreen() {
+  const tabSpace = useTabBarSpace(110);
   const { user, token, logout } = useAuth();
   const router = useRouter();
   const [info,           setInfo]           = useState<any>(null);
@@ -177,7 +179,7 @@ export default function SellerProfileScreen() {
           </View>
         </View>
 
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 110 }}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: tabSpace }}>
 
           {/* ── COVER IMAGE ── */}
           <TouchableOpacity activeOpacity={0.85} onPress={handleCoverUpdate} style={s.coverContainer}>

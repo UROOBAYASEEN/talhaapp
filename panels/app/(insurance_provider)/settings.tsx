@@ -20,6 +20,16 @@ const SETTINGS = [
   { title: 'About Autowizor',    icon: 'information-circle-outline', route: '/profile/about' },
 ];
 
+// Same field effect as the Favorites search input (app/profile/saved.tsx, dark)
+function RowGlow() {
+  return (
+    <>
+      <LinearGradient colors={['#163565', '#061124', '#061124', '#0D2146']} locations={[0, 0.24, 0.76, 1]} style={[StyleSheet.absoluteFillObject, { borderRadius: 16 }]} pointerEvents="none" />
+      <LinearGradient colors={['#24518F8F', '#16356552', 'transparent', 'transparent', '#16356552', '#24518F8F']} locations={[0, 0.025, 0.075, 0.925, 0.975, 1]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={[StyleSheet.absoluteFillObject, { borderRadius: 16 }]} pointerEvents="none" />
+    </>
+  );
+}
+
 export default function InsuranceSettingsScreen() {
   const router = useRouter();
   const { logout } = useAuth();
@@ -46,9 +56,7 @@ export default function InsuranceSettingsScreen() {
             activeOpacity={0.8}
             onPress={() => router.push(item.route as any)}
           >
-            <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+            <RowGlow />
             <View style={s.optionLeft}>
               <Ionicons name={item.icon as any} size={20} color={ORANGE} />
               <Text style={s.optionText}>{item.title}</Text>
@@ -68,9 +76,7 @@ export default function InsuranceSettingsScreen() {
             ])
           }
         >
-          <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+          <RowGlow />
           <View style={s.optionLeft}>
             <Ionicons name="log-out-outline" size={20} color="#FF4B4B" />
             <Text style={s.logoutText}>Logout</Text>
@@ -104,9 +110,9 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: 'rgba(3,12,40,0.6)',
+    backgroundColor: BG,
     borderWidth: 1,
-    borderColor: 'rgba(100,160,255,0.5)',
+    borderColor: '#829fd0',
     overflow: 'hidden',
   },
   optionLeft:  { flexDirection: 'row', alignItems: 'center', gap: 12 },

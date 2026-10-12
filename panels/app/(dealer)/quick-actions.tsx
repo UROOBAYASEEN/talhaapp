@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppColors } from '@/constants/theme';
+import { useTabBarSpace } from '@/components/shared/PillTabBar';
 
 const { width: W } = Dimensions.get('window');
 const ORANGE = '#e2671b';
@@ -117,6 +118,7 @@ const ac = StyleSheet.create({
 });
 
 export default function QuickActionsScreen() {
+  const tabSpace = useTabBarSpace(100);
   return (
     <View style={s.root}>
       <SafeAreaView edges={['top']}>
@@ -126,7 +128,7 @@ export default function QuickActionsScreen() {
         </View>
       </SafeAreaView>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.grid}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[s.grid, { paddingBottom: tabSpace }]}>
         {ACTIONS.map(a => (
           <ActionCard key={a.label} action={a} />
         ))}

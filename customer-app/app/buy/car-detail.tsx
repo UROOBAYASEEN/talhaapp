@@ -1,3 +1,4 @@
+import VerifiedIcon from '@/components/shared/VerifiedIcon';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -137,7 +138,7 @@ export default function CarDetailScreen() {
   const router = useRouter();
   const cmpInsets = useSafeAreaInsets();
   const aC = useAppColors();
-  const { id, from } = useLocalSearchParams<{ id: string; from?: string }>();
+  const { id, from, dummy } = useLocalSearchParams<{ id: string; from?: string; dummy?: string }>();
   // Came from Buy Used Car → Contact Dealer + Test Drive (Figma)
   const fromUsedCar = from === 'usedCar';
   // Came from Book a vehicle → same screen, bottom shows Contact Dealer + Test Drive (Book flow screens)
@@ -183,8 +184,10 @@ export default function CarDetailScreen() {
         fetch(`${API_BASE}/vehicles/${id}/tax`, { headers: h }),
       ]);
       if (vRes.ok) { const d = await vRes.json(); setVehicle(d); setSaved(d.is_saved ?? false); }
+      // Ads screen ki dummy car — API mein nahi hoti, param se dikhao
+      else if (dummy) { try { setVehicle(JSON.parse(dummy)); } catch { } }
       if (tRes.ok) setTax(await tRes.json());
-    } catch { }
+    } catch { if (dummy) { try { setVehicle(JSON.parse(dummy)); } catch { } } }
     finally { setLoading(false); }
   }
 
@@ -572,7 +575,7 @@ export default function CarDetailScreen() {
           {/* Dealer + Verified */}
           <View style={s.dealerRow}>
             <Text style={[s.dealerName, { color: aC.isDark ? WHITE : '#010a1f' }]}>{dealerName}</Text>
-            {isDealer && <Ionicons name="checkmark-circle" size={16} color="#3b82f6" style={{ marginLeft: 4 }} />}
+            {isDealer && <VerifiedIcon size={16} style={{ marginLeft: 4 }} />}
           </View>
 
           {/* Rating */}
@@ -796,7 +799,7 @@ export default function CarDetailScreen() {
                 <MaterialCommunityIcons name="car" size={10} color="#010B1E" />
               </View>
               <Text style={s.cmpNameLabel}>First Car</Text>
-              <MaterialCommunityIcons name="check-decagram" size={11} color="#178BFB" />
+              <VerifiedIcon size={11} />
             </View>
             <View style={s.cmpField}>
               <CmpInputEffect />
@@ -808,7 +811,7 @@ export default function CarDetailScreen() {
                 <MaterialCommunityIcons name="car" size={10} color="#010B1E" />
               </View>
               <Text style={s.cmpNameLabel}>Second Car</Text>
-              <MaterialCommunityIcons name="check-decagram" size={11} color="#178BFB" style={{ marginLeft: 4 }} />
+              <VerifiedIcon size={11} style={{ marginLeft: 4 }} />
             </View>
             <TouchableOpacity style={s.cmpField} activeOpacity={0.85} onPress={() => setCmpOpen2(v => !v)}>
               <CmpInputEffect />

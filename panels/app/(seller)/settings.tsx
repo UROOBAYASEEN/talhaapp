@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTabBarSpace } from '@/components/shared/PillTabBar';
 
 const SETTINGS = [
   { title: 'Change Password',    icon: 'lock-closed-outline',        route: '/profile/change-password' },
@@ -27,6 +28,7 @@ function RowGlow() {
 }
 
 export default function SellerSettingsScreen() {
+  const tabSpace = useTabBarSpace(40);
   const router = useRouter();
   const { logout } = useAuth();
 
@@ -42,7 +44,7 @@ export default function SellerSettingsScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[s.scroll, { paddingBottom: tabSpace }]}>
         <View style={s.list}>
 
           {SETTINGS.map((item, i) => (

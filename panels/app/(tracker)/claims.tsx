@@ -12,6 +12,7 @@ import { D, DHeader, FilterPills, GlowCard, SearchBar } from '@/components/deale
 import { Ionicons } from '@expo/vector-icons';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTabBarSpace } from '@/components/shared/PillTabBar';
 
 const ORANGE = '#e2671b';
 const BG     = '#010A1F';
@@ -111,6 +112,7 @@ function ClaimCard({ item, onViewDetail }: { item: any; onViewDetail: () => void
 }
 
 export default function TrackerClaimsScreen() {
+  const tabSpace = useTabBarSpace(110);
   const router = useRouter();
   const { user, token } = useAuth();
 
@@ -217,7 +219,7 @@ export default function TrackerClaimsScreen() {
         <FlatList
           data={filtered}
           keyExtractor={item => item.id}
-          contentContainerStyle={s.list}
+          contentContainerStyle={[s.list, { paddingBottom: tabSpace }]}
           showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={ORANGE} />}
           renderItem={({ item }) => <ClaimCard item={item} onViewDetail={() => router.push({ pathname: '/(tracker)/claim-detail' as any, params: { bookingId: item.id } })} />}

@@ -2,6 +2,7 @@
  * Home Screen — Pixel-perfect Figma match
  * File: HZwQxuVoCIhM2m1s9GfV3B  •  Nodes: 1986:11101 → 1986:11792
  */
+import VerifiedIcon from '@/components/shared/VerifiedIcon';
 import AskariBank from '@/components/shared/AskariBank';
 import BrowseMoreServices from '@/components/shared/BrowseMoreServices';
 import Chatbot from '@/components/shared/Chatbot';
@@ -256,7 +257,7 @@ function AnimatedStatCard({
               {fmt(count)}{item.suffix}
             </Text>
             {item.verified && (
-              <Ionicons name="checkmark-circle" size={10} color="#0088ff" />
+              <VerifiedIcon size={10} />
             )}
           </View>
           <View style={[styles.scrollStatLabelBox, { backgroundColor: aC.isDark ? 'rgba(186,172,182,0.08)' : 'rgba(3,12,40,0.06)' }]}>

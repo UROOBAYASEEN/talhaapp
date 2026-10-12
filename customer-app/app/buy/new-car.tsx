@@ -1,3 +1,4 @@
+import VerifiedIcon from '@/components/shared/VerifiedIcon';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -129,7 +130,10 @@ function VehicleCard({
 
         {/* .car-header  →  h2 + .price */}
         <View style={vc.carHeader}>
-          <Text style={[vc.h2, { color: aC.isDark ? WHITE : '#010a1f' }]} numberOfLines={1}>{carName}</Text>
+          <View style={vc.nameRow}>
+            <Text style={[vc.h2, { color: aC.isDark ? WHITE : '#010a1f', flex: 0, flexShrink: 1 }]} numberOfLines={1}>{carName}</Text>
+            <VerifiedIcon size={13} />
+          </View>
           <Text style={vc.price}>{formatPrice(item.price)}</Text>
         </View>
 
@@ -195,6 +199,7 @@ const vc = StyleSheet.create({
 
   /* .car-header */
   carHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  nameRow:   { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 4 },
   h2:        { color: WHITE,    fontSize: 12, fontFamily: 'Poppins_500Medium', flex: 1 },
   price:     { color: ORANGE,   fontSize: 14, fontFamily: 'Poppins_500Medium', marginLeft: 4 },
 

@@ -23,6 +23,7 @@ const SERVER = API_BASE.replace('/api/v1', '');
 const CITIES     = ['Karachi', 'Lahore', 'Islamabad', 'Faisalabad', 'Rawalpindi'];
 const BRANDS     = ['Select Brand', 'Honda', 'Toyota', 'Suzuki', 'Kia', 'Hyundai'];
 const COLORS     = ['Select Color', 'White', 'Black', 'Silver', 'Red', 'Grey'];
+const VARIANTS   = ['Select Variant', '1.0 VXR', '1.2 Aspire CVT', '1.3 GLi MT', '1.5 Aspire CVT', '1.6 Altis X CVT', '1.8 Oriel CVT', '2.0 Grande'];
 const YEARS      = ['2026', '2025', '2024', '2023', '2022'];
 const DEALERSHIP = ['All (Dealership + Individual)', 'Dealership only', 'Individual only'];
 
@@ -331,9 +332,9 @@ function FL({ children }: { children: React.ReactNode }) {
   return <Text style={[s.fieldLabel, { color: aC.isDark ? '#C9C6D0' : '#475569' }]}>{children}</Text>;
 }
 
-function InputField({ value, onChange, placeholder, keyboardType, priceStyle }: {
+function InputField({ value, onChange, placeholder, keyboardType, priceStyle, showChevron }: {
   value: string; onChange: (v: string) => void;
-  placeholder?: string; keyboardType?: any; priceStyle?: boolean;
+  placeholder?: string; keyboardType?: any; priceStyle?: boolean; showChevron?: boolean;
 }) {
   const aC = useAppColors();
   return (
@@ -347,13 +348,14 @@ function InputField({ value, onChange, placeholder, keyboardType, priceStyle }: 
         </>
       )}
       <TextInput
-        style={[s.input, { color: priceStyle ? ORANGE : (aC.isDark ? '#F2F1F5' : '#010a1f') }, priceStyle && { color: ORANGE, fontFamily: 'Poppins_500Medium' }]}
+        style={[s.input, { color: priceStyle ? ORANGE : (aC.isDark ? '#F2F1F5' : '#010a1f') }, priceStyle && { color: ORANGE, fontFamily: 'Poppins_500Medium' }, showChevron && { paddingRight: 46 }]}
         placeholder={placeholder}
         placeholderTextColor={aC.isDark ? C.textPlaceholder : '#94a3b8'}
         value={value}
         onChangeText={onChange}
         keyboardType={keyboardType || 'default'}
       />
+      {showChevron && <View style={s.inputChevron} pointerEvents="none"><ChevronDown size={18} color={ORANGE} /></View>}
     </View>
   );
 }
@@ -473,13 +475,18 @@ export default function AutoFinancingScreen() {
               </>
             )}
             <Text style={[s.pickerTxt, { color: !selectedLabel ? (aC.isDark ? '#BAB6C4' : '#94a3b8') : (aC.isDark ? '#F2F1F5' : '#010a1f') }]} numberOfLines={1}>
-              {selectedLabel || `Tap to select from database`}
+              {selectedLabel || `Select your ${vehicleType === 'bikes' ? 'Bike' : 'Car'}`}
             </Text>
-            <Search size={16} color={ORANGE} />
+            <ChevronDown size={18} color={ORANGE} />
           </TouchableOpacity>
 
           <FL>Variant</FL>
-          <InputField value={variant} onChange={setVariant} placeholder="e.g. 1.2 Aspire CVT" />
+          <Dropdown
+            value={variant || 'Select Variant'}
+            onChange={v => setVariant(v === 'Select Variant' ? '' : v)}
+            options={variant && !VARIANTS.includes(variant) ? [...VARIANTS, variant] : VARIANTS}
+            placeholder="Select Variant"
+          />
 
           <FL>Color</FL>
           <Dropdown value={color} onChange={setColor} options={COLORS} placeholder="Select Color" />
@@ -562,6 +569,7 @@ const s = StyleSheet.create({
 
   inputWrap: { height: 46, borderRadius: 32, borderWidth: 1, borderColor: '#829fd0', backgroundColor: 'rgba(3,12,40,0.6)', overflow: 'hidden', justifyContent: 'center', marginBottom: 12 },
   input:     { paddingHorizontal: 20, color: '#fff', fontSize: 13.5, fontFamily: 'Poppins_400Regular' },
+  inputChevron: { position: 'absolute', right: 20 },
 
   footer:  { paddingHorizontal: 14, paddingBottom: 36, paddingTop: 10 },
   nextBtn: { height: 46, borderRadius: 24, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },

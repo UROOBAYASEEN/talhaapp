@@ -22,6 +22,7 @@ import { SavedCardEffect } from "@/components/shared/FigmaEffects";
 import { PillGlow } from "@/components/dealer/DealerUI";
 import { API_BASE } from "@/constants/api";
 import { useAppColors } from "@/constants/theme";
+import { useTabBarSpace } from "@/components/shared/PillTabBar";
 
 type Partner = {
   id: string;
@@ -47,6 +48,8 @@ const FILTER_TYPE_MAP: Record<string, string> = {
 const NON_DEALER_TYPES = ['Seller'];
 
 export default function PartnerManagement() {
+  const tabSpace = useTabBarSpace(130);
+  const fabBottom = useTabBarSpace(110, 16);
   const router = useRouter();
   const aC = useAppColors();
   const [activeFilter, setActiveFilter] = useState("All");
@@ -191,7 +194,7 @@ export default function PartnerManagement() {
         {/* Partners */}
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.listContainer}
+          contentContainerStyle={[styles.listContainer, { paddingBottom: tabSpace }]}
           style={[styles.partnersList, { backgroundColor: aC.bg }]}
         >
           {loading ? (
@@ -251,7 +254,7 @@ export default function PartnerManagement() {
         </Modal>
 
         {/* Floating Add Button */}
-        <TouchableOpacity style={styles.fab} onPress={() => router.push('/(admin)/add-partner' as any)}>
+        <TouchableOpacity style={[styles.fab, { bottom: fabBottom }]} onPress={() => router.push('/(admin)/add-partner' as any)}>
           <MaterialCommunityIcons
             name="plus-box-outline"
             size={30}

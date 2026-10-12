@@ -15,6 +15,7 @@ import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { D, GlowCard, PillGlow } from '@/components/dealer/DealerUI';
 import { SavedCardEffect, savedCardOuter } from '@/components/shared/FigmaEffects';
+import { useTabBarSpace } from '@/components/shared/PillTabBar';
 
 const ORANGE = '#E2671B';
 const BLUE   = 'rgba(100,160,255,0.5)';
@@ -114,6 +115,8 @@ const vc = StyleSheet.create({
 });
 
 export default function BecomeSellerInventoryScreen() {
+  const tabSpace = useTabBarSpace(120);
+  const fabBottom = useTabBarSpace(100, 16);
   const { user, token } = useAuth();
   const router = useRouter();
 
@@ -242,7 +245,7 @@ export default function BecomeSellerInventoryScreen() {
         <FlatList
           data={filtered}
           keyExtractor={item => String(item.id || Math.random())}
-          contentContainerStyle={s.list}
+          contentContainerStyle={[s.list, { paddingBottom: tabSpace }]}
           showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={ORANGE} />}
           renderItem={({ item }) => (
@@ -281,7 +284,7 @@ export default function BecomeSellerInventoryScreen() {
         />
       )}
 
-      <TouchableOpacity style={s.fab} onPress={() => router.push('/dealer-panel/add-vehicle' as any)}>
+      <TouchableOpacity style={[s.fab, { bottom: fabBottom }]} onPress={() => router.push('/dealer-panel/add-vehicle' as any)}>
         <Plus size={28} color="#fff" strokeWidth={2.5} />
       </TouchableOpacity>
 

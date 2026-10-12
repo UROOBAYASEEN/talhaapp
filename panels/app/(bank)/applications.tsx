@@ -10,6 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppColors } from '@/constants/theme';
+import { useTabBarSpace } from '@/components/shared/PillTabBar';
 
 const ORANGE = '#e2671b';
 const BG     = '#010A1F';
@@ -38,6 +39,7 @@ function statusColor(s: string) {
 }
 
 export default function ApplicationsScreen() {
+  const tabSpace = useTabBarSpace(100);
   const router    = useRouter();
   const { token } = useAuth();
   const [apps,    setApps]    = useState<any[]>([]);
@@ -176,7 +178,7 @@ export default function ApplicationsScreen() {
               )}
             </TouchableOpacity>
           )}
-          ListFooterComponent={<View style={{ height: 100 }} />}
+          ListFooterComponent={<View style={{ height: tabSpace }} />}
         />
       )}
     </SafeAreaView>

@@ -12,6 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'expo-router';
 import { D, DHeader, DICON, DIcon, PillGlow, SegTabs, WarmCard } from '@/components/dealer/DealerUI';
 import { Image } from 'react-native';
+import { useTabBarSpace } from './PillTabBar';
 
 const ORANGE = AppColors.gradientEnd;
 const NAVY   = AppColors.gradientStart;
@@ -156,6 +157,7 @@ type Props = {
 };
 
 export default function PlanScreen({ role, promoTitle, promoDesc, figma, dealerColors }: Props) {
+  const tabSpace = useTabBarSpace(110);
   const dc = !!dealerColors && !figma;
   const { token } = useAuth();
   const router    = useRouter();
@@ -241,7 +243,7 @@ export default function PlanScreen({ role, promoTitle, promoDesc, figma, dealerC
         <View style={[s.separator, dc && { backgroundColor: 'rgba(255,255,255,0.14)' }]} />
         </>)}
 
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scrollContent}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[s.scrollContent, { paddingBottom: tabSpace }]}>
 
           {/* PROMO CARD */}
           {figma ? (

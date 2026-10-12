@@ -1,4 +1,5 @@
 // Figma: Dealer profile (Book flow)
+import VerifiedIcon from '@/components/shared/VerifiedIcon';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -164,7 +165,7 @@ export default function BookDealerProfile() {
           <View style={{ flex: 1, paddingTop: 10 }}>
             <View style={s.nameRow}>
               <Text style={s.name} numberOfLines={1}>{name}</Text>
-              {isDealer && <MaterialIcons name="verified" size={21} color="#3B8BF6" />}
+              {isDealer && <VerifiedIcon size={21} />}
               <View style={{ flex: 1 }} />
               <TouchableOpacity onPress={() => Share.share({ message: `${name} on Autowizor` })}>
                 <Ionicons name="share-social-outline" size={21} color={G.orange} />

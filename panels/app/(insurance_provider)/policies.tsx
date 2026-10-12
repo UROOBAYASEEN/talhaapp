@@ -21,6 +21,7 @@ import { AppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'expo-router';
+import { useTabBarSpace } from '@/components/shared/PillTabBar';
 
 const ORANGE = '#e2671b';
 const C = AppColors;
@@ -181,6 +182,7 @@ const pc = StyleSheet.create({
 });
 
 export default function InsurancePoliciesScreen() {
+  const tabSpace = useTabBarSpace(100);
   const { token } = useAuth();
   const [data, setData]           = useState<any[]>([]);
   const [loading, setLoading]     = useState(true);
@@ -240,7 +242,7 @@ export default function InsurancePoliciesScreen() {
         <FlatList
           data={filtered}
           keyExtractor={item => item.id}
-          contentContainerStyle={s.list}
+          contentContainerStyle={[s.list, { paddingBottom: tabSpace }]}
           showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRef(true); fetchPolicies(); }} tintColor={ORANGE} />}
           renderItem={({ item }) => <PolicyCard policy={item} />}

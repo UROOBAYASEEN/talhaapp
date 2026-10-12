@@ -15,6 +15,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAppColors } from "@/constants/theme";
 import { SavedCardEffect } from "@/components/shared/FigmaEffects";
 import { PillGlow } from "@/components/dealer/DealerUI";
+import { useTabBarSpace } from "@/components/shared/PillTabBar";
 
 // ── Design tokens ────────────────────────────────────────────────────────────
 const SERVER = API_BASE.replace('/api/v1', '');
@@ -65,6 +66,7 @@ function CardShade() {
 }
 
 export default function ApproveListingsScreen() {
+  const tabSpace = useTabBarSpace(100);
   const router = useRouter();
   const { token } = useAuth();
   const aC = useAppColors();
@@ -406,7 +408,7 @@ export default function ApproveListingsScreen() {
           )))}
 
         </>}
-        <View style={{height:100}}/>
+        <View style={{height:tabSpace}}/>
       </ScrollView>
 
       {/* Media preview — video play / image view */}

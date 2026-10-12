@@ -19,6 +19,7 @@ import { AppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { D, DHeader, FilterPills, MiniGradBtn, SearchBar, StatusPill, VehicleRowCard } from '@/components/dealer/DealerUI';
+import { useTabBarSpace } from '@/components/shared/PillTabBar';
 
 const ORANGE = '#E2671B';
 const C      = AppColors;
@@ -58,6 +59,8 @@ function VehicleCard({
 }
 
 export default function InventoryScreen() {
+  const tabSpace = useTabBarSpace(120);
+  const fabBottom = useTabBarSpace(100, 16);
   const { user, token } = useAuth();
   const router = useRouter();
 
@@ -146,7 +149,7 @@ export default function InventoryScreen() {
         <FlatList
           data={filtered}
           keyExtractor={item => String(item.id || Math.random())}
-          contentContainerStyle={s.list}
+          contentContainerStyle={[s.list, { paddingBottom: tabSpace }]}
           showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={ORANGE} />}
           renderItem={({ item }) => (
@@ -195,7 +198,7 @@ export default function InventoryScreen() {
 
       {/* FLOATING ADD */}
       <TouchableOpacity
-        style={s.fab}
+        style={[s.fab, { bottom: fabBottom }]}
         onPress={() => router.push('/dealer-panel/add-vehicle' as any)}
       >
         <View style={s.fabIcon}><Ionicons name="add" size={22} color="#fff" /></View>

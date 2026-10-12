@@ -1,3 +1,4 @@
+import VerifiedIcon from '@/components/shared/VerifiedIcon';
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, FlatList,
@@ -282,7 +283,7 @@ export default function TrackerCompanyProfileScreen() {
                 <View style={s.nameRow}>
                   <Text style={[s.providerName, { color: aC.isDark ? C.textPrimary : '#010a1f' }]} numberOfLines={1}>{name}</Text>
                   {isVerified && (
-                    <MaterialCommunityIcons name="check-decagram" size={18} color="#1d8cf8" />
+                    <VerifiedIcon size={18} />
                   )}
                 </View>
                 <Text style={[s.officialLabel, { color: aC.isDark ? C.textSecondary : '#475569' }]}>Official Tracker Partner</Text>

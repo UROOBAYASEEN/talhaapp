@@ -1,3 +1,4 @@
+import VerifiedIcon from '@/components/shared/VerifiedIcon';
 import { Ionicons } from '@expo/vector-icons';
 import BrowseMoreServices from '@/components/shared/BrowseMoreServices';
 import LatestVideoSection from '@/components/shared/LatestVideoSection';
@@ -132,7 +133,7 @@ function DealerInventoryCard({ item, onPress }: { item: any; onPress: () => void
         <Text style={[styles.invColor, { color: dark ? '#E6E4EA' : '#475569' }]}>{item.color || '—'}</Text>
         <View style={styles.invDealerRow}>
           <Text style={[styles.invDealer, { color: dark ? '#F2F1F5' : '#010a1f' }]} numberOfLines={1}>{item.seller?.dealership_name || item.seller?.full_name || 'Dealer'}</Text>
-          <MaterialCommunityIcons name="check-decagram" size={17} color="#1d8cf8" />
+          <VerifiedIcon size={17} />
         </View>
         <View style={styles.invBadgeRow}>
           <View style={styles.invBadge}><Text style={styles.invBadgeTxt}>Available</Text></View>
@@ -190,7 +191,7 @@ function CarCard({ item, onPress, onSave, saved, onContact }: {
             <Text style={styles.dealer}>
               {item.seller?.full_name || 'Seller'}
             </Text>
-            <Ionicons name="checkmark-circle" size={16} color="#05AFFF" />
+            <VerifiedIcon size={16} />
           </View>
 
           <Text style={styles.carMeta}>
@@ -254,7 +255,7 @@ function CarCard({ item, onPress, onSave, saved, onContact }: {
           <Text style={[styles.carColor, { color: '#475569' }]}>{item.color || '—'}</Text>
           <View style={styles.dealerRow}>
             <Text style={[styles.dealer, { color: '#010a1f' }]}>{item.seller?.full_name || 'Seller'}</Text>
-            <Ionicons name="checkmark-circle" size={16} color="#05AFFF" />
+            <VerifiedIcon size={16} />
           </View>
           <Text style={[styles.carMeta, { color: '#64748b' }]}>{item.city || 'Pakistan'} • {item.year} • {item.transmission || 'CVT'}</Text>
           <View style={styles.availableRow}>

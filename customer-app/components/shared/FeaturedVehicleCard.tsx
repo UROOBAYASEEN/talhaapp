@@ -1,3 +1,4 @@
+import VerifiedIcon from '@/components/shared/VerifiedIcon';
 import { API_BASE } from '@/constants/api';
 import { useAppColors } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
@@ -48,7 +49,10 @@ export default function FeaturedVehicleCard({ item, onPress, fallbackIndex = 0, 
         {C.isDark && <LinearGradient colors={['rgba(35,81,157,0.18)', 'rgba(0,0,0,0)', 'rgba(0,0,0,0)', 'rgba(35,81,157,0.18)']} locations={[0, 0.08, 0.92, 1]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
         {/* Name + Price */}
         <View style={styles.topRow}>
-          <Text style={[styles.carName, { color: C.textPrimary }]} numberOfLines={1}>{item.title}</Text>
+          <View style={styles.nameRow}>
+            <Text style={[styles.carName, { color: C.textPrimary }]} numberOfLines={2}>{item.title}</Text>
+            <VerifiedIcon size={15} style={styles.verified} />
+          </View>
           <Text style={styles.price}>PKR {displayPrice(item.price)}</Text>
         </View>
 
@@ -125,14 +129,23 @@ const styles = StyleSheet.create({
   topRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: 8,
+  },
+  nameRow: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 4,
   },
   carName: {
     color: '#f9fafc',
     fontSize: 15,
     fontFamily: 'Poppins_500Medium',
-    flex: 1,
+    flexShrink: 1,
+  },
+  verified: {
+    marginTop: 3,
   },
   price: {
     color: '#e2671b',

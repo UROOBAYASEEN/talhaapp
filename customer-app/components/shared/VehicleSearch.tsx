@@ -21,9 +21,9 @@ import { getBrandLogo } from '@/components/book/common';
 
 // Same option lists as the Buy Used Car search
 const CURRENT_YEAR = String(new Date().getFullYear());
-const CITIES   = ['All Cities', 'Karachi', 'Lahore', 'Islamabad', 'Rawalpindi', 'Faisalabad', 'Multan', 'Peshawar', 'Quetta', 'Hyderabad', 'Sialkot', 'Gujranwala', 'Bahawalpur', 'Sargodha', 'Abbottabad', 'Gujrat', 'Jhang', 'Sahiwal', 'Sukkur', 'Larkana', 'Mardan', 'Sheikhupura', 'Kasur', 'Okara', 'Dera Ghazi Khan', 'Jhelum', 'Wah Cantt', 'Muzaffarabad', 'Gilgit', 'Gwadar'];
+const CITIES = ['All Cities', 'Karachi', 'Lahore', 'Islamabad', 'Rawalpindi', 'Faisalabad', 'Multan', 'Peshawar', 'Quetta', 'Hyderabad', 'Sialkot', 'Gujranwala', 'Bahawalpur', 'Sargodha', 'Abbottabad', 'Gujrat', 'Jhang', 'Sahiwal', 'Sukkur', 'Larkana', 'Mardan', 'Sheikhupura', 'Kasur', 'Okara', 'Dera Ghazi Khan', 'Jhelum', 'Wah Cantt', 'Muzaffarabad', 'Gilgit', 'Gwadar'];
 const ALL_YEARS = ['Any Year', ...Array.from({ length: 27 }, (_, i) => String(2026 - i))];
-const COLORS   = ['All Colors', 'White', 'Black', 'Silver', 'Grey', 'Red', 'Blue', 'Beige', 'Green', 'Brown', 'Orange', 'Golden'];
+const COLORS = ['All Colors', 'White', 'Black', 'Silver', 'Grey', 'Red', 'Blue', 'Beige', 'Green', 'Brown', 'Orange', 'Golden'];
 const VARIANTS = ['Any Variant', '1.0 MT', '1.0 CVT', '1.2 MT', '1.2 CVT', '1.3 MT', '1.3 CVT', '1.5 MT', '1.5 CVT', '1.8 MT', '2.0 MT', 'Standard', 'GL', 'GLi', 'XLi', 'Grande', 'Alpha', 'Sport', 'AWD'];
 // Financing budget options (Used Car + Finance pe show hota hai)
 const BUDGETS = ['PKR 5 Lac', 'PKR 10 Lac', 'PKR 15 Lac', 'PKR 20 Lac', 'PKR 25 Lac', 'PKR 30 Lac', 'PKR 40 Lac', 'PKR 50 Lac', 'PKR 75 Lac', 'PKR 1 Crore'];
@@ -63,14 +63,14 @@ export default function VehicleSearch() {
   const [vehicle, setVehicle] = useState('New Cars');
 
   // ── Search form (dynamic, like Buy Used Car) ──
-  const [city,    setCity]    = useState('Karachi');
-  const [brand,   setBrand]   = useState('All Brands');
-  const [year,    setYear]    = useState('Any Year');
-  const [car,     setCar]     = useState('All Models');
+  const [city, setCity] = useState('Karachi');
+  const [brand, setBrand] = useState('All Brands');
+  const [year, setYear] = useState('Any Year');
+  const [car, setCar] = useState('All Models');
   const [variant, setVariant] = useState('Any Variant');
-  const [color,   setColor]   = useState('All Colors');
-  const [dealer,  setDealer]  = useState('All Dealership');
-  const [budget,  setBudget]  = useState('PKR 25 Lac');
+  const [color, setColor] = useState('All Colors');
+  const [dealer, setDealer] = useState('All Dealership');
+  const [budget, setBudget] = useState('PKR 25 Lac');
   const [sellerType, setSellerType] = useState('All (Non Dealer + Individual)');
   const [minV, setMinV] = useState(500000);
   const [maxV, setMaxV] = useState(5800000);
@@ -82,14 +82,14 @@ export default function VehicleSearch() {
   const [openSheet, setOpenSheet] = useState<string | null>(null);
 
   const [apiBrands, setApiBrands] = useState<{ name: string; logo_url?: string | null }[]>([]);
-  const [models,   setModels]   = useState<string[]>([]);
-  const [dealers,  setDealers]  = useState<{ id: string; name: string }[]>([]);
+  const [models, setModels] = useState<string[]>([]);
+  const [dealers, setDealers] = useState<{ id: string; name: string }[]>([]);
   const [loadingModels, setLoadingModels] = useState(false);
   const SERVER = API_BASE.replace('/api/v1', '');
 
-  const isBike    = vehicle.includes('Bike');
+  const isBike = vehicle.includes('Bike');
   const condition = vehicle.startsWith('Used') ? 'used' : 'new';
-  const category  = isBike ? 'bike' : 'car';
+  const category = isBike ? 'bike' : 'car';
   const isNew = condition === 'new';
   // New vehicle → sirf current running year, koi option nahi
   const YEAR_OPTIONS = isNew ? [CURRENT_YEAR] : ALL_YEARS;
@@ -219,22 +219,22 @@ export default function VehicleSearch() {
   }, []);
 
   const FIELD_DEFS: Record<FieldKey, { label: string; value: string; options: string[]; setter: (v: string) => void; loading?: boolean }> = {
-    city:    { label: 'City',    value: city,    options: CITIES, setter: setCity },
-    brand:   { label: 'Brand',   value: brand,   options: BRAND_OPTIONS, setter: v => { setBrand(v); setCar('All Models'); } },
-    year:    { label: 'Year',    value: year,    options: YEAR_OPTIONS, setter: setYear },
-    car:     { label: isBike ? 'Bike' : 'Car', value: car, options: ['All Models', ...models], setter: setCar, loading: loadingModels },
+    city: { label: 'City', value: city, options: CITIES, setter: setCity },
+    brand: { label: 'Brand', value: brand, options: BRAND_OPTIONS, setter: v => { setBrand(v); setCar('All Models'); } },
+    year: { label: 'Year', value: year, options: YEAR_OPTIONS, setter: setYear },
+    car: { label: isBike ? 'Bike' : 'Car', value: car, options: ['All Models', ...models], setter: setCar, loading: loadingModels },
     variant: { label: 'Variant', value: variant, options: VARIANTS, setter: setVariant },
-    color:   { label: 'Color',   value: color,   options: COLORS, setter: setColor },
-    dealer:  { label: 'Dealership', value: dealer, options: ['All Dealership', ...dealers.map(d => d.name)], setter: setDealer },
+    color: { label: 'Color', value: color, options: COLORS, setter: setColor },
+    dealer: { label: 'Dealership', value: dealer, options: ['All Dealership', ...dealers.map(d => d.name)], setter: setDealer },
   };
 
   const FIELDS: { key: FieldKey; icon: string | null; image?: any }[] = [
-    { key: 'car',     icon: isBike ? 'bicycle-outline' : 'car-outline' },
-    { key: 'brand',   icon: null, image: require('@/screenshot/brand.png') },
-    { key: 'year',    icon: null, image: require('@/screenshot/year.png') },
-    { key: 'city',    icon: 'location-outline' },
+    { key: 'car', icon: isBike ? 'bicycle-outline' : 'car-outline' },
+    { key: 'brand', icon: null, image: require('@/screenshot/brand.png') },
+    { key: 'year', icon: null, image: require('@/screenshot/year.png') },
+    { key: 'city', icon: 'location-outline' },
     { key: 'variant', icon: null, image: require('@/screenshot/varient.png') },
-    { key: 'color',   icon: 'color-palette-outline' },
+    { key: 'color', icon: 'color-palette-outline' },
   ];
 
   function handleSearch() {
@@ -249,12 +249,12 @@ export default function VehicleSearch() {
     const params: any = { condition, category };
     if (condition === 'used') params.from = 'usedCar';
     else if (!isBike) params.from = 'newCarCash';
-    if (city !== 'All Cities')     params.city    = city;
-    if (brand !== 'All Brands')    params.search  = brand;
-    if (car !== 'All Models')      params.search  = car;
-    if (year !== 'Any Year')       params.year    = year;
+    if (city !== 'All Cities') params.city = city;
+    if (brand !== 'All Brands') params.search = brand;
+    if (car !== 'All Models') params.search = car;
+    if (year !== 'Any Year') params.year = year;
     if (variant !== 'Any Variant') params.variant = variant;
-    if (color !== 'All Colors')    params.color   = color;
+    if (color !== 'All Colors') params.color = color;
     if (showUsedExtras) {
       params.min_price = String(minV);
       params.max_price = String(maxV);
@@ -338,47 +338,47 @@ export default function VehicleSearch() {
           const isPlaceholder = val.startsWith('All ') || val.startsWith('Any ');
           const valColor = f.key === 'year' && isNew ? '#f9fafc' : isPlaceholder ? '#c9cedb' : '#ffffff';
           return (
-          <View key={f.key} style={styles.fieldWrap}>
-            <View style={styles.fieldLabelRow}>
-              {f.image ? (
-                <Image source={f.image} style={{ width: 16, height: 16, tintColor: '#e2671b' }} resizeMode="contain" />
-              ) : (
-                <Ionicons name={f.icon as any} size={16} color="#e2671b" />
-              )}
-              <Text style={[styles.fieldLabel, { color: C.textPrimary }]}>{FIELD_DEFS[f.key].label}</Text>
+            <View key={f.key} style={styles.fieldWrap}>
+              <View style={styles.fieldLabelRow}>
+                {f.image ? (
+                  <Image source={f.image} style={{ width: 16, height: 16, tintColor: '#e2671b' }} resizeMode="contain" />
+                ) : (
+                  <Ionicons name={f.icon as any} size={16} color="#e2671b" />
+                )}
+                <Text style={[styles.fieldLabel, { color: C.textPrimary }]}>{FIELD_DEFS[f.key].label}</Text>
+              </View>
+              <TouchableOpacity activeOpacity={f.key === 'year' && isNew ? 1 : 0.8} disabled={f.key === 'year' && isNew} onPress={() => setOpenSheet(f.key)} style={[styles.dropdown, { backgroundColor: C.isDark ? (i < 3 ? 'rgba(6,27,74,0.26)' : 'rgba(72,51,70,0.25)') : C.glassBg, borderColor: C.isDark ? (i < 3 ? '#5f6c8b' : '#797487') : 'rgba(3,12,40,0.12)', overflow: 'hidden' }]}>
+                {f.key === 'brand' && !isPlaceholder && brandLogo(val) ? (
+                  <Image source={brandLogo(val)} style={{ width: 22, height: 22, borderRadius: 4 }} resizeMode="contain" />
+                ) : null}
+                {f.key === 'year' && isNew ? (
+                  <Text style={[styles.fieldLabel, { flex: 1 }]} numberOfLines={1}>{val}</Text>
+                ) : (
+                  <Text style={[styles.dropdownTxt, { color: valColor }]} numberOfLines={1}>{val}</Text>
+                )}
+                {!(f.key === 'year' && isNew) && (
+                  <Ionicons name="chevron-down" size={14} color={C.textPrimary} />
+                )}
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity activeOpacity={f.key === 'year' && isNew ? 1 : 0.8} disabled={f.key === 'year' && isNew} onPress={() => setOpenSheet(f.key)} style={[styles.dropdown, { backgroundColor: C.isDark ? (i < 3 ? 'rgba(6,27,74,0.26)' : 'rgba(72,51,70,0.25)') : C.glassBg, borderColor: C.isDark ? (i < 3 ? '#5f6c8b' : '#797487') : 'rgba(3,12,40,0.12)', overflow: 'hidden' }]}>
-              {f.key === 'brand' && !isPlaceholder && brandLogo(val) ? (
-                <Image source={brandLogo(val)} style={{ width: 22, height: 22, borderRadius: 4 }} resizeMode="contain" />
-              ) : null}
-              {f.key === 'year' && isNew ? (
-                <Text style={[styles.fieldLabel, { flex: 1 }]} numberOfLines={1}>{val}</Text>
-              ) : (
-                <Text style={[styles.dropdownTxt, { color: valColor }]} numberOfLines={1}>{val}</Text>
-              )}
-              {!(f.key === 'year' && isNew) && (
-                <Ionicons name="chevron-down" size={14} color={C.textPrimary} />
-              )}
-            </TouchableOpacity>
-          </View>
           );
         })}
       </View>
 
       {/* Dealership — sirf New + Cash pe. Used pe sirf Non Dealers, New + Finance pe Budget */}
       {!showBudget && !showUsedExtras && (
-      <View style={styles.fullField}>
-        <View style={styles.fieldLabelRow}>
-          <Image source={require('@/screenshot/dealershiplogo.png')} style={{ width: 16, height: 16, tintColor: '#e2671b' }} resizeMode="contain" />
-          <Text style={[styles.fieldLabel, { color: C.textPrimary }]}>Dealership</Text>
+        <View style={styles.fullField}>
+          <View style={styles.fieldLabelRow}>
+            <Image source={require('@/screenshot/dealershiplogo.png')} style={{ width: 16, height: 16, tintColor: '#e2671b' }} resizeMode="contain" />
+            <Text style={[styles.fieldLabel, { color: C.textPrimary }]}>Dealership</Text>
+          </View>
+          <TouchableOpacity activeOpacity={isNew ? 1 : 0.8} disabled={isNew} onPress={() => setOpenSheet('dealer')} style={[styles.fullDropdown, { backgroundColor: C.isDark ? 'rgba(91,54,67,0.27)' : C.glassBg, borderColor: C.isDark ? '#8a7b85' : 'rgba(3,12,40,0.12)', overflow: 'hidden', opacity: isNew ? 0.7 : 1 }]}>
+            <Text style={[styles.dropdownTxt, { color: (isNew || dealer.startsWith('All ')) ? '#c9cedb' : '#ffffff' }]} numberOfLines={1}>{isNew ? 'All Dealership' : dealer}</Text>
+            {!isNew && (
+              <Ionicons name="chevron-down" size={14} color={C.textPrimary} />
+            )}
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity activeOpacity={isNew ? 1 : 0.8} disabled={isNew} onPress={() => setOpenSheet('dealer')} style={[styles.fullDropdown, { backgroundColor: C.isDark ? 'rgba(91,54,67,0.27)' : C.glassBg, borderColor: C.isDark ? '#8a7b85' : 'rgba(3,12,40,0.12)', overflow: 'hidden', opacity: isNew ? 0.7 : 1 }]}>
-          <Text style={[styles.dropdownTxt, { color: (isNew || dealer.startsWith('All ')) ? '#c9cedb' : '#ffffff' }]} numberOfLines={1}>{isNew ? 'All Dealership' : dealer}</Text>
-          {!isNew && (
-            <Ionicons name="chevron-down" size={14} color={C.textPrimary} />
-          )}
-        </TouchableOpacity>
-      </View>
       )}
 
       {/* Financing Budget — sirf New + Finance pe */}
@@ -419,7 +419,7 @@ export default function VehicleSearch() {
               <Text style={[styles.fieldLabel, { color: C.textPrimary }]}>Non Dealers</Text>
             </View>
             <TouchableOpacity activeOpacity={1} disabled onPress={() => setOpenSheet('sellerType')} style={[styles.fullDropdown, { backgroundColor: C.isDark ? 'rgba(91,54,67,0.27)' : C.glassBg, borderColor: C.isDark ? '#8a7b85' : 'rgba(3,12,40,0.12)', overflow: 'hidden' }]}>
-              <Text style={[styles.dropdownTxt, { color: '#ffffff' }]} numberOfLines={1}>{sellerType === 'All (Non Dealer + Individual)' ? 'All( Showroom + Sellers)' : sellerType}</Text>
+              <Text style={[styles.dropdownTxt, { color: '#ffffff' }]} numberOfLines={1}>{sellerType === 'All (Non Dealer + Individual)' ? 'All (Showroom + Sellers)' : sellerType}</Text>
             </TouchableOpacity>
           </View>
           <View style={styles.fullField}>

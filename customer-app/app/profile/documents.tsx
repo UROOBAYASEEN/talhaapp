@@ -196,7 +196,7 @@ const Documents = () => {
                 <View style={{ flexDirection: 'row', gap: 6 }}>
                   <TouchableOpacity
                     activeOpacity={0.8}
-                    style={[s.uploadBtn, { backgroundColor: 'rgba(226,103,27,0.12)', borderColor: ORANGE, paddingHorizontal: 10 }]}
+                    style={[s.uploadBtn, { backgroundColor: 'rgba(226,103,27,0.12)', borderColor: ORANGE, paddingHorizontal: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }]}
                     onPress={() => setPreview({ uri: doc.file!.uri, title: doc.title })}
                   >
                     <Ionicons name="eye-outline" size={14} color={ORANGE} />

@@ -11,6 +11,7 @@ import { AppColors } from '@/constants/theme';
 import { useRouter } from 'expo-router';
 import { API_BASE } from '@/constants/api';
 import { GlowCard } from '@/components/dealer/DealerUI';
+import { useTabBarSpace } from '@/components/shared/PillTabBar';
 
 const ORANGE = '#e8703a';
 const BG     = '#010A1F';
@@ -38,6 +39,7 @@ function BankIcon() {
 }
 
 export default function BankProfileScreen() {
+  const tabSpace = useTabBarSpace(120);
   const { logout, token, user } = useAuth();
   const router = useRouter();
 
@@ -84,7 +86,7 @@ export default function BankProfileScreen() {
 
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: tabSpace }}>
 
         {/* HERO */}
         <ImageBackground

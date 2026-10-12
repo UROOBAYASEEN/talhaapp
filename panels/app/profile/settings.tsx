@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   SafeAreaView,
   StatusBar,
-  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -16,10 +15,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useAppColors } from '@/constants/theme';
 
 const SETTINGS = [
-  { title: 'Change Password',    asset: require('../../assets/Icons/changePasswordIcon.png'), route: '/profile/change-password' },
-  { title: 'Help Center',        icon: 'help-circle-outline',                                      route: '/profile/help'            },
-  { title: 'Terms & Conditions', asset: require('../../assets/Icons/terms&ConditionIcon.png'),   route: '/profile/terms'           },
-  { title: 'About Autowizor',    asset: require('../../assets/Icons/aboutIcon.png'),              route: '/profile/about'           },
+  { title: 'Change Password',    icon: 'lock-closed-outline',        route: '/profile/change-password' },
+  { title: 'Help Center',        icon: 'help-circle-outline',        route: '/profile/help'            },
+  { title: 'Terms & Conditions', icon: 'document-text-outline',      route: '/profile/terms'           },
+  { title: 'About Autowizor',    icon: 'information-circle-outline', route: '/profile/about'           },
 ];
 
 export default function SettingScreen() {
@@ -36,7 +35,7 @@ export default function SettingScreen() {
         <TouchableOpacity style={s.backButton} onPress={() => router.back()}>
           <Ionicons name="chevron-back" size={25} color={C.textPrimary} />
         </TouchableOpacity>
-        <Text style={[s.headerTitle, { color: C.textPrimary }]}>Setting</Text>
+        <Text style={[s.headerTitle, { color: C.textPrimary }]}>Settings</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -70,14 +69,10 @@ export default function SettingScreen() {
               <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
             )}
             <View style={s.optionLeft}>
-              {'asset' in item && item.asset ? (
-                <Image source={item.asset} style={s.menuIcon} resizeMode="contain" />
-              ) : (
-                <Ionicons name={item.icon as any} size={20} color="#FF8A00" />
-              )}
-              <Text style={[s.optionText, { color: C.textPrimary }]}>{item.title}</Text>
+              <Ionicons name={item.icon as any} size={20} color="#e2671b" />
+              <Text style={[s.optionText, { color: C.isDark ? '#D6DCEF' : C.textPrimary }]}>{item.title}</Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color={C.textSecondary} />
+            <Ionicons name="chevron-forward" size={20} color={C.isDark ? '#6B7A99' : C.textSecondary} />
           </TouchableOpacity>
         ))}
 
@@ -113,7 +108,7 @@ export default function SettingScreen() {
             <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
           )}
           <View style={s.optionLeft}>
-            <Image source={require('../../assets/Icons/logoutIcon.png')} style={s.menuIcon} resizeMode="contain" />
+            <Ionicons name="log-out-outline" size={20} color="#FF4B4B" />
             <Text style={s.logoutText}>Logout</Text>
           </View>
         </TouchableOpacity>
@@ -147,7 +142,7 @@ const s = StyleSheet.create({
   headerTitle: {
     color: '#FFFFFF',
     fontSize: 18,
-    fontWeight: '600',
+    fontFamily: 'Poppins_600SemiBold',
   },
 
   list: {
@@ -175,20 +170,15 @@ const s = StyleSheet.create({
     gap: 12,
   },
 
-  menuIcon: {
-    width: 20,
-    height: 20,
-  },
-
   optionText: {
     color: '#D6DCEF',
     fontSize: 13,
-    fontWeight: '500',
+    fontFamily: 'Poppins_500Medium',
   },
 
   logoutText: {
     color: '#FF4B4B',
     fontSize: 13,
-    fontWeight: '500',
+    fontFamily: 'Poppins_500Medium',
   },
 });

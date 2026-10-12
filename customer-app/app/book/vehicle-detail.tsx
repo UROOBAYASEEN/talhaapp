@@ -1,4 +1,5 @@
 // Figma: vehicle detail (Book flow) — bottom shows only Contact Dealer + Test Drive
+import VerifiedIcon from '@/components/shared/VerifiedIcon';
 import { Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
@@ -161,7 +162,7 @@ export default function BookVehicleDetail() {
           {/* Dealer */}
           <TouchableOpacity style={s.dealerRow} activeOpacity={0.8} onPress={() => router.push({ pathname: '/book/dealer-profile', params: { id: v.seller_id, category: v.category || 'car' } } as any)}>
             <Text style={s.dealer}>{sellerName(v)}</Text>
-            {isDealer && <MaterialIcons name="verified" size={22} color="#3B8BF6" />}
+            {isDealer && <VerifiedIcon size={22} />}
           </TouchableOpacity>
 
           {/* Rating */}

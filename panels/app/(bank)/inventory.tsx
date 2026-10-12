@@ -11,6 +11,7 @@ import { useRouter } from 'expo-router';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { D, DHeader, FilterPills, GlowCard, SearchBar } from '@/components/dealer/DealerUI';
+import { useTabBarSpace } from '@/components/shared/PillTabBar';
 
 const ORANGE = '#e2671b';
 const BG     = '#010A1F';
@@ -49,6 +50,7 @@ function statusMeta(s: string) {
 }
 
 export default function InventoryScreen() {
+  const tabSpace = useTabBarSpace(120);
   const router      = useRouter();
   const { token }   = useAuth();
   const [activeFilter, setActiveFilter] = useState<typeof FILTERS[number]>('All');
@@ -260,7 +262,7 @@ export default function InventoryScreen() {
           );
         }}
 
-        ListFooterComponent={<View style={{ height: 120 }} />}
+        ListFooterComponent={<View style={{ height: tabSpace }} />}
       />
     </SafeAreaView>
   );

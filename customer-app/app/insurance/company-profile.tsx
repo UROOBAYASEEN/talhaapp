@@ -1,3 +1,4 @@
+import VerifiedIcon from '@/components/shared/VerifiedIcon';
 import React, { useEffect, useState } from "react";
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
@@ -181,7 +182,7 @@ export default function CompanyProfileScreen() {
               <View style={{ flex: 1 }}>
                 <View style={styles.nameRow}>
                   <Text style={[styles.companyName, { color: aC.isDark ? WHITE : '#010a1f' }]} numberOfLines={1}>{name}</Text>
-                  <MaterialCommunityIcons name="check-decagram" size={17} color="#1d8cf8" style={{ marginLeft: 7 }} />
+                  <VerifiedIcon size={17} style={{ marginLeft: 7 }} />
                 </View>
                 <Text style={[styles.companyCategory, { color: aC.isDark ? TEXT_SEC : '#475569' }]} numberOfLines={1}>{tagline}</Text>
               </View>

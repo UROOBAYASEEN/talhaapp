@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "expo-router";
 import AdminFooter from "@/components/admin/AdminFooter";
 import WelcomeBanner from "@/components/shared/WelcomeBanner";
@@ -14,6 +14,8 @@ import {
   TouchableOpacity,
   View,
   ActivityIndicator,
+  Switch,
+  Appearance,
 } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -28,6 +30,7 @@ import Svg, {
   Circle,
   Line,
 } from "react-native-svg";
+import { useTabBarSpace } from "@/components/shared/PillTabBar";
 
 const { width } = Dimensions.get("window");
 
@@ -127,7 +130,52 @@ type RevenueData = {
   labels:     string[];
 };
 
+// ── Settings menu — opens right under the header settings icon ──────────────
+function AdminSettingsMenu({ visible, onClose, anchor }: { visible: boolean; onClose: () => void; anchor: { x: number; y: number; w: number; h: number } | null }) {
+  const aC = useAppColors();
+  const dark = aC.isDark;
+  return (
+    // Rendered inside the screen (not a Modal) so it sits exactly under the settings icon.
+    // `anchor` is the icon's position relative to the screen root.
+    visible ? (
+    <View style={[StyleSheet.absoluteFill, { zIndex: 1000, elevation: 1000 }]}>
+      <TouchableOpacity style={sm.overlay} activeOpacity={1} onPress={onClose}>
+        <TouchableOpacity activeOpacity={1} style={[sm.card, anchor
+          // Right-aligned just below the settings icon
+          ? { position: 'absolute', top: anchor.y + anchor.h + 4, right: Math.max(8, Dimensions.get('window').width - (anchor.x + anchor.w)) }
+          : { position: 'absolute', top: 56, right: 14 }, { backgroundColor: dark ? '#081D4A' : '#ffffff', borderColor: dark ? 'rgba(255,255,255,0.12)' : 'rgba(3,42,105,0.12)' }]}>
+          <View style={sm.row}>
+            <Text style={[sm.label, { color: dark ? '#F2F1F5' : '#010a1f' }]}>Light Mode</Text>
+            <Switch
+              value={!dark}
+              onValueChange={v => Appearance.setColorScheme(v ? 'light' : 'dark')}
+              trackColor={{ false: '#0B2E6B', true: '#0B2E6B' }}
+              thumbColor="#ffffff"
+              ios_backgroundColor="#0B2E6B"
+              style={sm.switch}
+            />
+          </View>
+        </TouchableOpacity>
+      </TouchableOpacity>
+    </View>
+    ) : null
+  );
+}
+
+const sm = StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)' },
+  card:    { width: 178, borderRadius: 16, borderWidth: 1, paddingHorizontal: 6, paddingVertical: 4, shadowColor: '#000', shadowOpacity: 0.35, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 12 },
+  row:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 8, paddingVertical: 12, gap: 10 },
+  label:   { fontSize: 12.5, fontFamily: 'Poppins_500Medium' },
+  switch:  { transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }], marginVertical: -6, marginRight: -6 },
+});
+
 export default function AdminDashboard() {
+  const tabSpace = useTabBarSpace(105);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsAnchor, setSettingsAnchor] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
+  const settingsBtnRef = useRef<View>(null);
+  const screenRef = useRef<View>(null);
   const router = useRouter();
   const aC = useAppColors();
   const [selectedFilter, setSelectedFilter] = useState("Monthly");
@@ -180,10 +228,11 @@ export default function AdminDashboard() {
   }, []);
 
   return (
-    <View style={[styles.container, { backgroundColor: aC.bg }]}>
+    <View ref={screenRef} collapsable={false} style={[styles.container, { backgroundColor: aC.bg }]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
+        onScrollBeginDrag={() => settingsOpen && setSettingsOpen(false)}
       >
         {/* HEADER */}
         <View style={[styles.header, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderBottomWidth: aC.isDark ? 0 : 1, borderBottomColor: 'rgba(3,42,105,0.08)' }]}>
@@ -208,7 +257,23 @@ export default function AdminDashboard() {
               />
             </TouchableOpacity>
 
-            <TouchableOpacity>
+            <TouchableOpacity
+              ref={settingsBtnRef as any}
+              onPress={() => {
+                const node: any = settingsBtnRef.current;
+                const root: any = screenRef.current;
+                if (node?.measureInWindow && root?.measureInWindow) {
+                  root.measureInWindow((rx: number, ry: number) => {
+                    node.measureInWindow((x: number, y: number, w: number, h: number) => {
+                      setSettingsAnchor({ x: x - rx, y: y - ry, w, h });
+                      setSettingsOpen(true);
+                    });
+                  });
+                } else {
+                  setSettingsOpen(true);
+                }
+              }}
+            >
               <Ionicons
                 name="settings-outline"
                 size={22}
@@ -447,10 +512,11 @@ export default function AdminDashboard() {
           ))}
         </View>
 
-        <View style={{ height: 105 }} />
+        <View style={{ height: tabSpace }} />
       </ScrollView>
 
       <AdminFooter active="home" />
+      <AdminSettingsMenu visible={settingsOpen} anchor={settingsAnchor} onClose={() => setSettingsOpen(false)} />
     </View>
   );
 }

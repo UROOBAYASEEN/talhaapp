@@ -1,3 +1,4 @@
+import VerifiedIcon from '@/components/shared/VerifiedIcon';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -591,8 +592,8 @@ export default function VehicleDetailScreen() {
                   : <Ionicons name="person" size={38} color={aC.isDark ? WHITE : '#032a69'} />
                 }
               </View>
-              <View style={styles.verifiedBadge}>
-                <Ionicons name="checkmark" size={10} color={WHITE} />
+              <View style={[styles.verifiedBadge, { backgroundColor: 'transparent' }]}>
+                <VerifiedIcon size={18} />
               </View>
             </View>
           </View>

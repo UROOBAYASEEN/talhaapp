@@ -27,6 +27,7 @@ import { D, DHeader, GlowCard, SearchBar } from '@/components/dealer/DealerUI';
 import { MaterialIcons } from "@expo/vector-icons";
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTabBarSpace } from '@/components/shared/PillTabBar';
 
 const ORANGE    = '#e2671b';
 const SERVER    = API_BASE.replace('/api/v1', '');
@@ -150,6 +151,8 @@ function TrackerCard({ item }: { item: any }) {
 }
 
 export default function TrackerScreen() {
+  const tabSpace = useTabBarSpace(120);
+  const fabBottom = useTabBarSpace(110, 16);
   const router = useRouter();
   const aC = useAppColors();
   const { token } = useAuth();
@@ -203,7 +206,7 @@ export default function TrackerScreen() {
         <FlatList
           data={filtered}
           keyExtractor={item => item.id}
-          contentContainerStyle={s.list}
+          contentContainerStyle={[s.list, { paddingBottom: tabSpace }]}
           showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={ORANGE} />}
           renderItem={({ item }) => <TrackerCard item={item} />}
@@ -219,7 +222,7 @@ export default function TrackerScreen() {
       )}
 
       {/* Floating add button */}
-      <TouchableOpacity style={s.fab} activeOpacity={0.85} onPress={() => router.push('/(tracker)/new-tracker' as any)}>
+      <TouchableOpacity style={[s.fab, { bottom: fabBottom }]} activeOpacity={0.85} onPress={() => router.push('/(tracker)/new-tracker' as any)}>
         <MaterialIcons name="add-box" size={30} color="#fff" />
       </TouchableOpacity>
     </View>

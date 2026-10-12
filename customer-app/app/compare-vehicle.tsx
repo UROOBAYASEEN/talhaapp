@@ -1,3 +1,4 @@
+import VerifiedIcon from '@/components/shared/VerifiedIcon';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
@@ -817,7 +818,7 @@ export default function CompareVehicle() {
                 <MaterialCommunityIcons name={category === 'bike' ? 'motorbike' : 'car'} size={10} color="#010B1E" />
               </View>
               <Text style={styles.cmpNameLabel}>First {category === 'bike' ? 'Bike' : 'Car'}</Text>
-              <MaterialCommunityIcons name="check-decagram" size={11} color="#178BFB" />
+              <VerifiedIcon size={11} />
             </View>
             <View style={styles.cmpField}>
               <CmpInputEffect />
@@ -829,7 +830,7 @@ export default function CompareVehicle() {
                 <MaterialCommunityIcons name={category === 'bike' ? 'motorbike' : 'car'} size={10} color="#010B1E" />
               </View>
               <Text style={styles.cmpNameLabel}>Second {category === 'bike' ? 'Bike' : 'Car'}</Text>
-              <MaterialCommunityIcons name="check-decagram" size={11} color="#178BFB" style={{ marginLeft: 4 }} />
+              <VerifiedIcon size={11} style={{ marginLeft: 4 }} />
             </View>
             <View style={styles.cmpField}>
               <CmpInputEffect />

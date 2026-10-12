@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTabBarSpace } from '@/components/shared/PillTabBar';
 
 const SETTINGS = [
   { title: 'Change Password',    icon: 'lock-closed-outline',        route: '/profile/change-password' },
@@ -27,6 +28,7 @@ function RowGlow() {
 }
 
 export default function BecomeSellerSettingsScreen() {
+  const tabSpace = useTabBarSpace(40);
   const router = useRouter();
   const { logout } = useAuth();
   const [sellerOn, setSellerOn] = useState(true);
@@ -43,7 +45,7 @@ export default function BecomeSellerSettingsScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[s.scroll, { paddingBottom: tabSpace }]}>
         <View style={s.list}>
 
           {/* Become A Seller toggle — OFF → back to the customer flow */}

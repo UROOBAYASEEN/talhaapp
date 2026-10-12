@@ -14,12 +14,14 @@ import { RatingSummary, ReviewItem } from '@/components/book/reviews';
 import { AppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTabBarSpace } from '@/components/shared/PillTabBar';
 
 const { width } = Dimensions.get('window');
 const ORANGE = AppColors.gradientEnd;   // #e2671b
 const C      = AppColors;
 
 export default function DealerProfileScreen() {
+  const tabSpace = useTabBarSpace(120);
   const { user, token, logout } = useAuth();
   const router = useRouter();
   const [info,           setInfo]          = useState<any>(null);
@@ -156,7 +158,7 @@ export default function DealerProfileScreen() {
           </View>
         </View>
 
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: tabSpace }}>
 
           {/* ── COVER IMAGE (tap to change) ── */}
           <TouchableOpacity activeOpacity={0.9} onPress={handleCoverUpdate} style={s.coverContainer}>

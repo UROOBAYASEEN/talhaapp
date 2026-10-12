@@ -28,6 +28,7 @@ import { D, DHeader, FilterPills, GlowCard, SearchBar } from '@/components/deale
 import { AppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTabBarSpace } from '@/components/shared/PillTabBar';
 
 const ORANGE = '#E2671B';
 const C      = AppColors;
@@ -301,6 +302,7 @@ const pm = StyleSheet.create({
 
 /* ── Main Screen ── */
 export default function LeadsScreen() {
+  const tabSpace = useTabBarSpace(110);
   const { user, token } = useAuth();
   const router = useRouter();
   const { tab } = useLocalSearchParams<{ tab?: string }>();
@@ -395,7 +397,7 @@ export default function LeadsScreen() {
         <FlatList
           data={filtered}
           keyExtractor={item => String(item.id || Math.random())}
-          contentContainerStyle={s.list}
+          contentContainerStyle={[s.list, { paddingBottom: tabSpace }]}
           showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={ORANGE} />}
           renderItem={({ item }) => (

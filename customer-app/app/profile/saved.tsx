@@ -1,3 +1,4 @@
+import VerifiedIcon from '@/components/shared/VerifiedIcon';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -116,7 +117,7 @@ function VehicleCard({ item, onViewDetails, onContact, onUnsave, aC, s }: {
             {/* Dealer */}
             <View style={s.dealerRow}>
               <Text style={s.dealerName} numberOfLines={1}>{item.seller?.full_name || 'Seller'}</Text>
-              <Ionicons name="checkmark-circle" size={16} color="#0088ff" />
+              <VerifiedIcon size={16} />
             </View>
             {/* Meta */}
             <Text style={s.cardMeta}>{item.city || 'Pakistan'} • {item.year} • {item.transmission || 'CVT'}</Text>

@@ -42,6 +42,7 @@ import { API_BASE } from '@/constants/api';
 import Chatbot from '@/components/shared/Chatbot';
 import { Ionicons } from '@expo/vector-icons';
 import { DICON, DIcon, GlowCard } from '@/components/dealer/DealerUI';
+import { useTabBarSpace } from '@/components/shared/PillTabBar';
 
 const ORANGE = '#F97316';
 const CARD   = '#111A3F';
@@ -106,6 +107,7 @@ function GlassInset() {
 
 // ── Main Screen ───────────────────────────────────────────────────────────────
 export default function BankHomeScreen() {
+  const tabSpace = useTabBarSpace(100);
   const { user, token } = useAuth();
   const router          = useRouter();
   const [viewMode,      setViewMode]      = useState<'Daily View' | 'Weekly View' | 'Monthly View'>('Weekly View');
@@ -427,7 +429,7 @@ export default function BankHomeScreen() {
         })}
 
         {/* Home indicator */}
-        <View style={{ height: 100 }} />
+        <View style={{ height: tabSpace }} />
       </ScrollView>
       <Chatbot />
     </SafeAreaView>

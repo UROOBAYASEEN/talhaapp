@@ -18,6 +18,7 @@ import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { BannerCard as FBannerCard, VideoCard as FVideoCard } from '@/components/dealer/AdCards';
 import AdminFooter from '@/components/admin/AdminFooter';
+import { useTabBarSpace } from '@/components/shared/PillTabBar';
 
 const { width: SW, height: SH } = Dimensions.get('window');
 
@@ -299,6 +300,7 @@ const es = StyleSheet.create({
 
 /* ── Main Screen ── */
 export default function AdminAdvertisementScreen() {
+  const tabSpace = useTabBarSpace(30);
   const router    = useRouter();
   const { token } = useAuth();
   const aC = useAppColors();
@@ -450,7 +452,7 @@ export default function AdminAdvertisementScreen() {
               </>
             )}
 
-            <View style={{ height: 30 }}/>
+            <View style={{ height: tabSpace }}/>
           </ScrollView>
         )}
 

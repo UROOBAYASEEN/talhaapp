@@ -22,6 +22,7 @@ import { D, DICON, DIcon, GlowCard, TipBanner, Verified } from '@/components/dea
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 import Chatbot from '@/components/shared/Chatbot';
+import { useTabBarSpace } from '@/components/shared/PillTabBar';
 
 const GREEN   = '#2ECC71';
 
@@ -112,6 +113,7 @@ const sm = StyleSheet.create({
 });
 
 export default function BecomeSellerHomeScreen() {
+  const tabSpace = useTabBarSpace(110);
   const { user, token } = useAuth();
   const router = useRouter();
 
@@ -453,7 +455,7 @@ export default function BecomeSellerHomeScreen() {
             ))}
           </View>
 
-          <View style={{ height: 110 }} />
+          <View style={{ height: tabSpace }} />
         </ScrollView>
         <BecomeSellerSettingsMenu visible={settingsOpen} anchor={settingsAnchor} onClose={() => setSettingsOpen(false)} />
       </View>

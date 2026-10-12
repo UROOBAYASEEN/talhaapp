@@ -14,6 +14,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { D, GlowCard, Verified } from '@/components/dealer/DealerUI';
 import { RatingSummary, ReviewItem as SharedReviewItem } from '@/components/book/reviews';
 import { GlassButton, GradientButton } from '@/components/shared/GlowUI';
+import { useTabBarSpace } from '@/components/shared/PillTabBar';
 
 const SERVER = API_BASE.replace('/api/v1', '');
 function resolveUrl(url?: string) {
@@ -62,6 +63,7 @@ function InfoCard({ icon, num, label }: any) {
 
 
 export default function InsuranceProfileScreen() {
+  const tabSpace = useTabBarSpace(120);
   const { logout, user, token } = useAuth();
   const router = useRouter();
 
@@ -203,7 +205,7 @@ export default function InsuranceProfileScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 120 }}
+        contentContainerStyle={{ paddingBottom: tabSpace }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={ORANGE} />}
       >
         {/* Cover (tap to change) */}

@@ -10,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import AdminFooter from '@/components/admin/AdminFooter';
 import { Image } from 'react-native';
 import { AppColors, useAppColors } from '@/constants/theme';
+import { useTabBarSpace } from '@/components/shared/PillTabBar';
 
 const ORANGE = '#FF6B00';
 const WHITE  = '#F4F4F7';
@@ -53,6 +54,7 @@ function OptionRow({
 }
 
 export default function ActionsScreen() {
+  const tabSpace = useTabBarSpace(110);
   const router = useRouter();
   const { logout } = useAuth();
   const aC = useAppColors();
@@ -141,7 +143,7 @@ export default function ActionsScreen() {
             </TouchableOpacity>
           </View>
 
-          <View style={{ height: 110 }} />
+          <View style={{ height: tabSpace }} />
         </ScrollView>
 
         <AdminFooter active="actions" />

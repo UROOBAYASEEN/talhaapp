@@ -11,6 +11,13 @@ export const BAR_BG = '#071C49';
 const BAR_H = 60;
 export const TAB_ORANGE = '#E2671B';
 
+// Bottom space a screen needs so its last item sits just above the floating bar
+// (bar = insets.bottom + 4 from the screen bottom, BAR_H tall). `min` keeps a screen's old spacing.
+export function useTabBarSpace(min = 0, gap = 24) {
+  const insets = useSafeAreaInsets();
+  return Math.max(min, insets.bottom + 4 + BAR_H + gap);
+}
+
 // renderIcon receives the icon colour (orange when active, white otherwise)
 export function PillTabIcon({
   label, focused, renderIcon,

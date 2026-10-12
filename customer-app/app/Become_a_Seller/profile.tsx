@@ -1,3 +1,4 @@
+import VerifiedIcon from '@/components/shared/VerifiedIcon';
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
@@ -9,7 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import {
-  ChevronLeft, Eye, Bell, Settings, BadgeCheck, MoreVertical,
+  ChevronLeft, Eye, Bell, Settings, MoreVertical,
   Car, Star, Users, Award, MapPin, Phone, Clock3,
   CheckCircle, ShieldCheck, Pencil, Plus,
 } from 'lucide-react-native';
@@ -218,7 +219,7 @@ export default function BecomeSellerProfileScreen() {
               <View style={s.dealerDetails}>
                 <View style={s.dealerNameRow}>
                   <Text style={s.dealerName} numberOfLines={1}>{name}</Text>
-                  <BadgeCheck size={20} color="#078DE8" fill="#078DE8"/>
+                  <VerifiedIcon size={20} />
                 </View>
                 <Text style={s.official}>Individual Seller</Text>
                 <View style={s.ratingRow}>
