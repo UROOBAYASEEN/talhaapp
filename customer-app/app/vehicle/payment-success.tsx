@@ -1,3 +1,4 @@
+import LightGradientBorder from '@/components/shared/LightGradientBorder';
 import React, { useEffect, useMemo, useState } from "react";
 import {
   View,
@@ -18,7 +19,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
-import { useAppColors } from "@/constants/theme";
+import { LIGHT_POP_SHADOW, useAppColors, withLightStyles } from "@/constants/theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { PRIMARY_BTN_COLORS, RingGlow, SavedCardEffect } from "@/components/shared/FigmaEffects";
 import InnerGlow from "@/components/shared/InnerGlow";
@@ -98,70 +99,77 @@ export default function PaymentSuccessScreen() {
         Alert.alert('Error', 'Could not generate the invoice. Please try again.');
       }
     }
+    const pst = aC.isDark ? styles : promoteLight;
     return (
-      <SafeAreaView style={[styles.safe, { backgroundColor: BG, paddingTop: Platform.OS === 'android' ? insets.top : 0 }]}>
-        <StatusBar barStyle="light-content" backgroundColor={BG} />
+      <SafeAreaView style={[pst.safe, { backgroundColor: aC.isDark ? BG : '#ffffff', paddingTop: Platform.OS === 'android' ? insets.top : 0 }]}>
+        <StatusBar barStyle={aC.isDark ? "light-content" : "dark-content"} backgroundColor={aC.isDark ? BG : '#ffffff'} />
 
         {/* Header */}
-        <View style={styles.extraHeader}>
+        <View style={pst.extraHeader}>
           <TouchableOpacity
-            style={styles.extraBackBtn}
+            style={pst.extraBackBtn}
             onPress={() => router.back()}
             activeOpacity={0.7}
           >
-            <Ionicons name="chevron-back" size={24} color={WHITE} />
+            <Ionicons name="chevron-back" size={24} color={aC.isDark ? WHITE : '#000000'} />
           </TouchableOpacity>
-          <Text style={styles.extraHeaderTitle}>Processing Payment</Text>
+          <Text style={pst.extraHeaderTitle}>Processing Payment</Text>
           <View style={{ width: 40 }} />
         </View>
 
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.promoteScroll}>
-          <View style={styles.promoteBody}>
-            <Text style={styles.promoteEmoji}>🎉</Text>
-            <Text style={styles.promoteTitle}>Ad Promoted{"\n"}Successfully!</Text>
-            <Text style={styles.promoteSub}>Your ad is now added to the featured listing</Text>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={pst.promoteScroll}>
+          <View style={pst.promoteBody}>
+            <Text style={pst.promoteEmoji}>🎉</Text>
+            <Text style={pst.promoteTitle}>Ad Promoted{"\n"}Successfully!</Text>
+            <Text style={pst.promoteSub}>Your ad is now added to the featured listing</Text>
           </View>
 
-          <LinearGradient colors={["#E2671B", "#032A69"]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={styles.promoteCardBorder}>
-            <View style={styles.promoteCard}>
-              <LinearGradient colors={["rgba(22,64,136,0.28)", "transparent", "rgba(226,103,27,0.24)"]} locations={[0, 0.48, 1]} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-              <View style={styles.promoteImageBox}>
-                {photo ? <Image source={{ uri: String(photo) }} style={StyleSheet.absoluteFillObject} resizeMode="cover" /> : <Ionicons name="car-outline" size={35} color={SUBTITLE} />}
+          <LinearGradient colors={aC.isDark ? ["#E2671B", "#032A69"] : ['rgba(226,103,27,0.75)', 'rgba(3,42,105,0.75)']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={pst.promoteCardBorder}>
+            <View style={pst.promoteCard}>
+              {aC.isDark && <LinearGradient colors={["rgba(22,64,136,0.28)", "transparent", "rgba(226,103,27,0.24)"]} locations={[0, 0.48, 1]} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
+              <View style={pst.promoteImageBox}>
+                {photo ? <Image source={{ uri: String(photo) }} style={StyleSheet.absoluteFillObject} resizeMode="cover" /> : <Ionicons name="car-outline" size={35} color={aC.isDark ? SUBTITLE : '#94a3b8'} />}
               </View>
-              <View style={styles.promoteInfo}>
-                <Text style={styles.promoteCarName} numberOfLines={2}>{title}</Text>
-                <Text style={styles.promoteCarPrice}>PKR {promotedPrice}</Text>
-                {!!vehicleMeta && <View style={styles.promoteMetaRow}>
-                  <Ionicons name="location-outline" size={13} color={SUBTITLE} />
-                  <Text style={styles.promoteMeta} numberOfLines={1}>{vehicleMeta}</Text>
+              <View style={pst.promoteInfo}>
+                <Text style={pst.promoteCarName} numberOfLines={2}>{title}</Text>
+                <Text style={pst.promoteCarPrice}>PKR {promotedPrice}</Text>
+                {!!vehicleMeta && <View style={pst.promoteMetaRow}>
+                  <Ionicons name="location-outline" size={13} color={aC.isDark ? SUBTITLE : '#000000'} />
+                  <Text style={pst.promoteMeta} numberOfLines={1}>{vehicleMeta}</Text>
                 </View>}
-                <View style={styles.promoteStatusRow}>
-                  <View style={styles.promoteBadge}><Text style={styles.promoteBadgeText}>·  Active</Text></View>
-                  <Text style={styles.promotePosted}>Posted today</Text>
+                <View style={pst.promoteStatusRow}>
+                  <View style={pst.promoteBadge}><Text style={pst.promoteBadgeText}>·  Active</Text></View>
+                  <Text style={pst.promotePosted}>Posted today</Text>
                 </View>
               </View>
-              <Ionicons name="chevron-forward" size={20} color={ORANGE} style={styles.promoteChevron} />
+              <Ionicons name="chevron-forward" size={20} color={ORANGE} style={pst.promoteChevron} />
             </View>
           </LinearGradient>
 
         {/* Bottom buttons */}
-        <View style={[styles.extraFooter, styles.promoteFooter]}>
-          <TouchableOpacity style={[styles.extraPrimaryBtn, styles.promotePrimaryBtn]} activeOpacity={0.85} onPress={downloadPromotionInvoice}>
-            <LinearGradient colors={["#032A69", "#E2671B"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
-            <Text style={styles.promotePrimaryText}>Download Invoice</Text>
+        <View style={[pst.extraFooter, pst.promoteFooter]}>
+          <TouchableOpacity style={[pst.extraPrimaryBtn, pst.promotePrimaryBtn]} activeOpacity={0.85} onPress={downloadPromotionInvoice}>
+            <LinearGradient colors={aC.isDark ? ["#032A69", "#E2671B"] : ['#27467F', '#FF9654']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+            <Text style={pst.promotePrimaryText}>Download Invoice</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.extraSecondaryBtn, styles.promoteSecondaryBtn, { backgroundColor: 'transparent', borderWidth: 0 }]}
+            style={[pst.extraSecondaryBtn, pst.promoteSecondaryBtn, { backgroundColor: 'transparent', borderWidth: 0 }]}
             activeOpacity={0.85}
             onPress={() => router.dismissTo(homeRoute)}
           >
             {/* Figma glass pill — same as GlowDraftButton (components/shared/ActionFooterGlow): blue inner glow, light-blue border, warm tint on the right */}
+            {aC.isDark ? (
+              <>
             <InnerGlow radius={25} fill="#131F38" glowColor="#2C55A0" blur={14} borderColors={['#6F8CC0', '#5873A6']} borderWidth={1} />
             <LinearGradient colors={['transparent', 'transparent', 'rgba(58,36,42,0.45)', 'transparent']} locations={[0, 0.5, 0.82, 1]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={[StyleSheet.absoluteFillObject, { top: 10, bottom: 10 }]} pointerEvents="none" />
-            <Text style={[styles.promoteSecondaryText, { fontFamily: 'Poppins_400Regular' }]}>Back to home</Text>
+              </>
+            ) : (
+              <LightGradientBorder radius={25} fill="#ffffff" colors={['#032a69', '#e2671b']} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} />
+            )}
+            <Text style={[pst.promoteSecondaryText, { fontFamily: 'Poppins_400Regular' }]}>Back to home</Text>
           </TouchableOpacity>
-          {!!vid && <TouchableOpacity style={styles.promoteViewAd} onPress={() => router.replace({ pathname: '/buy/car-detail', params: { id: String(vid) } } as any)}><Text style={styles.promoteViewAdText}>View Ad</Text></TouchableOpacity>}
+          {!!vid && <TouchableOpacity style={pst.promoteViewAd} onPress={() => router.replace({ pathname: '/buy/car-detail', params: { id: String(vid) } } as any)}><Text style={pst.promoteViewAdText}>View Ad</Text></TouchableOpacity>}
         </View>
         </ScrollView>
       </SafeAreaView>
@@ -767,4 +775,22 @@ const styles = StyleSheet.create({
   promoteBadgeText: { color: "#19d273", fontSize: 9, fontFamily: "Poppins_500Medium" },
   promotePosted: { color: SUBTITLE, fontSize: 8, fontFamily: "Poppins_400Regular" },
   promoteChevron: { alignSelf: "flex-end", marginBottom: 4 },
+});
+
+// ── Light mode overrides for the "Ad Promoted" screen — dark mode uses `styles` as is ──
+const promoteLight = withLightStyles(styles, {
+  extraHeaderTitle:    { color: '#000000', fontFamily: 'Poppins_500Medium' },
+  promoteTitle:        { color: '#000000' },
+  promoteSub:          { color: '#4b5563' },
+  promoteCardBorder:   { overflow: 'visible', boxShadow: LIGHT_POP_SHADOW },
+  promoteCard:         { backgroundColor: '#ffffff' },
+  promoteImageBox:     { backgroundColor: '#F2F4F8' },
+  promoteCarName:      { color: '#000000' },
+  promoteMeta:         { color: '#000000' },
+  promoteBadge:        { backgroundColor: '#DDF5E5' },
+  promoteBadgeText:    { color: '#16a34a' },
+  promotePosted:       { color: '#4b5563' },
+  promotePrimaryBtn:   { boxShadow: LIGHT_POP_SHADOW },
+  promoteSecondaryText:{ color: '#000000' },
+  promoteViewAdText:   { color: '#1F3F7A' },
 });

@@ -30,7 +30,7 @@ function VideoCard({ item, onPlay, savedStyle }: { item: any; onPlay: () => void
   const title = item.title || '';
   const isVideo = (item.media_url || '').match(/\.(mp4|mov|webm)$/i);
   return (
-    <TouchableOpacity style={[s.card, { backgroundColor: C.isDark ? C.glassBg : '#ffffff', borderColor: C.isDark ? 'rgba(100,160,255,0.5)' : 'rgba(3,42,105,0.12)', shadowColor: C.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOffset: { width: 0, height: 4 }, shadowOpacity: C.isDark ? 0 : 0.08, shadowRadius: 10, elevation: C.isDark ? 0 : 3 }, C.isDark && savedStyle && s.savedCard]} activeOpacity={0.86} onPress={onPlay}>
+    <TouchableOpacity style={[s.card, { backgroundColor: C.isDark ? C.glassBg : '#ffffff', borderColor: C.isDark ? 'rgba(100,160,255,0.5)' : 'rgba(226,103,27,0.28)', shadowColor: 'transparent', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0, shadowRadius: 10, elevation: 0 }, C.isDark && savedStyle && s.savedCard, !C.isDark && { borderRadius: 20, marginBottom: 16, boxShadow: '2px 5px 6px rgba(0,0,0,0.19)' }]} activeOpacity={0.86} onPress={onPlay}>
       {C.isDark && savedStyle ? (
         <>
           {/* app/profile/saved.tsx — vehicle card effect */}
@@ -55,12 +55,7 @@ function VideoCard({ item, onPlay, savedStyle }: { item: any; onPlay: () => void
           <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
           <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
         </>
-      ) : (
-        <>
-          <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-        </>
-      )}
+      ) : null}
       <View style={s.thumb}>
         <Image source={{ uri: thumb }} style={s.thumbImg} resizeMode="cover" />
         <View style={s.playBtn}>

@@ -43,7 +43,7 @@ function AddonsModal({ visible, onClose, plan, claimId }: { visible: boolean; on
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={m.overlay}>
-        <View style={[m.card, { backgroundColor: aC.isDark ? '#020B20' : '#ffffff', borderColor: aC.isDark ? '#8D96A8' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, shadowRadius: 10, elevation: aC.isDark ? 0 : 8 }]}>
+        <View style={[m.card, { backgroundColor: aC.isDark ? '#020B20' : '#ffffff', borderColor: aC.isDark ? '#8D96A8' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, shadowRadius: 10, elevation: aC.isDark ? 0 : 8 }, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
           <View style={[m.header, { backgroundColor: aC.isDark ? '#09265E' : '#ffffff', borderWidth: aC.isDark ? 0 : 1, borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)' }]}>
             <Text style={[m.title, { color: aC.isDark ? '#fff' : '#010a1f' }]}>Addons</Text>
             <TouchableOpacity onPress={onClose}><Text style={[m.close, { color: aC.isDark ? '#BFC5D1' : '#64748b' }]}>×</Text></TouchableOpacity>
@@ -98,7 +98,7 @@ function AddonsModal({ visible, onClose, plan, claimId }: { visible: boolean; on
               },
             });
           }}>
-            <LinearGradient colors={['#032a69', '#e2671b']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+            <LinearGradient colors={aC.isDark ? ['#032a69', '#e2671b'] : ['#27467F', '#FF9654']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
             <Text style={m.addButtonText}>Add</Text>
           </TouchableOpacity>
         </View>
@@ -141,8 +141,7 @@ function GlassInset() {
   if (!aC.isDark) {
     return (
       <>
-        <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-        <LinearGradient colors={['transparent', 'rgba(226,103,27,0.06)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+
       </>
     );
   }
@@ -383,7 +382,7 @@ export default function ComparePlansScreen() {
 
                 {/* Select Plan Button */}
                 <TouchableOpacity style={s.selectBtn} activeOpacity={0.85} onPress={() => selectPlan(p)}>
-                  <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+                  <LinearGradient colors={(aC.isDark ? PRIMARY_BTN_COLORS : ['#27467F', '#8C6A78', '#FF9654']) as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
                   <Text style={s.selectTxt}>Select Plan</Text>
                 </TouchableOpacity>
               </View>

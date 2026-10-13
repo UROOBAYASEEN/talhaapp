@@ -128,7 +128,7 @@ export default function BrandVehiclesScreen() {
   function VehicleCard({ item }: { item: any }) {
     const saved = savedIds.has(item.id);
     return (
-      <View style={[styles.card, { backgroundColor: aC.isDark ? AppColors.glassBg : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.5)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, shadowRadius: 10, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }]}>
+      <View style={[styles.card, { backgroundColor: aC.isDark ? AppColors.glassBg : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.5)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, shadowRadius: 10, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
         <GlassInset />
         <View style={styles.cardTop}>
           {/* Image */}
@@ -186,7 +186,7 @@ export default function BrandVehiclesScreen() {
             onPress={() => router.push({ pathname: '/vehicle/[id]', params: { id: item.id } })}
           >
             <LinearGradient
-              colors={[NAVY, ORANGE]}
+              colors={aC.isDark ? [NAVY, ORANGE] : ['#27467F', '#FF9654']}
               start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
               style={styles.viewGrad}
             >
@@ -252,7 +252,7 @@ export default function BrandVehiclesScreen() {
             </View>
 
             {/* Search bar */}
-            <View style={[styles.searchBox, { backgroundColor: aC.isDark ? AppColors.glassBg : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.5)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 2, overflow: 'hidden' }]}>
+            <View style={[styles.searchBox, { backgroundColor: aC.isDark ? AppColors.glassBg : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.5)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 2, overflow: 'hidden' }, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
               <GlassInset />
               <Ionicons name="search-outline" size={18} color={aC.isDark ? SUBTITLE : '#64748b'} />
               <TextInput
@@ -281,7 +281,7 @@ export default function BrandVehiclesScreen() {
                 const active = activeFilter === f;
                 return (
                   <TouchableOpacity
-                    style={[styles.filterChip, { backgroundColor: aC.isDark ? DARK_NAV : '#ffffff', borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', borderWidth: 1, shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 1 }, active && (aC.isDark ? styles.filterChipActive : { borderColor: ORANGE, backgroundColor: 'rgba(226,103,27,0.08)' })]}
+                    style={[styles.filterChip, { backgroundColor: aC.isDark ? DARK_NAV : '#ffffff', borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', borderWidth: 1, shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 1 }, active && (aC.isDark ? styles.filterChipActive : { borderColor: ORANGE, backgroundColor: 'rgba(226,103,27,0.08)' }), !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}
                     onPress={() => setActiveFilter(f)}
                   >
                     <Text style={[styles.filterTxt, { color: aC.isDark ? WHITE : '#010a1f' }, active && styles.filterTxtActive]}>{f}</Text>

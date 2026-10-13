@@ -1,4 +1,5 @@
 // Figma: Reviews (Book flow)
+import { useAppColors, withLightStyles, LIGHT_POP_SHADOW } from '@/constants/theme';
 import { useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, StyleSheet, Text, View } from 'react-native';
@@ -9,6 +10,8 @@ import { G, GlowBackground, GradientButton, ScreenHeader } from '@/components/sh
 import { ReviewItem, WriteReviewModal } from '@/components/book/reviews';
 
 export default function BookReviews() {
+  const aC = useAppColors();
+  const s = aC.isDark ? s_dark : s_light;
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { token } = useAuth();
@@ -27,7 +30,7 @@ export default function BookReviews() {
   }, [id]);
 
   return (
-    <GlowBackground>
+    <GlowBackground themed>
       <SafeAreaView style={{ flex: 1 }} edges={['top']}>
         <ScreenHeader title="Reviews" />
         {loading ? <ActivityIndicator color={G.orange} style={{ marginTop: 40 }} /> : (
@@ -55,7 +58,12 @@ export default function BookReviews() {
   );
 }
 
-const s = StyleSheet.create({
+const s_dark = StyleSheet.create({
   empty:  { color: G.muted, fontSize: 14, fontFamily: 'Poppins_400Regular', textAlign: 'center', marginTop: 40 },
   bottom: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 24, paddingTop: 8 },
 });
+// Light mode layer for `s` — dark mode uses s_dark as is
+const s_light = withLightStyles(s_dark, {
+  empty: { color: '#4b5563' },
+});
+

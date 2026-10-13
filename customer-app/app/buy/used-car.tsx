@@ -255,9 +255,10 @@ const sh = StyleSheet.create({
 
 // ── Section Header ────────────────────────────────────────────────────────────
 function SectionHeader({ title, onViewAll }: { title: string; onViewAll?: () => void }) {
+  const aC = useAppColors();
   return (
     <View style={styles.sectionHeader}>
-      <Text style={styles.sectionTitle}>{title}</Text>
+      <Text style={[styles.sectionTitle, !aC.isDark && { color: '#000000' }]}>{title}</Text>
       {onViewAll && (
         <TouchableOpacity onPress={onViewAll}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><Text style={styles.viewAll}>View all</Text><Ionicons name="chevron-forward" size={16} color={ORANGE} /></View>
@@ -272,7 +273,7 @@ function CarCard({ car, onPress, onSave, saved }: { car: any; onPress: () => voi
   const aC = useAppColors();
   const uri = imgUrl(car.images?.[0]);
   return (
-    <View style={[styles.carCard, { backgroundColor: aC.isDark ? '#010A1F' : '#ffffff', borderColor: aC.isDark ? '#82a5d5' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? '#638ed0' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0.15 : 0.08, shadowRadius: aC.isDark ? 5 : 10, shadowOffset: { width: 0, height: 0 }, elevation: aC.isDark ? 2 : 3 }]}>
+    <View style={[styles.carCard, { backgroundColor: aC.isDark ? '#010A1F' : '#ffffff', borderColor: aC.isDark ? '#82a5d5' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? '#638ed0' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0.15 : 0.08, shadowRadius: aC.isDark ? 5 : 10, shadowOffset: { width: 0, height: 0 }, elevation: aC.isDark ? 2 : 3 }, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
       {aC.isDark ? <SavedCardEffect /> : <GlassInset />}
       {uri
         ? <Image source={{ uri }} style={styles.carImage} resizeMode="cover" />
@@ -292,7 +293,7 @@ function CarCard({ car, onPress, onSave, saved }: { car: any; onPress: () => voi
         </View>
         <View style={styles.carButtonRow}>
           <TouchableOpacity style={styles.viewButton} onPress={onPress} activeOpacity={0.85}>
-            <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFillObject} />
+            <LinearGradient colors={(aC.isDark ? PRIMARY_BTN_COLORS : ['#27467F', '#8C6A78', '#FF9654']) as any} locations={[0, 0.5, 1]} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFillObject} />
             <Text style={styles.viewButtonText}>View</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.heartButton, { backgroundColor: aC.isDark ? '#0B1D45' : '#f1f5f9' }]} onPress={onSave}>
@@ -438,7 +439,7 @@ export default function BuyUsedCarScreen() {
             const name = b.name || b;
             const logo = imgUrl(b.logo_url);
             return (
-              <TouchableOpacity key={i} style={[styles.categoryCard, { backgroundColor: aC.isDark ? CARD : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]} onPress={() => goSearch({ search: name })} activeOpacity={0.82}>
+              <TouchableOpacity key={i} style={[styles.categoryCard, { backgroundColor: aC.isDark ? CARD : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]} onPress={() => goSearch({ search: name })} activeOpacity={0.82}>
                 <GlassInset />
                 {logo ? (
                   <Image source={{ uri: logo }} style={{ width: 40, height: 32 }} resizeMode="contain" />
@@ -456,7 +457,7 @@ export default function BuyUsedCarScreen() {
       return (
         <View style={styles.categoryGrid}>
           {CITIES.slice(1).map((c, i) => (
-              <TouchableOpacity key={i} style={[styles.categoryCard, { backgroundColor: aC.isDark ? CARD : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]} onPress={() => goSearch({ city: c })} activeOpacity={0.82}>
+              <TouchableOpacity key={i} style={[styles.categoryCard, { backgroundColor: aC.isDark ? CARD : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]} onPress={() => goSearch({ city: c })} activeOpacity={0.82}>
               <GlassInset />
               <Ionicons name="location-outline" size={22} color={ORANGE} />
               <Text style={styles.categoryText}>{c}</Text>
@@ -470,7 +471,7 @@ export default function BuyUsedCarScreen() {
       return (
         <View style={styles.categoryGrid}>
           {models.map((m, i) => (
-            <TouchableOpacity key={i} style={[styles.categoryCard, { backgroundColor: aC.isDark ? CARD : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]} onPress={() => goSearch({ search: m })} activeOpacity={0.82}>
+            <TouchableOpacity key={i} style={[styles.categoryCard, { backgroundColor: aC.isDark ? CARD : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]} onPress={() => goSearch({ search: m })} activeOpacity={0.82}>
               <GlassInset />
               <MaterialCommunityIcons name="car-info" size={22} color={ORANGE} />
               <Text style={styles.categoryText}>{m}</Text>
@@ -483,7 +484,7 @@ export default function BuyUsedCarScreen() {
     return (
       <View style={styles.categoryGrid}>
         {CATEGORIES.map((item, index) => (
-          <TouchableOpacity key={index} style={[styles.categoryCard, styles.categoryCardFigma, { backgroundColor: aC.isDark ? '#081634' : '#ffffff', borderColor: aC.isDark ? '#6E8FC9' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]} onPress={() => goSearch({ search: item.search || item.title })} activeOpacity={0.82}>
+          <TouchableOpacity key={index} style={[styles.categoryCard, styles.categoryCardFigma, { backgroundColor: aC.isDark ? '#081634' : '#ffffff', borderColor: aC.isDark ? '#6E8FC9' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]} onPress={() => goSearch({ search: item.search || item.title })} activeOpacity={0.82}>
             {aC.isDark ? <RingGlow radius={12} peak={0.45} rings={8} /> : <GlassInset />}
             <View style={styles.categoryImgWrap}>
               <Image source={item.img} style={styles.categoryImg} resizeMode="contain" />
@@ -522,7 +523,7 @@ export default function BuyUsedCarScreen() {
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabsScroll}>
           {(["Category","Brand","Model","Cities"] as const).map(item => (
-            <TouchableOpacity key={item} onPress={() => setTab(item)} style={[styles.tab, styles.tabFigma, { backgroundColor: aC.isDark ? "#0B1D4A" : '#ffffff', borderColor: aC.isDark ? "transparent" : 'rgba(3,42,105,0.12)', borderWidth: 1, shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }, tab === item && { borderColor: aC.isDark ? '#7E9FD6' : ORANGE, backgroundColor: aC.isDark ? "#0E2456" : 'rgba(226,103,27,0.12)' }]}>
+            <TouchableOpacity key={item} onPress={() => setTab(item)} style={[styles.tab, styles.tabFigma, { backgroundColor: aC.isDark ? "#0B1D4A" : '#ffffff', borderColor: aC.isDark ? "transparent" : 'rgba(3,42,105,0.12)', borderWidth: 1, shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }, tab === item && { borderColor: aC.isDark ? '#7E9FD6' : ORANGE, backgroundColor: aC.isDark ? "#0E2456" : 'rgba(226,103,27,0.12)' }, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
               <Text style={[styles.tabText, styles.tabTextFigma, { color: aC.isDark ? '#F2F1F5' : '#475569' }, tab === item && { color: ORANGE, fontFamily: 'Poppins_700Bold' }]}>{item}</Text>
             </TouchableOpacity>
           ))}
@@ -618,7 +619,7 @@ export default function BuyUsedCarScreen() {
           <RangeSlider onChangMin={setMinPrice} onChangeMax={setMaxPrice} />
 
           <TouchableOpacity style={[styles.searchButton, styles.searchButtonFigma]} onPress={handleSearch} activeOpacity={0.88}>
-            <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFillObject} />
+            <LinearGradient colors={(aC.isDark ? PRIMARY_BTN_COLORS : ['#27467F', '#8C6A78', '#FF9654']) as any} locations={[0, 0.5, 1]} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFillObject} />
             <Text style={[styles.searchButtonText, styles.searchButtonTextFigma]}>Search</Text>
           </TouchableOpacity>
         </View>
@@ -656,14 +657,14 @@ export default function BuyUsedCarScreen() {
 
         {/* YOU MAY NEED */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>You May Need This</Text>
+          <Text style={[styles.sectionTitle, !aC.isDark && { color: '#000000' }]}>You May Need This</Text>
         </View>
         <View style={styles.needRow}>
           {[
             { img: IMG_NEED_COMPARE, title: "Compare\nVehicle",          desc: "Compare vehicle features, prices, and specifications.",   route: "/compare-vehicle?from=usedCar" },
             { img: IMG_NEED_FINANCE, title: "Smart Finance\nCalculator",  desc: "Compare financing plans and calculate your monthly payments.", route: "/auto-financing" },
           ].map((t, i) => (
-            <TouchableOpacity key={i} style={[styles.needCard, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderWidth: aC.isDark ? 0 : 1, borderColor: 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }]} onPress={() => router.push(t.route as any)} activeOpacity={0.85}>
+            <TouchableOpacity key={i} style={[styles.needCard, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderWidth: aC.isDark ? 0 : 1, borderColor: 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]} onPress={() => router.push(t.route as any)} activeOpacity={0.85}>
               {aC.isDark
                 ? <LinearGradient colors={['#071B48', '#0A1F4C', '#2B2947', '#80504A']} locations={[0, 0.52, 0.76, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} />
                 : <GlassInset />}
@@ -679,10 +680,10 @@ export default function BuyUsedCarScreen() {
 
         {/* BROWSE MORE SERVICES */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Browse More Services</Text>
+          <Text style={[styles.sectionTitle, !aC.isDark && { color: '#000000' }]}>Browse More Services</Text>
         </View>
         {SERVICES.map((service, index) => (
-          <TouchableOpacity style={[styles.serviceCard, styles.serviceCardFigma, { backgroundColor: aC.isDark ? '#0B1D4A' : '#ffffff', borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]} key={index} onPress={() => router.push(service.route as any)} activeOpacity={0.85}>
+          <TouchableOpacity style={[styles.serviceCard, styles.serviceCardFigma, { backgroundColor: aC.isDark ? '#0B1D4A' : '#ffffff', borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]} key={index} onPress={() => router.push(service.route as any)} activeOpacity={0.85}>
             {!aC.isDark && <GlassInset />}
             <MaterialCommunityIcons name={service.icon as any} size={28} color={ORANGE} />
             <View style={[styles.serviceText, { marginLeft: 16 }]}>
@@ -695,7 +696,7 @@ export default function BuyUsedCarScreen() {
 
         {/* LATEST VIDEO — heading comes from LatestVideoSection itself (was showing twice)
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Latest Video</Text>
+          <Text style={[styles.sectionTitle, !aC.isDark && { color: '#000000' }]}>Latest Video</Text>
         </View>
         */}
         <LatestVideoSection count={2} savedCardStyle />

@@ -1,3 +1,4 @@
+import { AUTH_EDGES } from '@/constants/authEdges';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
@@ -11,7 +12,7 @@ export default function PasswordUpdatedScreen() {
 
   return (
     <AuthGlowBackground>
-      <SafeAreaView style={styles.safe}>
+      <SafeAreaView edges={AUTH_EDGES} style={styles.safe}>
         <ScreenHeader logo onBack={toLogin} />
         <View style={styles.content}>
           <Image source={require('@/assets/images/successful.png')} style={styles.emoji} resizeMode="contain" />

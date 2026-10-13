@@ -18,8 +18,7 @@ function GlassInset() {
   if (!aC.isDark) {
     return (
       <>
-        <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-        <LinearGradient colors={['transparent', 'rgba(226,103,27,0.06)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+
       </>
     );
   }
@@ -70,7 +69,7 @@ export default function AddonsScreen() {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: aC.bg }]} edges={["top"]}>
-      <View style={[styles.container, { backgroundColor: aC.bg, borderColor: aC.isDark ? 'rgba(126,159,214,0.35)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }]}>
+      <View style={[styles.container, { backgroundColor: aC.bg, borderColor: aC.isDark ? 'rgba(126,159,214,0.35)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
         {/* Header */}
         <View style={[styles.header, { backgroundColor: aC.isDark ? '#0B2656' : '#ffffff', borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)' }]}>
           {!aC.isDark && <GlassInset />}
@@ -146,7 +145,7 @@ export default function AddonsScreen() {
           }}
         >
           <LinearGradient
-            colors={PRIMARY_BTN_COLORS as any}
+            colors={(aC.isDark ? PRIMARY_BTN_COLORS : ['#27467F', '#8C6A78', '#FF9654']) as any}
             locations={[0, 0.5, 1]}
             start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
             style={StyleSheet.absoluteFillObject}

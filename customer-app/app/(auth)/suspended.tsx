@@ -1,3 +1,4 @@
+import { AUTH_EDGES } from '@/constants/authEdges';
 import React from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Linking,
@@ -15,7 +16,7 @@ export default function SuspendedScreen() {
   const C = useAppColors();
 
   return (
-    <SafeAreaView style={[s.safe, { backgroundColor: C.bg }]}>
+    <SafeAreaView edges={AUTH_EDGES} style={[s.safe, { backgroundColor: C.bg }]}>
       <LinearGradient
         colors={C.isDark ? ['#010a1f', '#06112a', '#010a1f'] : ['#eef1ff', '#dde4ff', '#eef1ff']}
         style={StyleSheet.absoluteFillObject}

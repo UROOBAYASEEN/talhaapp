@@ -1,3 +1,4 @@
+import { AUTH_EDGES } from '@/constants/authEdges';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useRef } from 'react';
 import {
@@ -51,7 +52,7 @@ export default function Splash2Screen() {
 
   return (
     <AuthGlowBackground>
-      <SafeAreaView style={styles.safe}>
+      <SafeAreaView edges={AUTH_EDGES} style={styles.safe}>
 
         <Image
           source={require('@/assets/images/autowizor-logo-text.png')}

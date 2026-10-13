@@ -22,7 +22,7 @@ function Dropdown({ value, options, onSelect, loading }: {
   const [open, setOpen] = useState(false);
   return (
     <View style={{ zIndex: open ? 99 : 1 }}>
-      <TouchableOpacity style={[s.dropdown, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.12)', shadowOpacity: 0, elevation: aC.isDark ? 0 : 2 }]} onPress={() => setOpen(!open)} disabled={loading}>
+      <TouchableOpacity style={[s.dropdown, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.12)', shadowOpacity: 0, elevation: aC.isDark ? 0 : 2 }, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]} onPress={() => setOpen(!open)} disabled={loading}>
         {aC.isDark && <SearchInputEffect />}
         {loading
           ? <ActivityIndicator size="small" color="#e2671b" />
@@ -33,7 +33,7 @@ function Dropdown({ value, options, onSelect, loading }: {
         <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={20} color={aC.isDark ? "#E9EDF7" : "#64748b"} />
       </TouchableOpacity>
       {open && (
-        <View style={[s.dropList, { backgroundColor: aC.isDark ? '#071834' : '#ffffff', borderColor: aC.isDark ? '#5688D4' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 4 }]}>
+        <View style={[s.dropList, { backgroundColor: aC.isDark ? '#071834' : '#ffffff', borderColor: aC.isDark ? '#5688D4' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 4 }, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
           {options.length === 0
             ? <Text style={[s.dropItemTxt, { padding: 14, color: '#64748b' }]}>No options available</Text>
             : options.map(opt => (
@@ -137,7 +137,7 @@ export default function TrackerBookingScreen() {
 
         {/* Vehicle — free type */}
         <Text style={[s.label, { color: aC.isDark ? '#C9C6D0' : '#475569' }]}>Select Vehicle</Text>
-        <View style={[s.normalInput, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.12)', shadowOpacity: 0, elevation: aC.isDark ? 0 : 2 }, errors.vehicle && s.inputError]}>
+        <View style={[s.normalInput, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.12)', shadowOpacity: 0, elevation: aC.isDark ? 0 : 2 }, errors.vehicle && s.inputError, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
             {aC.isDark && <SearchInputEffect />}
           <TextInput
             value={vehicle}
@@ -156,7 +156,7 @@ export default function TrackerBookingScreen() {
 
         {/* Center — free type */}
         <Text style={[s.label, { color: aC.isDark ? '#C9C6D0' : '#475569' }]}>Preferred Installation Center</Text>
-        <View style={[s.normalInput, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.12)', shadowOpacity: 0, elevation: aC.isDark ? 0 : 2 }, errors.center && s.inputError]}>
+        <View style={[s.normalInput, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.12)', shadowOpacity: 0, elevation: aC.isDark ? 0 : 2 }, errors.center && s.inputError, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
             {aC.isDark && <SearchInputEffect />}
           <TextInput
             value={center}
@@ -172,7 +172,7 @@ export default function TrackerBookingScreen() {
         <View style={s.row}>
           <View style={s.half}>
             <Text style={[s.smallLabel, { color: aC.isDark ? '#F0F1F5' : '#010a1f' }]}>Preferred Date:</Text>
-            <View style={[s.inputWithIcon, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.12)', shadowOpacity: 0, elevation: aC.isDark ? 0 : 2 }, errors.date && s.inputError]}>
+            <View style={[s.inputWithIcon, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.12)', shadowOpacity: 0, elevation: aC.isDark ? 0 : 2 }, errors.date && s.inputError, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
             {aC.isDark && <SearchInputEffect />}
               <TextInput
                 value={date}
@@ -188,7 +188,7 @@ export default function TrackerBookingScreen() {
 
           <View style={s.half}>
             <Text style={[s.smallLabel, { color: aC.isDark ? '#F0F1F5' : '#010a1f' }]}>Preferred Time:</Text>
-            <View style={[s.inputWithIcon, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.12)', shadowOpacity: 0, elevation: aC.isDark ? 0 : 2 }, errors.time && s.inputError]}>
+            <View style={[s.inputWithIcon, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.12)', shadowOpacity: 0, elevation: aC.isDark ? 0 : 2 }, errors.time && s.inputError, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
             {aC.isDark && <SearchInputEffect />}
               <TextInput
                 value={time}
@@ -204,7 +204,7 @@ export default function TrackerBookingScreen() {
 
         {/* Full Name — prefilled from profile, editable */}
         <Text style={[s.label, { color: aC.isDark ? '#C9C6D0' : '#475569' }]}>Full Name</Text>
-        <View style={[s.normalInput, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.12)', shadowOpacity: 0, elevation: aC.isDark ? 0 : 2 }, errors.fullName && s.inputError]}>
+        <View style={[s.normalInput, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.12)', shadowOpacity: 0, elevation: aC.isDark ? 0 : 2 }, errors.fullName && s.inputError, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
             {aC.isDark && <SearchInputEffect />}
           <TextInput
             value={fullName}
@@ -218,7 +218,7 @@ export default function TrackerBookingScreen() {
 
         {/* Phone — prefilled from profile, editable */}
         <Text style={[s.label, { color: aC.isDark ? '#C9C6D0' : '#475569' }]}>Phone Number</Text>
-        <View style={[s.normalInput, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.12)', shadowOpacity: 0, elevation: aC.isDark ? 0 : 2 }, errors.phone && s.inputError]}>
+        <View style={[s.normalInput, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.12)', shadowOpacity: 0, elevation: aC.isDark ? 0 : 2 }, errors.phone && s.inputError, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
             {aC.isDark && <SearchInputEffect />}
           <TextInput
             value={phone}
@@ -233,7 +233,7 @@ export default function TrackerBookingScreen() {
 
         {/* Address */}
         <Text style={[s.label, { color: aC.isDark ? '#C9C6D0' : '#475569' }]}>Installation Address</Text>
-        <View style={[s.normalInput, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.12)', shadowOpacity: 0, elevation: aC.isDark ? 0 : 2 }, errors.address && s.inputError]}>
+        <View style={[s.normalInput, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.12)', shadowOpacity: 0, elevation: aC.isDark ? 0 : 2 }, errors.address && s.inputError, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
             {aC.isDark && <SearchInputEffect />}
           <TextInput
             value={address}
@@ -268,7 +268,7 @@ export default function TrackerBookingScreen() {
           });
         }}>
           <LinearGradient
-            colors={PRIMARY_BTN_COLORS as any}
+            colors={(aC.isDark ? PRIMARY_BTN_COLORS : ['#27467F', '#8C6A78', '#FF9654']) as any}
             locations={[0, 0.5, 1]}
             start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
             style={StyleSheet.absoluteFillObject}

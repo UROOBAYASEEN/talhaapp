@@ -83,8 +83,7 @@ function BankCard({ bank, price, downPct, tenureYears, onApply, onBankPress }: {
         <SavedCardEffect />
       ) : (
         <>
-          <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-          <LinearGradient colors={['transparent', 'rgba(226,103,27,0.06)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+
         </>
       )}
 
@@ -128,7 +127,7 @@ function BankCard({ bank, price, downPct, tenureYears, onApply, onBankPress }: {
       <Row label="Total Cost After Financing" value={fmt(totalCost)} />
 
       <TouchableOpacity style={pc.applyBtn} onPress={() => onApply(bank)} activeOpacity={0.88}>
-        <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+        <LinearGradient colors={(aC.isDark ? PRIMARY_BTN_COLORS : ['#27467F', '#8C6A78', '#FF9654']) as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
         <Text style={pc.applyTxt}>Apply Now</Text>
       </TouchableOpacity>
     </View>
@@ -233,8 +232,7 @@ export default function FinancingCompareScreen() {
                       <RingGlow radius={14} peak={0.5} rings={8} />
                     ) : (
                       <>
-                        <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                        <LinearGradient colors={['transparent', 'rgba(226,103,27,0.06)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+
                       </>
                     )}
                   </>

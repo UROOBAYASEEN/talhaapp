@@ -210,8 +210,7 @@ export default function FinancingApply4Screen() {
             <SavedCardEffect />
           ) : (
             <>
-              <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+
             </>
           )}
 
@@ -220,7 +219,7 @@ export default function FinancingApply4Screen() {
           {documents.map((doc, index) => {
             const isReady = !!(doc.file || doc.uploadedUrl);
             return (
-            <View key={doc.id} style={[s.row, { backgroundColor: aC.isDark ? '#0B1D4A' : '#ffffff', borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.06)', shadowOpacity: aC.isDark ? 0 : 0.04, elevation: aC.isDark ? 0 : 1 }, index === documents.length - 1 && { marginBottom: 0 }]}>
+            <View key={doc.id} style={[s.row, { backgroundColor: aC.isDark ? '#0B1D4A' : '#ffffff', borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.06)', shadowOpacity: aC.isDark ? 0 : 0.04, elevation: aC.isDark ? 0 : 1 }, index === documents.length - 1 && { marginBottom: 0 }, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
               <View style={[s.iconWrap, { backgroundColor: aC.isDark ? '#12306A' : '#f1f5f9', borderColor: isReady ? 'rgba(34,197,94,0.6)' : (aC.isDark ? '#7E9FD6' : ORANGE) }]}>
                 {isReady
                   ? <Ionicons name="checkmark-circle" size={20} color="#22c55e" />
@@ -268,7 +267,7 @@ export default function FinancingApply4Screen() {
 
         <View style={s.bottomWrap}>
           <TouchableOpacity activeOpacity={0.85} style={s.submitWrap} onPress={handleSubmit} disabled={uploading}>
-            <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.submitGradient}>
+            <LinearGradient colors={(aC.isDark ? PRIMARY_BTN_COLORS : ['#27467F', '#8C6A78', '#FF9654']) as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.submitGradient}>
               {uploading
                 ? <ActivityIndicator color={WHITE} size="small" />
                 : <Text style={s.submitTxt}>Continue</Text>

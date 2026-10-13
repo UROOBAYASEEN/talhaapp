@@ -10,7 +10,7 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef, useState } from 'react';
-import { Animated, Platform, StyleSheet, Text, TextInput, TouchableOpacity, useColorScheme, View } from 'react-native';
+import { Animated, Appearance, Platform, StyleSheet, Text, TextInput, TouchableOpacity, useColorScheme, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import 'react-native-reanimated';
@@ -20,6 +20,11 @@ import { useAndroidKeyboardHeight } from '@/hooks/use-android-keyboard-height';
 import { API_BASE } from '@/constants/api';
 
 SplashScreen.preventAutoHideAsync();
+
+// ── Default theme ───────────────────────────────────────────────────────────
+// App hamesha dark mode mein khulti hai (phone ki theme follow nahi karti).
+// User settings menu ke "Light Mode" toggle se light pe switch kar sakta hai.
+Appearance.setColorScheme('dark');
 
 // ── Font-scaling lock ───────────────────────────────────────────────────────
 // Phone ki Settings mein font size chhota/bara ho, UI har phone pe same rahe.

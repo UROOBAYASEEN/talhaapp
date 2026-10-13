@@ -203,15 +203,14 @@ function Dropdown({ value, onChange, options, placeholder }: {
           <SearchInputEffect />
         ) : (
           <>
-            <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-            <LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+
           </>
         )}
         <Text style={[dd.val, { color: isPlaceholder ? (aC.isDark ? '#F2F1F5' : '#94a3b8') : (aC.isDark ? '#F2F1F5' : '#010a1f') }]} numberOfLines={1}>{value}</Text>
         <ChevronDown size={18} color={ORANGE} style={open ? { transform: [{ rotate: '180deg' }] } : undefined} />
       </TouchableOpacity>
       {open && (
-        <View style={[dd.list, { backgroundColor: aC.isDark ? 'rgba(6,18,52,0.99)' : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.3)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.12, shadowRadius: 10, elevation: aC.isDark ? 0 : 8 }]}>
+        <View style={[dd.list, { backgroundColor: aC.isDark ? 'rgba(6,18,52,0.99)' : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.3)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.12, shadowRadius: 10, elevation: aC.isDark ? 0 : 8 }, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
           {aC.isDark ? (
             <>
               <LinearGradient colors={['rgba(22,64,136,0.35)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.25 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
@@ -221,8 +220,7 @@ function Dropdown({ value, onChange, options, placeholder }: {
             </>
           ) : (
             <>
-              <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.3 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.7 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+
             </>
           )}
           {options.map(opt => (
@@ -274,8 +272,7 @@ function ToggleCard({ icon, title, selected, onSelect }: {
           <SavedCardEffect />
         ) : (
           <>
-            <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-            <LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+
           </>
         )
       )}
@@ -313,8 +310,7 @@ function ConditionCard({ title, subtitle, selected, onSelect }: {
           <SavedCardEffect />
         ) : (
           <>
-            <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-            <LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+
           </>
         )
       )}
@@ -338,13 +334,12 @@ function InputField({ value, onChange, placeholder, keyboardType, priceStyle, sh
 }) {
   const aC = useAppColors();
   return (
-    <View style={[s.inputWrap, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: aC.isDark ? 0 : 2 }]}>
+    <View style={[s.inputWrap, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#E8EAEF', borderColor: aC.isDark ? '#829fd0' : 'rgba(0,0,0,0.18)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: aC.isDark ? 0 : 2 }, !aC.isDark && { borderColor: 'rgba(0,0,0,0.18)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
       {aC.isDark ? (
         <SearchInputEffect />
       ) : (
         <>
-          <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-          <LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+
         </>
       )}
       <TextInput
@@ -462,7 +457,7 @@ export default function AutoFinancingScreen() {
           {/* SELECT CAR FROM DB */}
           <FL>Select your {vehicleType === 'bikes' ? 'Bike' : 'Car'}</FL>
           <TouchableOpacity
-            style={[s.pickerBtn, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: aC.isDark ? 0 : 2 }]}
+            style={[s.pickerBtn, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#E8EAEF', borderColor: aC.isDark ? '#829fd0' : 'rgba(0,0,0,0.18)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: aC.isDark ? 0 : 2 }, !aC.isDark && { borderColor: 'rgba(0,0,0,0.18)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}
             onPress={() => setShowPicker(true)}
             activeOpacity={0.85}
           >
@@ -470,8 +465,7 @@ export default function AutoFinancingScreen() {
               <SearchInputEffect />
             ) : (
               <>
-                <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                <LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+
               </>
             )}
             <Text style={[s.pickerTxt, { color: !selectedLabel ? (aC.isDark ? '#BAB6C4' : '#94a3b8') : (aC.isDark ? '#F2F1F5' : '#010a1f') }]} numberOfLines={1}>
@@ -513,7 +507,7 @@ export default function AutoFinancingScreen() {
         <View style={[s.footer, { backgroundColor: aC.bg, borderTopWidth: aC.isDark ? 0 : 1, borderTopColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)' }]}>
           <TouchableOpacity style={s.nextBtn} onPress={handleNext} activeOpacity={0.88}>
             <LinearGradient
-              colors={PRIMARY_BTN_COLORS as any}
+              colors={(aC.isDark ? PRIMARY_BTN_COLORS : ['#27467F', '#8C6A78', '#FF9654']) as any}
               locations={[0, 0.5, 1]}
               start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
               style={StyleSheet.absoluteFillObject}

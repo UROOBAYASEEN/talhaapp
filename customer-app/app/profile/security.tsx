@@ -74,7 +74,7 @@ export default function SecurityScreen() {
                   value={settings[item.key]}
                   onValueChange={() => toggle(item.key)}
                   trackColor={{ false: T.isDark ? '#1a2a4a' : '#ccc', true: ORANGE }}
-                  thumbColor={T.textPrimary}
+                  thumbColor={T.isDark ? T.textPrimary : '#ffffff'}
                   ios_backgroundColor={T.isDark ? '#1a2a4a' : '#ccc'}
                 />
               </View>

@@ -54,8 +54,7 @@ export default function FinancingSuccessScreen() {
             <SavedCardEffect />
           ) : (
             <>
-              <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+
             </>
           )}
           <Row label="Reference No."  value={referenceNo || '—'} />
@@ -68,7 +67,7 @@ export default function FinancingSuccessScreen() {
         <TouchableOpacity style={[s.homeBtn, aC.isDark ? { backgroundColor: '#07142F', borderWidth: 1, borderColor: '#7E9FD6' } : null]} onPress={() => router.dismissTo('/(tabs)' as any)} activeOpacity={0.88}>
           {aC.isDark
             ? <RingGlow radius={26} peak={0.5} rings={12} />
-            : <LinearGradient colors={[NAVY, ORANGE]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />}
+            : <LinearGradient colors={aC.isDark ? [NAVY, ORANGE] : ['#27467F', '#FF9654']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />}
           <Text style={[s.homeTxt, aC.isDark && { color: '#EDEBF0' }]}>Back to home</Text>
         </TouchableOpacity>
       </View>

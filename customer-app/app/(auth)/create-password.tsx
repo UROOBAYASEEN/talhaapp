@@ -1,3 +1,4 @@
+import { AUTH_EDGES } from '@/constants/authEdges';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
@@ -99,7 +100,7 @@ export default function CreatePasswordScreen() {
 
   return (
     <AuthGlowBackground>
-      <SafeAreaView style={styles.safe}>
+      <SafeAreaView edges={AUTH_EDGES} style={styles.safe}>
         <ScreenHeader logo />
         <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <Text style={styles.title}>Create New Password</Text>

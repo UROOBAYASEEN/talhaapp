@@ -1,3 +1,4 @@
+import LightGradientBorder from '@/components/shared/LightGradientBorder';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
@@ -44,10 +45,11 @@ export default function BrowseMoreServices({ hideIconCircle = false }: { hideIco
       {SERVICES.map((item, i) => (
         <TouchableOpacity
           key={i}
-          style={[s.item, { backgroundColor: C.isDark ? '#061B4A' : C.glassBg, borderColor: C.isDark ? 'rgba(100,160,255,0.15)' : 'rgba(3,12,40,0.12)', borderWidth: 1 }]}
+          style={[s.item, { backgroundColor: C.isDark ? '#061B4A' : '#F5F6F8', borderColor: C.isDark ? 'rgba(100,160,255,0.15)' : 'transparent', borderWidth: C.isDark ? 1 : 0 }, !C.isDark && { borderRadius: 18 }]}
           activeOpacity={0.84}
           onPress={() => router.push({ pathname: item.route as any, params: item.params })}
         >
+          {!C.isDark && <LightGradientBorder radius={18} fill="#F5F6F8" />}
           <View style={[s.iconWrap, hideIconCircle ? { backgroundColor: 'transparent', borderWidth: 0 } : { backgroundColor: C.isDark ? DARK_NAV : '#e8eeff', borderColor: C.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(3,12,40,0.1)' }]}>
             <Ionicons name={item.icon} size={22} color={ORANGE} />
           </View>
@@ -55,7 +57,7 @@ export default function BrowseMoreServices({ hideIconCircle = false }: { hideIco
             <Text style={[s.title, { color: C.textPrimary }]}>{item.title}</Text>
             <Text style={[s.sub, { color: C.textSecondary }]}>{item.sub}</Text>
           </View>
-          <Ionicons name="chevron-forward" size={18} color={ORANGE} />
+          <Ionicons name="chevron-forward" size={C.isDark ? 18 : 22} color={C.isDark ? ORANGE : '#000000'} />
         </TouchableOpacity>
       ))}
     </View>

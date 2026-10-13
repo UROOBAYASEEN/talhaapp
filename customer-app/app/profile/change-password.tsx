@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { useAppColors } from '@/constants/theme';
+import { LIGHT_POP_SHADOW, useAppColors, withLightStyles } from '@/constants/theme';
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
@@ -29,6 +29,7 @@ const SHADOW  = '#1D53AF';
 export default function ChangePasswordScreen() {
   const router      = useRouter();
   const T           = useAppColors();
+  const st          = T.isDark ? s : sLight;
   const { token }   = useAuth();
 
   const [form,   setForm]   = useState({ old: '', newPw: '', confirm: '' });
@@ -93,14 +94,14 @@ export default function ChangePasswordScreen() {
   }
 
   return (
-    <SafeAreaView style={[s.safe, { backgroundColor: T.bg }]} edges={['top']}>
+    <SafeAreaView style={[st.safe, { backgroundColor: T.bg }]} edges={['top']}>
 
       {/* Header */}
-      <View style={s.header}>
-        <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
+      <View style={st.header}>
+        <TouchableOpacity style={st.backBtn} onPress={() => router.back()}>
           <Ionicons name="arrow-back-outline" size={24} color={T.textPrimary} />
         </TouchableOpacity>
-        <Text style={[s.headerTitle, { color: T.textPrimary }]}>Change Password</Text>
+        <Text style={[st.headerTitle, { color: T.textPrimary }]}>Change Password</Text>
         <View style={{ width: 28 }} />
       </View>
 
@@ -110,7 +111,7 @@ export default function ChangePasswordScreen() {
         style={{ flex: 1, backgroundColor: T.bg }}
       >
         <ScrollView
-          contentContainerStyle={s.scroll}
+          contentContainerStyle={st.scroll}
           style={{ backgroundColor: T.bg }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="always"
@@ -119,94 +120,94 @@ export default function ChangePasswordScreen() {
         >
 
           {/* Banner */}
-          <View style={s.banner}>
-            <LinearGradient
+          <View style={st.banner}>
+            {T.isDark && <LinearGradient
               colors={['#16408880', 'transparent', 'transparent', '#16408880']}
               locations={[0, 0.08, 0.92, 1]}
               style={StyleSheet.absoluteFillObject}
               pointerEvents="none"
-            />
-            <LinearGradient
+            />}
+            {T.isDark && <LinearGradient
               colors={['#16408880', 'transparent', 'transparent', '#16408880']}
               locations={[0, 0.05, 0.95, 1]}
               start={{ x: 0, y: 0.5 }}
               end={{ x: 1, y: 0.5 }}
               style={StyleSheet.absoluteFillObject}
               pointerEvents="none"
-            />
-            <View style={s.bannerIcon}>
+            />}
+            <View style={st.bannerIcon}>
               <Ionicons name="lock-closed" size={30} color={ORANGE} />
             </View>
-            <Text style={s.bannerTitle}>Secure Your Account</Text>
-            <Text style={s.bannerSub}>Choose a strong password to keep your account safe</Text>
+            <Text style={st.bannerTitle}>Secure Your Account</Text>
+            <Text style={st.bannerSub}>Choose a strong password to keep your account safe</Text>
           </View>
 
           {/* Current Password */}
-          <View style={s.fieldGroup}>
-              <Text style={[s.label, { color: T.textSecondary }]}>Current Password</Text>
-            <View style={[s.inputWrap, errors.old ? s.inputError : null]}>
-              <LinearGradient
+          <View style={st.fieldGroup}>
+              <Text style={[st.label, { color: T.isDark ? T.textSecondary : '#9a8f98' }]}>Current Password</Text>
+            <View style={[st.inputWrap, errors.old ? st.inputError : null]}>
+              {T.isDark && <LinearGradient
                 colors={['#163565', '#061124', '#061124', '#0D2146']}
                 locations={[0, 0.24, 0.76, 1]}
                 style={StyleSheet.absoluteFillObject}
                 pointerEvents="none"
-              />
-              <LinearGradient
+              />}
+              {T.isDark && <LinearGradient
                 colors={['#24518F8F', '#16356552', 'transparent', 'transparent', '#16356552', '#24518F8F']}
                 locations={[0, 0.025, 0.075, 0.925, 0.975, 1]}
                 start={{ x: 0, y: 0.5 }}
                 end={{ x: 1, y: 0.5 }}
                 style={[StyleSheet.absoluteFillObject, { borderRadius: 32 }]}
                 pointerEvents="none"
-              />
-              <TextInput style={[s.input, { color: T.textPrimary }]} placeholder="Enter current password" placeholderTextColor="rgba(186,172,182,0.4)" value={form.old} onChangeText={v => { setForm(p => ({ ...p, old: v })); clearIfValid('old', v); }} secureTextEntry={!show.old} autoCapitalize="none" />
-              <TouchableOpacity onPress={() => setShow(p => ({ ...p, old: !p.old }))} style={s.eye}>
-                <Ionicons name={show.old ? 'eye-off-outline' : 'eye-outline'} size={20} color={SUB} />
+              />}
+              <TextInput style={[st.input, { color: T.textPrimary }]} placeholder="Enter current password" placeholderTextColor={T.isDark ? "rgba(186,172,182,0.4)" : "#8f8f8f"} value={form.old} onChangeText={v => { setForm(p => ({ ...p, old: v })); clearIfValid('old', v); }} secureTextEntry={!show.old} autoCapitalize="none" />
+              <TouchableOpacity onPress={() => setShow(p => ({ ...p, old: !p.old }))} style={st.eye}>
+                <Ionicons name={show.old ? 'eye-off-outline' : 'eye-outline'} size={20} color={T.isDark ? SUB : '#000000'} />
               </TouchableOpacity>
             </View>
-            {errors.old ? <Text style={s.errorTxt}>{errors.old}</Text> : null}
+            {errors.old ? <Text style={st.errorTxt}>{errors.old}</Text> : null}
           </View>
 
           {/* New Password */}
-          <View style={s.fieldGroup}>
-            <Text style={[s.label, { color: T.textSecondary }]}>New Password</Text>
-            <View style={[s.inputWrap, errors.newPw ? s.inputError : null]}>
-              <LinearGradient
+          <View style={st.fieldGroup}>
+            <Text style={[st.label, { color: T.isDark ? T.textSecondary : '#9a8f98' }]}>New Password</Text>
+            <View style={[st.inputWrap, errors.newPw ? st.inputError : null]}>
+              {T.isDark && <LinearGradient
                 colors={['#163565', '#061124', '#061124', '#0D2146']}
                 locations={[0, 0.24, 0.76, 1]}
                 style={StyleSheet.absoluteFillObject}
                 pointerEvents="none"
-              />
-              <LinearGradient
+              />}
+              {T.isDark && <LinearGradient
                 colors={['#24518F8F', '#16356552', 'transparent', 'transparent', '#16356552', '#24518F8F']}
                 locations={[0, 0.025, 0.075, 0.925, 0.975, 1]}
                 start={{ x: 0, y: 0.5 }}
                 end={{ x: 1, y: 0.5 }}
                 style={[StyleSheet.absoluteFillObject, { borderRadius: 32 }]}
                 pointerEvents="none"
-              />
-              <TextInput style={[s.input, { color: T.textPrimary }]} placeholder="Enter new password" placeholderTextColor="rgba(186,172,182,0.4)" value={form.newPw} onChangeText={v => { setForm(p => ({ ...p, newPw: v })); clearIfValid('newPw', v); }} secureTextEntry={!show.newPw} autoCapitalize="none" />
-              <TouchableOpacity onPress={() => setShow(p => ({ ...p, newPw: !p.newPw }))} style={s.eye}>
-                <Ionicons name={show.newPw ? 'eye-off-outline' : 'eye-outline'} size={20} color={SUB} />
+              />}
+              <TextInput style={[st.input, { color: T.textPrimary }]} placeholder="Enter new password" placeholderTextColor={T.isDark ? "rgba(186,172,182,0.4)" : "#8f8f8f"} value={form.newPw} onChangeText={v => { setForm(p => ({ ...p, newPw: v })); clearIfValid('newPw', v); }} secureTextEntry={!show.newPw} autoCapitalize="none" />
+              <TouchableOpacity onPress={() => setShow(p => ({ ...p, newPw: !p.newPw }))} style={st.eye}>
+                <Ionicons name={show.newPw ? 'eye-off-outline' : 'eye-outline'} size={20} color={T.isDark ? SUB : '#000000'} />
               </TouchableOpacity>
             </View>
-            {errors.newPw ? <Text style={s.errorTxt}>{errors.newPw}</Text> : null}
+            {errors.newPw ? <Text style={st.errorTxt}>{errors.newPw}</Text> : null}
 
             {/* Strength bar */}
             {form.newPw.length > 0 && (
-              <View style={s.strengthWrap}>
-                <View style={s.strengthBar}>
+              <View style={st.strengthWrap}>
+                <View style={st.strengthBar}>
                   {[1, 2, 3, 4].map(i => (
-                    <View key={i} style={[s.strengthSeg, { backgroundColor: i <= strength ? strengthColor : 'rgba(255,255,255,0.1)' }]} />
+                    <View key={i} style={[st.strengthSeg, { backgroundColor: i <= strength ? strengthColor : 'rgba(255,255,255,0.1)' }]} />
                   ))}
                 </View>
-                <Text style={[s.strengthLabel, { color: strengthColor }]}>{strengthLabel}</Text>
+                <Text style={[st.strengthLabel, { color: strengthColor }]}>{strengthLabel}</Text>
               </View>
             )}
 
             {/* Rules */}
             {form.newPw.length > 0 && (
-              <View style={s.rules}>
+              <View style={st.rules}>
                 <Rule met={pwValid.length}  label="At least 8 characters"  />
                 <Rule met={pwValid.letters} label="At least one letter"     />
                 <Rule met={pwValid.numbers} label="At least one number"     />
@@ -216,34 +217,34 @@ export default function ChangePasswordScreen() {
           </View>
 
           {/* Confirm Password */}
-          <View style={s.fieldGroup}>
-            <Text style={[s.label, { color: T.textSecondary }]}>Confirm New Password</Text>
-            <View style={[s.inputWrap, errors.confirm ? s.inputError : null]}>
-              <LinearGradient
+          <View style={st.fieldGroup}>
+            <Text style={[st.label, { color: T.isDark ? T.textSecondary : '#9a8f98' }]}>Confirm New Password</Text>
+            <View style={[st.inputWrap, errors.confirm ? st.inputError : null]}>
+              {T.isDark && <LinearGradient
                 colors={['#163565', '#061124', '#061124', '#0D2146']}
                 locations={[0, 0.24, 0.76, 1]}
                 style={StyleSheet.absoluteFillObject}
                 pointerEvents="none"
-              />
-              <LinearGradient
+              />}
+              {T.isDark && <LinearGradient
                 colors={['#24518F8F', '#16356552', 'transparent', 'transparent', '#16356552', '#24518F8F']}
                 locations={[0, 0.025, 0.075, 0.925, 0.975, 1]}
                 start={{ x: 0, y: 0.5 }}
                 end={{ x: 1, y: 0.5 }}
                 style={[StyleSheet.absoluteFillObject, { borderRadius: 32 }]}
                 pointerEvents="none"
-              />
-              <TextInput style={[s.input, { color: T.textPrimary }]} placeholder="Re-enter new password" placeholderTextColor="rgba(186,172,182,0.4)" value={form.confirm} onChangeText={v => { setForm(p => ({ ...p, confirm: v })); clearIfValid('confirm', v); }} secureTextEntry={!show.confirm} autoCapitalize="none" />
-              <TouchableOpacity onPress={() => setShow(p => ({ ...p, confirm: !p.confirm }))} style={s.eye}>
-                <Ionicons name={show.confirm ? 'eye-off-outline' : 'eye-outline'} size={20} color={SUB} />
+              />}
+              <TextInput style={[st.input, { color: T.textPrimary }]} placeholder="Re-enter new password" placeholderTextColor={T.isDark ? "rgba(186,172,182,0.4)" : "#8f8f8f"} value={form.confirm} onChangeText={v => { setForm(p => ({ ...p, confirm: v })); clearIfValid('confirm', v); }} secureTextEntry={!show.confirm} autoCapitalize="none" />
+              <TouchableOpacity onPress={() => setShow(p => ({ ...p, confirm: !p.confirm }))} style={st.eye}>
+                <Ionicons name={show.confirm ? 'eye-off-outline' : 'eye-outline'} size={20} color={T.isDark ? SUB : '#000000'} />
               </TouchableOpacity>
             </View>
             {errors.confirm ? (
-              <Text style={s.errorTxt}>{errors.confirm}</Text>
+              <Text style={st.errorTxt}>{errors.confirm}</Text>
             ) : form.confirm.length > 0 && form.newPw === form.confirm ? (
-              <View style={s.matchRow}>
+              <View style={st.matchRow}>
                 <Ionicons name="checkmark-circle" size={14} color="#27ae60" />
-                <Text style={s.matchTxt}>Passwords match</Text>
+                <Text style={st.matchTxt}>Passwords match</Text>
               </View>
             ) : null}
           </View>
@@ -253,17 +254,17 @@ export default function ChangePasswordScreen() {
             onPress={handleSave}
             disabled={saving}
             activeOpacity={0.87}
-            style={s.btnWrap}
+            style={st.btnWrap}
           >
             <LinearGradient
-              colors={['#032a69', ORANGE]}
+              colors={T.isDark ? ['#032a69', ORANGE] : ['#27467F', '#FF9654']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
-              style={s.btn}
+              style={st.btn}
             >
               {saving
                 ? <ActivityIndicator color={WHITE} size="small" />
-                : <Text style={s.btnTxt}>Update Password</Text>
+                : <Text style={st.btnTxt}>Update Password</Text>
               }
             </LinearGradient>
           </TouchableOpacity>
@@ -360,4 +361,14 @@ const s = StyleSheet.create({
   btnWrap: { borderRadius: 32, overflow: 'hidden', backgroundColor: BG },
   btn:     { height: 52, alignItems: 'center', justifyContent: 'center' },
   btnTxt:  { fontSize: 16, fontFamily: 'Poppins_600SemiBold', color: WHITE },
+});
+
+// ── Light mode overrides (Figma light) — dark mode uses `s` as is ──────────
+const sLight = withLightStyles(s, {
+  headerTitle: { color: '#000000' },
+  banner:      { backgroundColor: '#F2F4F8', borderColor: 'rgba(0,0,0,0.04)', shadowOpacity: 0, elevation: 0, boxShadow: LIGHT_POP_SHADOW },
+  bannerTitle: { color: '#000000' },
+  bannerSub:   { color: '#4b5563' },
+  inputWrap:   { backgroundColor: '#E8EAEF', borderColor: 'rgba(0,0,0,0.18)', boxShadow: LIGHT_POP_SHADOW },
+  btnWrap:     { backgroundColor: 'transparent', boxShadow: LIGHT_POP_SHADOW },
 });

@@ -1,4 +1,5 @@
 // Figma: Book a vehicle
+import { useAppColors, withLightStyles, LIGHT_POP_SHADOW } from '@/constants/theme';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -25,11 +26,13 @@ const IMG_COMPARE_INSURANCE = require('@/assets/images/compareInsurance.png');
 // so switching Cars/Bikes and brand pages re-renders instantly.
 
 const BrandTile = memo(function BrandTile({ b, onPress }: { b: Brand; onPress: (name: string) => void }) {
+  const aC = useAppColors();
+  const st = aC.isDark ? st_dark : st_light;
   const { width: W } = useWindowDimensions();
   const tileW = (W - PAD * 2 - GAP * 3) / 4;
   return (
     <TouchableOpacity style={[st.tile, st.tileOn, { width: tileW }]} activeOpacity={0.85} onPress={() => onPress(b.name)}>
-      <SavedCardEffect band={12} />
+      {aC.isDark && <SavedCardEffect band={12} />}
       {b.logo
         ? <Image source={b.logo} style={[st.tileLogo, { width: tileW * 0.52 }]} resizeMode="contain" />
         : <Text style={st.tileInitial}>{b.name[0]}</Text>}
@@ -41,6 +44,8 @@ const BrandTile = memo(function BrandTile({ b, onPress }: { b: Brand; onPress: (
 // Both tiles always keep the same structure/style keys — only colours and the glow's opacity change.
 // (Mounting/unmounting the glow layer and toggling the border made the other tile's icon/text vanish.)
 function TypeTile({ k, label, sel, onPress }: { k: 'car' | 'bike'; label: string; sel: boolean; onPress: (k: 'car' | 'bike') => void }) {
+  const aC = useAppColors();
+  const st = aC.isDark ? st_dark : st_light;
   const { width: W } = useWindowDimensions();
   const typeW = (W - PAD * 2 - 16) / 2;
   return (
@@ -50,12 +55,12 @@ function TypeTile({ k, label, sel, onPress }: { k: 'car' | 'bike'; label: string
       onPress={() => onPress(k)}
     >
       <View style={[StyleSheet.absoluteFillObject, { opacity: sel ? 1 : 0 }]} pointerEvents="none">
-        <SavedCardEffect />
+        {aC.isDark && <SavedCardEffect />}
       </View>
       <View style={st.typeContent}>
         {k === 'car'
-          ? <MaterialCommunityIcons name="car" size={26} color={sel ? G.orange : '#FFFFFF'} />
-          : <Image source={IMG_BIKE} style={[st.bikeIcon, sel && { tintColor: G.orange }]} resizeMode="contain" />}
+          ? <MaterialCommunityIcons name="car" size={26} color={sel ? G.orange : (aC.isDark ? '#FFFFFF' : '#000000')} />
+          : <Image source={IMG_BIKE} style={[st.bikeIcon, !aC.isDark && { tintColor: '#000000' }, sel && { tintColor: G.orange }]} resizeMode="contain" />}
         <Text style={st.typeTxt}>{label}</Text>
       </View>
     </TouchableOpacity>
@@ -63,6 +68,8 @@ function TypeTile({ k, label, sel, onPress }: { k: 'car' | 'bike'; label: string
 }
 
 export default function BookVehicleScreen() {
+  const aC = useAppColors();
+  const st = aC.isDark ? st_dark : st_light;
   const router = useRouter();
   const { width: W } = useWindowDimensions();
   const pageW = W - PAD * 2;
@@ -85,7 +92,7 @@ export default function BookVehicleScreen() {
   const openBrand = useCallback((name: string) => { setBrand(name); setModal(true); }, []);
 
   return (
-    <GlowBackground>
+    <GlowBackground themed>
       <SafeAreaView style={{ flex: 1 }} edges={['top']}>
         <ScreenHeader title="Book a vehicle" />
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
@@ -128,7 +135,7 @@ export default function BookVehicleScreen() {
               { img: IMG_COMPARE_INSURANCE, title: 'Compare\nInsurance Plans', sub: 'Compare coverage, benefits, and prices to find the right plan.', go: () => router.push('/insurance-search' as any) },
             ].map(c => (
               <TouchableOpacity key={c.title} style={[st.needCard, { width: needW }]} activeOpacity={0.88} onPress={c.go}>
-                <LinearGradient colors={['#061845', '#0A1F4C', '#2B2947', '#7E5048']} locations={[0, 0.5, 0.76, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={st.needGrad}>
+                <LinearGradient colors={aC.isDark ? ['#061845', '#0A1F4C', '#2B2947', '#7E5048'] : ['#F1F4F8', '#F1F4F8', '#F8E6DB', '#FCDCC8']} locations={[0, 0.5, 0.76, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={st.needGrad}>
                   <Image source={c.img} style={st.needImg} resizeMode="contain" />
                   <View style={st.needTitleRow}>
                     <Text style={st.needTitle}>{c.title}</Text>
@@ -165,7 +172,7 @@ export default function BookVehicleScreen() {
   );
 }
 
-const st = StyleSheet.create({
+const st_dark = StyleSheet.create({
   sec:      { color: G.white, fontSize: 16, fontFamily: 'Poppins_400Regular', marginTop: 10, marginBottom: 12, paddingHorizontal: PAD },
   typeRow:  { flexDirection: 'row', gap: 16, paddingHorizontal: PAD, marginBottom: 8 },
   typeTile:    { height: 94, borderRadius: 20, overflow: 'hidden', borderWidth: 1, elevation: 0 },
@@ -195,3 +202,16 @@ const st = StyleSheet.create({
   needTitle:    { flex: 1, color: G.white, fontSize: 15, fontFamily: 'Poppins_400Regular', lineHeight: 20 },
   needSub:      { color: G.muted, fontSize: 11, fontFamily: 'Poppins_400Regular', lineHeight: 14.5 },
 });
+// Light mode layer for `st` — dark mode uses st_dark as is
+const st_light = withLightStyles(st_dark, {
+  sec: { color: '#000000' },
+  typeTileOn: { backgroundColor: '#ffffff', borderColor: 'rgba(0,0,0,0.12)' },
+  typeTileOff: { backgroundColor: '#F2F4F8' },
+  typeTxt: { color: '#000000' },
+  tileOn: { backgroundColor: '#ffffff', borderColor: 'rgba(0,0,0,0.12)' },
+  tile: { backgroundColor: '#F2F4F8', borderColor: 'rgba(0,0,0,0.04)', boxShadow: LIGHT_POP_SHADOW },
+  tileName: { color: '#000000' },
+  needTitle: { color: '#000000' },
+  needSub: { color: '#4b5563' },
+});
+

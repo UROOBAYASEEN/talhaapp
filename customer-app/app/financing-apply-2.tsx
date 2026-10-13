@@ -10,7 +10,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useAppColors } from '@/constants/theme';
 import { PRIMARY_BTN_COLORS, RingGlow, SavedCardEffect } from '@/components/shared/FigmaEffects';
 
-
 const STEPS = [1, 2, 3, 4];
 
 function StepIndicator({ activeStep }: { activeStep: number }) {
@@ -87,18 +86,16 @@ export default function FinancingApply2Screen() {
               <SavedCardEffect />
             ) : (
               <>
-                <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                <LinearGradient colors={['transparent', 'rgba(226,103,27,0.06)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+
               </>
             )}
             <Text style={[s.cardTitle, { color: aC.isDark ? '#fff' : '#010a1f' }]}>Applicant</Text>
 
             <Text style={[s.label, { color: aC.isDark ? '#C9C6D0' : '#475569' }]}>Full name</Text>
-            <View style={[s.inputWrap, { backgroundColor: aC.isDark ? '#0B2254' : '#ffffff', borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, shadowRadius: 8, elevation: aC.isDark ? 0 : 2, overflow: 'hidden' }]}>
+            <View style={[s.inputWrap, { backgroundColor: aC.isDark ? '#0B2254' : '#E8EAEF', borderColor: aC.isDark ? 'transparent' : 'rgba(0,0,0,0.18)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, shadowRadius: 8, elevation: aC.isDark ? 0 : 2, overflow: 'hidden' }, !aC.isDark && { borderColor: 'rgba(0,0,0,0.18)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
               {aC.isDark ? null : (
                 <>
-                  <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                  <LinearGradient colors={['transparent', 'rgba(226,103,27,0.06)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+
                 </>
               )}
               <TextInput
@@ -111,11 +108,10 @@ export default function FinancingApply2Screen() {
             </View>
 
             <Text style={[s.label, { color: aC.isDark ? '#C9C6D0' : '#475569' }]}>CNIC</Text>
-            <View style={[s.inputWrap, { backgroundColor: aC.isDark ? '#0B2254' : '#ffffff', borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, shadowRadius: 8, elevation: aC.isDark ? 0 : 2, overflow: 'hidden' }]}>
+            <View style={[s.inputWrap, { backgroundColor: aC.isDark ? '#0B2254' : '#E8EAEF', borderColor: aC.isDark ? 'transparent' : 'rgba(0,0,0,0.18)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, shadowRadius: 8, elevation: aC.isDark ? 0 : 2, overflow: 'hidden' }, !aC.isDark && { borderColor: 'rgba(0,0,0,0.18)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
               {aC.isDark ? null : (
                 <>
-                  <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                  <LinearGradient colors={['transparent', 'rgba(226,103,27,0.06)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+
                 </>
               )}
               <TextInput
@@ -140,7 +136,7 @@ export default function FinancingApply2Screen() {
               params: { ...params, fullName: fullName.trim(), cnic },
             })}
           >
-            <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+            <LinearGradient colors={(aC.isDark ? PRIMARY_BTN_COLORS : ['#27467F', '#8C6A78', '#FF9654']) as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
             <Text style={s.continueTxt}>Continue</Text>
           </TouchableOpacity>
         </View>

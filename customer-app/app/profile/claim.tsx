@@ -10,7 +10,7 @@ import {
   TouchableOpacity, View, ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAppColors } from '@/constants/theme';
+import { LIGHT_POP_SHADOW, useAppColors, withLightStyles } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 import InnerGlow from '@/components/shared/InnerGlow';
@@ -45,6 +45,7 @@ const DOCS   = [
 export default function ClaimScreen() {
   const router     = useRouter();
   const T          = useAppColors();
+  const st         = T.isDark ? s : sLight;
   const { token }  = useAuth();
 
   const [brand,      setBrand]      = useState('');
@@ -207,56 +208,63 @@ export default function ClaimScreen() {
   }
 
   // ── Styled helpers ─────────────────────────────────────────────────────────
-  const inputStyle = [s.glassInput];
+  const inputStyle = [st.glassInput];
 
   return (
-    <SafeAreaView style={[s.safe, { backgroundColor: T.bg }]} edges={['top']}>
+    <SafeAreaView style={[st.safe, { backgroundColor: T.bg }]} edges={['top']}>
 
       {/* ── Header ── */}
-      <View style={s.header}>
-        <TouchableOpacity onPress={() => router.back()} style={s.iconBtn}>
+      <View style={st.header}>
+        <TouchableOpacity onPress={() => router.back()} style={st.iconBtn}>
           <Ionicons name="arrow-back-outline" size={24} color={T.textPrimary} />
         </TouchableOpacity>
-        <View style={s.logoWrap} pointerEvents="none">
-          <Image source={IMG_LOGO} style={s.logo} resizeMode="contain" />
+        <View style={st.logoWrap} pointerEvents="none">
+          {T.isDark ? (
+            <Image source={IMG_LOGO} style={st.logo} resizeMode="contain" />
+          ) : (
+            <Text style={{ fontSize: 20, fontFamily: 'Poppins_700Bold', letterSpacing: 0.5 }}>
+              <Text style={{ color: '#032a69' }}>Auto</Text>
+              <Text style={{ color: '#e2671b' }}>wizor</Text>
+            </Text>
+          )}
         </View>
-        <View style={s.headerRight}>
-          <TouchableOpacity style={s.iconBtn} onPress={() => router.push('/alert' as any)}>
+        <View style={st.headerRight}>
+          <TouchableOpacity style={st.iconBtn} onPress={() => router.push('/alert' as any)}>
             <Ionicons name="notifications-outline" size={20} color={T.textPrimary} />
           </TouchableOpacity>
-          <TouchableOpacity style={s.iconBtn} onPress={() => router.push('/profile/settings' as any)}>
+          <TouchableOpacity style={st.iconBtn} onPress={() => router.push('/profile/settings' as any)}>
             <Ionicons name="settings-outline" size={20} color={T.textPrimary} />
           </TouchableOpacity>
         </View>
       </View>
 
       {/* ── Page title ── */}
-      <View style={s.pageTitleWrap}>
-        <Text style={[s.pageTitle, { color: T.textPrimary }]}>Insurance Claim</Text>
-        <Text style={[s.pageSubtitle, { color: T.textSecondary }]}>Fill in your vehicle details to get insurance quotes</Text>
+      <View style={st.pageTitleWrap}>
+        <Text style={[st.pageTitle, { color: T.textPrimary }]}>Insurance Claim</Text>
+        <Text style={[st.pageSubtitle, { color: T.textSecondary }]}>Fill in your vehicle details to get insurance quotes</Text>
       </View>
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-        <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        <ScrollView contentContainerStyle={st.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
 
           {/* ── Vehicle Info Section ── */}
-          <Text style={[s.sectionLabel, { color: T.textSecondary }]}>VEHICLE INFORMATION</Text>
+          <Text style={[st.sectionLabel, { color: T.textSecondary }]}>VEHICLE INFORMATION</Text>
 
-          <View style={s.fieldWrap}>
-            <Text style={[s.fieldLabel, { color: T.textSecondary }]}>Brand</Text>
-            <TouchableOpacity style={[s.glassInput, s.selectInput]} onPress={() => toggleField('brand')} activeOpacity={0.8}>
-              <InnerGlow radius={25} fill="#030817" glowColor="#1E4593" blur={16} borderColors={['#6F8CC0', '#5873A6']} borderWidth={1} />
-              <Text style={[s.inputTxt, { flex: 1, color: '#F9FAFC' }]} numberOfLines={1}>{brand || 'Select Brand'}</Text>
-              <Ionicons name={openField === 'brand' ? 'chevron-up' : 'chevron-down'} size={20} color="#F9FAFC" />
+          <View style={st.fieldWrap}>
+            <Text style={[st.fieldLabel, { color: T.isDark ? T.textSecondary : '#9a8f98' }]}>Brand</Text>
+            <TouchableOpacity style={[st.glassInput, st.selectInput]} onPress={() => toggleField('brand')} activeOpacity={0.8}>
+              {T.isDark && <InnerGlow radius={25} fill="#030817" glowColor="#1E4593" blur={16} borderColors={['#6F8CC0', '#5873A6']} borderWidth={1} />}
+              <Text style={[st.inputTxt, { flex: 1, color: T.isDark ? '#F9FAFC' : '#000000' }]} numberOfLines={1}>{brand || 'Select Brand'}</Text>
+              <Ionicons name={openField === 'brand' ? 'chevron-up' : 'chevron-down'} size={20} color={T.isDark ? '#F9FAFC' : '#000000'} />
             </TouchableOpacity>
             {openField === 'brand' && (
-              <View style={[s.dropList, { backgroundColor: T.glassBg, borderColor: T.glassBorder }]}>
+              <View style={[st.dropList, { backgroundColor: T.glassBg, borderColor: T.glassBorder }]}>
                 <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled">
                   {brandOpts.length === 0 ? (
-                    <Text style={[s.dropItemTxt, s.dropItem, { color: T.textSecondary, borderBottomWidth: 0 }]}>{'Loading brands...'}</Text>
+                    <Text style={[st.dropItemTxt, st.dropItem, { color: T.textSecondary, borderBottomWidth: 0 }]}>{'Loading brands...'}</Text>
                   ) : brandOpts.map((o, i) => (
-                    <TouchableOpacity key={`${o}-${i}`} style={[s.dropItem, { borderBottomColor: T.divider }]} onPress={() => { if (o !== brand) setModel(''); setBrand(o); setOpenField(null); }}>
-                      <Text style={[s.dropItemTxt, { color: o === brand ? ORANGE : T.textPrimary }]}>{o}</Text>
+                    <TouchableOpacity key={`${o}-${i}`} style={[st.dropItem, { borderBottomColor: T.divider }]} onPress={() => { if (o !== brand) setModel(''); setBrand(o); setOpenField(null); }}>
+                      <Text style={[st.dropItemTxt, { color: o === brand ? ORANGE : T.textPrimary }]}>{o}</Text>
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
@@ -264,21 +272,21 @@ export default function ClaimScreen() {
             )}
           </View>
 
-          <View style={s.fieldWrap}>
-            <Text style={[s.fieldLabel, { color: T.textSecondary }]}>Model</Text>
-            <TouchableOpacity style={[s.glassInput, s.selectInput]} onPress={() => toggleField('model')} activeOpacity={0.8}>
-              <InnerGlow radius={25} fill="#030817" glowColor="#1E4593" blur={16} borderColors={['#6F8CC0', '#5873A6']} borderWidth={1} />
-              <Text style={[s.inputTxt, { flex: 1, color: '#F9FAFC' }]} numberOfLines={1}>{model || 'Select Model'}</Text>
-              <Ionicons name={openField === 'model' ? 'chevron-up' : 'chevron-down'} size={20} color="#F9FAFC" />
+          <View style={st.fieldWrap}>
+            <Text style={[st.fieldLabel, { color: T.isDark ? T.textSecondary : '#9a8f98' }]}>Model</Text>
+            <TouchableOpacity style={[st.glassInput, st.selectInput]} onPress={() => toggleField('model')} activeOpacity={0.8}>
+              {T.isDark && <InnerGlow radius={25} fill="#030817" glowColor="#1E4593" blur={16} borderColors={['#6F8CC0', '#5873A6']} borderWidth={1} />}
+              <Text style={[st.inputTxt, { flex: 1, color: T.isDark ? '#F9FAFC' : '#000000' }]} numberOfLines={1}>{model || 'Select Model'}</Text>
+              <Ionicons name={openField === 'model' ? 'chevron-up' : 'chevron-down'} size={20} color={T.isDark ? '#F9FAFC' : '#000000'} />
             </TouchableOpacity>
             {openField === 'model' && (
-              <View style={[s.dropList, { backgroundColor: T.glassBg, borderColor: T.glassBorder }]}>
+              <View style={[st.dropList, { backgroundColor: T.glassBg, borderColor: T.glassBorder }]}>
                 <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled">
                   {modelOpts.length === 0 ? (
-                    <Text style={[s.dropItemTxt, s.dropItem, { color: T.textSecondary, borderBottomWidth: 0 }]}>{!brand ? 'Select a brand first' : modelsLoading ? 'Loading models...' : 'No models found'}</Text>
+                    <Text style={[st.dropItemTxt, st.dropItem, { color: T.textSecondary, borderBottomWidth: 0 }]}>{!brand ? 'Select a brand first' : modelsLoading ? 'Loading models...' : 'No models found'}</Text>
                   ) : modelOpts.map((o, i) => (
-                    <TouchableOpacity key={`${o}-${i}`} style={[s.dropItem, { borderBottomColor: T.divider }]} onPress={() => { setModel(o); setOpenField(null); }}>
-                      <Text style={[s.dropItemTxt, { color: o === model ? ORANGE : T.textPrimary }]}>{o}</Text>
+                    <TouchableOpacity key={`${o}-${i}`} style={[st.dropItem, { borderBottomColor: T.divider }]} onPress={() => { setModel(o); setOpenField(null); }}>
+                      <Text style={[st.dropItemTxt, { color: o === model ? ORANGE : T.textPrimary }]}>{o}</Text>
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
@@ -286,21 +294,21 @@ export default function ClaimScreen() {
             )}
           </View>
 
-          <View style={s.fieldWrap}>
-            <Text style={[s.fieldLabel, { color: T.textSecondary }]}>Year</Text>
-            <TouchableOpacity style={[s.glassInput, s.selectInput]} onPress={() => toggleField('year')} activeOpacity={0.8}>
-              <InnerGlow radius={25} fill="#030817" glowColor="#1E4593" blur={16} borderColors={['#6F8CC0', '#5873A6']} borderWidth={1} />
-              <Text style={[s.inputTxt, { flex: 1, color: '#F9FAFC' }]} numberOfLines={1}>{year || 'Select Year'}</Text>
-              <Ionicons name={openField === 'year' ? 'chevron-up' : 'chevron-down'} size={20} color="#F9FAFC" />
+          <View style={st.fieldWrap}>
+            <Text style={[st.fieldLabel, { color: T.isDark ? T.textSecondary : '#9a8f98' }]}>Year</Text>
+            <TouchableOpacity style={[st.glassInput, st.selectInput]} onPress={() => toggleField('year')} activeOpacity={0.8}>
+              {T.isDark && <InnerGlow radius={25} fill="#030817" glowColor="#1E4593" blur={16} borderColors={['#6F8CC0', '#5873A6']} borderWidth={1} />}
+              <Text style={[st.inputTxt, { flex: 1, color: T.isDark ? '#F9FAFC' : '#000000' }]} numberOfLines={1}>{year || 'Select Year'}</Text>
+              <Ionicons name={openField === 'year' ? 'chevron-up' : 'chevron-down'} size={20} color={T.isDark ? '#F9FAFC' : '#000000'} />
             </TouchableOpacity>
             {openField === 'year' && (
-              <View style={[s.dropList, { backgroundColor: T.glassBg, borderColor: T.glassBorder }]}>
+              <View style={[st.dropList, { backgroundColor: T.glassBg, borderColor: T.glassBorder }]}>
                 <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled">
                   {YEARS.length === 0 ? (
-                    <Text style={[s.dropItemTxt, s.dropItem, { color: T.textSecondary, borderBottomWidth: 0 }]}>{''}</Text>
+                    <Text style={[st.dropItemTxt, st.dropItem, { color: T.textSecondary, borderBottomWidth: 0 }]}>{''}</Text>
                   ) : YEARS.map((o, i) => (
-                    <TouchableOpacity key={`${o}-${i}`} style={[s.dropItem, { borderBottomColor: T.divider }]} onPress={() => { setYear(o); setOpenField(null); }}>
-                      <Text style={[s.dropItemTxt, { color: o === year ? ORANGE : T.textPrimary }]}>{o}</Text>
+                    <TouchableOpacity key={`${o}-${i}`} style={[st.dropItem, { borderBottomColor: T.divider }]} onPress={() => { setYear(o); setOpenField(null); }}>
+                      <Text style={[st.dropItemTxt, { color: o === year ? ORANGE : T.textPrimary }]}>{o}</Text>
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
@@ -309,29 +317,29 @@ export default function ClaimScreen() {
           </View>
 
           {/* Estimated Market Value */}
-          <View style={s.fieldWrap}>
-            <Text style={[s.fieldLabel, { color: T.textSecondary }]}>Estimated Market Value</Text>
+          <View style={st.fieldWrap}>
+            <Text style={[st.fieldLabel, { color: T.isDark ? T.textSecondary : '#9a8f98' }]}>Estimated Market Value</Text>
             <View style={inputStyle}>
-              <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-              <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-              <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-              <TextInput style={[s.inputTxt, { flex: 1, color: T.textPrimary }]} value={value} onChangeText={setValue} placeholderTextColor={T.textSecondary} keyboardType="default" />
+              {T.isDark && <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
+              {T.isDark && <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
+              {T.isDark && <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
+              <TextInput style={[st.inputTxt, { flex: 1, color: T.textPrimary }]} value={value} onChangeText={setValue} placeholderTextColor={T.textSecondary} keyboardType="default" />
             </View>
           </View>
 
           {/* ── Registration Section ── */}
-          <Text style={[s.sectionLabel, { color: T.textSecondary }]}>REGISTRATION DETAILS</Text>
+          <Text style={[st.sectionLabel, { color: T.textSecondary }]}>REGISTRATION DETAILS</Text>
 
           {/* Registered Yes/No */}
-          <View style={s.fieldWrap}>
-            <Text style={[s.fieldLabel, { color: T.textSecondary }]}>Registered</Text>
-            <View style={s.radioRow}>
+          <View style={st.fieldWrap}>
+            <Text style={[st.fieldLabel, { color: T.isDark ? T.textSecondary : '#9a8f98' }]}>Registered</Text>
+            <View style={st.radioRow}>
               {(['yes', 'no'] as const).map(opt => (
-                <TouchableOpacity key={opt} style={s.radioItem} onPress={() => setRegistered(opt)}>
-                  <View style={[s.radioCircle, { borderColor: registered === opt ? ORANGE : T.textSecondary }, registered === opt && s.radioSelected]}>
-                    {registered === opt && <View style={s.radioDot} />}
+                <TouchableOpacity key={opt} style={st.radioItem} onPress={() => setRegistered(opt)}>
+                  <View style={[st.radioCircle, { borderColor: registered === opt ? ORANGE : T.textSecondary }, registered === opt && st.radioSelected]}>
+                    {registered === opt && <View style={st.radioDot} />}
                   </View>
-                  <Text style={[s.radioTxt, { color: T.textPrimary }]}>{opt === 'yes' ? 'Yes' : 'No'}</Text>
+                  <Text style={[st.radioTxt, { color: T.textPrimary }]}>{opt === 'yes' ? 'Yes' : 'No'}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -340,20 +348,20 @@ export default function ClaimScreen() {
           {/* Registered = No → Registration City / Number hide */}
           {registered === 'yes' && (
             <>
-            <View style={s.fieldWrap}>
-              <Text style={[s.fieldLabel, { color: T.textSecondary }]}>Registration City</Text>
+            <View style={st.fieldWrap}>
+              <Text style={[st.fieldLabel, { color: T.isDark ? T.textSecondary : '#9a8f98' }]}>Registration City</Text>
               <TouchableOpacity style={inputStyle} onPress={() => setCityOpen(v => !v)} activeOpacity={0.8}>
-                <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                <Text style={[s.inputTxt, { color: city ? T.textPrimary : T.textSecondary }]}>{city || 'Select City'}</Text>
+                {T.isDark && <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
+                {T.isDark && <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
+                {T.isDark && <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
+                <Text style={[st.inputTxt, { color: city ? T.textPrimary : T.textSecondary }]}>{city || 'Select City'}</Text>
                 <Ionicons name={cityOpen ? 'chevron-up' : 'chevron-down'} size={16} color={T.textSecondary} />
               </TouchableOpacity>
               {cityOpen && (
-                <View style={[s.dropList, { backgroundColor: T.glassBg, borderColor: T.glassBorder }]}>
+                <View style={[st.dropList, { backgroundColor: T.glassBg, borderColor: T.glassBorder }]}>
                   {CITIES.map(c => (
-                    <TouchableOpacity key={c} style={[s.dropItem, { borderBottomColor: T.divider }]} onPress={() => { setCity(c); setCityOpen(false); }}>
-                      <Text style={[s.dropItemTxt, { color: c === city ? ORANGE : T.textPrimary }]}>{c}</Text>
+                    <TouchableOpacity key={c} style={[st.dropItem, { borderBottomColor: T.divider }]} onPress={() => { setCity(c); setCityOpen(false); }}>
+                      <Text style={[st.dropItemTxt, { color: c === city ? ORANGE : T.textPrimary }]}>{c}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -361,71 +369,71 @@ export default function ClaimScreen() {
             </View>
 
             {/* Registration Number */}
-            <View style={s.fieldWrap}>
-              <Text style={[s.fieldLabel, { color: T.textSecondary }]}>Registration Number</Text>
+            <View style={st.fieldWrap}>
+              <Text style={[st.fieldLabel, { color: T.isDark ? T.textSecondary : '#9a8f98' }]}>Registration Number</Text>
               <View style={inputStyle}>
-                <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                <TextInput style={[s.inputTxt, { flex: 1, color: T.textPrimary }]} value={regNum} onChangeText={setRegNum} placeholder="LEA-22-1234" placeholderTextColor={T.textSecondary} autoCapitalize="characters" />
+                {T.isDark && <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
+                {T.isDark && <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
+                {T.isDark && <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
+                <TextInput style={[st.inputTxt, { flex: 1, color: T.textPrimary }]} value={regNum} onChangeText={setRegNum} placeholder="LEA-22-1234" placeholderTextColor={T.textSecondary} autoCapitalize="characters" />
               </View>
             </View>
             </>
           )}
 
           {/* ── Photos Section ── */}
-          <Text style={[s.sectionLabel, { color: T.textSecondary }]}>VEHICLE PHOTOS</Text>
+          <Text style={[st.sectionLabel, { color: T.textSecondary }]}>VEHICLE PHOTOS</Text>
 
-          <View style={s.fieldWrap}>
-            <View style={s.photosHeader}>
-              <Text style={[s.photosNote, { color: T.textSecondary }]}>Add up to 5 photos of your vehicle</Text>
-              <Text style={[s.photosCount, { color: ORANGE }]}>{photos.length}/5</Text>
+          <View style={st.fieldWrap}>
+            <View style={st.photosHeader}>
+              <Text style={[st.photosNote, { color: T.textSecondary }]}>Add up to 5 photos of your vehicle</Text>
+              <Text style={[st.photosCount, { color: ORANGE }]}>{photos.length}/5</Text>
             </View>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.photosRow}>
-              <TouchableOpacity style={[s.addPhotoBtn, { borderColor: T.textSecondary }]} onPress={pickPhoto} activeOpacity={0.8}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={st.photosRow}>
+              <TouchableOpacity style={[st.addPhotoBtn, { borderColor: T.textSecondary }]} onPress={pickPhoto} activeOpacity={0.8}>
                 <Ionicons name="camera-outline" size={24} color={ORANGE} />
-                <Text style={[s.addPhotoTxt, { color: T.textSecondary }]}>Add Photo</Text>
+                <Text style={[st.addPhotoTxt, { color: T.textSecondary }]}>Add Photo</Text>
               </TouchableOpacity>
               {photos.map((uri, i) => (
-                <TouchableOpacity key={i} style={s.photoThumb} onLongPress={() => setPhotos(p => p.filter((_, j) => j !== i))}>
-                  <Image source={{ uri }} style={s.photoImg} resizeMode="cover" />
-                  <View style={s.photoDeleteOverlay}>
+                <TouchableOpacity key={i} style={st.photoThumb} onLongPress={() => setPhotos(p => p.filter((_, j) => j !== i))}>
+                  <Image source={{ uri }} style={st.photoImg} resizeMode="cover" />
+                  <View style={st.photoDeleteOverlay}>
                     <Ionicons name="close-circle" size={20} color="#fff" />
                   </View>
                 </TouchableOpacity>
               ))}
               {Array.from({ length: Math.max(0, 3 - photos.length) }).map((_, i) => (
-                <View key={`ph-${i}`} style={[s.photoThumb, s.photoPlaceholder, { backgroundColor: T.glassBg, borderColor: T.divider }]}>
+                <View key={`ph-${i}`} style={[st.photoThumb, st.photoPlaceholder, { backgroundColor: T.glassBg, borderColor: T.divider }]}>
                   <Ionicons name="image-outline" size={22} color={T.textSecondary} />
                 </View>
               ))}
             </ScrollView>
-            <Text style={[s.photoHint, { color: T.textSecondary }]}>Long press a photo to remove it</Text>
+            <Text style={[st.photoHint, { color: T.textSecondary }]}>Long press a photo to remove it</Text>
           </View>
 
           {/* ── Documents Section ── */}
-          <Text style={[s.sectionLabel, { color: T.textSecondary }]}>REQUIRED DOCUMENTS</Text>
+          <Text style={[st.sectionLabel, { color: T.textSecondary }]}>REQUIRED DOCUMENTS</Text>
 
-          <View style={s.docsWrap}>
+          <View style={st.docsWrap}>
             {DOCS.map(doc => (
-              <View key={doc.key} style={s.docRow}>
-                <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                <View style={s.docIconWrap}>
+              <View key={doc.key} style={st.docRow}>
+                {T.isDark && <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
+                {T.isDark && <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
+                {T.isDark && <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
+                <View style={st.docIconWrap}>
                   {docUploading[doc.key] ? <ActivityIndicator size="small" color={ORANGE} />
                   : <Ionicons name={docStatus[doc.key] ? 'checkmark-circle' : 'cloud-upload-outline'} size={22} color={docStatus[doc.key] ? '#27ae60' : ORANGE} />}
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={[s.docLabel, { color: T.textPrimary }]}>{doc.label}</Text>
-                  <Text style={[s.docSub, { color: T.textSecondary }]} numberOfLines={1}>{docStatus[doc.key] && docFileUrls[doc.key] ? '✓ Uploaded' : doc.sub}</Text>
+                  <Text style={[st.docLabel, { color: T.textPrimary }]}>{doc.label}</Text>
+                  <Text style={[st.docSub, { color: T.textSecondary }]} numberOfLines={1}>{docStatus[doc.key] && docFileUrls[doc.key] ? '✓ Uploaded' : doc.sub}</Text>
                 </View>
                 <TouchableOpacity
-                  style={[s.uploadBtn, docStatus[doc.key] ? s.uploadedBtn : { backgroundColor: T.isDark ? 'rgba(186,172,182,0.1)' : 'rgba(3,12,40,0.07)' }, docUploading[doc.key] && { opacity: 0.6 }]}
+                  style={[st.uploadBtn, docStatus[doc.key] ? st.uploadedBtn : { backgroundColor: T.isDark ? 'rgba(186,172,182,0.1)' : 'rgba(3,12,40,0.07)' }, docUploading[doc.key] && { opacity: 0.6 }]}
                   onPress={() => handleUploadDoc(doc.key)}
                   disabled={!!docUploading[doc.key]}
                 >
-                  <Text style={[s.uploadTxt, { color: docStatus[doc.key] ? '#27ae60' : T.textPrimary }]}>
+                  <Text style={[st.uploadTxt, { color: docStatus[doc.key] ? '#27ae60' : T.textPrimary }]}>
                     {docUploading[doc.key] ? '...' : docStatus[doc.key] ? '✓ Done' : 'Upload'}
                   </Text>
                 </TouchableOpacity>
@@ -434,14 +442,14 @@ export default function ClaimScreen() {
           </View>
 
           {/* ── Submit ── */}
-          <TouchableOpacity onPress={handleSubmit} activeOpacity={0.87} style={s.submitWrap} disabled={submitting}>
-            <LinearGradient colors={['#032a69', ORANGE]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={[s.submitBtn, submitting && { opacity: 0.7 }]}>
+          <TouchableOpacity onPress={handleSubmit} activeOpacity={0.87} style={st.submitWrap} disabled={submitting}>
+            <LinearGradient colors={T.isDark ? ['#032a69', ORANGE] : ['#27467F', '#FF9654']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={[st.submitBtn, submitting && { opacity: 0.7 }]}>
               {submitting ? (
                 <ActivityIndicator color="#fff" size="small" />
               ) : (
                 <>
                   <Ionicons name="shield-checkmark-outline" size={20} color="#fff" />
-                  <Text style={s.submitTxt}>Search Insurance</Text>
+                  <Text style={st.submitTxt}>Search Insurance</Text>
                 </>
               )}
             </LinearGradient>
@@ -533,4 +541,13 @@ const s = StyleSheet.create({
   submitWrap:   { borderRadius: 32, overflow: 'hidden', marginTop: 4 },
   submitBtn:    { height: 52, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
   submitTxt:    { fontSize: 16, fontFamily: 'Poppins_600SemiBold', color: '#fff' },
+});
+
+// ── Light mode overrides (Figma light) — dark mode uses `s` as is ──────────
+const sLight = withLightStyles(s, {
+  glassInput:  { backgroundColor: '#E8EAEF', borderColor: 'rgba(0,0,0,0.18)', boxShadow: LIGHT_POP_SHADOW },
+  selectInput: { backgroundColor: '#E8EAEF', borderWidth: 1 },
+  dropList:    { backgroundColor: '#ffffff', borderColor: 'rgba(0,0,0,0.12)' },
+  docRow:      { backgroundColor: '#F5F6F8', borderColor: 'rgba(0,0,0,0.08)' },
+  submitWrap:  { boxShadow: LIGHT_POP_SHADOW },
 });

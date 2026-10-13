@@ -112,13 +112,13 @@ export default function ProfileScreen() {
         {/* ── Profile Card — Figma top section / Ads vehicle-card treatment ── */}
         <View style={[s.glowWrap, { backgroundColor: C.bg }] }>
         <View style={[s.profileCard, {
-          borderColor: C.isDark ? '#82a5d5' : 'rgba(3,42,105,0.12)',
-          backgroundColor: C.isDark ? '#010A1F' : '#ffffff',
-          shadowColor: C.isDark ? '#638ed0' : 'rgba(3,42,105,0.12)',
-          shadowOpacity: C.isDark ? 0.15 : 0.08,
+          borderColor: C.isDark ? '#82a5d5' : 'rgba(0,0,0,0.04)',
+          backgroundColor: C.isDark ? '#010A1F' : '#F2F4F8',
+          shadowColor: C.isDark ? '#638ed0' : 'transparent',
+          shadowOpacity: C.isDark ? 0.15 : 0,
           shadowRadius: C.isDark ? 5 : 8,
-          elevation: C.isDark ? 2 : 3,
-        }]}>
+          elevation: C.isDark ? 2 : 0,
+        }, !C.isDark && { boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
           {C.isDark && (
             <>
               <LinearGradient
@@ -138,25 +138,25 @@ export default function ProfileScreen() {
             </>
           )}
           {displayAvatar ? (
-            <Image source={{ uri: displayAvatar }} style={s.avatar} resizeMode="cover" />
+            <Image source={{ uri: displayAvatar }} style={[s.avatar, !C.isDark && { borderColor: '#1a1a1a' }]} resizeMode="cover" />
           ) : (
-            <View style={[s.avatar, s.avatarInitials]}>
+            <View style={[s.avatar, s.avatarInitials, !C.isDark && { borderColor: '#1a1a1a' }]}>
               <Text style={s.avatarInitialsTxt}>{initials}</Text>
             </View>
           )}
 
           <View style={s.userInfo}>
             <Text style={[s.userName, { color: C.textPrimary }]} numberOfLines={1} ellipsizeMode="tail">{displayName}</Text>
-            {displayEmail ? <Text style={[s.userSub, { color: C.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">{displayEmail}</Text> : null}
+            {displayEmail ? <Text style={[s.userSub, { color: C.isDark ? C.textSecondary : '#000000' }, !C.isDark && { fontSize: 11 }]} numberOfLines={1} ellipsizeMode="tail">{displayEmail}</Text> : null}
             {(displayPhone || displayLocation) ? (
-              <Text style={[s.userSub, { color: C.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">
+              <Text style={[s.userSub, { color: C.isDark ? C.textSecondary : '#000000' }, !C.isDark && { fontSize: 11 }]} numberOfLines={1} ellipsizeMode="tail">
                 {displayPhone}{displayPhone && displayLocation ? ' • ' : ''}{displayLocation}
               </Text>
             ) : null}
           </View>
 
-          <TouchableOpacity style={[s.editBtn, { borderColor: 'transparent', backgroundColor: C.isDark ? '#151b31' : '#eef1f8' }]} onPress={() => router.push('/profile/edit' as any)}>
-            <Text style={[s.editTxt, { color: C.textPrimary }]}>Edit</Text>
+          <TouchableOpacity style={[s.editBtn, { borderColor: 'transparent', backgroundColor: C.isDark ? '#151b31' : '#0A2A66' }]} onPress={() => router.push('/profile/edit' as any)}>
+            <Text style={[s.editTxt, { color: C.isDark ? C.textPrimary : '#ffffff' }]}>Edit</Text>
           </TouchableOpacity>
         </View>
         </View>
@@ -164,13 +164,13 @@ export default function ProfileScreen() {
         {/* ── Menu Card — Figma exact / Ads vehicle-card treatment ── */}
         <View style={[s.glowWrap, { backgroundColor: C.bg }] }>
         <View style={[s.menuCard, {
-          borderColor: C.isDark ? '#82a5d5' : 'rgba(3,42,105,0.12)',
-          backgroundColor: C.isDark ? '#010A1F' : '#ffffff',
-          shadowColor: C.isDark ? '#638ed0' : 'rgba(3,42,105,0.12)',
-          shadowOpacity: C.isDark ? 0.15 : 0.08,
+          borderColor: C.isDark ? '#82a5d5' : 'rgba(0,0,0,0.05)',
+          backgroundColor: C.isDark ? '#010A1F' : '#FCFCFD',
+          shadowColor: C.isDark ? '#638ed0' : 'transparent',
+          shadowOpacity: C.isDark ? 0.15 : 0,
           shadowRadius: C.isDark ? 5 : 8,
-          elevation: C.isDark ? 2 : 3,
-        }]}>
+          elevation: C.isDark ? 2 : 0,
+        }, !C.isDark && { boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
           {C.isDark && (
             <>
               <LinearGradient
@@ -206,21 +206,21 @@ export default function ProfileScreen() {
                     value={notifOn}
                     onValueChange={setNotifOn}
                     trackColor={{ false: C.isDark ? "#555" : "#ccc", true: ORANGE }}
-                    thumbColor={C.textPrimary}
+                    thumbColor={C.isDark ? C.textPrimary : '#ffffff'}
                     ios_backgroundColor={C.isDark ? "#555" : "#ccc"}
                   />
                 ) : (
-                  <Ionicons name="chevron-forward" size={16} color={C.textSecondary} />
+                  <Ionicons name="chevron-forward" size={C.isDark ? 16 : 18} color={C.isDark ? C.textSecondary : '#000000'} />
                 )}
               </TouchableOpacity>
 
               {i < MENU_ITEMS.length - 1 && (
-                <View style={[s.divider, { backgroundColor: C.isDark ? 'rgba(34,82,160,0.72)' : 'rgba(3,42,105,0.12)' }]} />
+                <View style={[s.divider, { backgroundColor: C.isDark ? 'rgba(34,82,160,0.72)' : '#A9C4F5' }]} />
               )}
             </React.Fragment>
           ))}
 
-          <View style={[s.divider, { backgroundColor: C.isDark ? 'rgba(34,82,160,0.72)' : 'rgba(3,42,105,0.12)' }]} />
+          <View style={[s.divider, { backgroundColor: C.isDark ? 'rgba(34,82,160,0.72)' : '#A9C4F5' }]} />
           {/* Logout */}
           <TouchableOpacity
             style={s.menuRow}

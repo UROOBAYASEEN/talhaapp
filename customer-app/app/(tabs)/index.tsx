@@ -2,6 +2,7 @@
  * Home Screen — Pixel-perfect Figma match
  * File: HZwQxuVoCIhM2m1s9GfV3B  •  Nodes: 1986:11101 → 1986:11792
  */
+import LightGradientBorder from '@/components/shared/LightGradientBorder';
 import VerifiedIcon from '@/components/shared/VerifiedIcon';
 import AskariBank from '@/components/shared/AskariBank';
 import BrowseMoreServices from '@/components/shared/BrowseMoreServices';
@@ -523,13 +524,19 @@ export default function HomeScreen() {
         ════════════════════════════════════════════════════ */}
         <View style={[styles.upperBg, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff' }]}> 
           {aC.isDark && <View pointerEvents="none" style={styles.upperBgShape} />}
-          <View style={[styles.header, { backgroundColor: aC.isDark ? '#071c49' : '#ffffff' }]}>
+          {/* Light (Figma): grey-blue → peach header shape, rounded bottom + soft shadow */}
+          {!aC.isDark && (
+            <>
+              <LinearGradient pointerEvents="none" colors={['#F3F5F9', '#F3F5F9', '#FBE0D0']} locations={[0, 0.4, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={styles.upperBgShapeLight} />
+            </>
+          )}
+          <View style={[styles.header, { backgroundColor: aC.isDark ? '#071c49' : 'transparent' }]}>
 
             {/* ── Top row: back-arrow · company name · icons ── */}
-            <View style={styles.logoRow}>
+            <View style={[styles.logoRow, !aC.isDark && { marginHorizontal: 0 }]}>
 
               {/* LEFT: arrow-left 24×24 */}
-              <TouchableOpacity style={styles.backArrow} onPress={() => router.back()}>
+              <TouchableOpacity style={[styles.backArrow, !aC.isDark && { alignItems: 'flex-start' }]} onPress={() => router.back()}>
                 <Ionicons name="arrow-back-outline" size={24} color={aC.isDark ? '#c5bdc9' : aC.textPrimary} />
               </TouchableOpacity>
 
@@ -561,7 +568,7 @@ export default function HomeScreen() {
 
                 <TouchableOpacity
                   ref={settingsBtnRef as any}
-                  style={styles.headerIconBtn}
+                  style={[styles.headerIconBtn, !aC.isDark && { alignItems: 'flex-end' }]}
                   onPress={() => {
                     const node: any = settingsBtnRef.current;
                     const root: any = screenRef.current;
@@ -583,7 +590,7 @@ export default function HomeScreen() {
             </View>
 
             {/* ── [FRAME] Frame 1686558744  343×51 — greeting block ── */}
-            <View style={styles.greetBlock}>
+            <View style={[styles.greetBlock, !aC.isDark && { marginHorizontal: 0 }]}>
               <View style={styles.greetRow}>
                 <TouchableOpacity
                   onPress={() => router.push('/profile/edit' as any)}
@@ -608,13 +615,13 @@ export default function HomeScreen() {
 
             {/* ── [FRAME] Frame 1686559043 — search bar 350×48 / radius=32 ── */}
             <TouchableOpacity
-              style={[styles.searchBar, { backgroundColor: aC.isDark ? '#142c59' : aC.glassBg, borderColor: aC.isDark ? '#87a3cc' : 'rgba(3,42,105,0.2)' }]}
+              style={[styles.searchBar, { backgroundColor: aC.isDark ? '#142c59' : '#ffffff', borderColor: aC.isDark ? '#87a3cc' : 'rgba(0,0,0,0.1)' }, !aC.isDark && styles.searchBarLight]}
               onPress={() => router.push('/(tabs)/explore')}
               activeOpacity={0.85}
             >
               {aC.isDark && <LinearGradient colors={['#20467f', '#182e59', '#122650', '#1a366a']} locations={[0, 0.32, 0.72, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
-              <Ionicons name="search-outline" size={20} color={aC.isDark ? '#d2d2d2' : aC.textSecondary} />
-              <Text style={[styles.searchPh, { color: aC.textSecondary }]}>Search cars, banks & dealers...</Text>
+              <Ionicons name="search-outline" size={20} color={aC.isDark ? '#d2d2d2' : '#000000'} />
+              <Text style={[styles.searchPh, { color: aC.isDark ? aC.textSecondary : '#000000' }]}>Search cars, banks & dealers...</Text>
             </TouchableOpacity>
 
           </View>
@@ -625,10 +632,10 @@ export default function HomeScreen() {
         ════════════════════════════════════════════════════ */}
           <View style={styles.pad}>
             <LinearGradient
-              colors={aC.isDark ? ['#E2671B', '#032A69'] : ['rgba(3,42,105,0.12)', 'rgba(3,42,105,0.12)']}
+              colors={['#E2671B', '#032A69']}
               start={{ x: 0.5, y: 0 }}
               end={{ x: 0.5, y: 1 }}
-              style={styles.heroBorder}
+              style={[styles.heroBorder, !aC.isDark && { boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}
             >
             <View style={[styles.heroBanner, { backgroundColor: aC.isDark ? '#061538' : '#ffffff', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, shadowRadius: 10, elevation: aC.isDark ? 0 : 2 }]}> 
               {/* Light mood: pure white, no shade — Dark: orange + 4-side shade */}
@@ -648,10 +655,17 @@ export default function HomeScreen() {
               {/* Existing title and statistics, positioned to match the Figma banner */}
               <View style={styles.heroLeft}>
                 {/* Title — #ffffff, 18px, 600 */}
+                {aC.isDark ? (
                 <Text style={[styles.heroTitle, { color: aC.isDark ? '#ffffff' : '#032a69' }]}>
                   Pakistan's First{'\n'}Connected{' '}
                   <Text style={{ color: '#e2671b' }}>Auto{'\n'}Ecosystem</Text>
                 </Text>
+                ) : (
+                <Text style={[styles.heroTitle, { color: '#1f2f63' }]}>
+                  Pakistan's <Text style={{ color: '#e2671b' }}>First</Text>{'\n'}Connected{' '}
+                  <Text style={{ color: '#e2671b' }}>Auto</Text>{'\n'}Ecosystem
+                </Text>
+                )}
                 {/* Stats at the bottom — values #e2671b, labels #d2d2d2 (light: black) */}
                 <View style={styles.heroBannerStats}>
                   {MINI_STATS.map((s, i) => (
@@ -670,7 +684,7 @@ export default function HomeScreen() {
             </View>
             </LinearGradient>
             <View style={styles.heroDots} pointerEvents="none">
-              <View style={[styles.heroDot, { backgroundColor: aC.isDark ? '#ffffff' : '#032a69' }]} />
+              <View style={[styles.heroDot, { backgroundColor: aC.isDark ? '#ffffff' : '#9a94a0' }]} />
               <View style={[styles.heroDot, { backgroundColor: aC.isDark ? '#baacb6' : 'rgba(3,42,105,0.35)' }]} />
               <View style={[styles.heroDot, { backgroundColor: aC.isDark ? '#baacb6' : 'rgba(3,42,105,0.35)' }]} />
             </View>
@@ -687,7 +701,7 @@ export default function HomeScreen() {
             {ALL_SERVICES.map(s => (
               <TouchableOpacity
                 key={s.label}
-                style={[styles.servCard, { width: servW, backgroundColor: aC.isDark ? '#010a1f' : aC.glassBg, borderColor: aC.isDark ? '#8ba7d2' : 'rgba(100,160,255,0.6)' }]}
+                style={[styles.servCard, { width: servW, backgroundColor: aC.isDark ? '#010a1f' : '#F2F4F8', borderColor: aC.isDark ? '#8ba7d2' : 'transparent' }, !aC.isDark && styles.servCardLight]}
                 onPress={() => {
                   if (s.p && Object.keys(s.p).length > 0) {
                     router.push({ pathname: s.route as any, params: s.p });
@@ -725,23 +739,20 @@ export default function HomeScreen() {
                     />
                   </>
                 ) : (
-                  <>
-                    <LinearGradient colors={['rgba(3,42,105,0.05)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                    <LinearGradient colors={['transparent', 'rgba(226,103,27,0.06)']} start={{ x: 0.5, y: 0.55 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                  </>
+                  <LightGradientBorder radius={16} fill="#F2F4F8" colors={['rgba(226,103,27,0.45)', 'rgba(3,42,105,0.4)']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} />
                 )}
                 {(s as any).image ? (
                   <Image source={(s as any).image} style={{ width: (s as any).imageSize || 26, height: (s as any).imageSize || 26, marginTop: (s as any).imageMarginTop || 0 }} resizeMode="contain" />
                 ) : (
                   <Ionicons name={s.icon as any} size={22} color="#e2671b" />
                 )}
-                <Text style={[styles.servLabel, { color: aC.textSecondary }]}>{s.label}</Text>
+                <Text style={[styles.servLabel, { color: aC.isDark ? aC.textSecondary : '#000000' }]}>{s.label}</Text>
               </TouchableOpacity>
             ))}
           </View>
           {/* Pagination dots */}
           <View style={styles.servDots}>
-            <View style={[styles.servDot, { backgroundColor: aC.isDark ? '#fff' : '#032a69' }]} />
+            <View style={[styles.servDot, { backgroundColor: aC.isDark ? '#fff' : '#9a94a0' }]} />
             <View style={[styles.servDot, { backgroundColor: aC.isDark ? C.textSec : 'rgba(3,42,105,0.22)' }]} />
           </View>
         </View>
@@ -758,15 +769,15 @@ export default function HomeScreen() {
         ════════════════════════════════════════════════════ */}
         <View style={[styles.sec, styles.pad]}>
           <LinearGradient
-            colors={aC.isDark ? ['#E2671B', '#032A69'] : ['#b7c7df', '#b7c7df']}
+            colors={['#E2671B', '#032A69']}
             start={{ x: 0.5, y: 0 }}
             end={{ x: 0.5, y: 1 }}
             style={styles.vehicleSearchWrapper}
           >
-            <View style={[styles.vehicleSearchSurface, { backgroundColor: aC.isDark ? '#010A1F' : '#dde8ff' }]}>
+            <View style={[styles.vehicleSearchSurface, { backgroundColor: aC.isDark ? '#010A1F' : '#F1F4F8' }]}>
               {/* background: linear-gradient(2.51deg, #E2671B -59.87%, #061B4A 49.25%, #010A1F 158.37%) */}
               {aC.isDark && <LinearGradient colors={['#693D35', '#061B4A', '#041336']} locations={[0, 0.4925, 1]} start={{ x: 0.5, y: 1 }} end={{ x: 0.5, y: 0 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
-              <VehicleSearch />
+              <VehicleSearch lightPeachBg />
             </View>
           </LinearGradient>
         </View>
@@ -887,7 +898,7 @@ export default function HomeScreen() {
             {(recentReal && recentReal.length ? recentReal : RECENT_ACTIVITY).map((a: any, index: number) => {
               const iconName = actIconName(a, index);
               return (
-              <TouchableOpacity key={a.title + a.sub} style={[styles.actItem, { backgroundColor: aC.isDark ? '#010b1e' : aC.glassBg, borderColor: aC.isDark ? '#7D96C0' : aC.glassBorder }]} activeOpacity={0.84}>
+              <TouchableOpacity key={a.title + a.sub} style={[styles.actItem, { backgroundColor: aC.isDark ? '#010b1e' : '#F5F6F8', borderColor: aC.isDark ? '#7D96C0' : 'transparent' }, !aC.isDark && { borderWidth: 0, borderRadius: 18 }]} activeOpacity={0.84}>
                 {aC.isDark ? (
                   <>
                     {/* Top shade (All Services wali) */}
@@ -915,8 +926,10 @@ export default function HomeScreen() {
                       style={StyleSheet.absoluteFillObject} pointerEvents="none"
                     />
                   </>
-                ) : null}
-                <View style={[styles.actIcon, { backgroundColor: aC.isDark ? '#061b4a' : '#e8eeff', borderColor: aC.isDark ? 'transparent' : aC.divider }]}>
+                ) : (
+                  <LightGradientBorder radius={18} fill="#F5F6F8" />
+                )}
+                <View style={[styles.actIcon, { backgroundColor: aC.isDark ? '#061b4a' : 'transparent', borderColor: 'transparent' }]}>
                   {iconName === 'bank' ? (
                     <Image source={require('@/assets/images/hugeicons_bank.png')} style={styles.activityBankIcon} resizeMode="contain" />
                   ) : (
@@ -928,7 +941,7 @@ export default function HomeScreen() {
                   <Text style={[styles.actSub, { color: aC.textSecondary }]} numberOfLines={1}>{a.sub}</Text>
                 </View>
                 <View style={styles.actArrow}>
-                  <Ionicons name="chevron-forward" size={24} color="#e2671b" />
+                  <Ionicons name="chevron-forward" size={24} color={aC.isDark ? '#e2671b' : '#000000'} />
                 </View>
               </TouchableOpacity>
               );
@@ -979,6 +992,26 @@ const styles = StyleSheet.create({
     backgroundColor: '#071c49',
     borderBottomLeftRadius: 120,
     borderBottomRightRadius: 120,
+  },
+
+  // Light mode header shape — hero banner ke aadhe tak
+  upperBgShapeLight: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 105,
+    borderBottomLeftRadius: 40,
+    borderBottomRightRadius: 40,
+    boxShadow: '2px 4px 5px rgba(0,0,0,0.24)',
+  },
+  searchBarLight: {
+    overflow: 'visible',
+    boxShadow: '2px 4px 5px rgba(0,0,0,0.24)',
+  },
+  servCardLight: {
+    borderWidth: 0, overflow: 'visible',
+    boxShadow: '2px 4px 5px rgba(0,0,0,0.24)',
   },
 
   /* Top row — position:relative so company name can center absolutely */

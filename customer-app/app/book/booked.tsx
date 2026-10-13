@@ -1,4 +1,5 @@
 // Figma: Vehicle Booked — success
+import { useAppColors, withLightStyles, LIGHT_POP_SHADOW } from '@/constants/theme';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
@@ -14,6 +15,8 @@ function fmtDate(iso?: string) {
 }
 
 export default function BookBooked() {
+  const aC = useAppColors();
+  const s = aC.isDark ? s_dark : s_light;
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const p = useLocalSearchParams<{ bookingId?: string; vehicle?: string; dealer?: string; date?: string }>();
@@ -28,7 +31,7 @@ export default function BookBooked() {
   ];
 
   return (
-    <GlowBackground>
+    <GlowBackground themed>
       <SafeAreaView style={{ flex: 1 }} edges={['top']}>
         <ScreenHeader title="Vehicle Booked" onBack={home} />
         <View style={{ flex: 1, paddingHorizontal: 20, paddingTop: 56 }}>
@@ -55,7 +58,7 @@ export default function BookBooked() {
   );
 }
 
-const s = StyleSheet.create({
+const s_dark = StyleSheet.create({
   card:    { borderRadius: 16, overflow: 'hidden', paddingHorizontal: 16, paddingVertical: 12, marginTop: 28, gap: 6 },
   row:     { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 12, paddingVertical: 2 },
   idLabel: { color: G.white, fontSize: 13, fontFamily: 'Poppins_500Medium' },
@@ -63,3 +66,11 @@ const s = StyleSheet.create({
   l:       { color: G.muted, fontSize: 13, fontFamily: 'Poppins_400Regular' },
   v:       { color: G.white, fontSize: 13, fontFamily: 'Poppins_400Regular', flexShrink: 1, textAlign: 'right' },
 });
+// Light mode layer for `s` — dark mode uses s_dark as is
+const s_light = withLightStyles(s_dark, {
+  card: { backgroundColor: '#F2F4F8', borderColor: 'rgba(0,0,0,0.04)', boxShadow: LIGHT_POP_SHADOW },
+  idLabel: { color: '#000000' },
+  l: { color: '#4b5563' },
+  v: { color: '#000000' },
+});
+

@@ -1,3 +1,4 @@
+import { AUTH_EDGES } from '@/constants/authEdges';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
@@ -76,7 +77,7 @@ export default function VerificationStatusScreen() {
   // ── Approved state ─────────────────────────────────────────────
   if (docsStatus === 'approved') {
     return (
-      <SafeAreaView style={[s.safe, { backgroundColor: C.bg }]}>
+      <SafeAreaView edges={AUTH_EDGES} style={[s.safe, { backgroundColor: C.bg }]}>
         <View style={s.container}>
           <AuthHeader />
           <View style={s.graphic}>
@@ -103,7 +104,7 @@ export default function VerificationStatusScreen() {
   // ── Rejected state ─────────────────────────────────────────────
   if (docsStatus === 'rejected') {
     return (
-      <SafeAreaView style={[s.safe, { backgroundColor: C.bg }]}>
+      <SafeAreaView edges={AUTH_EDGES} style={[s.safe, { backgroundColor: C.bg }]}>
         <View style={s.container}>
           <AuthHeader />
           <View style={s.graphic}>
@@ -131,7 +132,7 @@ export default function VerificationStatusScreen() {
 
   // ── Pending state (default) ────────────────────────────────────
   return (
-    <SafeAreaView style={[s.safe, { backgroundColor: C.bg }]}>
+    <SafeAreaView edges={AUTH_EDGES} style={[s.safe, { backgroundColor: C.bg }]}>
       <View style={s.container}>
         <AuthHeader />
         <View style={s.graphic}>

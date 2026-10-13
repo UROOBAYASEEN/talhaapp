@@ -58,7 +58,7 @@ function NeedThisSection({ variant = 'newCar' }: { variant?: 'newCar' | 'usedCar
             key={c.title}
             activeOpacity={0.85}
             onPress={() => router.push(c.route as any)}
-            style={[styles.needCard, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderWidth: aC.isDark ? 0 : 1, borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }]}
+            style={[styles.needCard, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderWidth: aC.isDark ? 0 : 1, borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }, !aC.isDark && { borderWidth: 0, shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}
           >
             {aC.isDark ? (
               <LinearGradient colors={['#071B48', '#0A1F4C', '#2B2947', '#80504A']} locations={[0, 0.52, 0.76, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={styles.needGrad}>
@@ -70,9 +70,9 @@ function NeedThisSection({ variant = 'newCar' }: { variant?: 'newCar' | 'usedCar
                 <Text style={styles.needSub}>{c.sub}</Text>
               </LinearGradient>
             ) : (
-              <View style={[styles.needGrad, { backgroundColor: '#ffffff' }]}>
-                <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                <LinearGradient colors={['transparent', 'rgba(226,103,27,0.10)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+              <View style={[styles.needGrad, { backgroundColor: '#F1F4F8' }]}>
+                  <LinearGradient colors={['#F1F4F8', '#F1F4F8', '#FCDCC8']} locations={[0, 0.4, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+
                 <Image source={c.img} style={styles.needImg} resizeMode="contain" />
                 <View style={styles.needTitleRow}>
                   <Text style={[styles.needTitle, { color: '#010a1f' }]}>{c.title}</Text>
@@ -121,8 +121,7 @@ function DealerInventoryCard({ item, onPress }: { item: any; onPress: () => void
     >
       {dark ? <SavedCardEffect /> : (
         <>
-          <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <LinearGradient colors={['transparent', 'rgba(226,103,27,0.08)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+
         </>
       )}
       {carImg
@@ -238,8 +237,7 @@ function CarCard({ item, onPress, onSave, saved, onContact }: {
   // Light — white card with subtle blue/orange shade
   return (
     <View style={[styles.carCard, { backgroundColor: '#ffffff', borderColor: 'rgba(3,42,105,0.12)', shadowColor: 'rgba(3,42,105,0.12)', shadowOpacity: 0.08, shadowRadius: 10, elevation: 3, overflow: 'hidden' }]}>
-      <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-      <LinearGradient colors={['transparent', 'rgba(226,103,27,0.08)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+
       <View style={styles.carTop}>
         <View style={[styles.carImageWrap, { backgroundColor: '#f1f5f9' }]}>
           {carImg ? (
@@ -535,8 +533,7 @@ export default function SearchResultsScreen() {
                 </View>
               ) : (
                 <View style={[styles.searchBox, { backgroundColor: '#ffffff', borderColor: 'rgba(3,42,105,0.12)', shadowColor: 'rgba(3,42,105,0.12)', shadowOpacity: 0.08, elevation: 3, overflow: 'hidden' }]}>
-                  <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                  <LinearGradient colors={['transparent', 'rgba(226,103,27,0.08)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+
                   <Ionicons name="search-outline" size={20} color="#64748b" />
                   <TextInput
                     style={[styles.searchInput, { color: '#010a1f' }]}

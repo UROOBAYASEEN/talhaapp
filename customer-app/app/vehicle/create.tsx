@@ -1,3 +1,4 @@
+import LightGradientBorder from '@/components/shared/LightGradientBorder';
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -14,6 +15,7 @@ import {
   Dimensions,
   Modal,
   Switch,
+  BackHandler,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import GradientNote from "@/components/shared/GradientNote";
@@ -87,15 +89,15 @@ function Step2FigmaField({ label, value, sample, onPress, onChangeText, numeric 
 }) {
   return (
     <View style={{ marginBottom: 14 }}>
-      <Text style={{ color: dark ? '#b8acba' : '#64748b', fontSize: 14, fontFamily: 'Poppins_400Regular', marginBottom: 8 }}>{label}</Text>
+      <Text style={{ color: dark ? '#b8acba' : '#9a8f98', fontSize: 14, fontFamily: 'Poppins_400Regular', marginBottom: 8 }}>{label}</Text>
       {onPress ? (
-        <TouchableOpacity onPress={onPress} activeOpacity={0.8} style={{ height: 48, borderRadius: 9, backgroundColor: dark ? '#091e4e' : '#eef3ff', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14 }}>
+        <TouchableOpacity onPress={onPress} activeOpacity={0.8} style={[{ height: 48, borderRadius: 9, backgroundColor: dark ? '#091e4e' : '#E8EAEF', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14 }, !dark && { borderRadius: 24, paddingHorizontal: 20, borderWidth: 1, borderColor: 'rgba(0,0,0,0.18)', boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
           <Text style={{ color: dark ? '#f9fafc' : '#010a1f', fontSize: 15, fontFamily: 'Poppins_500Medium' }}>{value || sample}</Text>
-          <Ionicons name="chevron-down" size={21} color="#e2671b" />
+          <Ionicons name="chevron-down" size={21} color={dark ? "#e2671b" : "#000000"} />
         </TouchableOpacity>
       ) : (
-        <View style={{ height: 48, borderRadius: 9, backgroundColor: dark ? '#091e4e' : '#eef3ff', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14 }}>
-          <TextInput value={value} onChangeText={onChangeText} placeholder={sample} placeholderTextColor={dark ? '#f9fafc' : '#64748b'} keyboardType={numeric ? 'numeric' : 'default'} style={{ flex: 1, color: dark ? '#f9fafc' : '#010a1f', fontSize: 15, fontFamily: 'Poppins_500Medium', padding: 0 }} />
+        <View style={[{ height: 48, borderRadius: 9, backgroundColor: dark ? '#091e4e' : '#E8EAEF', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14 }, !dark && { borderRadius: 24, paddingHorizontal: 20, borderWidth: 1, borderColor: 'rgba(0,0,0,0.18)', boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
+          <TextInput value={value} onChangeText={onChangeText} placeholder={sample} placeholderTextColor={dark ? '#f9fafc' : '#8f8f8f'} keyboardType={numeric ? 'numeric' : 'default'} style={{ flex: 1, color: dark ? '#f9fafc' : '#010a1f', fontSize: 15, fontFamily: 'Poppins_500Medium', padding: 0 }} />
         </View>
       )}
     </View>
@@ -267,6 +269,19 @@ export default function SellMyVehicle() {
     else router.back();
   }
 
+  // Android device back button: step 2–7 pe pichle step pe jao (screen band na ho).
+  // Step 1 pe default behaviour — screen band hoti hai.
+  useEffect(() => {
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (currentStep > 1) {
+        setCurrentStep(s => s - 1);
+        return true;
+      }
+      return false;
+    });
+    return () => sub.remove();
+  }, [currentStep]);
+
   async function uploadPhoto(uri: string): Promise<string> {
     const formData = new FormData();
     const filename = uri.split("/").pop() || "photo.jpg";
@@ -378,7 +393,7 @@ export default function SellMyVehicle() {
       <StatusBar barStyle={aC.isDark ? "light-content" : "dark-content"} backgroundColor={aC.isDark ? aC.bg : "#ffffff"} />
 
       {/* Header — dark mode me bg dark */}
-      <View style={[styles.header, { backgroundColor: aC.isDark ? aC.bg : '#ffffff', borderBottomWidth: aC.isDark ? 0 : 1, borderBottomColor: 'rgba(3,42,105,0.08)' }]}> 
+      <View style={[styles.header, { backgroundColor: aC.isDark ? aC.bg : '#ffffff', borderBottomWidth: 0, borderBottomColor: 'rgba(3,42,105,0.08)' }]}> 
         <TouchableOpacity style={styles.headerIcon} onPress={handleBack}>
           <Ionicons name="chevron-back" size={28} color={aC.isDark ? '#f9fafc' : "#010a1f"} />
         </TouchableOpacity>
@@ -397,14 +412,15 @@ export default function SellMyVehicle() {
         <View style={styles.stepsContainer}>
           {STEPS.map((step, index) => (
             <React.Fragment key={step}>
-              <View style={[styles.stepCircle, step === currentStep && styles.activeStep, step === currentStep && { borderColor: aC.isDark ? '#8eafdf' : '#032a69' }]}>
+              <View style={[styles.stepCircle, step === currentStep && styles.activeStep, step === currentStep && { borderColor: aC.isDark ? '#8eafdf' : '#032a69' }, !aC.isDark && (step === currentStep ? { backgroundColor: '#E8EAEF', borderWidth: 0, overflow: 'visible', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' } : { backgroundColor: '#ffffff' })]}>
+                {!aC.isDark && step !== currentStep && <LightGradientBorder radius={18} fill="#ffffff" colors={['rgba(226,103,27,0.6)', 'rgba(3,42,105,0.55)']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} />}
                 {step === currentStep && aC.isDark && <LinearGradient colors={['#254c87', '#142e5d', '#0d234a']} locations={[0, 0.55, 1]} style={styles.activeStepGradient} pointerEvents="none" />}
                 <Text
                   allowFontScaling={false}
-                  style={[styles.stepNumber, { color: aC.isDark ? '#f9fafc' : '#032a69' }]}
+                  style={[styles.stepNumber, { color: aC.isDark ? '#f9fafc' : '#000000' }, !aC.isDark && { fontFamily: 'Poppins_500Medium' }]}
                 >{String(step)}</Text>
               </View>
-              {index < STEPS.length - 1 && <View style={[styles.stepLine, { backgroundColor: aC.isDark ? '#0C2B61' : 'rgba(3,12,40,0.12)' }]} />}
+              {index < STEPS.length - 1 && <View style={[styles.stepLine, { backgroundColor: aC.isDark ? '#0C2B61' : '#1F3F7A' }]} />}
             </React.Fragment>
           ))}
         </View>
@@ -419,8 +435,9 @@ export default function SellMyVehicle() {
 
             {/* Car card — border blue→orange gradient, bg white, selected shade */}
             <TouchableOpacity activeOpacity={0.9} onPress={() => setSelectedVehicle("car")} style={{ marginBottom: 20 }}>
-              <View style={[styles.vehicleCardBorder, selectedVehicle === "car" && aC.isDark && styles.vehicleCardBorderGlow, { borderColor: aC.isDark ? (selectedVehicle === "car" ? '#829fd0' : 'transparent') : '#cbd5e1' }]}>
-                <View style={[styles.vehicleCard, { backgroundColor: aC.isDark ? (selectedVehicle === "car" ? '#010b1e' : '#061b4a') : '#ffffff', borderWidth: 0, marginBottom: 0, overflow: 'hidden' }]}>
+              <View style={[styles.vehicleCardBorder, selectedVehicle === "car" && aC.isDark && styles.vehicleCardBorderGlow, { borderColor: aC.isDark ? (selectedVehicle === "car" ? '#829fd0' : 'transparent') : 'transparent' }, !aC.isDark && selectedVehicle === "car" && { boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
+                <View style={[styles.vehicleCard, { backgroundColor: aC.isDark ? (selectedVehicle === "car" ? '#010b1e' : '#061b4a') : (selectedVehicle === "car" ? '#F2F4F8' : '#ffffff'), borderWidth: 0, marginBottom: 0, overflow: 'hidden' }]}>
+                  {!aC.isDark && selectedVehicle !== "car" && <LightGradientBorder radius={17} fill="#ffffff" colors={['#032a69', '#e2671b']} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} />}
                   {aC.isDark && selectedVehicle === "car" && <>
                     <LinearGradient colors={['rgba(35,83,165,0.52)', 'transparent']} style={styles.cardGlowTop} pointerEvents="none" />
                     <LinearGradient colors={['rgba(35,83,165,0.30)', 'transparent']} start={{ x: 0, y: 1 }} end={{ x: 0, y: 0 }} style={styles.cardGlowBottom} pointerEvents="none" />
@@ -428,12 +445,12 @@ export default function SellMyVehicle() {
                     <LinearGradient colors={['rgba(35,83,165,0.18)', 'transparent']} start={{ x: 1, y: 0 }} end={{ x: 0, y: 0 }} style={styles.cardGlowRight} pointerEvents="none" />
                   </>}
                   <View style={styles.vehicleTop}>
-                    <View style={styles.vehicleIcon}>
-                      <Ionicons name="car-sport-outline" size={24} color="#FF6A00" />
+                    <View style={[styles.vehicleIcon, !aC.isDark && { backgroundColor: '#1F3F7A', borderWidth: 0 }]}>
+                      <Ionicons name="car-sport-outline" size={24} color={aC.isDark ? "#FF6A00" : '#ffffff'} />
                     </View>
                     <View style={styles.vehicleInfo}>
                       <Text style={[styles.vehicleTitle, { color: aC.isDark ? '#f9fafc' : '#010a1f' }]}>Car Listing</Text>
-                      <Text style={[styles.vehicleDescription, { color: aC.isDark ? '#baacb6' : '#6b7280' }]}>
+                      <Text style={[styles.vehicleDescription, { color: aC.isDark ? '#baacb6' : '#000000' }]}>
                         Sell new or used cars easily{"\n"}to thousand
                       </Text>
                     </View>
@@ -454,8 +471,9 @@ export default function SellMyVehicle() {
 
             {/* Bike card — border blue→orange gradient, bg white, selected shade */}
             <TouchableOpacity activeOpacity={0.9} onPress={() => setSelectedVehicle("bike")} style={{ marginBottom: 20 }}>
-              <View style={[styles.vehicleCardBorder, selectedVehicle === "bike" && aC.isDark && styles.vehicleCardBorderGlow, { borderColor: aC.isDark ? (selectedVehicle === "bike" ? '#829fd0' : 'transparent') : '#cbd5e1' }]}>
-                <View style={[styles.vehicleCard, { backgroundColor: aC.isDark ? (selectedVehicle === "bike" ? '#010b1e' : '#061b4a') : '#ffffff', borderWidth: 0, marginBottom: 0, overflow: 'hidden' }]}>
+              <View style={[styles.vehicleCardBorder, selectedVehicle === "bike" && aC.isDark && styles.vehicleCardBorderGlow, { borderColor: aC.isDark ? (selectedVehicle === "bike" ? '#829fd0' : 'transparent') : 'transparent' }, !aC.isDark && selectedVehicle === "bike" && { boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
+                <View style={[styles.vehicleCard, { backgroundColor: aC.isDark ? (selectedVehicle === "bike" ? '#010b1e' : '#061b4a') : (selectedVehicle === "bike" ? '#F2F4F8' : '#ffffff'), borderWidth: 0, marginBottom: 0, overflow: 'hidden' }]}>
+                  {!aC.isDark && selectedVehicle !== "bike" && <LightGradientBorder radius={17} fill="#ffffff" colors={['#032a69', '#e2671b']} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} />}
                   {aC.isDark && selectedVehicle === "bike" && <>
                     <LinearGradient colors={['rgba(35,83,165,0.52)', 'transparent']} style={styles.cardGlowTop} pointerEvents="none" />
                     <LinearGradient colors={['rgba(35,83,165,0.30)', 'transparent']} start={{ x: 0, y: 1 }} end={{ x: 0, y: 0 }} style={styles.cardGlowBottom} pointerEvents="none" />
@@ -463,12 +481,12 @@ export default function SellMyVehicle() {
                     <LinearGradient colors={['rgba(35,83,165,0.18)', 'transparent']} start={{ x: 1, y: 0 }} end={{ x: 0, y: 0 }} style={styles.cardGlowRight} pointerEvents="none" />
                   </>}
                   <View style={styles.vehicleTop}>
-                    <View style={styles.vehicleIcon}>
-                      <Ionicons name="bicycle-outline" size={25} color="#FF6A00" />
+                    <View style={[styles.vehicleIcon, !aC.isDark && { backgroundColor: '#1F3F7A', borderWidth: 0 }]}>
+                      <Ionicons name="bicycle-outline" size={25} color={aC.isDark ? "#FF6A00" : '#ffffff'} />
                     </View>
                     <View style={styles.vehicleInfo}>
                       <Text style={[styles.vehicleTitle, { color: aC.isDark ? '#f9fafc' : '#010a1f' }]}>Bike Listing</Text>
-                      <Text style={[styles.vehicleDescription, { color: aC.isDark ? '#baacb6' : '#6b7280' }]}>
+                      <Text style={[styles.vehicleDescription, { color: aC.isDark ? '#baacb6' : '#000000' }]}>
                         List your bike and connect{"\n"}with serious buyers
                       </Text>
                     </View>
@@ -510,33 +528,27 @@ export default function SellMyVehicle() {
             <PickerModal visible={pickerFor === "variant"}  title="Select Variant"      options={VARIANTS}      onSelect={setVariant}      onClose={() => setPickerFor(null)} />
             <PickerModal visible={pickerFor === "cond"}     title="Condition"           options={CONDITIONS}    onSelect={setCondition}    onClose={() => setPickerFor(null)} />
 
-            <View style={[styles.step2CardBorder, aC.isDark && styles.vehicleCardBorderGlow, { borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.14)' }]}>
-            <View style={[styles.formCard, styles.step2FormCard, { backgroundColor: aC.isDark ? '#010b1e' : '#ffffff', borderColor: 'transparent', overflow: 'hidden' }]}>
+            <View style={[styles.step2CardBorder, aC.isDark && styles.vehicleCardBorderGlow, { borderColor: aC.isDark ? '#829fd0' : 'transparent' }, !aC.isDark && { borderWidth: 0 }]}>
+            <View style={[styles.formCard, styles.step2FormCard, { backgroundColor: aC.isDark ? '#010b1e' : 'transparent', borderColor: 'transparent', overflow: aC.isDark ? 'hidden' : 'visible' }, !aC.isDark && { padding: 0, paddingBottom: 8 }]}>
               {aC.isDark && <>
                 <LinearGradient colors={['rgba(35,83,165,0.40)', 'transparent']} style={styles.cardGlowTop} pointerEvents="none" />
                 <LinearGradient colors={['rgba(35,83,165,0.30)', 'transparent']} start={{ x: 0, y: 1 }} end={{ x: 0, y: 0 }} style={styles.step2GlowBottom} pointerEvents="none" />
                 <LinearGradient colors={['rgba(35,83,165,0.30)', 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.step2GlowLeft} pointerEvents="none" />
                 <LinearGradient colors={['rgba(35,83,165,0.30)', 'transparent']} start={{ x: 1, y: 0 }} end={{ x: 0, y: 0 }} style={styles.step2GlowRight} pointerEvents="none" />
               </>}
-              {!aC.isDark && (
-                <>
-                  <LinearGradient colors={['rgba(3,42,105,0.05)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                  <LinearGradient colors={['transparent', 'rgba(226,103,27,0.12)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                </>
-              )}
               {/* Vehicle Type selection is handled in Step 1; the duplicate Step 2 toggle is intentionally commented out. */}
               <Step2FigmaField label="Brand" value={brand === "Any" ? otherBrand || "Any" : brand} sample="Honda" onPress={() => setPickerFor("brand")} dark={aC.isDark} />
-              {brand === "Any" && <TextInput value={otherBrand} onChangeText={setOtherBrand} placeholder="Which brand?" placeholderTextColor="#b8acba" style={[styles.step2OtherInput, { color: aC.textPrimary }]} />}
+              {brand === "Any" && <TextInput value={otherBrand} onChangeText={setOtherBrand} placeholder="Which brand?" placeholderTextColor="#b8acba" style={[styles.step2OtherInput, { color: aC.textPrimary }, !aC.isDark && { height: 48, borderRadius: 24, paddingHorizontal: 20, backgroundColor: '#E8EAEF', borderWidth: 1, borderColor: 'rgba(0,0,0,0.18)', boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]} />}
               <Step2FigmaField label="City" value={city} sample="Karachi" onPress={() => setPickerFor("city")} dark={aC.isDark} />
               <Step2FigmaField label="Year" value={year} sample="2024" onPress={() => setPickerFor("year")} dark={aC.isDark} />
               <Step2FigmaField label="Variant" value={variant} sample="1.2 Aspire CVT" onPress={() => setPickerFor("variant")} dark={aC.isDark} />
-              {variant === "Other" && <TextInput value={otherVariant} onChangeText={setOtherVariant} placeholder="Enter variant" placeholderTextColor="#b8acba" style={[styles.step2OtherInput, { color: aC.textPrimary }]} />}
+              {variant === "Other" && <TextInput value={otherVariant} onChangeText={setOtherVariant} placeholder="Enter variant" placeholderTextColor="#b8acba" style={[styles.step2OtherInput, { color: aC.textPrimary }, !aC.isDark && { height: 48, borderRadius: 24, paddingHorizontal: 20, backgroundColor: '#E8EAEF', borderWidth: 1, borderColor: 'rgba(0,0,0,0.18)', boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]} />}
               <Step2FigmaField label="Ad Duration" value={adDuration} sample="1 week" onPress={() => setPickerFor("duration")} dark={aC.isDark} />
               <Step2FigmaField label="Fuel Type" value={fuelType} sample="Petrol" onPress={() => setPickerFor("fuel")} dark={aC.isDark} />
-              {fuelType === "Other" && <TextInput value={otherFuel} onChangeText={setOtherFuel} placeholder="Enter fuel type" placeholderTextColor="#b8acba" style={[styles.step2OtherInput, { color: aC.textPrimary }]} />}
+              {fuelType === "Other" && <TextInput value={otherFuel} onChangeText={setOtherFuel} placeholder="Enter fuel type" placeholderTextColor="#b8acba" style={[styles.step2OtherInput, { color: aC.textPrimary }, !aC.isDark && { height: 48, borderRadius: 24, paddingHorizontal: 20, backgroundColor: '#E8EAEF', borderWidth: 1, borderColor: 'rgba(0,0,0,0.18)', boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]} />}
               <Step2FigmaField label="KM" value={km} sample="5000" onChangeText={setKm} numeric dark={aC.isDark} />
               <Step2FigmaField label="Color" value={color} sample="Grey" onPress={() => setPickerFor("color")} dark={aC.isDark} />
-              {color === "Other" && <TextInput value={otherColor} onChangeText={setOtherColor} placeholder="Enter color" placeholderTextColor="#b8acba" style={[styles.step2OtherInput, { color: aC.textPrimary }]} />}
+              {color === "Other" && <TextInput value={otherColor} onChangeText={setOtherColor} placeholder="Enter color" placeholderTextColor="#b8acba" style={[styles.step2OtherInput, { color: aC.textPrimary }, !aC.isDark && { height: 48, borderRadius: 24, paddingHorizontal: 20, backgroundColor: '#E8EAEF', borderWidth: 1, borderColor: 'rgba(0,0,0,0.18)', boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]} />}
             </View>
             </View>
           </>
@@ -552,11 +564,9 @@ export default function SellMyVehicle() {
 
             <View style={styles.inputSection}>
               <Text style={[styles.fieldLabel, aC.isDark && styles.step3FieldLabel, { color: aC.isDark ? '#b8acba' : aC.textPrimary }]}>Asking Price (PKR)</Text>
-              <View style={[styles.inputWrapper, styles.step3InputWrapper, { backgroundColor: aC.isDark ? '#010b1e' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.14)', overflow: 'hidden' }]}>
+              <View style={[styles.inputWrapper, styles.step3InputWrapper, { backgroundColor: aC.isDark ? '#010b1e' : '#E8EAEF', borderColor: aC.isDark ? '#829fd0' : 'rgba(0,0,0,0.18)', overflow: 'hidden' }, !aC.isDark && { boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
                 {!aC.isDark ? (
                   <>
-                    <LinearGradient colors={['rgba(3,42,105,0.06)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.55 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                    <LinearGradient colors={['transparent', 'rgba(226,103,27,0.05)']} start={{ x: 0.5, y: 0.5 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
                   </>
                 ) : (
                   <>
@@ -579,11 +589,9 @@ export default function SellMyVehicle() {
 
             <View style={styles.inputSection}>
               <Text style={[styles.fieldLabel, aC.isDark && styles.step3FieldLabel, { color: aC.isDark ? '#b8acba' : aC.textPrimary }]}>Location</Text>
-              <View style={[styles.inputWrapper, styles.step3InputWrapper, { backgroundColor: aC.isDark ? '#010b1e' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.14)', overflow: 'hidden' }]}>
+              <View style={[styles.inputWrapper, styles.step3InputWrapper, { backgroundColor: aC.isDark ? '#010b1e' : '#E8EAEF', borderColor: aC.isDark ? '#829fd0' : 'rgba(0,0,0,0.18)', overflow: 'hidden' }, !aC.isDark && { boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
                 {!aC.isDark ? (
                   <>
-                    <LinearGradient colors={['rgba(3,42,105,0.06)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.55 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                    <LinearGradient colors={['transparent', 'rgba(226,103,27,0.05)']} start={{ x: 0.5, y: 0.5 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
                   </>
                 ) : (
                   <>
@@ -607,7 +615,6 @@ export default function SellMyVehicle() {
             <View style={[styles.tipsCard, { backgroundColor: aC.isDark ? '#030E26' : '#ffffff', borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.14)', overflow: 'hidden' }, aC.isDark && styles.priceTipInner]}>
               {!aC.isDark ? (
                 <>
-                  <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.45 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
                   <LinearGradient colors={['transparent', 'rgba(226,103,27,0.14)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
                 </>
               ) : (
@@ -679,7 +686,6 @@ export default function SellMyVehicle() {
                   <LinearGradient colors={['transparent', 'rgba(226,103,27,0.25)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
                 ) : (
                   <>
-                    <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
                     <LinearGradient colors={['transparent', 'rgba(226,103,27,0.14)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
                   </>
                 )}
@@ -703,7 +709,7 @@ export default function SellMyVehicle() {
             {/* Title input */}
             <View style={styles.inputSection}>
               <Text style={[styles.fieldLabel, aC.isDark && styles.step5FieldLabel, { color: aC.isDark ? '#b8acba' : aC.textPrimary }]}>Title</Text>
-              <View style={[styles.inputWrapper, aC.isDark && styles.step5TitleWrapper, { backgroundColor: aC.isDark ? '#010b1e' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.14)', overflow: 'hidden', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, shadowRadius: 8, elevation: aC.isDark ? 0 : 2 }]}>
+              <View style={[styles.inputWrapper, aC.isDark && styles.step5TitleWrapper, { backgroundColor: aC.isDark ? '#010b1e' : '#E8EAEF', borderColor: aC.isDark ? '#829fd0' : 'rgba(0,0,0,0.18)', overflow: 'hidden', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, shadowRadius: 8, elevation: aC.isDark ? 0 : 2 }, !aC.isDark && { boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
                 {aC.isDark ? (
                   <>
                     <LinearGradient colors={['rgba(35,83,165,0.46)', 'transparent']} style={styles.cardGlowTop} pointerEvents="none" />
@@ -712,8 +718,6 @@ export default function SellMyVehicle() {
                   </>
                 ) : (
                   <>
-                    <LinearGradient colors={['rgba(3,42,105,0.06)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.55 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                    <LinearGradient colors={['transparent', 'rgba(226,103,27,0.08)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
                   </>
                 )}
                 <TextInput
@@ -729,7 +733,7 @@ export default function SellMyVehicle() {
             {/* Description textarea */}
             <View style={styles.inputSection}>
               <Text style={[styles.fieldLabel, aC.isDark && styles.step5FieldLabel, { color: aC.isDark ? '#b8acba' : aC.textPrimary }]}>Description</Text>
-              <View style={[styles.inputWrapper, aC.isDark && styles.step5DescWrapper, { borderRadius: 16, backgroundColor: aC.isDark ? '#010b1e' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.14)', overflow: 'hidden', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, shadowRadius: 8, elevation: aC.isDark ? 0 : 2 }]}>
+              <View style={[styles.inputWrapper, aC.isDark && styles.step5DescWrapper, { borderRadius: 16, backgroundColor: aC.isDark ? '#010b1e' : '#E8EAEF', borderColor: aC.isDark ? '#829fd0' : 'rgba(0,0,0,0.18)', overflow: 'hidden', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, shadowRadius: 8, elevation: aC.isDark ? 0 : 2 }, !aC.isDark && { boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
                 {aC.isDark ? (
                   <>
                     <LinearGradient colors={['rgba(35,83,165,0.46)', 'transparent']} style={styles.cardGlowTop} pointerEvents="none" />
@@ -738,8 +742,6 @@ export default function SellMyVehicle() {
                   </>
                 ) : (
                   <>
-                    <LinearGradient colors={['rgba(3,42,105,0.05)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                    <LinearGradient colors={['transparent', 'rgba(226,103,27,0.08)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
                   </>
                 )}
                 <TextInput
@@ -766,8 +768,6 @@ export default function SellMyVehicle() {
                     </>
                   ) : (
                     <>
-                      <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                      <LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
                     </>
                   )}
                   <Text style={[styles.chipText, { color: aC.isDark ? '#f9fafc' : '#475569' }]}>{f}</Text>
@@ -784,8 +784,6 @@ export default function SellMyVehicle() {
                   </>
                 ) : (
                   <>
-                    <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                    <LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
                   </>
                 )}
                 <Ionicons name="add" size={14} color={aC.isDark ? '#f9fafc' : '#475569'} />
@@ -794,15 +792,13 @@ export default function SellMyVehicle() {
             </View>
             {showAddInput && (
               <View style={{ flexDirection: 'row', gap: 8, marginTop: 12, alignItems: 'center' }}>
-                <View style={[styles.inputWrapper, { flex: 1, height: 44, borderRadius: 12, backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.5)' : 'rgba(3,42,105,0.14)', overflow: 'hidden' }]}>
+                <View style={[styles.inputWrapper, { flex: 1, height: 44, borderRadius: 12, backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#E8EAEF', borderColor: aC.isDark ? 'rgba(100,160,255,0.5)' : 'rgba(0,0,0,0.18)', overflow: 'hidden' }, !aC.isDark && { boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
                   {aC.isDark ? (
                     <>
                       <LinearGradient colors={['rgba(22,64,136,0.15)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
                     </>
                   ) : (
                     <>
-                      <LinearGradient colors={['rgba(3,42,105,0.05)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                      <LinearGradient colors={['transparent', 'rgba(226,103,27,0.06)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
                     </>
                   )}
                   <TextInput
@@ -854,7 +850,7 @@ export default function SellMyVehicle() {
 
             <View style={styles.inputSection}>
               <Text style={[styles.fieldLabel, aC.isDark && styles.step6FieldLabel, { color: aC.isDark ? '#b8acba' : aC.textPrimary }]}>Your Name</Text>
-              <View style={[styles.inputWrapper, aC.isDark && styles.step6InputWrapper, { backgroundColor: aC.isDark ? '#010b1e' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.14)', overflow: 'hidden', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]}>
+              <View style={[styles.inputWrapper, aC.isDark && styles.step6InputWrapper, { backgroundColor: aC.isDark ? '#010b1e' : '#E8EAEF', borderColor: aC.isDark ? '#829fd0' : 'rgba(0,0,0,0.18)', overflow: 'hidden', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }, !aC.isDark && { boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
                 {aC.isDark ? (
                   <>
                     <LinearGradient colors={['rgba(35,83,165,0.46)', 'transparent']} style={styles.cardGlowTop} pointerEvents="none" />
@@ -863,8 +859,6 @@ export default function SellMyVehicle() {
                   </>
                 ) : (
                   <>
-                    <LinearGradient colors={['rgba(3,42,105,0.06)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.55 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                    <LinearGradient colors={['transparent', 'rgba(226,103,27,0.08)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
                   </>
                 )}
                 <TextInput value={contactName} onChangeText={setContactName} style={[styles.textInput, aC.isDark && styles.step6TextInput, { color: aC.isDark ? '#f9fafc' : '#010a1f' }]} placeholderTextColor="#8f8f8f" placeholder="Enter your name" />
@@ -873,7 +867,7 @@ export default function SellMyVehicle() {
 
             <View style={styles.inputSection}>
               <Text style={[styles.fieldLabel, aC.isDark && styles.step6FieldLabel, { color: aC.isDark ? '#b8acba' : aC.textPrimary }]}>Phone Number</Text>
-              <View style={[styles.inputWrapper, aC.isDark && styles.step6InputWrapper, { backgroundColor: aC.isDark ? '#010b1e' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.14)', overflow: 'hidden', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]}>
+              <View style={[styles.inputWrapper, aC.isDark && styles.step6InputWrapper, { backgroundColor: aC.isDark ? '#010b1e' : '#E8EAEF', borderColor: aC.isDark ? '#829fd0' : 'rgba(0,0,0,0.18)', overflow: 'hidden', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }, !aC.isDark && { boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
                 {aC.isDark ? (
                   <>
                     <LinearGradient colors={['rgba(35,83,165,0.46)', 'transparent']} style={styles.cardGlowTop} pointerEvents="none" />
@@ -882,8 +876,6 @@ export default function SellMyVehicle() {
                   </>
                 ) : (
                   <>
-                    <LinearGradient colors={['rgba(3,42,105,0.06)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.55 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                    <LinearGradient colors={['transparent', 'rgba(226,103,27,0.08)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
                   </>
                 )}
                 <TextInput value={contactPhone} onChangeText={setContactPhone} keyboardType="phone-pad" style={[styles.textInput, aC.isDark && styles.step6TextInput, { color: aC.isDark ? '#f9fafc' : '#010a1f' }]} placeholderTextColor="#8f8f8f" placeholder="+92 3XX XXXXXXX" />
@@ -892,7 +884,7 @@ export default function SellMyVehicle() {
 
             <View style={styles.inputSection}>
               <Text style={[styles.fieldLabel, aC.isDark && styles.step6FieldLabel, { color: aC.isDark ? '#b8acba' : aC.textPrimary }]}>Email (optional)</Text>
-              <View style={[styles.inputWrapper, aC.isDark && styles.step6InputWrapper, { backgroundColor: aC.isDark ? '#010b1e' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.14)', overflow: 'hidden', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]}>
+              <View style={[styles.inputWrapper, aC.isDark && styles.step6InputWrapper, { backgroundColor: aC.isDark ? '#010b1e' : '#E8EAEF', borderColor: aC.isDark ? '#829fd0' : 'rgba(0,0,0,0.18)', overflow: 'hidden', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }, !aC.isDark && { boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
                 {aC.isDark ? (
                   <>
                     <LinearGradient colors={['rgba(35,83,165,0.46)', 'transparent']} style={styles.cardGlowTop} pointerEvents="none" />
@@ -901,8 +893,6 @@ export default function SellMyVehicle() {
                   </>
                 ) : (
                   <>
-                    <LinearGradient colors={['rgba(3,42,105,0.06)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.55 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                    <LinearGradient colors={['transparent', 'rgba(226,103,27,0.08)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
                   </>
                 )}
                 <TextInput value={contactEmail} onChangeText={setContactEmail} keyboardType="email-address" style={[styles.textInput, aC.isDark && styles.step6TextInput, { color: aC.isDark ? '#f9fafc' : '#010a1f' }]} placeholderTextColor="#8f8f8f" placeholder="your@email.com" />
@@ -911,7 +901,7 @@ export default function SellMyVehicle() {
 
             <View style={styles.inputSection}>
               <Text style={[styles.fieldLabel, aC.isDark && styles.step6FieldLabel, { color: aC.isDark ? '#b8acba' : aC.textPrimary }]}>WhatsApp</Text>
-              <View style={[styles.inputWrapper, aC.isDark && styles.step6InputWrapper, { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, backgroundColor: aC.isDark ? '#010b1e' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.14)', overflow: 'hidden', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]}>
+              <View style={[styles.inputWrapper, aC.isDark && styles.step6InputWrapper, { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, backgroundColor: aC.isDark ? '#010b1e' : '#E8EAEF', borderColor: aC.isDark ? '#829fd0' : 'rgba(0,0,0,0.18)', overflow: 'hidden', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }, !aC.isDark && { boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
                 {aC.isDark ? (
                   <>
                     <LinearGradient colors={['rgba(35,83,165,0.46)', 'transparent']} style={styles.cardGlowTop} pointerEvents="none" />
@@ -920,8 +910,6 @@ export default function SellMyVehicle() {
                   </>
                 ) : (
                   <>
-                    <LinearGradient colors={['rgba(3,42,105,0.05)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                    <LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
                   </>
                 )}
                 <Ionicons name="logo-whatsapp" size={20} color="#25D366" style={{ marginRight: 10 }} />
@@ -970,7 +958,6 @@ export default function SellMyVehicle() {
 
             {/* Preview card — light white + orange shade */}
             <View style={[styles.reviewCard, { backgroundColor: aC.isDark ? '#010a1f' : '#ffffff', borderColor: aC.isDark ? '#303747' : 'rgba(3,42,105,0.12)', overflow: 'hidden', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, shadowRadius: 12, elevation: aC.isDark ? 0 : 3 }]}>
-              {!aC.isDark && <><LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" /><LinearGradient colors={['transparent', 'rgba(226,103,27,0.09)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" /></>}
               {/* Top: image + title + price + badge */}
               <View style={styles.reviewTop}>
                 <View style={[styles.reviewImgBox, { backgroundColor: aC.isDark ? 'transparent' : '#f8f9ff' }]}>
@@ -988,7 +975,7 @@ export default function SellMyVehicle() {
                   <Text style={styles.reviewPrice}>
                     {askingPrice ? `PKR ${Number(askingPrice.replace(/,/g,"")).toLocaleString()}` : "—"}
                   </Text>
-                  <View style={styles.activeBadge}>
+                  <View style={[styles.activeBadge, !aC.isDark && { backgroundColor: '#ffffff', borderWidth: 1, borderColor: 'rgba(34,197,94,0.55)' }]}>
                     <View style={styles.activeDot} />
                     <Text style={styles.activeTxt}>Active</Text>
                   </View>
@@ -1025,12 +1012,12 @@ export default function SellMyVehicle() {
       <View style={[styles.continueWrap, { backgroundColor: aC.bg }]}>
         <TouchableOpacity
           activeOpacity={0.87}
-          style={styles.continueButton}
+          style={[styles.continueButton, !aC.isDark && { boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}
           onPress={handleContinue}
           disabled={submitting}
         >
           <LinearGradient
-            colors={["#032a69", ORANGE]}
+            colors={aC.isDark ? ["#032a69", ORANGE] : ['#27467F', '#FF9654']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={styles.continueGrad}
@@ -1050,7 +1037,7 @@ function Feature({ icon, text, muted = false }: { icon: keyof typeof Ionicons.gl
   const aC = useAppColors();
   return (
     <View style={styles.feature}>
-      <Ionicons name={icon} size={15} color={aC.isDark ? (muted ? '#d7d6dd' : ORANGE) : "#032a69"} />
+      <Ionicons name={icon} size={15} color={aC.isDark ? (muted ? '#d7d6dd' : ORANGE) : "#000000"} />
       <Text style={[styles.featureText, { color: aC.isDark ? '#d7d6dd' : '#010a1f' }]}>{text}</Text>
     </View>
   );

@@ -1,3 +1,4 @@
+import { useAppColors, withLightStyles, LIGHT_POP_SHADOW } from '@/constants/theme';
 import VerifiedIcon from '@/components/shared/VerifiedIcon';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -34,6 +35,8 @@ function formatPrice(p: number) {
 }
 
 export default function ReviewReservationScreen() {
+  const aC = useAppColors();
+  const s = aC.isDark ? s_dark : s_light;
   const router = useRouter();
   const params = useLocalSearchParams<{
     id: string;
@@ -151,15 +154,15 @@ export default function ReviewReservationScreen() {
         <Text style={s.headerTitle}>Review Your Reservation</Text>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} style={{ backgroundColor: '#010A1F' }} contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 16, paddingBottom: 30, backgroundColor: '#010A1F' }}>
+      <ScrollView showsVerticalScrollIndicator={false} style={{ backgroundColor: aC.isDark ? '#010A1F' : '#ffffff' }} contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 16, paddingBottom: 30, backgroundColor: aC.isDark ? '#010A1F' : '#ffffff' }}>
 
         {/* Car Summary Card */}
         <View style={s.carCard}>
-          <SavedCardEffect />
+          {aC.isDark && <SavedCardEffect />}
           {carImg
             ? <Image source={{ uri: carImg }} style={s.carImg} resizeMode="cover" />
-            : <View style={[s.carImg, { backgroundColor: '#0d1e3d', alignItems: 'center', justifyContent: 'center' }]}>
-                <Ionicons name="car-outline" size={24} color={MUTED} />
+            : <View style={[s.carImg, { backgroundColor: aC.isDark ? '#0d1e3d' : '#ffffff', alignItems: 'center', justifyContent: 'center' }]}>
+                <Ionicons name="car-outline" size={24} color={aC.isDark ? MUTED : '#4b5563'} />
               </View>
           }
           <View style={{ flex: 1 }}>
@@ -176,7 +179,7 @@ export default function ReviewReservationScreen() {
         {/* Dealer Card — border: orange (top) → blue (bottom) */}
         <LinearGradient colors={['#E2671B', '#8A5A55', '#2E4F8E']} locations={[0, 0.5, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={s.dealerBorder}>
         <View style={s.dealerCard}>
-          <LinearGradient colors={WARM_CARD_COLORS as any} locations={WARM_CARD_LOCATIONS as any} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+          {aC.isDark && <LinearGradient colors={(aC.isDark ? WARM_CARD_COLORS : ['#F1F4F8', '#FCDCC8']) as any} locations={(aC.isDark ? WARM_CARD_LOCATIONS : [0, 1]) as any} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
           <View style={s.dealerAvatar}>
             {dealerAvatar
               ? <Image source={{ uri: dealerAvatar }} style={StyleSheet.absoluteFillObject} resizeMode="cover" />
@@ -226,9 +229,9 @@ export default function ReviewReservationScreen() {
         {/* Continue Button */}
         <View style={{ height: 56 }} />
         <TouchableOpacity style={s.continueBtn} onPress={handleContinue} disabled={submitting} activeOpacity={0.88}>
-          <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+          <LinearGradient colors={(aC.isDark ? PRIMARY_BTN_COLORS : ['#27467F', '#8C6A78', '#FF9654']) as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
           {submitting
-            ? <ActivityIndicator color={WHITE} />
+            ? <ActivityIndicator color={aC.isDark ? WHITE : '#000000'} />
             : <Text style={s.continueTxt}>Continue</Text>
           }
         </TouchableOpacity>
@@ -238,7 +241,7 @@ export default function ReviewReservationScreen() {
   );
 }
 
-const s = StyleSheet.create({
+const s_dark = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#010A1F' },
 
   header:      { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 12, paddingTop: 10, paddingBottom: 14 },
@@ -274,3 +277,22 @@ const s = StyleSheet.create({
   continueBtn: { height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', marginTop: 'auto', marginBottom: 4 },
   continueTxt: { color: '#EDEBF0', fontSize: 17, fontFamily: 'Poppins_600SemiBold' },
 });
+// Light mode layer for `s` — dark mode uses s_dark as is
+const s_light = withLightStyles(s_dark, {
+  root: { backgroundColor: '#ffffff' },
+  headerTitle: { color: '#000000' },
+  carCard: { backgroundColor: '#F2F4F8', borderColor: 'rgba(0,0,0,0.04)', boxShadow: LIGHT_POP_SHADOW },
+  carName: { color: '#000000' },
+  carMetaTxt: { color: '#4b5563' },
+  dealerCard: { backgroundColor: '#F2F4F8', borderColor: 'rgba(226,103,27,0.28)', boxShadow: LIGHT_POP_SHADOW },
+  dealerName: { color: '#000000' },
+  dealerSub: { color: '#4b5563' },
+  dealerRatingTxt: { color: '#4b5563' },
+  dealerLocTxt: { color: '#000000' },
+  section: { backgroundColor: '#F2F4F8', borderColor: 'rgba(0,0,0,0.12)' },
+  secTitle: { color: '#000000' },
+  rowBorder: { borderColor: 'rgba(0,0,0,0.12)' },
+  rowLabel: { color: '#4b5563' },
+  rowVal: { color: '#000000' },
+});
+

@@ -55,7 +55,7 @@ const round50k = (v: number) => Math.round(v / 50000) * 50000;
 
 type FieldKey = 'city' | 'brand' | 'year' | 'car' | 'variant' | 'color' | 'dealer';
 
-export default function VehicleSearch() {
+export default function VehicleSearch({ lightPeachBg = false }: { lightPeachBg?: boolean } = {}) {
   const router = useRouter();
   const C = useAppColors();
   const { token } = useAuth();
@@ -80,6 +80,8 @@ export default function VehicleSearch() {
   // Drag ke dauran sirf wahi thumb move hoga jo touch pe pakra gaya tha (min ya max)
   const activeThumb = useRef<'min' | 'max' | null>(null);
   const [openSheet, setOpenSheet] = useState<string | null>(null);
+  // Light mode (Figma): peach shade Vehicle Type ke neeche se shuru hota hai
+  const [fieldsY, setFieldsY] = useState(0);
 
   const [apiBrands, setApiBrands] = useState<{ name: string; logo_url?: string | null }[]>([]);
   const [models, setModels] = useState<string[]>([]);
@@ -268,11 +270,20 @@ export default function VehicleSearch() {
 
   return (
     <View style={styles.wrapper}>
+      {!C.isDark && lightPeachBg && fieldsY > 0 && (
+        <LinearGradient
+          colors={['#F1F4F8', '#FBEAE1', '#FCDCC8']}
+          locations={[0, 0.3, 1]}
+          start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }}
+          style={{ position: 'absolute', left: 0, right: 0, top: fieldsY - 8, bottom: 0 }}
+          pointerEvents="none"
+        />
+      )}
 
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerText}>
-          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={[styles.title, { color: C.textPrimary }]}>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={[styles.title, { color: C.isDark ? C.textPrimary : '#032a69' }]}>
             Search smart,{' '}
             <Text style={styles.orange}>Drive Better</Text>
           </Text>
@@ -293,10 +304,10 @@ export default function VehicleSearch() {
             key={opt}
             activeOpacity={0.8}
             onPress={() => setOption(opt)}
-            style={[styles.optionBtn, { backgroundColor: C.isDark ? '#071b42' : C.glassBg, borderColor: C.isDark ? 'rgba(60,99,165,0.25)' : 'rgba(3,12,40,0.12)' }, option === opt && { backgroundColor: C.isDark ? '#0B2452' : 'rgba(3,42,105,0.08)', borderColor: C.isDark ? '#8AA6D6' : 'rgba(3,42,105,0.25)' }, { overflow: 'hidden' }]}
+            style={[styles.optionBtn, { backgroundColor: C.isDark ? '#071b42' : 'transparent', borderColor: C.isDark ? 'rgba(60,99,165,0.25)' : '#b3bdd1' }, option === opt && { backgroundColor: C.isDark ? '#0B2452' : '#ffffff', borderColor: C.isDark ? '#8AA6D6' : 'rgba(0,0,0,0.06)' }, { overflow: C.isDark ? 'hidden' : 'visible' }, !C.isDark && option === opt && styles.lightRaised]}
           >
             {option === opt && C.isDark && <LinearGradient colors={['#173871', '#0C2048', '#0B214C', '#0F2556']} locations={[0, 0.35, 0.68, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
-            <Text style={[styles.optionTxt, { color: C.textPrimary }, option === opt && { color: '#e2671b' }]}>{opt}</Text>
+            <Text style={[styles.optionTxt, { color: C.textPrimary }, option === opt && { color: '#e2671b' }, !C.isDark && option === opt && { fontFamily: 'Poppins_600SemiBold' }]}>{opt}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -314,7 +325,7 @@ export default function VehicleSearch() {
             key={v.label}
             activeOpacity={0.8}
             onPress={() => setVehicle(v.label)}
-            style={[styles.vehicleCard, { backgroundColor: C.isDark ? '#071b42' : 'rgba(255,255,255,0.7)', borderColor: C.isDark ? 'rgba(70,108,175,0.25)' : 'rgba(3,12,40,0.12)' }, vehicle === v.label && { backgroundColor: C.isDark ? '#0B2452' : 'rgba(3,42,105,0.08)', borderColor: C.isDark ? '#8AA6D6' : 'rgba(3,42,105,0.25)' }, { overflow: 'hidden' }]}
+            style={[styles.vehicleCard, { backgroundColor: C.isDark ? '#071b42' : 'transparent', borderColor: C.isDark ? 'rgba(70,108,175,0.25)' : '#b3bdd1' }, vehicle === v.label && { backgroundColor: C.isDark ? '#0B2452' : '#ffffff', borderColor: C.isDark ? '#8AA6D6' : 'rgba(0,0,0,0.06)' }, { overflow: C.isDark ? 'hidden' : 'visible' }, !C.isDark && vehicle === v.label && styles.lightRaised]}
           >
             {vehicle === v.label && C.isDark && (
               <>
@@ -322,21 +333,21 @@ export default function VehicleSearch() {
               </>
             )}
             {v.image ? (
-              <Image source={v.image} style={{ width: 24, height: 24, tintColor: vehicle === v.label ? '#e2671b' : C.textPrimary }} resizeMode="contain" />
+              <Image source={v.image} style={{ width: 24, height: 24, tintColor: vehicle === v.label || !C.isDark ? '#e2671b' : C.textPrimary }} resizeMode="contain" />
             ) : (
-              <Ionicons name={v.icon as any} size={26} color={vehicle === v.label ? '#e2671b' : C.textPrimary} />
+              <Ionicons name={v.icon as any} size={26} color={vehicle === v.label || !C.isDark ? '#e2671b' : C.textPrimary} />
             )}
-            <Text style={[styles.vehicleTxt, { color: C.textPrimary }, vehicle === v.label && { color: '#f9fafc' }]}>{v.label}</Text>
+            <Text style={[styles.vehicleTxt, { color: C.textPrimary }, vehicle === v.label && { color: C.isDark ? '#f9fafc' : '#e2671b' }]}>{v.label}</Text>
           </TouchableOpacity>
         ))}
       </View>
 
       {/* Fields Grid */}
-      <View style={styles.fieldsGrid}>
+      <View style={styles.fieldsGrid} onLayout={(e) => setFieldsY(e.nativeEvent.layout.y)}>
         {FIELDS.map((f, i) => {
           const val = FIELD_DEFS[f.key].value;
           const isPlaceholder = val.startsWith('All ') || val.startsWith('Any ');
-          const valColor = f.key === 'year' && isNew ? '#f9fafc' : isPlaceholder ? '#c9cedb' : '#ffffff';
+          const valColor = !C.isDark ? '#000000' : f.key === 'year' && isNew ? '#f9fafc' : isPlaceholder ? '#c9cedb' : '#ffffff';
           return (
             <View key={f.key} style={styles.fieldWrap}>
               <View style={styles.fieldLabelRow}>
@@ -347,12 +358,12 @@ export default function VehicleSearch() {
                 )}
                 <Text style={[styles.fieldLabel, { color: C.textPrimary }]}>{FIELD_DEFS[f.key].label}</Text>
               </View>
-              <TouchableOpacity activeOpacity={f.key === 'year' && isNew ? 1 : 0.8} disabled={f.key === 'year' && isNew} onPress={() => setOpenSheet(f.key)} style={[styles.dropdown, { backgroundColor: C.isDark ? (i < 3 ? 'rgba(6,27,74,0.26)' : 'rgba(72,51,70,0.25)') : C.glassBg, borderColor: C.isDark ? (i < 3 ? '#5f6c8b' : '#797487') : 'rgba(3,12,40,0.12)', overflow: 'hidden' }]}>
+              <TouchableOpacity activeOpacity={f.key === 'year' && isNew ? 1 : 0.8} disabled={f.key === 'year' && isNew} onPress={() => setOpenSheet(f.key)} style={[styles.dropdown, { backgroundColor: C.isDark ? (i < 3 ? 'rgba(6,27,74,0.26)' : 'rgba(72,51,70,0.25)') : 'transparent', borderColor: C.isDark ? (i < 3 ? '#5f6c8b' : '#797487') : 'rgba(0,0,0,0.35)', overflow: 'hidden' }]}>
                 {f.key === 'brand' && !isPlaceholder && brandLogo(val) ? (
                   <Image source={brandLogo(val)} style={{ width: 22, height: 22, borderRadius: 4 }} resizeMode="contain" />
                 ) : null}
                 {f.key === 'year' && isNew ? (
-                  <Text style={[styles.fieldLabel, { flex: 1 }]} numberOfLines={1}>{val}</Text>
+                  <Text style={[styles.fieldLabel, { flex: 1 }, !C.isDark && { color: '#000000' }]} numberOfLines={1}>{val}</Text>
                 ) : (
                   <Text style={[styles.dropdownTxt, { color: valColor }]} numberOfLines={1}>{val}</Text>
                 )}
@@ -372,8 +383,8 @@ export default function VehicleSearch() {
             <Image source={require('@/screenshot/dealershiplogo.png')} style={{ width: 16, height: 16, tintColor: '#e2671b' }} resizeMode="contain" />
             <Text style={[styles.fieldLabel, { color: C.textPrimary }]}>Dealership</Text>
           </View>
-          <TouchableOpacity activeOpacity={isNew ? 1 : 0.8} disabled={isNew} onPress={() => setOpenSheet('dealer')} style={[styles.fullDropdown, { backgroundColor: C.isDark ? 'rgba(91,54,67,0.27)' : C.glassBg, borderColor: C.isDark ? '#8a7b85' : 'rgba(3,12,40,0.12)', overflow: 'hidden', opacity: isNew ? 0.7 : 1 }]}>
-            <Text style={[styles.dropdownTxt, { color: (isNew || dealer.startsWith('All ')) ? '#c9cedb' : '#ffffff' }]} numberOfLines={1}>{isNew ? 'All Dealership' : dealer}</Text>
+          <TouchableOpacity activeOpacity={isNew ? 1 : 0.8} disabled={isNew} onPress={() => setOpenSheet('dealer')} style={[styles.fullDropdown, { backgroundColor: C.isDark ? 'rgba(91,54,67,0.27)' : 'transparent', borderColor: C.isDark ? '#8a7b85' : 'rgba(0,0,0,0.35)', overflow: 'hidden', opacity: C.isDark && isNew ? 0.7 : 1 }]}>
+            <Text style={[styles.dropdownTxt, { color: !C.isDark ? '#000000' : (isNew || dealer.startsWith('All ')) ? '#c9cedb' : '#ffffff' }]} numberOfLines={1}>{isNew ? 'All Dealership' : dealer}</Text>
             {!isNew && (
               <Ionicons name="chevron-down" size={14} color={C.textPrimary} />
             )}
@@ -388,8 +399,8 @@ export default function VehicleSearch() {
             <Ionicons name="wallet-outline" size={16} color="#e2671b" />
             <Text style={[styles.fieldLabel, { color: C.textPrimary }]}>Select Your Financing Budget (PKR)</Text>
           </View>
-          <TouchableOpacity activeOpacity={0.8} onPress={() => setOpenSheet('budget')} style={[styles.fullDropdown, { backgroundColor: C.isDark ? 'rgba(91,54,67,0.27)' : C.glassBg, borderColor: C.isDark ? '#8a7b85' : 'rgba(3,12,40,0.12)', overflow: 'hidden' }]}>
-            <Text style={[styles.dropdownTxt, { color: '#ffffff' }]} numberOfLines={1}>{budget}</Text>
+          <TouchableOpacity activeOpacity={0.8} onPress={() => setOpenSheet('budget')} style={[styles.fullDropdown, { backgroundColor: C.isDark ? 'rgba(91,54,67,0.27)' : 'transparent', borderColor: C.isDark ? '#8a7b85' : 'rgba(0,0,0,0.35)', overflow: 'hidden' }]}>
+            <Text style={[styles.dropdownTxt, { color: C.isDark ? '#ffffff' : '#000000' }]} numberOfLines={1}>{budget}</Text>
             <Ionicons name="chevron-down" size={14} color={C.textPrimary} />
           </TouchableOpacity>
           {/* Slider */}
@@ -400,7 +411,7 @@ export default function VehicleSearch() {
             onResponderGrant={(e) => setBudgetByX(e.nativeEvent.locationX)}
             onResponderMove={(e) => setBudgetByX(e.nativeEvent.locationX)}
           >
-            <View style={styles.sliderTrack}>
+            <View style={[styles.sliderTrack, !C.isDark && { backgroundColor: 'rgba(3,42,105,0.18)' }]}>
               <View style={[styles.sliderFill, { width: `${budgetPct * 100}%` }]} />
             </View>
             <View style={[styles.sliderThumb, { left: `${budgetPct * 100}%` }]}>
@@ -418,8 +429,8 @@ export default function VehicleSearch() {
               <Image source={require('@/screenshot/dealershiplogo.png')} style={{ width: 16, height: 16, tintColor: '#e2671b' }} resizeMode="contain" />
               <Text style={[styles.fieldLabel, { color: C.textPrimary }]}>Non Dealers</Text>
             </View>
-            <TouchableOpacity activeOpacity={1} disabled onPress={() => setOpenSheet('sellerType')} style={[styles.fullDropdown, { backgroundColor: C.isDark ? 'rgba(91,54,67,0.27)' : C.glassBg, borderColor: C.isDark ? '#8a7b85' : 'rgba(3,12,40,0.12)', overflow: 'hidden' }]}>
-              <Text style={[styles.dropdownTxt, { color: '#ffffff' }]} numberOfLines={1}>{sellerType === 'All (Non Dealer + Individual)' ? 'All (Showroom + Sellers)' : sellerType}</Text>
+            <TouchableOpacity activeOpacity={1} disabled onPress={() => setOpenSheet('sellerType')} style={[styles.fullDropdown, { backgroundColor: C.isDark ? 'rgba(91,54,67,0.27)' : 'transparent', borderColor: C.isDark ? '#8a7b85' : 'rgba(0,0,0,0.35)', overflow: 'hidden' }]}>
+              <Text style={[styles.dropdownTxt, { color: C.isDark ? '#ffffff' : '#000000' }]} numberOfLines={1}>{sellerType === 'All (Non Dealer + Individual)' ? 'All (Showroom + Sellers)' : sellerType}</Text>
             </TouchableOpacity>
           </View>
           <View style={styles.fullField}>
@@ -432,7 +443,7 @@ export default function VehicleSearch() {
                 onEndEditing={commitMinTxt}
                 onBlur={commitMinTxt}
                 keyboardType="default"
-                style={[styles.rangeBox, { color: '#ffffff', borderColor: C.isDark ? '#8a7b85' : 'rgba(3,12,40,0.12)', backgroundColor: C.isDark ? 'rgba(91,54,67,0.27)' : C.glassBg }]}
+                style={[styles.rangeBox, { color: C.isDark ? '#ffffff' : '#000000', borderColor: C.isDark ? '#8a7b85' : 'rgba(0,0,0,0.35)', backgroundColor: C.isDark ? 'rgba(91,54,67,0.27)' : 'transparent' }]}
               />
               <Text style={[styles.rangeLbl, { color: C.textPrimary }]}>Max</Text>
               <TextInput
@@ -441,7 +452,7 @@ export default function VehicleSearch() {
                 onEndEditing={commitMaxTxt}
                 onBlur={commitMaxTxt}
                 keyboardType="default"
-                style={[styles.rangeBox, { color: '#ffffff', borderColor: C.isDark ? '#8a7b85' : 'rgba(3,12,40,0.12)', backgroundColor: C.isDark ? 'rgba(91,54,67,0.27)' : C.glassBg }]}
+                style={[styles.rangeBox, { color: C.isDark ? '#ffffff' : '#000000', borderColor: C.isDark ? '#8a7b85' : 'rgba(0,0,0,0.35)', backgroundColor: C.isDark ? 'rgba(91,54,67,0.27)' : 'transparent' }]}
               />
             </View>
             {/* Dual slider */}
@@ -457,7 +468,7 @@ export default function VehicleSearch() {
               onResponderTerminate={() => { activeThumb.current = null; }}
             >
               {/* pointerEvents none — taake locationX hamesha track ke hisaab se aaye, thumb ke nahi */}
-              <View pointerEvents="none" style={styles.sliderTrack} />
+              <View pointerEvents="none" style={[styles.sliderTrack, !C.isDark && { backgroundColor: 'rgba(3,42,105,0.18)' }]} />
               <View pointerEvents="none" style={[styles.sliderRange, { left: `${minPct * 100}%`, width: `${Math.max(0, maxPct - minPct) * 100}%` }]} />
               <View pointerEvents="none" style={[styles.sliderThumb, { left: `${minPct * 100}%` }]}>
                 <View style={styles.sliderDot} />
@@ -476,7 +487,7 @@ export default function VehicleSearch() {
         onPress={handleSearch}
       >
         <LinearGradient
-          colors={['#032a69', '#e2671b']}
+          colors={C.isDark ? ['#032a69', '#e2671b'] : ['#27467F', '#FF9654']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={styles.searchBtn}
@@ -552,6 +563,8 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: 'rgba(100,160,255,0.5)',
     alignItems: 'center', justifyContent: 'center',
   },
+  // Light mode (Figma): selected tile = white, raised
+  lightRaised: { boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' },
   optionBtnActive: { backgroundColor: 'rgba(50,100,200,0.35)', borderColor: 'rgba(100,160,255,0.9)' },
   optionTxt: { fontSize: 11, fontFamily: 'Poppins_400Regular', color: '#f9fafc' },
   optionTxtActive: { color: '#e2671b', fontFamily: 'Poppins_600SemiBold' },

@@ -38,12 +38,14 @@ function makeStyles(aC: ReturnType<typeof useAppColors>) {
     title: { fontSize: 20, fontFamily: 'Poppins_500Medium', color: aC.textPrimary, marginTop: 8, marginBottom: 12, paddingHorizontal: 20 },
     searchBar: {
       flexDirection: 'row', alignItems: 'center', gap: 12, height: 48,
-      borderRadius: 32, borderWidth: 1, borderColor: aC.isDark ? '#829fd0' : border,
-      backgroundColor: glassBg, paddingHorizontal: 20, overflow: 'hidden',
+      borderRadius: 32, borderWidth: 1, borderColor: aC.isDark ? '#829fd0' : 'rgba(0,0,0,0.1)',
+      backgroundColor: aC.isDark ? glassBg : '#ffffff', paddingHorizontal: 20, overflow: aC.isDark ? 'hidden' : 'visible',
       marginHorizontal: 20, marginBottom: 20,
+      // Light mode (Figma): light pop-up shadow effect
+      ...(aC.isDark ? null : { boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }),
     },
     searchPh:    { fontSize: 12, fontFamily: 'Poppins_400Regular', color: aC.textSecondary },
-    searchInput: { flex: 1, fontSize: 12, fontFamily: 'Poppins_400Regular', color: aC.textPrimary, padding: 0 },
+    searchInput: { flex: 1, fontSize: aC.isDark ? 12 : 13, fontFamily: 'Poppins_400Regular', color: aC.textPrimary, padding: 0 },
     filterWrap: {
       flexDirection: 'row', alignItems: 'center', gap: 12,
       paddingHorizontal: 20, paddingBottom: 20,
@@ -52,15 +54,17 @@ function makeStyles(aC: ReturnType<typeof useAppColors>) {
       height: 44, alignItems: 'center', justifyContent: 'center',
       borderRadius: 14, borderWidth: 0, overflow: 'hidden',
       borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.2)',
-      backgroundColor: aC.isDark ? '#061B4A' : '#d8e4ff',
+      backgroundColor: aC.isDark ? '#061B4A' : '#F2F4F8',
+      ...(aC.isDark ? null : { borderWidth: 1, borderColor: 'rgba(0,0,0,0.07)', boxShadow: '1px 2px 3px rgba(0,0,0,0.14)' }),
     },
     filterTabActive: {
-      borderWidth: 1, borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.5)',
-      backgroundColor: aC.isDark ? 'rgba(6,27,74,0.9)' : 'rgba(196,215,255,0.9)',
+      borderWidth: 1, borderColor: aC.isDark ? '#829fd0' : 'rgba(0,0,0,0.05)',
+      backgroundColor: aC.isDark ? 'rgba(6,27,74,0.9)' : '#F2F4F8',
+      ...(aC.isDark ? null : { boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }),
     },
-    filterTxtActive:    { fontSize: 12, fontFamily: 'Poppins_600SemiBold', color: '#e2671b' },
+    filterTxtActive:    { fontSize: 12, fontFamily: aC.isDark ? 'Poppins_600SemiBold' : 'Poppins_700Bold', color: '#e2671b' },
     filterTxtInactive:  { fontSize: 12, fontFamily: 'Poppins_500Medium', color: aC.textPrimary },
-    listContent:        { paddingHorizontal: 20, gap: 12, paddingBottom: 90 },
+    listContent:        { paddingHorizontal: 20, gap: aC.isDark ? 12 : 14, paddingTop: aC.isDark ? 0 : 2, paddingBottom: 90 },
     convCard: {
       flexDirection: 'row', alignItems: 'center', gap: 10, height: 70,
       borderRadius: 18, borderWidth: 1,
@@ -72,7 +76,7 @@ function makeStyles(aC: ReturnType<typeof useAppColors>) {
     avatarWrap:  { position: 'relative', width: 46, height: 46, flexShrink: 0 },
     avatar:      { width: 46, height: 46, borderRadius: 23, backgroundColor: aC.gradientStart, alignItems: 'center', justifyContent: 'center' },
     avatarTxt:   { fontSize: 14, fontFamily: 'Poppins_700Bold', color: '#f9fafc' },
-    onlineDot:   { position: 'absolute', bottom: 1, right: 1, width: 9, height: 9, borderRadius: 5, backgroundColor: '#34c759', borderWidth: 1, borderColor: aC.gradientStart },
+    onlineDot:   { position: 'absolute', bottom: 1, right: 1, width: 9, height: 9, borderRadius: 5, backgroundColor: '#34c759', borderWidth: 1, borderColor: aC.isDark ? aC.gradientStart : '#ffffff' },
     convContent: { flex: 1, gap: 2 },
     convRow:     { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
     nameRow:     { flexDirection: 'row', alignItems: 'center', gap: 4, flex: 1 },
@@ -157,11 +161,11 @@ export default function ChatListScreen() {
 
       <View style={styles.searchBar}>
         {aC.isDark && <LinearGradient colors={['#1a3b70', '#061124', '#102650']} locations={[0, 0.48, 1]} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
-        <Ionicons name="search-outline" size={20} color={aC.textSecondary} />
+        <Ionicons name="search-outline" size={20} color={aC.isDark ? aC.textSecondary : '#000000'} />
         <TextInput
           style={styles.searchInput}
           placeholder="Search buyer, seller, & dealer..."
-          placeholderTextColor={aC.textSecondary}
+          placeholderTextColor={aC.isDark ? aC.textSecondary : '#000000'}
           value={searchQuery}
           onChangeText={setSearchQuery}
           returnKeyType="search"
@@ -216,7 +220,7 @@ export default function ChatListScreen() {
               <LinearGradient
                 colors={aC.isDark ? ['#829fd0', '#829fd0'] : ['#032a69', '#e2671b']}
                 start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                style={{ borderRadius: 18, padding: 1 }}
+                style={[{ borderRadius: 18, padding: 1 }, !aC.isDark && { paddingTop: 1.2, paddingHorizontal: 0.6, paddingBottom: 0.4, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}
               >
                 <TouchableOpacity
                   style={[styles.convCard, { backgroundColor: aC.isDark ? '#010b1e' : '#ffffff', borderWidth: 0, overflow: 'hidden' }]}
@@ -228,12 +232,7 @@ export default function ChatListScreen() {
                       <LinearGradient colors={['#173668', '#010b1e', '#071a3a']} locations={[0, 0.35, 1]} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
                       <LinearGradient colors={['rgba(35,81,157,0.12)', 'transparent', 'transparent', 'rgba(35,81,157,0.12)']} locations={[0, 0.1, 0.9, 1]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
                     </>
-                  ) : (
-                    <>
-                      <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                      <LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                    </>
-                  )}
+                  ) : null}
                 <View style={styles.avatarWrap}>
                   {(() => {
                     const raw = item.participant_info?.[0]?.avatar_url || (item as any).avatar_url;
@@ -254,10 +253,10 @@ export default function ChatListScreen() {
                       <Text style={[styles.convName, { color: aC.textPrimary }]} numberOfLines={1}>{name}</Text>
                       {item.verified && <VerifiedIcon size={14} />}
                     </View>
-                    <Text style={[styles.convTime, { color: aC.textSecondary }]}>{time}</Text>
+                    <Text style={[styles.convTime, { color: aC.isDark ? aC.textSecondary : '#000000' }]}>{time}</Text>
                   </View>
                   <View style={styles.convRow}>
-                    <Text style={[styles.convMsg, { color: aC.textSecondary }]} numberOfLines={2}>{lastMsg}</Text>
+                    <Text style={[styles.convMsg, { color: aC.isDark ? aC.textSecondary : '#000000' }]} numberOfLines={2}>{lastMsg}</Text>
                     {unread > 0 && (
                       <View style={styles.badge}>
                         <Text style={styles.badgeTxt}>{unread > 9 ? '9+' : unread}</Text>

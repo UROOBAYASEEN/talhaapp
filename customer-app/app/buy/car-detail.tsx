@@ -42,8 +42,7 @@ function SavedCardEffect() {
   }
   return (
     <>
-      <LinearGradient colors={['rgba(3,42,105,0.03)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-      <LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+
     </>
   );
 }
@@ -704,7 +703,7 @@ export default function CarDetailScreen() {
           {/* ── Browse More Services ── */}
           <Text style={[s.secTitle, { color: aC.isDark ? WHITE : '#010a1f' }]}>Browse More Services</Text>
           {SERVICES.map(sv => (vehicle?.category === 'bike' ? { ...sv, title: sv.title.replace('Dream Car', 'Dream Bike') } : sv)).map((item, i) => (
-            <TouchableOpacity key={i} style={[s.serviceCard, { backgroundColor: aC.isDark ? '#061B4A' : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2, overflow: 'hidden' }]} activeOpacity={0.85}>
+            <TouchableOpacity key={i} style={[s.serviceCard, { backgroundColor: aC.isDark ? '#061B4A' : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2, overflow: 'hidden' }, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]} activeOpacity={0.85}>
               <GlassInset />
               <View style={[s.serviceIcon, { backgroundColor: aC.isDark ? 'rgba(226,103,27,0.1)' : '#eef2ff' }]}>
                 <Ionicons name={item.icon} size={20} color={ORANGE} />
@@ -716,7 +715,6 @@ export default function CarDetailScreen() {
               <Ionicons name="chevron-forward" size={18} color={aC.isDark ? MUTED : '#64748b'} />
             </TouchableOpacity>
           ))}
-
 
         </View>
       </ScrollView>
@@ -835,7 +833,7 @@ export default function CarDetailScreen() {
             )}
 
             <TouchableOpacity style={s.cmpBtn} activeOpacity={0.88} onPress={handleCompareVehicles} disabled={cmpLoading}>
-              <LinearGradient colors={['#032a69', '#e2671b']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+              <LinearGradient colors={aC.isDark ? ['#032a69', '#e2671b'] : ['#27467F', '#FF9654']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
               {cmpLoading
                 ? <ActivityIndicator color="#fff" />
                 : <Text style={s.cmpBtnTxt}>Compare your Vehicle</Text>}

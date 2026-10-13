@@ -1,3 +1,4 @@
+import { useAppColors, withLightStyles, LIGHT_POP_SHADOW } from '@/constants/theme';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -77,7 +78,15 @@ function TimeModal({ visible, selected, onSelect, onClose }: {
   visible: boolean; selected: string;
   onSelect: (t: string) => void; onClose: () => void;
 }) {
+  const aC = useAppColors();
+  const s = aC.isDark ? s_dark : s_light;
+  const cal = aC.isDark ? cal_dark : cal_light;
+  const tm = aC.isDark ? tm_dark : tm_light;
   function Slot({ time }: { time: string }) {
+    const aC = useAppColors();
+    const s = aC.isDark ? s_dark : s_light;
+    const cal = aC.isDark ? cal_dark : cal_light;
+    const tm = aC.isDark ? tm_dark : tm_light;
     const isSel = selected === time;
     return (
       <TouchableOpacity
@@ -86,7 +95,7 @@ function TimeModal({ visible, selected, onSelect, onClose }: {
         activeOpacity={0.75}
       >
         {isSel && (
-          <LinearGradient colors={[NAVY, ORANGE]} start={{x:0,y:0}} end={{x:1,y:1}} style={StyleSheet.absoluteFillObject} />
+          <LinearGradient colors={aC.isDark ? [NAVY, ORANGE] : ['#27467F', '#FF9654']} start={{x:0,y:0}} end={{x:1,y:1}} style={StyleSheet.absoluteFillObject} />
         )}
         <Text style={[tm.slotTxt, isSel && tm.slotTxtSel]}>{time}</Text>
       </TouchableOpacity>
@@ -97,8 +106,8 @@ function TimeModal({ visible, selected, onSelect, onClose }: {
     <SheetModal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <TouchableOpacity style={tm.overlay} activeOpacity={1} onPress={onClose}>
         <TouchableOpacity activeOpacity={1} style={tm.container}>
-          <LinearGradient colors={['rgba(22,64,136,0.25)','transparent']} start={{x:0.5,y:0}} end={{x:0.5,y:0.6}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-          <LinearGradient colors={['transparent','rgba(29,83,175,0.2)']} start={{x:0.5,y:0.4}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+          {aC.isDark && <LinearGradient colors={['rgba(22,64,136,0.25)','transparent']} start={{x:0.5,y:0}} end={{x:0.5,y:0.6}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>}
+          {aC.isDark && <LinearGradient colors={['transparent','rgba(29,83,175,0.2)']} start={{x:0.5,y:0.4}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>}
 
           {/* Handle */}
           <View style={tm.handle} />
@@ -134,7 +143,7 @@ function TimeModal({ visible, selected, onSelect, onClose }: {
   );
 }
 
-const tm = StyleSheet.create({
+const tm_dark = StyleSheet.create({
   overlay:    { flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'flex-end' },
   container:  { backgroundColor: '#010A1F', borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 20, paddingTop: 12, paddingBottom: 36, maxHeight: '75%', borderWidth: 1, borderColor: BLUE_B, overflow: 'hidden' },
   handle:     { width: 40, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.2)', alignSelf: 'center', marginBottom: 16 },
@@ -149,12 +158,26 @@ const tm = StyleSheet.create({
   slotTxt:    { color: MUTED, fontSize: 13, fontFamily: 'Poppins_500Medium' },
   slotTxtSel: { color: WHITE, fontFamily: 'Poppins_600SemiBold' },
 });
+// Light mode layer for `tm` — dark mode uses tm_dark as is
+const tm_light = withLightStyles(tm_dark, {
+  container: { backgroundColor: '#ffffff', borderColor: 'rgba(0,0,0,0.12)' },
+  title: { color: '#000000' },
+  badge: { borderColor: 'rgba(0,0,0,0.12)' },
+  slot: { borderColor: 'rgba(0,0,0,0.12)' },
+  slotTxt: { color: '#4b5563' },
+  slotTxtSel: { color: '#000000' },
+});
+
 
 // ── Calendar Modal ─────────────────────────────────────────────────────────────
 function CalendarModal({ visible, selected, onSelect, onClose }: {
   visible: boolean; selected: string;
   onSelect: (d: string) => void; onClose: () => void;
 }) {
+  const aC = useAppColors();
+  const s = aC.isDark ? s_dark : s_light;
+  const cal = aC.isDark ? cal_dark : cal_light;
+  const tm = aC.isDark ? tm_dark : tm_light;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -183,17 +206,17 @@ function CalendarModal({ visible, selected, onSelect, onClose }: {
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <TouchableOpacity style={cal.overlay} activeOpacity={1} onPress={onClose}>
         <TouchableOpacity activeOpacity={1} style={cal.container}>
-          <LinearGradient colors={['rgba(22,64,136,0.25)','transparent']} start={{x:0.5,y:0}} end={{x:0.5,y:0.6}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-          <LinearGradient colors={['transparent','rgba(29,83,175,0.2)']} start={{x:0.5,y:0.4}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+          {aC.isDark && <LinearGradient colors={['rgba(22,64,136,0.25)','transparent']} start={{x:0.5,y:0}} end={{x:0.5,y:0.6}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>}
+          {aC.isDark && <LinearGradient colors={['transparent','rgba(29,83,175,0.2)']} start={{x:0.5,y:0.4}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>}
 
           {/* Month Nav */}
           <View style={cal.navRow}>
             <TouchableOpacity style={cal.navBtn} onPress={prevMonth}>
-              <Ionicons name="chevron-back" size={18} color={WHITE} />
+              <Ionicons name="chevron-back" size={18} color={aC.isDark ? WHITE : '#000000'} />
             </TouchableOpacity>
             <Text style={cal.monthTitle}>{MONTHS[viewMonth]} {viewYear}</Text>
             <TouchableOpacity style={cal.navBtn} onPress={nextMonth}>
-              <Ionicons name="chevron-forward" size={18} color={WHITE} />
+              <Ionicons name="chevron-forward" size={18} color={aC.isDark ? WHITE : '#000000'} />
             </TouchableOpacity>
           </View>
 
@@ -225,7 +248,7 @@ function CalendarModal({ visible, selected, onSelect, onClose }: {
                   activeOpacity={0.75}
                 >
                   {isSelected ? (
-                    <LinearGradient colors={[NAVY, ORANGE]} start={{x:0,y:0}} end={{x:1,y:1}} style={cal.selectedCircle}>
+                    <LinearGradient colors={aC.isDark ? [NAVY, ORANGE] : ['#27467F', '#FF9654']} start={{x:0,y:0}} end={{x:1,y:1}} style={cal.selectedCircle}>
                       <Text style={cal.selectedDayTxt}>{day}</Text>
                     </LinearGradient>
                   ) : (
@@ -248,7 +271,7 @@ function CalendarModal({ visible, selected, onSelect, onClose }: {
   );
 }
 
-const cal = StyleSheet.create({
+const cal_dark = StyleSheet.create({
   overlay:       { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 },
   container:     { width: '100%', backgroundColor: '#061629', borderRadius: 24, padding: 20, borderWidth: 1, borderColor: BLUE_B, overflow: 'hidden' },
   navRow:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
@@ -268,9 +291,21 @@ const cal = StyleSheet.create({
   closeBtn:      { marginTop: 16, alignSelf: 'center', paddingHorizontal: 32, paddingVertical: 10, borderRadius: 30, backgroundColor: 'rgba(226,103,27,0.15)', borderWidth: 1, borderColor: ORANGE },
   closeTxt:      { color: ORANGE, fontSize: 14, fontFamily: 'Poppins_600SemiBold' },
 });
+// Light mode layer for `cal` — dark mode uses cal_dark as is
+const cal_light = withLightStyles(cal_dark, {
+  container: { backgroundColor: '#F2F4F8', borderColor: 'rgba(0,0,0,0.12)' },
+  monthTitle: { color: '#000000' },
+  dayLabel: { color: '#4b5563' },
+  dayTxt: { color: '#000000' },
+});
+
 
 // ── Main Screen ────────────────────────────────────────────────────────────────
 export default function TestDriveScreen() {
+  const aC = useAppColors();
+  const s = aC.isDark ? s_dark : s_light;
+  const cal = aC.isDark ? cal_dark : cal_light;
+  const tm = aC.isDark ? tm_dark : tm_light;
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -370,11 +405,11 @@ export default function TestDriveScreen() {
 
           {/* ── Car Summary Card ── */}
           <TouchableOpacity style={s.carCard} activeOpacity={0.85} onPress={() => router.back()}>
-            <RingGlow radius={16} />
+            {aC.isDark && <RingGlow radius={16} />}
             {carImg
               ? <Image source={{ uri: carImg }} style={s.carImg} resizeMode="cover" />
               : <View style={[s.carImg, s.carImgPh]}>
-                  <Ionicons name="car-outline" size={24} color={MUTED} />
+                  <Ionicons name="car-outline" size={24} color={aC.isDark ? MUTED : '#4b5563'} />
                 </View>
             }
             <View style={{ flex: 1 }}>
@@ -396,9 +431,9 @@ export default function TestDriveScreen() {
               onPress={() => { setCalOpen(true); setTimeModalOpen(false); }}
               activeOpacity={0.85}
             >
-              <SearchInputEffect />
+              {aC.isDark && <SearchInputEffect />}
               <Text style={s.inputTxt}>{formatDisplayDate(form.date)}</Text>
-              <Ionicons name="calendar-outline" size={22} color="#E6E4EA" style={{ marginRight: 20 }} />
+              <Ionicons name="calendar-outline" size={22} color={aC.isDark ? '#E6E4EA' : '#000000'} style={{ marginRight: 20 }} />
             </TouchableOpacity>
           </View>
 
@@ -410,9 +445,9 @@ export default function TestDriveScreen() {
               onPress={() => { setTimeModalOpen(true); setCalOpen(false); }}
               activeOpacity={0.85}
             >
-              <SearchInputEffect />
+              {aC.isDark && <SearchInputEffect />}
               <Text style={s.inputTxt}>{timeRange(form.time)}</Text>
-              <Ionicons name="chevron-down" size={20} color="#E6E4EA" style={{ marginRight: 20 }} />
+              <Ionicons name="chevron-down" size={20} color={aC.isDark ? '#E6E4EA' : '#000000'} style={{ marginRight: 20 }} />
             </TouchableOpacity>
           </View>
 
@@ -420,13 +455,13 @@ export default function TestDriveScreen() {
           <View style={s.field}>
             <Text style={s.fieldLabel}>Your Name</Text>
             <View style={s.inputRow}>
-              <SearchInputEffect />
+              {aC.isDark && <SearchInputEffect />}
               <TextInput
                 style={s.input}
                 value={form.name}
                 onChangeText={set('name')}
                 placeholder="Enter your name"
-                placeholderTextColor={MUTED}
+                placeholderTextColor={aC.isDark ? MUTED : '#8f8f8f'}
               />
             </View>
           </View>
@@ -435,13 +470,13 @@ export default function TestDriveScreen() {
           <View style={s.field}>
             <Text style={s.fieldLabel}>Phone Number</Text>
             <View style={s.inputRow}>
-              <SearchInputEffect />
+              {aC.isDark && <SearchInputEffect />}
               <TextInput
                 style={s.input}
                 value={form.phone}
                 onChangeText={set('phone')}
                 placeholder="+92 3XX XXXXXXX"
-                placeholderTextColor={MUTED}
+                placeholderTextColor={aC.isDark ? MUTED : '#8f8f8f'}
                 keyboardType="phone-pad"
               />
             </View>
@@ -458,9 +493,9 @@ export default function TestDriveScreen() {
 
           {/* ── Book Button ── */}
           <TouchableOpacity style={s.bookBtn} onPress={handleBook} disabled={submitting} activeOpacity={0.88}>
-            <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+            <LinearGradient colors={(aC.isDark ? PRIMARY_BTN_COLORS : ['#27467F', '#8C6A78', '#FF9654']) as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
             {submitting
-              ? <ActivityIndicator color={WHITE} />
+              ? <ActivityIndicator color={aC.isDark ? WHITE : '#000000'} />
               : <Text style={s.bookTxt}>Book Test Drive</Text>
             }
           </TouchableOpacity>
@@ -487,7 +522,7 @@ export default function TestDriveScreen() {
   );
 }
 
-const s = StyleSheet.create({
+const s_dark = StyleSheet.create({
   root:   { flex: 1, backgroundColor: BG },
   scroll: { flexGrow: 1, paddingHorizontal: 16, paddingBottom: 30, backgroundColor: BG },
 
@@ -527,3 +562,22 @@ const s = StyleSheet.create({
   bookBtn: { height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   bookTxt: { color: '#EDEBF0', fontSize: 16, fontFamily: 'Poppins_600SemiBold' },
 });
+// Light mode layer for `s` — dark mode uses s_dark as is
+const s_light = withLightStyles(s_dark, {
+  root: { backgroundColor: '#ffffff' },
+  scroll: { backgroundColor: '#ffffff' },
+  headerTitle: { color: '#000000' },
+  carCard: { backgroundColor: '#F2F4F8', borderColor: 'rgba(0,0,0,0.04)', boxShadow: LIGHT_POP_SHADOW },
+  carImgPh: { backgroundColor: '#F2F4F8' },
+  carName: { color: '#000000' },
+  carMetaTxt: { color: '#4b5563' },
+  fieldLabel: { color: '#000000' },
+  inputRow: { backgroundColor: '#E8EAEF', borderWidth: 1, borderColor: 'rgba(0,0,0,0.18)', boxShadow: LIGHT_POP_SHADOW },
+  inputTxt: { color: '#000000' },
+  input: { color: '#000000' },
+  dropdown: { backgroundColor: '#E8EAEF', borderColor: 'rgba(0,0,0,0.18)', boxShadow: LIGHT_POP_SHADOW },
+  dropOption: { borderColor: 'rgba(0,0,0,0.12)' },
+  dropOptionTxt: { color: '#000000' },
+  infoTxt: { color: '#4b5563' },
+});
+

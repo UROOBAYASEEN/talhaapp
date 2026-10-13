@@ -133,7 +133,7 @@ const Documents = () => {
 
         {/* Header */}
         <View style={[s.header, { borderBottomColor: aC.isDark ? 'rgba(49,95,173,0.4)' : 'rgba(3,12,40,0.12)' }]}>
-          <TouchableOpacity style={[s.backBtn, { backgroundColor: aC.isDark ? 'rgba(6,17,60,0.85)' : '#dde8ff' }]} onPress={() => router.back()}>
+          <TouchableOpacity style={[s.backBtn, { backgroundColor: aC.isDark ? 'rgba(6,17,60,0.85)' : '#F2F4F8' }]} onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={22} color={aC.textPrimary} />
           </TouchableOpacity>
           <Text style={[s.headerTitle, { color: aC.textPrimary }]}>Documents</Text>
@@ -142,14 +142,14 @@ const Documents = () => {
 
         {/* Documents Card */}
         <View style={[s.card, {
-          backgroundColor: aC.isDark ? '#030B1C' : aC.glassBg,
-          borderColor: aC.isDark ? '#667FA7' : 'rgba(3,42,105,0.2)',
+          backgroundColor: aC.isDark ? '#030B1C' : '#FCFCFD',
+          borderColor: aC.isDark ? '#667FA7' : 'rgba(0,0,0,0.05)',
           shadowColor: aC.isDark ? '#2D63AD' : 'transparent',
           shadowOpacity: aC.isDark ? 0.10 : 0,
           shadowRadius: aC.isDark ? 5 : 0,
           shadowOffset: { width: 0, height: 0 },
           elevation: aC.isDark ? 3 : 0,
-        }]}>
+        }, !aC.isDark && { boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
           {aC.isDark && (
             <>
               <LinearGradient
@@ -171,10 +171,10 @@ const Documents = () => {
           {documents.map((doc, index) => (
             <View
               key={doc.id}
-              style={[s.row, { backgroundColor: aC.isDark ? 'rgba(6,17,60,0.6)' : 'rgba(220,230,255,0.6)', borderColor: aC.isDark ? 'rgba(49,95,173,0.3)' : 'rgba(3,42,105,0.15)' }, index === documents.length - 1 && { marginBottom: 0 }]}
+              style={[s.row, { backgroundColor: aC.isDark ? 'rgba(6,17,60,0.6)' : '#F2F4F8', borderColor: aC.isDark ? 'rgba(49,95,173,0.3)' : 'rgba(0,0,0,0.06)' }, index === documents.length - 1 && { marginBottom: 0 }]}
             >
               {/* Icon */}
-              <View style={[s.iconWrap, { backgroundColor: aC.isDark ? '#010a1f' : '#eef1ff' }]}>
+              <View style={[s.iconWrap, { backgroundColor: aC.isDark ? '#010a1f' : '#ffffff' }]}>
                 {doc.file ? (
                   <Ionicons name="document-text" size={20} color={ORANGE} />
                 ) : (
@@ -204,7 +204,7 @@ const Documents = () => {
                   </TouchableOpacity>
                   <TouchableOpacity
                     activeOpacity={0.8}
-                    style={[s.uploadBtn, { backgroundColor: aC.isDark ? '#010a1f' : '#eef1ff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.3)' }, s.uploadedBtn]}
+                    style={[s.uploadBtn, { backgroundColor: aC.isDark ? '#010a1f' : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.3)' }, s.uploadedBtn]}
                     onPress={() => pickDocument(doc.id)}
                   >
                     <Text style={[s.uploadBtnTxt, { color: aC.textPrimary }]}>Change</Text>
@@ -213,7 +213,7 @@ const Documents = () => {
               ) : (
                 <TouchableOpacity
                   activeOpacity={0.8}
-                  style={[s.uploadBtn, { backgroundColor: aC.isDark ? '#010a1f' : '#eef1ff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.3)' }]}
+                  style={[s.uploadBtn, { backgroundColor: aC.isDark ? '#010a1f' : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.3)' }]}
                   onPress={() => pickDocument(doc.id)}
                 >
                   <Text style={[s.uploadBtnTxt, { color: aC.textPrimary }]}>Upload</Text>
@@ -231,7 +231,7 @@ const Documents = () => {
             onPress={handleUpload}
           >
             <LinearGradient
-              colors={["#032a69", ORANGE]}
+              colors={aC.isDark ? ["#032a69", ORANGE] : ['#27467F', '#FF9654']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={s.submitGradient}

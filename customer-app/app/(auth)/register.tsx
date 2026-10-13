@@ -1,5 +1,6 @@
+import { AUTH_EDGES } from '@/constants/authEdges';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
   Alert, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View,
@@ -36,7 +37,10 @@ export default function RegisterScreen() {
   const { setAuth, logout } = useAuth();
   const [form, setForm] = useState({ full_name: '', email: '', phone: '', cnic: '', password: '' });
   const [showPass, setShowPass] = useState(false);
-  const [role, setRole] = useState<string>('customer');
+  // Partner Registration screen se aaye to role section hide — account Seller ke taur pe banta hai
+  const { from } = useLocalSearchParams<{ from?: string }>();
+  const fromPartner = from === 'partner';
+  const [role, setRole] = useState<string>(fromPartner ? 'individual_seller' : 'customer');
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -132,7 +136,7 @@ export default function RegisterScreen() {
 
   return (
     <AuthGlowBackground>
-      <SafeAreaView style={{ flex: 1 }}>
+      <SafeAreaView edges={AUTH_EDGES} style={{ flex: 1 }}>
         <ScreenHeader logo />
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
           <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
@@ -175,6 +179,8 @@ export default function RegisterScreen() {
               </View>
             </View>
 
+            {!fromPartner && (
+            <>
             <Text style={s.roleTitle}>Select Your Role</Text>
             <View style={{ gap: 12 }}>
               {ROLES.filter(r => VISIBLE_ROLES.includes(r.key)).map(r => {
@@ -196,6 +202,8 @@ export default function RegisterScreen() {
                 );
               })}
             </View>
+            </>
+            )}
 
             <TouchableOpacity style={s.terms} activeOpacity={0.8} onPress={() => setAgreed(a => !a)}>
               <View style={[s.check, agreed && { borderColor: G.orange, backgroundColor: G.orange }]}>

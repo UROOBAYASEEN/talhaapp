@@ -29,6 +29,25 @@ function TabIcon({
   label: string;
   focused: boolean;
 }) {
+  const C = useAppColors();
+  // Light mode (Figma): light-grey circle, navy → orange ring, orange icon + label
+  if (focused && !C.isDark) {
+    return (
+      // Ring: navy on top fading to orange at the bottom (Figma light)
+      <LinearGradient
+        colors={['#0A2A66', '#0A2A66', '#E2671B']}
+        locations={[0, 0.45, 1]}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        style={[styles.activeRing, { padding: 1.5 }]}
+      >
+        <View style={[styles.iconActive, { backgroundColor: '#E8EAEF' }]}>
+          <Ionicons name={name} size={17} color="#E2671B" />
+          <Text style={[styles.label, { color: '#E2671B' }]}>{label}</Text>
+        </View>
+      </LinearGradient>
+    );
+  }
   if (focused) {
     return (
       <LinearGradient
@@ -85,9 +104,10 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   // Android: keyboard khula ho to floating tab bar keyboard ke upar na aaye
   const keyboardH = useAndroidKeyboardHeight();
+  const C = useAppColors();
   if (keyboardH > 0) return null;
   return (
-    <View style={[styles.bar, { bottom: insets.bottom + 4 }]}>
+    <View style={[styles.bar, { bottom: insets.bottom + 4 }, !C.isDark && { backgroundColor: '#1F3F7A' }]}>
       {state.routes.map((route, index) => {
         const { options } = descriptors[route.key];
         if (route.name === 'sell') {

@@ -31,7 +31,7 @@ export default function TermsOfUseScreen() {
       {/* Header */}
       <View style={[styles.header, { borderBottomColor: aC.divider }]}>
         <TouchableOpacity
-          style={[styles.backButton, { backgroundColor: aC.isDark ? "rgba(6,17,60,0.85)" : "#e0e8ff" }]}
+          style={[styles.backButton, { backgroundColor: aC.isDark ? "rgba(6,17,60,0.85)" : "#F2F4F8" }]}
           onPress={() => router.back()}
           activeOpacity={0.7}
         >
@@ -39,7 +39,7 @@ export default function TermsOfUseScreen() {
         </TouchableOpacity>
 
         <View style={styles.logoContainer}>
-          <Text style={styles.logoWhite}>Auto</Text>
+          <Text style={[styles.logoWhite, !aC.isDark && { color: '#032a69' }]}>Auto</Text>
           <Text style={styles.logoOrange}>wizor</Text>
         </View>
 

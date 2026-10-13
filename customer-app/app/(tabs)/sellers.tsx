@@ -1,3 +1,4 @@
+import LightGradientBorder from '@/components/shared/LightGradientBorder';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -116,17 +117,14 @@ export default function AdsScreen() {
     const mileageLabel = mileage != null && String(mileage).trim() ? `${Number.isFinite(mileageNumber) ? mileageNumber.toLocaleString() : String(mileage)}Km` : '210,000Km';
     const photo = imgUrl(item.images?.[0]);
     return (
-      <View style={[styles.card, { backgroundColor: aC.isDark ? '#010A1F' : '#ffffff', borderColor: aC.isDark ? '#82a5d5' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? '#638ed0' : 'rgba(3,42,105,0.12)', shadowOffset: { width: 0, height: 0 }, shadowOpacity: aC.isDark ? 0.15 : 0.08, shadowRadius: 5, elevation: aC.isDark ? 2 : 3 }]}>
+      <View style={[styles.card, { backgroundColor: aC.isDark ? '#010A1F' : '#ffffff', borderColor: aC.isDark ? '#82a5d5' : 'transparent', shadowColor: aC.isDark ? '#638ed0' : 'transparent', shadowOffset: { width: 0, height: 0 }, shadowOpacity: aC.isDark ? 0.15 : 0, shadowRadius: 5, elevation: aC.isDark ? 2 : 0 }, !aC.isDark && { borderWidth: 0, marginBottom: 16, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
         {aC.isDark ? (
           <>
             <LinearGradient colors={['#16408880', 'transparent', 'transparent', '#16408880']} locations={[0, 0.12, 0.88, 1]} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
             <LinearGradient colors={['#16408880', 'transparent', 'transparent', '#16408880']} locations={[0, 0.05, 0.95, 1]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
           </>
         ) : (
-          <>
-            <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <LinearGradient colors={['transparent', 'rgba(226,103,27,0.08)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          </>
+          <LightGradientBorder radius={16} fill="#ffffff" colors={['rgba(3,42,105,0.45)', 'rgba(226,103,27,0.55)']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} />
         )}
         <View style={styles.cardTop}>
           {/* Image — database photo, fallback to local asset */}
@@ -147,11 +145,11 @@ export default function AdsScreen() {
             <View style={styles.metaRow}>
               <View style={styles.metaItem}>
                 <Ionicons name="calendar" size={14} color={ORANGE} />
-                <Text style={[styles.metaTxt, { color: aC.textSecondary }]}>{item.year}</Text>
+                <Text style={[styles.metaTxt, { color: aC.isDark ? aC.textSecondary : '#000000' }]}>{item.year}</Text>
               </View>
               <View style={styles.metaItem}>
                 <Image source={SPEED_ICON} style={styles.metaIcon} resizeMode="contain" />
-                <Text style={[styles.metaTxt, { color: aC.textSecondary }]} numberOfLines={1}>{mileageLabel}</Text>
+                <Text style={[styles.metaTxt, { color: aC.isDark ? aC.textSecondary : '#000000' }]} numberOfLines={1}>{mileageLabel}</Text>
               </View>
             </View>
 
@@ -159,21 +157,21 @@ export default function AdsScreen() {
             <View style={styles.metaRow}>
               <View style={styles.metaItem}>
                 <Image source={PETROL_ICON} style={styles.metaIcon} resizeMode="contain" />
-                <Text style={[styles.metaTxt, { color: aC.textSecondary }]}>{item.fuel_type || 'Petrol'}</Text>
+                <Text style={[styles.metaTxt, { color: aC.isDark ? aC.textSecondary : '#000000' }]}>{item.fuel_type || 'Petrol'}</Text>
               </View>
               <View style={styles.metaItem}>
                 <Ionicons name="location-outline" size={15} color={ORANGE} />
-                <Text style={[styles.metaTxt, { color: aC.textSecondary }]}>{item.city || 'Pakistan'}</Text>
+                <Text style={[styles.metaTxt, { color: aC.isDark ? aC.textSecondary : '#000000' }]}>{item.city || 'Pakistan'}</Text>
               </View>
             </View>
 
             {/* Available badge */}
             <View style={styles.statusRow}>
-              <View style={styles.availBadge}>
+              <View style={[styles.availBadge, !aC.isDark && { backgroundColor: '#DDF5E5' }]}>
                 <Ionicons name="checkmark-circle" size={13} color="#28c76f" />
                 <Text style={styles.availTxt}>Available</Text>
               </View>
-              <Text numberOfLines={1} style={[styles.deliveryTxt, { color: aC.textSecondary }]}>Delivery: Immediate</Text>
+              <Text numberOfLines={1} style={[styles.deliveryTxt, { color: aC.isDark ? aC.textSecondary : '#000000' }]}>Delivery: Immediate</Text>
             </View>
           </View>
         </View>
@@ -181,12 +179,12 @@ export default function AdsScreen() {
         {/* Buttons */}
         <View style={styles.cardBtns}>
           <TouchableOpacity
-            style={styles.viewBtn}
+            style={[styles.viewBtn, !aC.isDark && { boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}
             activeOpacity={0.85}
             onPress={() => router.push({ pathname: '/buy/car-detail', params: { id: item.id, from: 'usedCar', ...(item.isDummy ? { dummy: JSON.stringify(item) } : {}) } } as any)}
           >
             <LinearGradient
-              colors={[NAVY, ORANGE]}
+              colors={aC.isDark ? [NAVY, ORANGE] : ['#27467F', '#FF9654']}
               start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
               style={styles.viewGrad}
             >
@@ -194,9 +192,10 @@ export default function AdsScreen() {
             </LinearGradient>
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.contactBtn, { backgroundColor: aC.isDark ? '#081b3c' : '#ffffff', borderColor: aC.isDark ? '#83a8db' : 'rgba(3,42,105,0.14)' }]} activeOpacity={0.85}>
+          <TouchableOpacity style={[styles.contactBtn, { backgroundColor: aC.isDark ? '#081b3c' : '#ffffff', borderColor: aC.isDark ? '#83a8db' : 'transparent' }, !aC.isDark && { borderWidth: 0, shadowOpacity: 0, elevation: 0 }]} activeOpacity={0.85}>
+            {!aC.isDark && <LightGradientBorder radius={16} fill="#ffffff" colors={['#032a69', '#e2671b']} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} />}
             {aC.isDark && <LinearGradient colors={['rgba(40,86,158,0.72)', 'rgba(0,0,0,0.22)', 'rgba(21,54,110,0.32)']} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
-            <Text style={[styles.contactTxt, { color: aC.isDark ? '#f9fafc' : '#032a69' }]}>Contact Seller</Text>
+            <Text style={[styles.contactTxt, { color: aC.isDark ? '#f9fafc' : '#000000' }]}>Contact Seller</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -223,7 +222,7 @@ export default function AdsScreen() {
         </View>
         <View style={styles.heartWrap}>
           <Ionicons name="heart" size={25} color={ORANGE} />
-          <Text style={styles.heartCount}>3</Text>
+          <Text style={[styles.heartCount, !aC.isDark && { color: '#032a69' }]}>3</Text>
         </View>
       </View>
 
@@ -242,28 +241,23 @@ export default function AdsScreen() {
             {/* Title */}
             <View style={styles.titleBox}>
               <Text style={[styles.pageTitle, { color: aC.textPrimary }]}>Car For Sale</Text>
-              <Text style={[styles.resultSub, { color: aC.textSecondary }]}>{(showDummy ? DUMMY_ADS.length : total).toLocaleString()} Results Found in karachi</Text>
+              <Text style={[styles.resultSub, { color: aC.isDark ? aC.textSecondary : '#000000' }]}>{(showDummy ? DUMMY_ADS.length : total).toLocaleString()} Results Found in karachi</Text>
             </View>
 
 
             {/* Search */}
-            <View style={[styles.searchBox, { backgroundColor: aC.isDark ? '#0a1b3a' : '#ffffff', borderColor: aC.isDark ? '#82a5d5' : 'rgba(3,42,105,0.14)', shadowColor: aC.isDark ? '#7ba8ed' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0.18 : 0.06, shadowRadius: 4, elevation: aC.isDark ? 2 : 2 }]}>
+            <View style={[styles.searchBox, { backgroundColor: aC.isDark ? '#0a1b3a' : '#ffffff', borderColor: aC.isDark ? '#82a5d5' : 'rgba(0,0,0,0.1)', shadowColor: aC.isDark ? '#7ba8ed' : 'transparent', shadowOpacity: aC.isDark ? 0.18 : 0, shadowRadius: 4, elevation: aC.isDark ? 2 : 0 }, !aC.isDark && { marginBottom: 16, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
               {aC.isDark ? (
                 <>
                   <LinearGradient colors={['rgba(53,105,186,0.42)', 'rgba(14,34,75,0.16)', 'rgba(0,0,0,0.16)', 'rgba(14,34,75,0.16)', 'rgba(53,105,186,0.34)']} locations={[0, 0.14, 0.5, 0.86, 1]} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
                   <LinearGradient colors={['rgba(52,104,184,0.22)', 'rgba(0,0,0,0.12)', 'rgba(0,0,0,0.12)', 'rgba(52,104,184,0.22)']} locations={[0, 0.12, 0.88, 1]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
                 </>
-              ) : (
-                <>
-                  <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                  <LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                </>
-              )}
-              <Ionicons name="search-outline" size={18} color={aC.textSecondary} />
+              ) : null}
+              <Ionicons name="search-outline" size={18} color={aC.isDark ? aC.textSecondary : '#000000'} />
               <TextInput
                 style={[styles.searchInput, { color: aC.textPrimary }]}
                 placeholder="Search cars, banks & dealers..."
-                placeholderTextColor={aC.textSecondary}
+                placeholderTextColor={aC.isDark ? aC.textSecondary : '#000000'}
                 value={search}
                 onChangeText={setSearch}
                 returnKeyType="search"
@@ -278,7 +272,7 @@ export default function AdsScreen() {
                   <TouchableOpacity
                     key={label}
                     activeOpacity={0.85}
-                    style={[styles.filterChip, selected ? styles.filterChipActive : styles.filterChipInactive]}
+                    style={[styles.filterChip, selected ? styles.filterChipActive : styles.filterChipInactive, !aC.isDark && (selected ? { backgroundColor: '#F2F4F8', borderColor: 'transparent', boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' } : { backgroundColor: '#F7F8FA', borderColor: 'transparent' })]}
                     onPress={() => {
                       if (label === 'All') {
                         setOpenFilter(null);
@@ -292,8 +286,8 @@ export default function AdsScreen() {
                     }}
                   >
                     {aC.isDark && <LinearGradient colors={['#214779', '#071733', '#0a1d40']} style={[StyleSheet.absoluteFillObject, { opacity: selected ? 1 : 0 }]} pointerEvents="none" />}
-                    <Text style={[styles.filterTxt, selected && styles.filterTxtActive]}>{label}</Text>
-                    <Ionicons name="chevron-down" size={17} color={aC.isDark ? WHITE : '#032a69'} />
+                    <Text style={[styles.filterTxt, !aC.isDark && { color: '#000000' }, selected && styles.filterTxtActive]}>{label}</Text>
+                    <Ionicons name="chevron-down" size={17} color={aC.isDark ? WHITE : selected ? ORANGE : '#000000'} />
                   </TouchableOpacity>
                 );
               })}
@@ -338,12 +332,12 @@ export default function AdsScreen() {
               {/* You May Need This */}
               <Text style={[styles.sectionTitle, { color: aC.textPrimary, fontSize: 17, marginBottom: 14 }]}>You May Need This</Text>
               <View style={styles.needsRow}>
-                <TouchableOpacity style={[styles.needCard, { backgroundColor: aC.isDark ? '#010A1F' : '#ffffff' }, !aC.isDark && { borderWidth: 1, borderColor: 'rgba(3,12,40,0.12)' }]} activeOpacity={0.85}>
+                <TouchableOpacity style={[styles.needCard, { backgroundColor: aC.isDark ? '#010A1F' : '#F1F4F8' }, !aC.isDark && { borderRadius: 16, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]} activeOpacity={0.85}>
                   <LinearGradient
-                    colors={aC.isDark ? ['#051539', '#061A44', '#0D1E47', '#2A2941', '#4E343A', '#653D37'] : ['#ffffff', '#f0f4ff', 'rgba(226,103,27,0.35)']}
-                    locations={aC.isDark ? [0, 0.36, 0.52, 0.68, 0.86, 1] : undefined}
+                    colors={aC.isDark ? ['#051539', '#061A44', '#0D1E47', '#2A2941', '#4E343A', '#653D37'] : ['#F1F4F8', '#F1F4F8', '#FCDCC8']}
+                    locations={aC.isDark ? [0, 0.36, 0.52, 0.68, 0.86, 1] : [0, 0.4, 1]}
                     start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
-                    style={[StyleSheet.absoluteFillObject, styles.needGradBg]}
+                    style={[StyleSheet.absoluteFillObject, styles.needGradBg, !aC.isDark && { borderRadius: 16 }]}
                     pointerEvents="none"
                   />
                   <View style={styles.needGrad}>
@@ -351,19 +345,19 @@ export default function AdsScreen() {
                       <Image source={IMG_COMPARE} style={styles.needImg} resizeMode="contain" />
                     </View>
                     <View style={styles.needTitleRow}>
-                      <Text style={[styles.needTitle, { color: aC.isDark ? '#f9fafc' : '#032a69' }]} numberOfLines={2}>{'Compare\nVehicle'}</Text>
+                      <Text style={[styles.needTitle, { color: aC.isDark ? '#f9fafc' : '#000000' }]} numberOfLines={2}>{'Compare\nVehicle'}</Text>
                       <Ionicons name="chevron-forward" size={18} color="#e2671b" />
                     </View>
-                    <Text style={[styles.needSub, { color: aC.isDark ? '#c9c1cb' : '#555566' }]} numberOfLines={3}>Compare and choose the vehicle that best fits your needs.</Text>
+                    <Text style={[styles.needSub, { color: aC.isDark ? '#c9c1cb' : '#000000' }]} numberOfLines={3}>Compare and choose the vehicle that best fits your needs.</Text>
                   </View>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={[styles.needCard, { backgroundColor: aC.isDark ? '#010A1F' : '#ffffff' }, !aC.isDark && { borderWidth: 1, borderColor: 'rgba(3,12,40,0.12)' }]} activeOpacity={0.85}>
+                <TouchableOpacity style={[styles.needCard, { backgroundColor: aC.isDark ? '#010A1F' : '#F1F4F8' }, !aC.isDark && { borderRadius: 16, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]} activeOpacity={0.85}>
                   <LinearGradient
-                    colors={aC.isDark ? ['#051539', '#061A44', '#0D1E47', '#2A2941', '#4E343A', '#653D37'] : ['#ffffff', '#f0f4ff', 'rgba(226,103,27,0.35)']}
-                    locations={aC.isDark ? [0, 0.36, 0.52, 0.68, 0.86, 1] : undefined}
+                    colors={aC.isDark ? ['#051539', '#061A44', '#0D1E47', '#2A2941', '#4E343A', '#653D37'] : ['#F1F4F8', '#F1F4F8', '#FCDCC8']}
+                    locations={aC.isDark ? [0, 0.36, 0.52, 0.68, 0.86, 1] : [0, 0.4, 1]}
                     start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
-                    style={[StyleSheet.absoluteFillObject, styles.needGradBg]}
+                    style={[StyleSheet.absoluteFillObject, styles.needGradBg, !aC.isDark && { borderRadius: 16 }]}
                     pointerEvents="none"
                   />
                   <View style={styles.needGrad}>
@@ -371,10 +365,10 @@ export default function AdsScreen() {
                       <Image source={IMG_INSURANCE} style={styles.needImg} resizeMode="contain" />
                     </View>
                     <View style={styles.needTitleRow}>
-                      <Text style={[styles.needTitle, { color: aC.isDark ? '#f9fafc' : '#032a69' }]} numberOfLines={2}>{'Compare\nInsurance'}</Text>
+                      <Text style={[styles.needTitle, { color: aC.isDark ? '#f9fafc' : '#000000' }]} numberOfLines={2}>{'Compare\nInsurance'}</Text>
                       <Ionicons name="chevron-forward" size={18} color="#e2671b" />
                     </View>
-                    <Text style={[styles.needSub, { color: aC.isDark ? '#c9c1cb' : '#555566' }]} numberOfLines={3}>Compare plans, coverage, and benefits to find the right insurance.</Text>
+                    <Text style={[styles.needSub, { color: aC.isDark ? '#c9c1cb' : '#000000' }]} numberOfLines={3}>Compare plans, coverage, and benefits to find the right insurance.</Text>
                   </View>
                 </TouchableOpacity>
               </View>
@@ -396,7 +390,7 @@ export default function AdsScreen() {
       />
       <TouchableOpacity
         // Pill tab bar: bottom = inset + 4, height 63 — button uske thora uper
-        style={[styles.addMoreAdsButton, { bottom: insets.bottom + 4 + 63 + 14 }]}
+        style={[styles.addMoreAdsButton, { bottom: insets.bottom + 4 + 63 + 14 }, !aC.isDark && { elevation: 0 }]}
         activeOpacity={0.85}
         accessibilityRole="button"
         accessibilityLabel="Add new ad"
@@ -451,8 +445,8 @@ const styles = StyleSheet.create({
   },
   searchInput: { flex: 1, color: WHITE, fontSize: 12, fontFamily: 'Poppins_400Regular' },
 
-  filterScroll: { flexGrow: 0, marginBottom: 14, marginHorizontal: -20 },
-  filterContent: { gap: 12, paddingHorizontal: 20 },
+  filterScroll: { flexGrow: 0, marginBottom: 6, marginHorizontal: -20 },
+  filterContent: { gap: 12, paddingHorizontal: 20, paddingBottom: 8 },
   filterChipActive: {
     borderWidth: 1, borderColor: '#7298cf', backgroundColor: '#0b2048', overflow: 'hidden',
   },

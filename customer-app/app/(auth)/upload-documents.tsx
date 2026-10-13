@@ -1,3 +1,4 @@
+import { AUTH_EDGES } from '@/constants/authEdges';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
@@ -172,7 +173,7 @@ export default function UploadDocumentsScreen() {
   }
 
   return (
-    <SafeAreaView style={[s.safe, { backgroundColor: C.bg }]}>
+    <SafeAreaView edges={AUTH_EDGES} style={[s.safe, { backgroundColor: C.bg }]}>
       <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
         <AuthHeader/>
         <Text style={[s.title, { color: C.textPrimary }]}>Upload Documents</Text>

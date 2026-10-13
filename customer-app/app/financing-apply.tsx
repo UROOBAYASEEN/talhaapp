@@ -252,7 +252,7 @@ export default function FinancingApplyScreen() {
             params: { ...params, tenureYears: String(tenure), downPct: String(downPayment) },
           })}
         >
-          <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+          <LinearGradient colors={(aC.isDark ? PRIMARY_BTN_COLORS : ['#27467F', '#8C6A78', '#FF9654']) as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
           <Text style={s.continueTxt}>Continue</Text>
         </TouchableOpacity>
       </View>

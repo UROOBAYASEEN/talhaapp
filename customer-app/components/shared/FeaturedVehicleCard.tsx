@@ -39,7 +39,7 @@ export default function FeaturedVehicleCard({ item, onPress, fallbackIndex = 0, 
   const cardImage = (category === 'bike' ? BIKE_IMAGES : FALLBACK_CARS)[fallbackIndex % 2];
 
   return (
-    <View style={[styles.card, { backgroundColor: C.isDark ? '#010b1e' : C.glassBg, borderColor: C.isDark ? '#8aa6d6' : 'rgba(3,12,40,0.12)' }]}>
+    <View style={[styles.card, { backgroundColor: C.isDark ? '#010b1e' : '#ffffff', borderColor: C.isDark ? '#8aa6d6' : 'rgba(3,12,40,0.08)' }, !C.isDark && styles.cardLight]}>
       {/* Vehicle Image */}
       <Image source={cardImage} style={styles.carImage} resizeMode="cover" />
 
@@ -73,7 +73,7 @@ export default function FeaturedVehicleCard({ item, onPress, fallbackIndex = 0, 
         <View style={styles.bottomRow}>
           <TouchableOpacity activeOpacity={0.85} style={styles.viewButton} onPress={onPress}>
             <LinearGradient
-              colors={['#032a69', '#e2671b']}
+              colors={C.isDark ? ['#032a69', '#e2671b'] : ['#27467F', '#FF9654']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={styles.viewGrad}
@@ -84,7 +84,7 @@ export default function FeaturedVehicleCard({ item, onPress, fallbackIndex = 0, 
 
           <TouchableOpacity
             activeOpacity={0.8}
-            style={[styles.heartButton, { backgroundColor: C.isDark ? '#061b40' : 'rgba(255,255,255,0.9)' }]}
+            style={[styles.heartButton, { backgroundColor: C.isDark ? '#061b40' : 'transparent' }]}
             onPress={() => setLiked(!liked)}
           >
             <Ionicons
@@ -108,6 +108,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(100,160,255,0.5)',
     alignSelf: 'center',
+  },
+
+  // Light mode (Figma): white card with soft drop shadow
+  cardLight: {
+    marginBottom: 10,
+    boxShadow: '2px 4px 5px rgba(0,0,0,0.24)',
   },
 
   carImage: {

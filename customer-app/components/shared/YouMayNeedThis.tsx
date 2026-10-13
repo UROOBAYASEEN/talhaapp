@@ -37,23 +37,23 @@ export default function YouMayNeedThis() {
         {rows.map((row, r) => (
           <View key={r} style={styles.row}>
             {row.map((item, i) => (
-              <TouchableOpacity key={i} style={[styles.card, { backgroundColor: C.isDark ? '#010A1F' : '#ffffff' }, !C.isDark && { borderWidth: 1, borderColor: 'rgba(3,12,40,0.12)' }]} activeOpacity={0.85} onPress={() => router.push(item.route as any)}>
+              <TouchableOpacity key={i} style={[styles.card, { backgroundColor: C.isDark ? '#010A1F' : '#F1F4F8' }, !C.isDark && styles.cardLight]} activeOpacity={0.85} onPress={() => router.push(item.route as any)}>
                 <LinearGradient
-                  colors={C.isDark ? ['#051539', '#061A44', '#0D1E47', '#2A2941', '#4E343A', '#653D37'] : ['#ffffff', '#f0f4ff', 'rgba(226,103,27,0.35)']}
-                  locations={C.isDark ? [0, 0.36, 0.52, 0.68, 0.86, 1] : undefined}
+                  colors={C.isDark ? ['#051539', '#061A44', '#0D1E47', '#2A2941', '#4E343A', '#653D37'] : ['#F1F4F8', '#F1F4F8', '#FCDCC8']}
+                  locations={C.isDark ? [0, 0.36, 0.52, 0.68, 0.86, 1] : [0, 0.4, 1]}
                   start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
-                  style={[StyleSheet.absoluteFillObject, styles.gradBg]}
+                  style={[StyleSheet.absoluteFillObject, styles.gradBg, !C.isDark && { borderRadius: 16 }]}
                   pointerEvents="none"
                 />
-                <View style={styles.grad}>
+                <View style={[styles.grad, !C.isDark && { paddingHorizontal: 12, paddingBottom: 10 }]}>
                   <View style={styles.imgWrap}>
                     <Image source={typeof item.img === 'string' ? { uri: item.img } : item.img} style={[styles.img, { width: item.imgW, height: item.imgH }]} resizeMode="contain" />
                   </View>
                   <View style={styles.titleRow}>
-                    <Text style={[styles.title, { color: C.isDark ? '#f9fafc' : '#032a69' }]} numberOfLines={2}>{item.title}</Text>
-                    <Ionicons name="chevron-forward" size={18} color="#e2671b" />
+                    <Text style={[styles.title, { color: C.isDark ? '#f9fafc' : '#000000' }, !C.isDark && { fontSize: 14.5, lineHeight: 20 }]} numberOfLines={2}>{item.title}</Text>
+                    <Ionicons name="chevron-forward" size={C.isDark ? 18 : 20} color="#e2671b" />
                   </View>
-                  <Text style={[styles.sub, { color: C.isDark ? '#c9c1cb' : '#555566' }]} numberOfLines={3}>{item.sub}</Text>
+                  <Text style={[styles.sub, { color: C.isDark ? '#c9c1cb' : '#000000' }, !C.isDark && { fontSize: 10, marginTop: 2 }]} numberOfLines={3}>{item.sub}</Text>
                 </View>
               </TouchableOpacity>
             ))}
@@ -72,6 +72,8 @@ const styles = StyleSheet.create({
   // Fixed height (aspectRatio + overflow clip hata diye — Android pe yehi draw miss karwate thay)
   card: { flex: 1, height: 190, borderRadius: 12 },
   gradBg: { borderRadius: 12 },
+  // Light mode (Figma): no border, soft drop shadow
+  cardLight: { borderRadius: 16, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' },
   grad: { flex: 1, paddingHorizontal: 10, paddingTop: 8, paddingBottom: 8, justifyContent: 'flex-start' },
   titleRow: {
     flexDirection: 'row', alignItems: 'center',

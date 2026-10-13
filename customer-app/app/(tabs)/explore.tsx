@@ -12,7 +12,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { AppColors, useAppColors } from '@/constants/theme';
+import { AppColors, useAppColors, LIGHT_POP_SHADOW } from '@/constants/theme';
 
 const { width: W } = Dimensions.get('window');
 const CARD_W = (W - 40 - 16) / 2;
@@ -123,19 +123,19 @@ function ServiceCard({
   }
   // Light mode — white card, subtle border + shadow + orange bottom glow (professional)
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.85} style={[styles.cardWrap, { shadowColor: 'rgba(3,42,105,0.12)', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 10, elevation: 3 }]}>
-      <View style={[styles.card, { backgroundColor: '#ffffff', borderWidth: 1, borderColor: 'rgba(3,42,105,0.12)', overflow: 'hidden' }]}>
-        <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-        <LinearGradient colors={['transparent', 'rgba(226,103,27,0.10)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+    <TouchableOpacity onPress={onPress} activeOpacity={0.85} style={[styles.cardWrap, { borderRadius: 16, backgroundColor: '#F1F4F8', boxShadow: LIGHT_POP_SHADOW }]}>
+      <View style={[styles.card, { backgroundColor: '#F1F4F8', borderWidth: 0, borderRadius: 16, overflow: 'hidden' }]}>
+        {/* Figma light: grey-blue top fading to peach, no border */}
+        <LinearGradient colors={['#F1F4F8', '#F1F4F8', '#FCDCC8']} locations={[0, 0.4, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
         <View style={styles.cardImgWrap}>
           <Image source={typeof img === 'string' ? { uri: img } : img} style={styles.cardImg} resizeMode="contain" />
         </View>
         <View style={styles.cardBottom}>
           <View style={styles.cardTitleRow}>
-            <Text style={[styles.cardTitle, { color: '#010a1f' }]} numberOfLines={2}>{title}</Text>
-            <Ionicons name="chevron-forward" size={14} color="#e2671b" />
+            <Text style={[styles.cardTitle, { color: '#000000' }]} numberOfLines={2}>{title}</Text>
+            <Ionicons name="chevron-forward" size={20} color="#e2671b" />
           </View>
-          <Text style={[styles.cardDesc, { color: '#475569' }]} numberOfLines={2}>{desc}</Text>
+          <Text style={[styles.cardDesc, { color: '#000000' }]} numberOfLines={2}>{desc}</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -180,7 +180,7 @@ export default function ExploreScreen() {
         contentContainerStyle={styles.scroll}
       >
         {/* VEHICLES */}
-        <Text style={[styles.sectionHeading, { color: aC.isDark ? '#E6E1E8' : aC.textSecondary }]}>VEHICLES</Text>
+        <Text style={[styles.sectionHeading, { color: aC.isDark ? '#E6E1E8' : '#000000' }]}>VEHICLES</Text>
         <View style={styles.grid}>
           {VEHICLES.map((item) => (
             <ServiceCard
@@ -194,7 +194,7 @@ export default function ExploreScreen() {
         </View>
 
         {/* VEHICLE SERVICES */}
-        <Text style={[styles.sectionHeading, { color: aC.isDark ? '#E6E1E8' : aC.textSecondary }]}>VEHICLE SERVICES</Text>
+        <Text style={[styles.sectionHeading, { color: aC.isDark ? '#E6E1E8' : '#000000' }]}>VEHICLE SERVICES</Text>
         <View style={styles.grid}>
           {SERVICES.map((item) => (
             <ServiceCard

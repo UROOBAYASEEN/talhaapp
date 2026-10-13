@@ -11,6 +11,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAppColors, LIGHT_POP_SHADOW, withLightStyles } from '@/constants/theme';
+import LightGradientBorder from '@/components/shared/LightGradientBorder';
 import { CtaPanelGlass, PRIMARY_BTN_COLORS, RingGlow } from '@/components/shared/FigmaEffects';
 
 import SheetModal from '@/components/shared/SheetModal';
@@ -45,6 +47,8 @@ function timeAgo(dateStr: string) {
 
 export default function DealerProfileScreen() {
   const router = useRouter();
+  const aC = useAppColors();
+  const st = aC.isDark ? s : sLight;
   const { id, from, category } = useLocalSearchParams<{ id: string; from?: string; category?: string }>();
   const isBike = category === 'bike';
   // Came from Buy Used Car → View Available Cars + Call / Chat / WhatsApp (Figma)
@@ -156,13 +160,13 @@ export default function DealerProfileScreen() {
   }
 
   if (loading)
-    return <View style={{ flex: 1, backgroundColor: BG, alignItems: 'center', justifyContent: 'center' }}><ActivityIndicator color={ORANGE} size="large" /></View>;
+    return <View style={{ flex: 1, backgroundColor: aC.isDark ? BG : '#ffffff', alignItems: 'center', justifyContent: 'center' }}><ActivityIndicator color={ORANGE} size="large" /></View>;
 
   if (!dealer)
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: BG, alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: aC.isDark ? BG : '#ffffff', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
         <Ionicons name="alert-circle-outline" size={48} color={MUTED} />
-        <Text style={{ color: WHITE, fontSize: 16, fontFamily: 'Poppins_600SemiBold' }}>Dealer not found</Text>
+        <Text style={{ color: aC.isDark ? WHITE : '#000000', fontSize: 16, fontFamily: 'Poppins_600SemiBold' }}>Dealer not found</Text>
         <TouchableOpacity onPress={() => router.back()}><Text style={{ color: ORANGE, fontFamily: 'Poppins_500Medium' }}>Go Back</Text></TouchableOpacity>
       </SafeAreaView>
     );
@@ -192,52 +196,52 @@ export default function DealerProfileScreen() {
   ];
 
   return (
-    <SafeAreaView style={s.root}>
-      <StatusBar barStyle="light-content" backgroundColor={BG} />
+    <SafeAreaView style={st.root}>
+      <StatusBar barStyle={aC.isDark ? "light-content" : "dark-content"} backgroundColor={aC.isDark ? BG : '#ffffff'} />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: ctaHeight + 24 }}>
 
         {/* ── Banner ── */}
-        <View style={s.bannerWrap}>
+        <View style={st.bannerWrap}>
           {cover
-            ? <Image source={{ uri: cover }} style={s.bannerImg} resizeMode="cover" />
-            : <LinearGradient colors={['#1a2440', '#0e1526']} style={s.bannerImg} />
+            ? <Image source={{ uri: cover }} style={st.bannerImg} resizeMode="cover" />
+            : <LinearGradient colors={['#1a2440', '#0e1526']} style={st.bannerImg} />
           }
           <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.15)' }} />
 
           {/* Back btn */}
-          <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
+          <TouchableOpacity style={st.backBtn} onPress={() => router.back()}>
             <Ionicons name="chevron-back" size={18} color={WHITE} />
           </TouchableOpacity>
 
           {/* Logo */}
-          <View style={s.logoRow}>
-            <Text style={s.logoW}>Auto</Text>
-            <Text style={s.logoO}>wizor</Text>
+          <View style={st.logoRow}>
+            <Text style={st.logoW}>Auto</Text>
+            <Text style={st.logoO}>wizor</Text>
           </View>
 
           {/* Dealer avatar overlapping */}
-          <View style={s.avatarWrap}>
+          <View style={st.avatarWrap}>
             {avatar
-              ? <Image source={{ uri: avatar }} style={s.avatarImg} resizeMode="cover" />
-              : <View style={s.avatarFallback}><Text style={s.avatarInitial}>{initial}</Text></View>
+              ? <Image source={{ uri: avatar }} style={st.avatarImg} resizeMode="cover" />
+              : <View style={st.avatarFallback}><Text style={st.avatarInitial}>{initial}</Text></View>
             }
           </View>
         </View>
 
         {/* ── Body ── */}
-        <View style={s.body}>
+        <View style={st.body}>
 
           {/* Name row */}
-          <View style={s.nameRow}>
+          <View style={st.nameRow}>
             <View style={{ flex: 1 }}>
-              <View style={s.nameVerifiedRow}>
-                <Text style={s.name} numberOfLines={2}>{name}</Text>
+              <View style={st.nameVerifiedRow}>
+                <Text style={st.name} numberOfLines={2}>{name}</Text>
                 <VerifiedIcon size={17} style={{ marginLeft: 6, marginTop: 4 }} />
               </View>
-              <Text style={s.subtitle}>{isDealer ? 'Official Dealership' : 'Non Dealership'}</Text>
+              <Text style={st.subtitle}>{isDealer ? 'Official Dealership' : 'Non Dealership'}</Text>
             </View>
-            <View style={s.iconRow}>
+            <View style={st.iconRow}>
               <TouchableOpacity><Ionicons name="share-social-outline" size={18} color={ORANGE} /></TouchableOpacity>
               <TouchableOpacity onPress={() => setSaved(v => !v)}>
                 <Ionicons name={saved ? 'heart' : 'heart-outline'} size={18} color={ORANGE} />
@@ -246,51 +250,51 @@ export default function DealerProfileScreen() {
           </View>
 
           {/* Rating + Follow */}
-          <View style={s.ratingFollowRow}>
-            <View style={s.ratingRow}>
+          <View style={st.ratingFollowRow}>
+            <View style={st.ratingRow}>
               <Ionicons name="star" size={17} color={ORANGE} />
-              <Text style={s.ratingVal}>{avgRating > 0 ? avgRating.toFixed(1) : '0.0'}</Text>
-              <Text style={s.ratingCount}>({reviewCount} {reviewCount === 1 ? 'Review' : 'Reviews'})</Text>
+              <Text style={st.ratingVal}>{avgRating > 0 ? avgRating.toFixed(1) : '0.0'}</Text>
+              <Text style={st.ratingCount}>({reviewCount} {reviewCount === 1 ? 'Review' : 'Reviews'})</Text>
             </View>
             <TouchableOpacity
-              style={s.followBtn}
+              style={st.followBtn}
               onPress={toggleFollow}
               disabled={toggling}
               activeOpacity={0.85}
             >
-              <LinearGradient colors={['#1E3F7C', '#132C5E', '#0F2653']} locations={[0, 0.5, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-              <LinearGradient colors={['rgba(120,160,225,0.35)', 'transparent', 'transparent', 'rgba(120,160,225,0.25)']} locations={[0, 0.25, 0.75, 1]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-              <Text style={s.followTxt}>{following ? 'Following' : 'Follow'}</Text>
+              {aC.isDark && <LinearGradient colors={['#1E3F7C', '#132C5E', '#0F2653']} locations={[0, 0.5, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
+              {aC.isDark && <LinearGradient colors={['rgba(120,160,225,0.35)', 'transparent', 'transparent', 'rgba(120,160,225,0.25)']} locations={[0, 0.25, 0.75, 1]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
+              <Text style={st.followTxt}>{following ? 'Following' : 'Follow'}</Text>
             </TouchableOpacity>
           </View>
 
           {/* Stats */}
-          <View style={s.statsRow}>
-            {stats.map((st, i) => (
+          <View style={st.statsRow}>
+            {stats.map((stat, i) => (
               <React.Fragment key={i}>
-                <View style={s.statItem}>
-                  <Ionicons name={st.icon} size={15} color={ORANGE} />
-                  <Text style={s.statTxt}>{st.label}</Text>
+                <View style={st.statItem}>
+                  <Ionicons name={stat.icon} size={15} color={ORANGE} />
+                  <Text style={st.statTxt}>{stat.label}</Text>
                 </View>
-                {i < stats.length - 1 && <View style={s.statSep} />}
+                {i < stats.length - 1 && <View style={st.statSep} />}
               </React.Fragment>
             ))}
           </View>
 
           {/* About */}
-          <Text style={s.secTitle}>About Dealership</Text>
-          <Text style={s.aboutTxt}>
+          <Text style={st.secTitle}>About Dealership</Text>
+          <Text style={st.aboutTxt}>
             {dealer.bio || `${name} is an authorized dealership offering genuine new vehicles, certified after-sales services, original spare parts, and manufacturer warranty with professional customer support.`}
           </Text>
 
           {/* Contact Info */}
-          <View style={s.contactGrid}>
+          <View style={st.contactGrid}>
             {contactInfo.map((c, i) => (
-              <View key={i} style={s.contactItem}>
+              <View key={i} style={st.contactItem}>
                 <Ionicons name={c.icon} size={18} color={ORANGE} style={{ marginBottom: 6 }} />
-                <Text style={s.contactTitle}>{c.title}</Text>
+                <Text style={st.contactTitle}>{c.title}</Text>
                 {c.lines.map((line: any, li: any) => (
-                  <Text key={li} style={s.contactLine}>{line}</Text>
+                  <Text key={li} style={st.contactLine}>{line}</Text>
                 ))}
               </View>
             ))}
@@ -298,41 +302,41 @@ export default function DealerProfileScreen() {
 
 
           {/* ── Rating Summary ── */}
-          <View style={s.rateCard}>
-            <View style={s.rateLeft}>
+          <View style={st.rateCard}>
+            <View style={st.rateLeft}>
               {[5, 4, 3, 2, 1].map(star => {
                 const total = reviewCount || reviews.length;
                 const c = reviews.filter((r: any) => Math.round(r.rating || 0) === star).length;
                 const pct = total > 0 ? (c / total) * 100 : 0;
                 return (
-                  <View key={star} style={s.rateRow}>
-                    <Text style={s.rateNum}>{star}</Text>
+                  <View key={star} style={st.rateRow}>
+                    <Text style={st.rateNum}>{star}</Text>
                     <Ionicons name="star" size={12} color={ORANGE} />
-                    <View style={s.rateTrack}>
-                      <View style={[s.rateFill, { width: `${pct}%` as any }]} />
+                    <View style={st.rateTrack}>
+                      <View style={[st.rateFill, { width: `${pct}%` as any }]} />
                     </View>
                   </View>
                 );
               })}
             </View>
-            <View style={s.rateRight}>
-              <Text style={s.rateBig}>
+            <View style={st.rateRight}>
+              <Text style={st.rateBig}>
                 {(avgRating > 0 ? avgRating : (reviews.length ? reviews.reduce((a: number, r: any) => a + (r.rating || 0), 0) / reviews.length : 0)).toFixed(1)}
               </Text>
-              <View style={s.rateStars}>
+              <View style={st.rateStars}>
                 {Array.from({ length: 5 }).map((_, si) => {
                   const avg = avgRating > 0 ? avgRating : (reviews.length ? reviews.reduce((a: number, r: any) => a + (r.rating || 0), 0) / reviews.length : 0);
                   return <Ionicons key={si} name="star" size={14} color={si < Math.round(avg) ? ORANGE : '#64748b'} />;
                 })}
               </View>
-              <Text style={s.rateCount}>{reviewCount || reviews.length} Reviews</Text>
+              <Text style={st.rateCount}>{reviewCount || reviews.length} Reviews</Text>
             </View>
           </View>
 
           {/* Reviews */}
           <View>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-              <Text style={s.secTitle}>Reviews</Text>
+              <Text style={st.secTitle}>Reviews</Text>
               <TouchableOpacity
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: 'rgba(226,103,27,0.12)', paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(226,103,27,0.4)' }}
                 onPress={() => setReviewModal(true)}
@@ -348,32 +352,32 @@ export default function DealerProfileScreen() {
                 const init = (r.reviewer_name || 'U')[0].toUpperCase();
                 const stars = Math.round(r.rating || 0);
                 return (
-                  <View key={i} style={[s.reviewCard, i < reviews.length - 1 && s.reviewBorder]}>
-                    <View style={s.reviewHeader}>
-                      <View style={s.reviewLeft}>
-                        <View style={[s.reviewAvatar, { backgroundColor: i % 2 === 0 ? ORANGE : '#64748b' }]}>
-                          <Text style={s.reviewAvatarTxt}>{init}</Text>
+                  <View key={i} style={[st.reviewCard, i < reviews.length - 1 && st.reviewBorder]}>
+                    <View style={st.reviewHeader}>
+                      <View style={st.reviewLeft}>
+                        <View style={[st.reviewAvatar, { backgroundColor: i % 2 === 0 ? ORANGE : '#64748b' }]}>
+                          <Text style={st.reviewAvatarTxt}>{init}</Text>
                         </View>
                         <View>
-                          <Text style={s.reviewName}>{r.reviewer_name || 'User'}</Text>
-                          <View style={s.starsRow}>
+                          <Text style={st.reviewName}>{r.reviewer_name || 'User'}</Text>
+                          <View style={st.starsRow}>
                             {Array.from({ length: 5 }).map((_, si) => (
                               <Ionicons key={si} name={si < stars ? 'star' : 'star-outline'} size={11} color={si < stars ? AMBER : '#475569'} />
                             ))}
-                            <Text style={s.reviewTime}>{r.created_at ? timeAgo(r.created_at) : '2 mins ago'}</Text>
+                            <Text style={st.reviewTime}>{r.created_at ? timeAgo(r.created_at) : '2 mins ago'}</Text>
                           </View>
                         </View>
                       </View>
                       <Ionicons name="ellipsis-vertical" size={16} color={MUTED} />
                     </View>
-                    <Text style={s.reviewTxt}>"{r.comment || r.text || ''}"</Text>
+                    <Text style={st.reviewTxt}>"{r.comment || r.text || ''}"</Text>
                   </View>
                 );
               })
             )}
             {reviews.length > 0 && (
               <TouchableOpacity style={{ alignSelf: 'flex-end', marginTop: 4 }} onPress={() => router.push({ pathname: '/dealer-panel/reviews', params: { dealer_id: id } } as any)}>
-                <Text style={{ color: WHITE, fontSize: 13, fontFamily: 'Poppins_400Regular', textDecorationLine: 'underline' }}>See More</Text>
+                <Text style={{ color: aC.isDark ? WHITE : '#1F3F7A', fontSize: 13, fontFamily: 'Poppins_400Regular', textDecorationLine: 'underline' }}>See More</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -381,52 +385,52 @@ export default function DealerProfileScreen() {
         </View>
       </ScrollView>
       {/* ── Fixed Bottom CTA ── */}
-      <View style={s.ctaBox} onLayout={(e) => setCtaHeight(Math.ceil(e.nativeEvent.layout.height))}>
-        <CtaPanelGlass />
-        <View style={s.ctaHandle} />
+      <View style={st.ctaBox} onLayout={(e) => setCtaHeight(Math.ceil(e.nativeEvent.layout.height))}>
+        {aC.isDark && <CtaPanelGlass />}
+        <View style={st.ctaHandle} />
 
         {fromUsedCar || !isDealer ? (
           <>
-            <TouchableOpacity style={s.ctaPrimary} onPress={() => router.push({ pathname: '/buy/search-results' as any, params: { dealerId: id, brand: name, ...(isBike ? { category: 'bike' } : {}) } })} activeOpacity={0.88}>
-              <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
-              <Text style={s.ctaPrimaryTxt}>{isBike ? 'View Available Bikes' : 'View Available Cars'}</Text>
+            <TouchableOpacity style={st.ctaPrimary} onPress={() => router.push({ pathname: '/buy/search-results' as any, params: { dealerId: id, brand: name, ...(isBike ? { category: 'bike' } : {}) } })} activeOpacity={0.88}>
+              <LinearGradient colors={(aC.isDark ? PRIMARY_BTN_COLORS : ['#27467F', '#8C6A78', '#FF9654']) as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+              <Text style={st.ctaPrimaryTxt}>{isBike ? 'View Available Bikes' : 'View Available Cars'}</Text>
             </TouchableOpacity>
-            <View style={s.usedContactRow}>
-              <TouchableOpacity style={s.usedContactItem} onPress={handleCall} activeOpacity={0.8}>
+            <View style={st.usedContactRow}>
+              <TouchableOpacity style={st.usedContactItem} onPress={handleCall} activeOpacity={0.8}>
                 <Ionicons name="call-outline" size={24} color={ORANGE} />
-                <Text style={s.usedContactTxt}>Call</Text>
+                <Text style={st.usedContactTxt}>Call</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={s.usedContactItem} onPress={handleChat} disabled={chatting} activeOpacity={0.8}>
+              <TouchableOpacity style={st.usedContactItem} onPress={handleChat} disabled={chatting} activeOpacity={0.8}>
                 {chatting ? <ActivityIndicator color={ORANGE} size="small" /> : <Ionicons name="chatbox-ellipses-outline" size={24} color={ORANGE} />}
-                <Text style={s.usedContactTxt}>Chat</Text>
+                <Text style={st.usedContactTxt}>Chat</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={s.usedContactItem} onPress={handleWhatsApp} activeOpacity={0.8}>
+              <TouchableOpacity style={st.usedContactItem} onPress={handleWhatsApp} activeOpacity={0.8}>
                 <Ionicons name="logo-whatsapp" size={24} color="#25D366" />
-                <Text style={s.usedContactTxt}>WhatsApp</Text>
+                <Text style={st.usedContactTxt}>WhatsApp</Text>
               </TouchableOpacity>
             </View>
           </>
         ) : (
           <>
-        <TouchableOpacity style={s.ctaPrimary} onPress={handleCall} activeOpacity={0.88}>
-          <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+        <TouchableOpacity style={st.ctaPrimary} onPress={handleCall} activeOpacity={0.88}>
+          <LinearGradient colors={(aC.isDark ? PRIMARY_BTN_COLORS : ['#27467F', '#8C6A78', '#FF9654']) as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
           <Ionicons name="call-outline" size={21} color={WHITE} />
-          <Text style={s.ctaPrimaryTxt}>Call Dealer</Text>
+          <Text style={st.ctaPrimaryTxt}>Call Dealer</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={s.ctaPrimary} onPress={() => router.push('/buy/reserve' as any)} activeOpacity={0.88}>
-          <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
-          <Text style={s.ctaPrimaryTxt}>{isBike ? 'Reserve your bike' : 'Reserve your car'}</Text>
+        <TouchableOpacity style={st.ctaPrimary} onPress={() => router.push('/buy/reserve' as any)} activeOpacity={0.88}>
+          <LinearGradient colors={(aC.isDark ? PRIMARY_BTN_COLORS : ['#27467F', '#8C6A78', '#FF9654']) as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+          <Text style={st.ctaPrimaryTxt}>{isBike ? 'Reserve your bike' : 'Reserve your car'}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={s.ctaGlass} onPress={() => router.push({ pathname: '/buy/search-results' as any, params: { dealerId: id, brand: name, ...(isBike ? { category: 'bike' } : {}) } })} activeOpacity={0.88}>
-          <RingGlow radius={26} peak={0.5} rings={12} />
-          <Text style={s.ctaGlassTxt}>{isBike ? 'View Available Bikes' : 'View Available Cars'}</Text>
+        <TouchableOpacity style={st.ctaGlass} onPress={() => router.push({ pathname: '/buy/search-results' as any, params: { dealerId: id, brand: name, ...(isBike ? { category: 'bike' } : {}) } })} activeOpacity={0.88}>
+          {aC.isDark ? <RingGlow radius={26} peak={0.5} rings={12} /> : <LightGradientBorder radius={26} fill="#ffffff" colors={aC.isDark ? ['#032a69', '#e2671b'] : ['#27467F', '#FF9654']} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} />}
+          <Text style={st.ctaGlassTxt}>{isBike ? 'View Available Bikes' : 'View Available Cars'}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={[s.usedContactItem, { alignSelf: 'center' }]} onPress={handleWhatsApp} activeOpacity={0.8}>
+        <TouchableOpacity style={[st.usedContactItem, { alignSelf: 'center' }]} onPress={handleWhatsApp} activeOpacity={0.8}>
           <Ionicons name="logo-whatsapp" size={24} color="#25D366" />
-          <Text style={s.usedContactTxt}>WhatsApp</Text>
+          <Text style={st.usedContactTxt}>WhatsApp</Text>
         </TouchableOpacity>
           </>
         )}
@@ -436,8 +440,8 @@ export default function DealerProfileScreen() {
       <SheetModal visible={reviewModal} transparent animationType="slide" onRequestClose={() => setReviewModal(false)}>
         <TouchableOpacity style={rm.overlay} activeOpacity={1} onPress={() => setReviewModal(false)}>
           <TouchableOpacity activeOpacity={1} style={rm.sheet}>
-            <LinearGradient colors={['rgba(22,64,136,0.2)','transparent']} start={{x:0.5,y:0}} end={{x:0.5,y:0.6}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-            <LinearGradient colors={['transparent','rgba(29,83,175,0.15)']} start={{x:0.5,y:0.4}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+            {aC.isDark && <LinearGradient colors={['rgba(22,64,136,0.2)','transparent']} start={{x:0.5,y:0}} end={{x:0.5,y:0.6}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>}
+            {aC.isDark && <LinearGradient colors={['transparent','rgba(29,83,175,0.15)']} start={{x:0.5,y:0.4}} end={{x:0.5,y:1}} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>}
 
             <View style={rm.handle} />
 
@@ -475,7 +479,7 @@ export default function DealerProfileScreen() {
 
             {/* Submit */}
             <TouchableOpacity style={rm.submitBtn} onPress={submitReview} disabled={submittingRev} activeOpacity={0.88}>
-              <LinearGradient colors={[NAVY, ORANGE]} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFillObject} />
+              <LinearGradient colors={aC.isDark ? [NAVY, ORANGE] : ['#27467F', '#FF9654']} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFillObject} />
               {submittingRev
                 ? <ActivityIndicator color={WHITE} />
                 : <Text style={rm.submitTxt}>Submit Review</Text>
@@ -581,4 +585,38 @@ const rm = StyleSheet.create({
   input:     { color: WHITE, fontSize: 14, fontFamily: 'Poppins_400Regular', lineHeight: 22 },
   submitBtn: { height: 52, borderRadius: 26, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', marginBottom: 10 },
   submitTxt: { color: WHITE, fontSize: 15, fontFamily: 'Poppins_700Bold' },
+});
+
+// ── Light mode overrides (Figma light) — dark mode uses `s` as is ──────────
+const sLight = withLightStyles(s, {
+  root:           { backgroundColor: '#ffffff' },
+  name:           { color: '#000000' },
+  subtitle:       { color: '#4b5563' },
+  ratingVal:      { color: '#000000' },
+  ratingCount:    { color: '#000000' },
+  followBtn:      { backgroundColor: '#1F3F7A', borderColor: 'transparent', shadowOpacity: 0, elevation: 0 },
+  followTxt:      { color: '#ffffff' },
+  statsRow:       { borderColor: 'rgba(0,0,0,0.1)' },
+  statTxt:        { color: '#000000' },
+  statSep:        { backgroundColor: 'rgba(0,0,0,0.12)' },
+  secTitle:       { color: '#000000' },
+  aboutTxt:       { color: '#4b5563' },
+  contactTitle:   { color: '#000000' },
+  contactLine:    { color: '#4b5563' },
+  ctaBox:         { backgroundColor: '#ffffff', borderColor: 'rgba(0,0,0,0.06)', shadowOpacity: 0, elevation: 0, boxShadow: '0px -3px 8px rgba(0,0,0,0.14)' },
+  ctaHandle:      { backgroundColor: 'rgba(0,0,0,0.15)' },
+  ctaPrimary:     { boxShadow: LIGHT_POP_SHADOW },
+  usedContactTxt: { color: '#000000' },
+  ctaGlass:       { backgroundColor: '#ffffff', borderWidth: 0 },
+  ctaGlassTxt:    { color: '#000000' },
+  rateCard:       { backgroundColor: '#F2F4F8', borderColor: 'rgba(0,0,0,0.04)', boxShadow: LIGHT_POP_SHADOW },
+  rateNum:        { color: '#000000' },
+  rateTrack:      { backgroundColor: 'rgba(0,0,0,0.1)' },
+  rateFill:       { backgroundColor: '#1F3F7A' },
+  rateBig:        { color: '#000000' },
+  rateCount:      { color: '#4b5563' },
+  reviewBorder:   { borderColor: 'rgba(0,0,0,0.1)' },
+  reviewName:     { color: '#000000' },
+  reviewTime:     { color: '#6b7280' },
+  reviewTxt:      { color: '#374151' },
 });

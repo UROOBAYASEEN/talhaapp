@@ -8,7 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ChevronLeft, MoreVertical, Star } from 'lucide-react-native';
-import { AppColors } from '@/constants/theme';
+import { AppColors, useAppColors, withLightStyles, LIGHT_POP_SHADOW } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -24,6 +24,8 @@ interface Review {
 }
 
 function ReviewItem({ review }: { review: Review }) {
+  const aC = useAppColors();
+  const s = aC.isDark ? s_dark : s_light;
   const initial = (review.reviewer_name || 'U')[0].toUpperCase();
   const colors  = [ORANGE, C.textSecondary, '#4fc3f7', '#a5d6a7', '#ce93d8'];
   const color   = colors[initial.charCodeAt(0) % colors.length];
@@ -68,6 +70,8 @@ function ReviewItem({ review }: { review: Review }) {
 }
 
 export default function TrackerReviewsScreen() {
+  const aC = useAppColors();
+  const s = aC.isDark ? s_dark : s_light;
   const router = useRouter();
   const { token, user } = useAuth();
   const { tracker_id } = useLocalSearchParams<{ tracker_id: string }>();
@@ -142,7 +146,7 @@ export default function TrackerReviewsScreen() {
               {/* Write review form */}
               {showForm && (
                 <View style={s.formCard}>
-                  <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+                  {aC.isDark && <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>}
                   <Text style={s.formTitle}>Your Review</Text>
 
                   {/* Star selector */}
@@ -206,7 +210,7 @@ export default function TrackerReviewsScreen() {
   );
 }
 
-const s = StyleSheet.create({
+const s_dark = StyleSheet.create({
   safeArea:  { flex: 1, backgroundColor: C.bg },
   container: { flex: 1, backgroundColor: C.bg },
   center:    { flex: 1, alignItems: 'center', justifyContent: 'center' },
@@ -247,3 +251,10 @@ const s = StyleSheet.create({
   writeBtn:        { height: 50, borderRadius: 25, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(99,148,214,0.5)' },
   writeBtnText:    { color: '#fff', fontSize: 15, fontFamily: 'Poppins_700Bold' },
 });
+// Light mode layer for `s` — dark mode uses s_dark as is
+const s_light = withLightStyles(s_dark, {
+  formCard: { backgroundColor: '#F2F4F8', borderColor: 'rgba(226,103,27,0.28)', boxShadow: LIGHT_POP_SHADOW },
+  commentInput: { borderColor: 'rgba(0,0,0,0.12)' },
+  cancelBtn: { borderColor: 'rgba(0,0,0,0.12)' },
+});
+

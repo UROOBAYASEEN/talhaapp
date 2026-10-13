@@ -1,3 +1,4 @@
+import { AUTH_EDGES } from '@/constants/authEdges';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useRef } from 'react';
 import {
@@ -81,7 +82,7 @@ export default function SplashScreen() {
 
   return (
     <AuthGlowBackground>
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView edges={AUTH_EDGES} style={styles.container}>
       <View style={styles.content}>
 
         <Animated.Image

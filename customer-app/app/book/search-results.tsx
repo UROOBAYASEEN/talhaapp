@@ -1,4 +1,5 @@
 // Figma: Cars In Karachi — search results
+import { useAppColors, withLightStyles, LIGHT_POP_SHADOW } from '@/constants/theme';
 import VerifiedIcon from '@/components/shared/VerifiedIcon';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -14,16 +15,19 @@ import { SavedCardEffect, savedCardOuter } from '@/components/shared/FigmaEffect
 type P = { category?: string; make?: string; car?: string; transmission?: string; color?: string; year?: string; sellerType?: string; city?: string; sellerId?: string };
 
 function ResultCard({ item, saved, onSave, onView, onContact }: { item: any; saved: boolean; onSave: () => void; onView: () => void; onContact: () => void }) {
+  const aC = useAppColors();
+  const c = aC.isDark ? c_dark : c_light;
+  const s = aC.isDark ? s_dark : s_light;
   const img = imgUrl(item.images?.[0]);
   const isDealer = item.seller?.role === 'dealership_owner';
   const meta = [item.city, item.year, item.transmission].filter(Boolean);
   return (
     <View style={[savedCardOuter, c.card]}>
-      <SavedCardEffect />
+      {aC.isDark && <SavedCardEffect />}
       <View style={c.top}>
         {img
           ? <Image source={{ uri: img }} style={c.img} resizeMode="cover" />
-          : <View style={[c.img, c.imgPh]}><Ionicons name="car-outline" size={36} color={G.muted} /></View>}
+          : <View style={[c.img, c.imgPh]}><Ionicons name="car-outline" size={36} color={aC.isDark ? G.muted : '#4b5563'} /></View>}
         <View style={{ flex: 1 }}>
           <Text style={c.title} numberOfLines={1}>{item.title}</Text>
           <Text style={c.color} numberOfLines={1}>{item.color || '—'}</Text>
@@ -44,13 +48,16 @@ function ResultCard({ item, saved, onSave, onView, onContact }: { item: any; sav
       </View>
       <View style={c.btnRow}>
         <GradientButton title="View Details" height={34} fontSize={14} style={{ flex: 1 }} onPress={onView} />
-        <GlassButton title="Contact Dealer" height={34} fontSize={14} color={G.white} style={{ flex: 1 }} onPress={onContact} />
+        <GlassButton title="Contact Dealer" height={34} fontSize={14} color={aC.isDark ? G.white : '#000000'} style={{ flex: 1 }} onPress={onContact} />
       </View>
     </View>
   );
 }
 
 export default function BookSearchResults() {
+  const aC = useAppColors();
+  const c = aC.isDark ? c_dark : c_light;
+  const s = aC.isDark ? s_dark : s_light;
   const router = useRouter();
   const { token, user } = useAuth() as any;
   const p = useLocalSearchParams<P>();
@@ -114,7 +121,7 @@ export default function BookSearchResults() {
   const city = p.city || user?.city || items[0]?.city || 'Pakistan';
 
   return (
-    <GlowBackground>
+    <GlowBackground themed>
       <SafeAreaView style={{ flex: 1 }} edges={['top']}>
         <ScreenHeader logo />
         <FlatList
@@ -144,7 +151,7 @@ export default function BookSearchResults() {
             loading
               ? <ActivityIndicator color={G.orange} style={{ marginTop: 40 }} />
               : <View style={s.empty}>
-                  <Ionicons name={isBike ? 'bicycle-outline' : 'car-outline'} size={44} color={G.muted} />
+                  <Ionicons name={isBike ? 'bicycle-outline' : 'car-outline'} size={44} color={aC.isDark ? G.muted : '#4b5563'} />
                   <Text style={s.emptyTxt}>No {isBike ? 'bikes' : 'cars'} found</Text>
                 </View>
           }
@@ -164,7 +171,7 @@ export default function BookSearchResults() {
   );
 }
 
-const s = StyleSheet.create({
+const s_dark = StyleSheet.create({
   heading:     { color: G.white, fontSize: 20, fontFamily: 'Poppins_500Medium', marginTop: 16 },
   count:       { color: G.muted, fontSize: 15, fontFamily: 'Poppins_400Regular', marginTop: 2 },
   search:      { height: 50, borderRadius: 25, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', marginTop: 22, marginBottom: 4 },
@@ -172,8 +179,17 @@ const s = StyleSheet.create({
   empty:       { alignItems: 'center', gap: 10, paddingTop: 50 },
   emptyTxt:    { color: G.muted, fontSize: 14, fontFamily: 'Poppins_400Regular' },
 });
+// Light mode layer for `s` — dark mode uses s_dark as is
+const s_light = withLightStyles(s_dark, {
+  heading: { color: '#000000' },
+  count: { color: '#4b5563' },
+  search: { backgroundColor: '#F2F4F8', borderColor: 'rgba(0,0,0,0.04)', boxShadow: LIGHT_POP_SHADOW },
+  searchInput: { color: '#000000' },
+  emptyTxt: { color: '#4b5563' },
+});
 
-const c = StyleSheet.create({
+
+const c_dark = StyleSheet.create({
   card:      { borderRadius: 20, overflow: 'hidden', padding: 12, paddingTop: 14, gap: 12 },
   top:       { flexDirection: 'row', gap: 6 },
   img:       { width: 130, height: 106, borderRadius: 12, marginRight: 4 },
@@ -189,3 +205,14 @@ const c = StyleSheet.create({
   price:     { color: G.orange, fontSize: 15, fontFamily: 'Poppins_700Bold', flexShrink: 1 },
   btnRow:    { flexDirection: 'row', gap: 12 },
 });
+// Light mode layer for `c` — dark mode uses c_dark as is
+const c_light = withLightStyles(c_dark, {
+  card: { backgroundColor: '#F2F4F8', borderColor: 'rgba(0,0,0,0.04)', boxShadow: LIGHT_POP_SHADOW },
+  imgPh: { backgroundColor: '#F2F4F8' },
+  title: { color: '#000000' },
+  color: { color: '#000000' },
+  dealer: { color: '#000000' },
+  meta: { color: '#4b5563' },
+  avail: { backgroundColor: '#F2F4F8' },
+});
+

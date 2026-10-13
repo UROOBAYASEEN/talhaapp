@@ -1,4 +1,5 @@
 // Figma: Book Test Drive
+import { useAppColors, withLightStyles, LIGHT_POP_SHADOW } from '@/constants/theme';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -20,6 +21,8 @@ const fmtDay = (d: Date) => `${d.getDate()} ${d.toLocaleString('en-US', { month:
 const isoDay = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
 export default function BookTestDrive() {
+  const aC = useAppColors();
+  const s = aC.isDark ? s_dark : s_light;
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -68,7 +71,7 @@ export default function BookTestDrive() {
   }
 
   return (
-    <GlowBackground>
+    <GlowBackground themed>
       <SafeAreaView style={{ flex: 1 }} edges={['top']}>
         <ScreenHeader title="Book Test Drive" onClose={() => router.back()} />
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
@@ -76,10 +79,10 @@ export default function BookTestDrive() {
             <VehicleStrip v={v} chevron onPress={() => router.back()} />
 
             <Text style={s.label}>Select Date</Text>
-            <GlassSelect value={fmtDay(date)} onPress={openDate} right={<Ionicons name="calendar-outline" size={24} color="#E6E1E8" />} />
+            <GlassSelect value={fmtDay(date)} onPress={openDate} right={<Ionicons name="calendar-outline" size={24} color={aC.isDark ? '#E6E1E8' : '#000000'} />} />
 
             <Text style={s.label}>Select Time</Text>
-            <GlassSelect value={slot} onPress={() => setSlotOpen(o => !o)} right={<Ionicons name={slotOpen ? 'chevron-up' : 'chevron-down'} size={22} color="#E6E1E8" />} />
+            <GlassSelect value={slot} onPress={() => setSlotOpen(o => !o)} right={<Ionicons name={slotOpen ? 'chevron-up' : 'chevron-down'} size={22} color={aC.isDark ? '#E6E1E8' : '#000000'} />} />
             {slotOpen && (
               <View style={s.list}>
                 <Glass radius={18} blur={12} />
@@ -124,7 +127,7 @@ export default function BookTestDrive() {
   );
 }
 
-const s = StyleSheet.create({
+const s_dark = StyleSheet.create({
   label:      { color: G.muted, fontSize: 15, fontFamily: 'Poppins_400Regular', marginTop: 16, marginBottom: 8 },
   list:       { marginTop: 8, borderRadius: 18, overflow: 'hidden', paddingVertical: 6 },
   opt:        { paddingHorizontal: 22, paddingVertical: 9 },
@@ -134,3 +137,13 @@ const s = StyleSheet.create({
   overlay:    { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', padding: 20 },
   pickerCard: { backgroundColor: '#0A1430', borderRadius: 20, padding: 12, gap: 10, borderWidth: 1, borderColor: 'rgba(163,184,226,0.5)' },
 });
+// Light mode layer for `s` — dark mode uses s_dark as is
+const s_light = withLightStyles(s_dark, {
+  label: { color: '#4b5563' },
+  list: { backgroundColor: '#F2F4F8', borderColor: 'rgba(0,0,0,0.04)', boxShadow: LIGHT_POP_SHADOW },
+  optTxt: { color: '#000000' },
+  note: { borderColor: 'rgba(0,0,0,0.12)' },
+  noteTxt: { color: '#000000' },
+  pickerCard: { backgroundColor: '#F2F4F8', borderColor: 'rgba(226,103,27,0.28)', boxShadow: LIGHT_POP_SHADOW },
+});
+

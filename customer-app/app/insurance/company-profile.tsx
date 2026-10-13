@@ -329,7 +329,7 @@ export default function CompanyProfileScreen() {
               }
             }}
           >
-            <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+            <LinearGradient colors={(aC.isDark ? PRIMARY_BTN_COLORS : ['#27467F', '#8C6A78', '#FF9654']) as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
               style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
               <Text style={styles.contactButtonText}>Contact Company</Text>
             </LinearGradient>
@@ -340,7 +340,7 @@ export default function CompanyProfileScreen() {
       {/* ALL REVIEWS MODAL */}
       <SheetModal visible={showReviews} transparent animationType="slide" onRequestClose={() => setShowReviews(false)}>
         <View style={modal.overlay}>
-          <View style={[modal.sheet, { backgroundColor: aC.isDark ? '#020d24' : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.12)', borderWidth: aC.isDark ? 0 : 1, shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.12, elevation: aC.isDark ? 0 : 8 }]}>
+          <View style={[modal.sheet, { backgroundColor: aC.isDark ? '#020d24' : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.12)', borderWidth: aC.isDark ? 0 : 1, shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.12, elevation: aC.isDark ? 0 : 8 }, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
             <View style={modal.sheetHeader}>
               <Text style={[modal.sheetTitle, { color: aC.isDark ? WHITE : '#010a1f' }]}>All Reviews</Text>
               <TouchableOpacity onPress={() => setShowReviews(false)}>
@@ -359,7 +359,7 @@ export default function CompanyProfileScreen() {
       {/* ADD REVIEW MODAL */}
       <SheetModal visible={showAddReview} transparent animationType="fade" onRequestClose={() => setShowAddReview(false)}>
         <View style={modal.overlay}>
-          <View style={[modal.card, { backgroundColor: aC.isDark ? '#020d24' : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.12, elevation: aC.isDark ? 0 : 8 }]}>
+          <View style={[modal.card, { backgroundColor: aC.isDark ? '#020d24' : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.12, elevation: aC.isDark ? 0 : 8 }, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
             <View style={modal.cardHeader}>
               <Text style={[modal.cardTitle, { color: aC.isDark ? WHITE : '#010a1f' }]}>Add Review</Text>
               <TouchableOpacity onPress={() => setShowAddReview(false)}>
@@ -383,7 +383,7 @@ export default function CompanyProfileScreen() {
               numberOfLines={4}
             />
             <TouchableOpacity style={modal.submitBtn} onPress={submitReview} disabled={submitting} activeOpacity={0.85}>
-              <LinearGradient colors={['#032a69', '#e2671b']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+              <LinearGradient colors={aC.isDark ? ['#032a69', '#e2671b'] : ['#27467F', '#FF9654']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
               <Text style={modal.submitTxt}>{submitting ? 'Submitting...' : 'Submit'}</Text>
             </TouchableOpacity>
           </View>
@@ -446,8 +446,7 @@ function InfoCard({ icon, value, label }: { icon: any; value: string; label: str
     <View style={[styles.infoCard, { backgroundColor: aC.isDark ? '#0A1838' : '#ffffff', borderColor: aC.isDark ? '#7E9FD6' : 'rgba(3,42,105,0.12)' }]}>
       {aC.isDark ? <RingGlow radius={16} /> : (
         <>
-          <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <LinearGradient colors={['transparent', 'rgba(226,103,27,0.06)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+
         </>
       )}
       <MaterialCommunityIcons name={icon} size={24} color={ORANGE} />

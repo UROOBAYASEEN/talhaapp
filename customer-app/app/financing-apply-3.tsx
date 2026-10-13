@@ -10,7 +10,6 @@ import { ChevronLeft } from 'lucide-react-native';
 import { AppColors, useAppColors } from '@/constants/theme';
 import { PRIMARY_BTN_COLORS, RingGlow, SavedCardEffect } from '@/components/shared/FigmaEffects';
 
-
 const EMPLOYMENT_TYPES = ['Salaried', 'Business', 'Agriculture', 'Rental', 'Other'];
 const STEPS = [1, 2, 3, 4];
 
@@ -78,8 +77,7 @@ export default function FinancingApply3Screen() {
               <SavedCardEffect />
             ) : (
               <>
-                <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                <LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+
               </>
             )}
             <Text style={[s.cardTitle, { color: aC.isDark ? '#fff' : '#010a1f' }]}>Applicant</Text>
@@ -93,7 +91,7 @@ export default function FinancingApply3Screen() {
                     key={type}
                     onPress={() => setEmploymentType(type)}
                     activeOpacity={0.75}
-                    style={[s.chip, { backgroundColor: aC.isDark ? '#0B2254' : '#ffffff', borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', borderWidth: aC.isDark ? 0 : 1, shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.06)', shadowOpacity: aC.isDark ? 0 : 0.05, elevation: aC.isDark ? 0 : 1 }, selected && { backgroundColor: aC.isDark ? '#0A1838' : '#f1f5f9', borderColor: aC.isDark ? '#8FAEE3' : '#032a69', borderWidth: 1 }]}
+                    style={[s.chip, { backgroundColor: aC.isDark ? '#0B2254' : '#ffffff', borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', borderWidth: aC.isDark ? 0 : 1, shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.06)', shadowOpacity: aC.isDark ? 0 : 0.05, elevation: aC.isDark ? 0 : 1 }, selected && { backgroundColor: aC.isDark ? '#0A1838' : '#f1f5f9', borderColor: aC.isDark ? '#8FAEE3' : '#032a69', borderWidth: 1 }, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}
                   >
                     {selected && aC.isDark && <RingGlow radius={8} peak={0.5} rings={6} />}
                     <Text style={[s.chipTxt, { color: aC.isDark ? '#F2F1F5' : '#475569' }, selected && { color: aC.isDark ? '#fff' : '#010a1f' }]}>{type}</Text>
@@ -103,11 +101,10 @@ export default function FinancingApply3Screen() {
             </View>
 
             <Text style={[s.label, { marginTop: 14, color: aC.isDark ? '#C9C6D0' : '#475569' }]}>Monthly income</Text>
-            <View style={[s.inputWrap, { backgroundColor: aC.isDark ? '#0B2254' : '#ffffff', borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 1, overflow: 'hidden' }]}>
+            <View style={[s.inputWrap, { backgroundColor: aC.isDark ? '#0B2254' : '#E8EAEF', borderColor: aC.isDark ? 'transparent' : 'rgba(0,0,0,0.18)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 1, overflow: 'hidden' }, !aC.isDark && { borderColor: 'rgba(0,0,0,0.18)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
               {aC.isDark ? null : (
                 <>
-                  <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                  <LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+
                 </>
               )}
               <TextInput
@@ -133,7 +130,7 @@ export default function FinancingApply3Screen() {
               params: { ...params, employmentType, monthlyIncome: income },
             })}
           >
-            <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+            <LinearGradient colors={(aC.isDark ? PRIMARY_BTN_COLORS : ['#27467F', '#8C6A78', '#FF9654']) as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
             <Text style={s.continueTxt}>Continue</Text>
           </TouchableOpacity>
         </View>

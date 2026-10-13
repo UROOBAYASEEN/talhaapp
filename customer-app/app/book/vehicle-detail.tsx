@@ -1,4 +1,5 @@
 // Figma: vehicle detail (Book flow) — bottom shows only Contact Dealer + Test Drive
+import { useAppColors, withLightStyles, LIGHT_POP_SHADOW } from '@/constants/theme';
 import VerifiedIcon from '@/components/shared/VerifiedIcon';
 import { Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -10,13 +11,15 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
-import { G, Glass, GlassButton, GradientButton } from '@/components/shared/GlowUI';
+import { G, Glass, GlassButton, GradientButton, GlowThemed } from '@/components/shared/GlowUI';
 import { CtaPanelGlass } from '@/components/shared/FigmaEffects';
 import { authHeaders, buildVariants, fmtLac, fmtPKR, fmtRs, imgUrl, sellerName } from '@/components/book/common';
 
 const { width: W } = Dimensions.get('window');
 
-export default function BookVehicleDetail() {
+function BookVehicleDetailInner() {
+  const aC = useAppColors();
+  const s = aC.isDark ? s_dark : s_light;
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -61,7 +64,7 @@ export default function BookVehicleDetail() {
   if (!v) {
     return (
       <SafeAreaView style={[s.root, { alignItems: 'center', justifyContent: 'center', gap: 12 }]}>
-        <Ionicons name="alert-circle-outline" size={48} color={G.muted} />
+        <Ionicons name="alert-circle-outline" size={48} color={aC.isDark ? G.muted : '#4b5563'} />
         <Text style={s.sec}>Vehicle not found</Text>
         <TouchableOpacity onPress={() => router.back()}><Text style={{ color: G.orange, fontFamily: 'Poppins_500Medium' }}>Go Back</Text></TouchableOpacity>
       </SafeAreaView>
@@ -120,8 +123,8 @@ export default function BookVehicleDetail() {
               renderItem={({ item }) => <Image source={{ uri: item }} style={s.hero} resizeMode="cover" />}
             />
           ) : (
-            <View style={[s.hero, { backgroundColor: '#0B1D4A', alignItems: 'center', justifyContent: 'center' }]}>
-              <Ionicons name="car-outline" size={64} color={G.muted} />
+            <View style={[s.hero, { backgroundColor: aC.isDark ? '#0B1D4A' : '#ffffff', alignItems: 'center', justifyContent: 'center' }]}>
+              <Ionicons name="car-outline" size={64} color={aC.isDark ? G.muted : '#4b5563'} />
             </View>
           )}
           <View style={[s.heroTop, { top: insets.top + 4 }]}>
@@ -133,10 +136,10 @@ export default function BookVehicleDetail() {
           {images.length > 1 && (
             <>
               <TouchableOpacity style={[s.arrow, { left: 6, backgroundColor: 'rgba(30,58,110,0.55)' }]} onPress={() => { const n = Math.max(idx - 1, 0); listRef.current?.scrollToIndex({ index: n }); setIdx(n); }}>
-                <Ionicons name="chevron-back" size={16} color="#fff" />
+                <Ionicons name="chevron-back" size={16} color={aC.isDark ? '#fff' : '#000000'} />
               </TouchableOpacity>
               <TouchableOpacity style={[s.arrow, { right: 6 }]} onPress={() => { const n = Math.min(idx + 1, images.length - 1); listRef.current?.scrollToIndex({ index: n }); setIdx(n); }}>
-                <Ionicons name="chevron-forward" size={16} color="#fff" />
+                <Ionicons name="chevron-forward" size={16} color={aC.isDark ? '#fff' : '#000000'} />
               </TouchableOpacity>
             </>
           )}
@@ -174,7 +177,7 @@ export default function BookVehicleDetail() {
           {/* Location + price */}
           <View style={s.locRow}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 }}>
-              <Ionicons name="location-outline" size={17} color={G.muted} />
+              <Ionicons name="location-outline" size={17} color={aC.isDark ? G.muted : '#4b5563'} />
               <Text style={s.locTxt} numberOfLines={1}>{v.address || v.location || v.city || 'Pakistan'}</Text>
             </View>
             <Text style={s.price}>{fmtLac(v.price, true)}</Text>
@@ -213,7 +216,7 @@ export default function BookVehicleDetail() {
                   <TouchableOpacity
                     key={i}
                     activeOpacity={0.88}
-                    style={[s.variant, !sel && { backgroundColor: '#0B2358' }]}
+                    style={[s.variant, !sel && { backgroundColor: aC.isDark ? '#0B2358' : '#ffffff' }]}
                     onPress={() => {
                       if (sel) return;
                       router.push({ pathname: '/book/compare', params: { id: String(id), a: String(selVariant), b: String(i) } } as any);
@@ -274,7 +277,7 @@ export default function BookVehicleDetail() {
       {/* Fixed bottom: Contact Dealer + Test Drive */}
       <View style={[s.cta, { paddingBottom: Math.max(insets.bottom, 12) + 6 }]} onLayout={e => setCtaH(Math.ceil(e.nativeEvent.layout.height))}>
         <Glass radius={0} blur={26} fill="#030B22" />
-        <CtaPanelGlass radius={0} />
+        {aC.isDark && <CtaPanelGlass radius={0} />}
         <GradientButton
           title="Contact Dealer"
           height={48}
@@ -290,7 +293,7 @@ export default function BookVehicleDetail() {
   );
 }
 
-const s = StyleSheet.create({
+const s_dark = StyleSheet.create({
   root:     { flex: 1, backgroundColor: G.bg },
   hero:     { width: W, height: 262 },
   heroTop:  { position: 'absolute', left: 0, right: 0, height: 36, alignItems: 'center', justifyContent: 'center' },
@@ -337,3 +340,30 @@ const s = StyleSheet.create({
 
   cta: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 16, paddingTop: 14, gap: 10, overflow: 'hidden' },
 });
+// Light mode layer for `s` — dark mode uses s_dark as is
+const s_light = withLightStyles(s_dark, {
+  root: { backgroundColor: '#ffffff' },
+  title: { color: '#000000' },
+  titleSub: { color: '#4b5563' },
+  dealer: { color: '#000000' },
+  ratingTxt: { color: '#4b5563' },
+  locTxt: { color: '#4b5563' },
+  stripTxt: { color: '#000000' },
+  sec: { color: '#000000' },
+  rowLine: { borderColor: 'rgba(0,0,0,0.12)' },
+  rowL: { color: '#4b5563' },
+  rowV: { color: '#4b5563' },
+  vName: { color: '#000000' },
+  vMeta: { color: '#4b5563' },
+  accTitle: { color: '#000000' },
+  featTxt: { color: '#4b5563' },
+  cta: { backgroundColor: '#F2F4F8', borderColor: 'rgba(0,0,0,0.04)', boxShadow: LIGHT_POP_SHADOW },
+});
+
+
+// Follows the app theme (light mode) — see GlowThemed in components/shared/GlowUI
+export default function BookVehicleDetail() {
+  const aC = useAppColors();
+  const s = aC.isDark ? s_dark : s_light;
+  return <GlowThemed><BookVehicleDetailInner /></GlowThemed>;
+}

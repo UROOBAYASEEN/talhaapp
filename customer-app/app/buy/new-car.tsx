@@ -112,8 +112,8 @@ function VehicleCard({
 
   return (
     // .car-card — light: white + orange shade, dark: navy glass
-    <TouchableOpacity style={[vc.carCard, { backgroundColor: aC.isDark ? BG : '#ffffff', borderColor: aC.isDark ? '#82a5d5' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? '#1D53AF' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0.5 : 0.08, elevation: aC.isDark ? 8 : 3 }]} activeOpacity={0.88} onPress={onPress}>
-      {!aC.isDark && <><LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" /><LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" /></>}
+    <TouchableOpacity style={[vc.carCard, { backgroundColor: aC.isDark ? BG : '#ffffff', borderColor: aC.isDark ? '#82a5d5' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? '#1D53AF' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0.5 : 0.08, elevation: aC.isDark ? 8 : 3 }, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]} activeOpacity={0.88} onPress={onPress}>
+      {!aC.isDark && <></>}
       {/* .car-image */}
       <View style={[vc.carImage, { overflow: 'hidden' }]}>
         {imgUrl(item.images?.[0]) ? (
@@ -154,7 +154,7 @@ function VehicleCard({
         <View style={vc.cardActions}>
           <TouchableOpacity style={vc.viewBtnWrap} activeOpacity={0.85} onPress={onPress}>
             <LinearGradient
-              colors={[NAVY, ORANGE]}
+              colors={aC.isDark ? [NAVY, ORANGE] : ['#27467F', '#FF9654']}
               start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
               style={vc.viewBtn}
             >
@@ -228,8 +228,6 @@ const vc = StyleSheet.create({
     marginLeft: 2,
   },
 });
-
-
 
 // ── Main Screen ──────────────────────────────────────────────────────────────
 export default function BuyNewCarScreen() {
@@ -365,7 +363,7 @@ export default function BuyNewCarScreen() {
                           return (
                             <TouchableOpacity
                               key={b.id || name}
-                              style={[styles.brandBtn, { backgroundColor: aC.isDark ? BG : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.4)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? '#1D53AF' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0.5 : 0.08, elevation: aC.isDark ? 6 : 3 }]}
+                              style={[styles.brandBtn, { backgroundColor: aC.isDark ? BG : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.4)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? '#1D53AF' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0.5 : 0.08, elevation: aC.isDark ? 6 : 3 }, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}
                               activeOpacity={0.82}
                               onPress={() => openBrandModal(name)}
                             >
@@ -378,8 +376,7 @@ export default function BuyNewCarScreen() {
                                 </>
                               ) : (
                                 <>
-                                  <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                                  <LinearGradient colors={['transparent', 'rgba(226,103,27,0.08)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+
                                 </>
                               )}
                               {logo ? (
@@ -493,7 +490,7 @@ export default function BuyNewCarScreen() {
           <SH title="You May Need This" />
           <View style={styles.needRow}>
             {/* Compare Vehicle */}
-            <TouchableOpacity style={[styles.needCard, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderWidth: aC.isDark ? 0 : 1, borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }]} activeOpacity={0.85} onPress={() => router.push({ pathname: '/compare-vehicle', params: { category: 'car', from: 'newCar' } } as any)}>
+            <TouchableOpacity style={[styles.needCard, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderWidth: aC.isDark ? 0 : 1, borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }, !aC.isDark && { borderWidth: 0, shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]} activeOpacity={0.85} onPress={() => router.push({ pathname: '/compare-vehicle', params: { category: 'car', from: 'newCar' } } as any)}>
               {aC.isDark ? (
                 <LinearGradient
                   colors={['#071B48', '#0A1F4C', '#2B2947', '#80504A']}
@@ -509,9 +506,9 @@ export default function BuyNewCarScreen() {
                   <Text style={styles.needSub}>Compare vehicle features, prices, and specifications.</Text>
                 </LinearGradient>
               ) : (
-                <View style={[styles.needGrad, { backgroundColor: '#ffffff' }]}>
-                  <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                  <LinearGradient colors={['transparent', 'rgba(226,103,27,0.10)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+                <View style={[styles.needGrad, { backgroundColor: '#F1F4F8' }]}>
+                  <LinearGradient colors={['#F1F4F8', '#F1F4F8', '#FCDCC8']} locations={[0, 0.4, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+
                   <Image source={IMG_COMPARE} style={styles.needImgCompare} resizeMode="contain" />
                   <View style={styles.needTitleRow}>
                     <Text style={[styles.needTitle, { color: '#010a1f' }]}>{'Compare\nVehicle'}</Text>
@@ -523,7 +520,7 @@ export default function BuyNewCarScreen() {
             </TouchableOpacity>
 
             {/* Smart Finance Calculator */}
-            <TouchableOpacity style={[styles.needCard, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderWidth: aC.isDark ? 0 : 1, borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }]} activeOpacity={0.85}>
+            <TouchableOpacity style={[styles.needCard, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderWidth: aC.isDark ? 0 : 1, borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }, !aC.isDark && { borderWidth: 0, shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]} activeOpacity={0.85}>
               {aC.isDark ? (
                 <LinearGradient
                   colors={['#071B48', '#0A1F4C', '#2B2947', '#80504A']}
@@ -539,9 +536,9 @@ export default function BuyNewCarScreen() {
                   <Text style={styles.needSub}>Compare financing plans and calculate your monthly payments.</Text>
                 </LinearGradient>
               ) : (
-                <View style={[styles.needGrad, { backgroundColor: '#ffffff' }]}>
-                  <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                  <LinearGradient colors={['transparent', 'rgba(226,103,27,0.10)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+                <View style={[styles.needGrad, { backgroundColor: '#F1F4F8' }]}>
+                  <LinearGradient colors={['#F1F4F8', '#F1F4F8', '#FCDCC8']} locations={[0, 0.4, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+
                   <Image source={IMG_FINANCE} style={styles.needImgFinance} resizeMode="contain" />
                   <View style={styles.needTitleRow}>
                     <Text style={[styles.needTitle, { fontSize: 12, color: '#010a1f' }]}>{'Smart Finance\nCalculator'}</Text>

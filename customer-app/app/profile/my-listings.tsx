@@ -86,7 +86,7 @@ export default function MyListingsScreen() {
     const statusLabel = item.status.charAt(0).toUpperCase() + item.status.slice(1);
     return (
       <TouchableOpacity
-        style={[styles.card, { backgroundColor: aC.isDark ? '#010A1F' : '#ffffff', borderColor: aC.isDark ? '#82a5d5' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? '#638ed0' : 'rgba(3,42,105,0.12)', shadowOffset: { width: 0, height: 0 }, shadowOpacity: aC.isDark ? 0.15 : 0.08, shadowRadius: aC.isDark ? 5 : 10, elevation: aC.isDark ? 2 : 3, overflow: 'hidden' }]}
+        style={[styles.card, { backgroundColor: aC.isDark ? '#010A1F' : '#ffffff', borderColor: aC.isDark ? '#82a5d5' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? '#638ed0' : 'rgba(3,42,105,0.12)', shadowOffset: { width: 0, height: 0 }, shadowOpacity: aC.isDark ? 0.15 : 0.08, shadowRadius: aC.isDark ? 5 : 10, elevation: aC.isDark ? 2 : 3, overflow: 'hidden' }, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}
         activeOpacity={0.85}
         onPress={() => router.push({ pathname: '/vehicle/[id]', params: { id: item.id } })}
       >
@@ -109,8 +109,6 @@ export default function MyListingsScreen() {
           </>
         ) : (
           <>
-            <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <LinearGradient colors={['transparent', 'rgba(226,103,27,0.08)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
           </>
         )}
         {/* Car image */}
@@ -131,7 +129,7 @@ export default function MyListingsScreen() {
           {/* Location row */}
           <View style={styles.locationRow}>
             <Ionicons name="location-outline" size={13} color={aC.isDark ? SUBTITLE : '#94a3b8'} />
-            <Text style={[styles.locationTxt, { color: aC.isDark ? SUBTITLE : '#64748b' }]} numberOfLines={1}>
+            <Text style={[styles.locationTxt, { color: aC.isDark ? SUBTITLE : '#000000' }]} numberOfLines={1}>
               {item.city || 'Pakistan'} • {item.year} • CVT
             </Text>
           </View>
@@ -196,8 +194,8 @@ export default function MyListingsScreen() {
                 styles.chip,
                 { borderWidth: 1, overflow: 'hidden' },
                 active
-                  ? { backgroundColor: aC.isDark ? '#15386A' : ORANGE, borderColor: aC.isDark ? '#6F89AF' : ORANGE, borderWidth: aC.isDark ? 1.35 : 1 }
-                  : { backgroundColor: aC.isDark ? NAVY : '#ffffff', borderColor: aC.isDark ? 'rgba(255,255,255,0.15)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 },
+                  ? { backgroundColor: aC.isDark ? '#15386A' : '#F2F4F8', borderColor: aC.isDark ? '#6F89AF' : 'transparent', borderWidth: aC.isDark ? 1.35 : 1, ...(aC.isDark ? null : { boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }) }
+                  : { backgroundColor: aC.isDark ? NAVY : '#F7F8FA', borderColor: aC.isDark ? 'rgba(255,255,255,0.15)' : 'transparent', shadowColor: 'transparent', shadowOpacity: 0, elevation: 0 },
               ]}
               onPress={() => setFilter(f.key)}
             >
@@ -219,8 +217,8 @@ export default function MyListingsScreen() {
                   />
                 </>
               )}
-              {!aC.isDark && !active && <LinearGradient colors={['rgba(3,42,105,0.03)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
-              <Text style={[styles.chipTxt, active ? { color: aC.isDark ? ORANGE : WHITE, fontFamily: 'Poppins_700Bold' } : { color: aC.isDark ? WHITE : '#032a69', fontFamily: 'Poppins_500Medium' }]}>{f.label}</Text>
+              
+              <Text style={[styles.chipTxt, active ? { color: ORANGE, fontFamily: 'Poppins_700Bold' } : { color: aC.isDark ? WHITE : '#000000', fontFamily: 'Poppins_500Medium' }]}>{f.label}</Text>
               <View style={[styles.countBadge, { backgroundColor: f.badgeColor }]}>
                 <Text style={styles.countTxt}>{count}</Text>
               </View>

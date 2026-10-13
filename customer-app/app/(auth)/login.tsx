@@ -13,8 +13,9 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import AuthGlowBackground from '@/components/auth/AuthGlowBackground';
+import PartnerCard from '@/components/auth/PartnerCard';
 import { SocialButtons } from '@/components/auth/AuthGlow';
 import { GlassField, GradientButton, OrDivider, ScreenHeader } from '@/components/shared/GlowUI';
 import { API_BASE } from '@/constants/api';
@@ -38,6 +39,7 @@ function blockedMessage(role?: string) {
 
 export default function LoginScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { setAuth, logout } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -132,10 +134,10 @@ export default function LoginScreen() {
 
   return (
     <AuthGlowBackground>
-      <SafeAreaView style={styles.safe}>
+      <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
         <ScreenHeader logo />
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-          <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+          <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: 12 + (Platform.OS === 'ios' ? insets.bottom : 0) }]} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" bounces={false} overScrollMode="never">
             <Text style={styles.title}>Welcome back</Text>
             <Text style={styles.subtitle}>Login to your autowizor account</Text>
 
@@ -172,18 +174,30 @@ export default function LoginScreen() {
               </TouchableOpacity>
             </View>
 
-            <View style={{ flex: 1, minHeight: 60 }} />
+            <View style={{ flex: 1, minHeight: 10 }} />
 
             <GradientButton title="Login" height={50} fontSize={17} onPress={handleLogin} loading={loading} />
-            <View style={{ marginVertical: 14 }}><OrDivider /></View>
+            <View style={{ marginVertical: 8 }}><OrDivider /></View>
             <View style={{ gap: 14 }}>
               <SocialButtons onGooglePress={handleGooglePress} googleLoading={googleLoading} />
             </View>
-            <TouchableOpacity onPress={() => router.push('/(auth)/register')} style={{ marginTop: 16 }}>
+            <TouchableOpacity onPress={() => router.push('/(auth)/register')} style={{ marginTop: 10 }}>
               <Text style={styles.signinText}>
                 {"Don't have any account? "}<Text style={{ color: '#FFFFFF' }}>Sign Up</Text>
               </Text>
             </TouchableOpacity>
+
+            {/* Grow with AutoWizor — partner entry */}
+            <View style={{ marginTop: 12 }}>
+              <PartnerCard
+                compact
+                icon={require('@/assets/Icons/partner-briefcase.png')}
+                title="Grow with AutoWizor"
+                subtitle="Start selling and build your business."
+                onBecomePartner={() => router.push('/(auth)/partner-register' as any)}
+                onPartnerLogin={() => router.push('/(auth)/partner-login' as any)}
+              />
+            </View>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -205,7 +219,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: 'Poppins_400Regular',
     marginTop: 2,
-    marginBottom: 18,
+    marginBottom: 14,
   },
   hint: {
     color: '#FF6B6D',

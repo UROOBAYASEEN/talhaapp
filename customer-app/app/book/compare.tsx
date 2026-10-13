@@ -1,6 +1,7 @@
 // Figma: Compare Variant (Book flow)
 // Params: id + a + b  → two variants of one listing
 //         aId + bId   → two different listings
+import { useAppColors, withLightStyles, LIGHT_POP_SHADOW } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -74,6 +75,8 @@ const SAFETY: [string, RegExp | null][] = [
 ];
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  const aC = useAppColors();
+  const s = aC.isDark ? s_dark : s_light;
   const [open, setOpen] = useState(true);
   return (
     <View style={s.section}>
@@ -87,6 +90,8 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 function Row({ l, a, b, head, center }: { l: string; a: React.ReactNode; b: React.ReactNode; head?: boolean; center?: boolean }) {
+  const aC = useAppColors();
+  const s = aC.isDark ? s_dark : s_light;
   const cell = (x: React.ReactNode) =>
     typeof x === 'string' || x == null
       ? <Text style={[head ? s.headTxt : s.valTxt, center && { textAlign: 'center' }]}>{x ?? '—'}</Text>
@@ -101,6 +106,8 @@ function Row({ l, a, b, head, center }: { l: string; a: React.ReactNode; b: Reac
 }
 
 export default function BookCompare() {
+  const aC = useAppColors();
+  const s = aC.isDark ? s_dark : s_light;
   const router = useRouter();
   const { token } = useAuth();
   const p = useLocalSearchParams<{ id?: string; a?: string; b?: string; aId?: string; bId?: string }>();
@@ -130,10 +137,10 @@ export default function BookCompare() {
     })();
   }, []);
 
-  if (loading) return <GlowBackground><ActivityIndicator color={G.orange} style={{ marginTop: 120 }} /></GlowBackground>;
+  if (loading) return <GlowBackground themed><ActivityIndicator color={G.orange} style={{ marginTop: 120 }} /></GlowBackground>;
   if (!A || !B) {
     return (
-      <GlowBackground>
+      <GlowBackground themed>
         <SafeAreaView style={{ flex: 1 }}>
           <ScreenHeader title={!p.id && p.aId && p.bId ? 'Compare Vehicle' : 'Compare Variant'} />
           <Text style={[s.valTxt, { textAlign: 'center', marginTop: 60 }]}>Could not load vehicles to compare.</Text>
@@ -150,7 +157,7 @@ export default function BookCompare() {
   const selected = pref === 'a' ? A : B;
 
   return (
-    <GlowBackground>
+    <GlowBackground themed>
       <SafeAreaView style={{ flex: 1 }} edges={['top']}>
         <ScreenHeader title={isVehicleCompare ? 'Compare Vehicle' : 'Compare Variant'} />
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}>
@@ -164,7 +171,7 @@ export default function BookCompare() {
                   <LinearGradient colors={['#0A1C4C', '#0E2152', '#3A2F4A', '#704A42']} locations={[0, 0.45, 0.75, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={s.card}>
                     {c.img
                       ? <Image source={{ uri: c.img }} style={s.cardImg} resizeMode="contain" />
-                      : <View style={[s.cardImg, { alignItems: 'center', justifyContent: 'center' }]}><Ionicons name="car-sport-outline" size={42} color={G.muted} /></View>}
+                      : <View style={[s.cardImg, { alignItems: 'center', justifyContent: 'center' }]}><Ionicons name="car-sport-outline" size={42} color={aC.isDark ? G.muted : '#4b5563'} /></View>}
                     <Text style={s.cardName} numberOfLines={2}>{c.title}</Text>
                     <Text style={s.cardPrice}>{fmtLac(c.price, true)}</Text>
                   </LinearGradient>
@@ -213,7 +220,7 @@ export default function BookCompare() {
           {([['a', A], ['b', B]] as const).map(([k, c]) => {
             const sel = pref === k;
             return (
-              <TouchableOpacity key={k} activeOpacity={0.88} onPress={() => setPref(k)} style={[s.pref, !sel && { backgroundColor: '#0B2358' }]}>
+              <TouchableOpacity key={k} activeOpacity={0.88} onPress={() => setPref(k)} style={[s.pref, !sel && { backgroundColor: aC.isDark ? '#0B2358' : '#ffffff' }]}>
                 {sel && <Glass radius={18} blur={20} />}
                 <View style={{ flex: 1 }}>
                   <Text style={s.prefName} numberOfLines={1}>{c.variantName}</Text>
@@ -236,7 +243,7 @@ export default function BookCompare() {
             height={58}
             fontSize={19}
             style={{ marginTop: 14 }}
-            icon={<Ionicons name="call-outline" size={24} color="#fff" />}
+            icon={<Ionicons name="call-outline" size={24} color={aC.isDark ? '#fff' : '#000000'} />}
             onPress={() => {
               const ph = String(selected.phone || '').replace(/[^\d+]/g, '');
               if (!ph) { Alert.alert('Not Available', 'Dealer phone number is not listed.'); return; }
@@ -256,7 +263,7 @@ export default function BookCompare() {
   );
 }
 
-const s = StyleSheet.create({
+const s_dark = StyleSheet.create({
   cards:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 16, marginBottom: 8 },
   vs:         { color: G.orange, fontSize: 18, fontFamily: 'Poppins_500Medium', marginHorizontal: 4 },
   cardBorder: { width: CARD_W, borderRadius: 13, padding: 1 },
@@ -283,3 +290,18 @@ const s = StyleSheet.create({
   radioOn:   { backgroundColor: '#1D3B78', borderColor: '#8FA8D8' },
   radioDot:  { width: 8, height: 8, borderRadius: 4, backgroundColor: '#FFFFFF' },
 });
+// Light mode layer for `s` — dark mode uses s_dark as is
+const s_light = withLightStyles(s_dark, {
+  cardName: { color: '#000000' },
+  cardPrice: { color: '#4b5563' },
+  section: { borderColor: 'rgba(0,0,0,0.12)' },
+  secTitle: { color: '#000000' },
+  labelTxt: { color: '#000000' },
+  headTxt: { color: '#000000' },
+  valTxt: { color: '#4b5563' },
+  prefTitle: { color: '#000000' },
+  pref: { backgroundColor: '#F2F4F8', borderColor: 'rgba(0,0,0,0.04)', boxShadow: LIGHT_POP_SHADOW },
+  prefName: { color: '#000000' },
+  prefMeta: { color: '#4b5563' },
+});
+

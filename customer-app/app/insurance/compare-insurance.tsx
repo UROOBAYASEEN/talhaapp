@@ -182,7 +182,7 @@ export default function CompareInsuranceScreen() {
         {/* Continue with the preferred plan */}
         {plans.length > 0 && (
           <TouchableOpacity style={s.selectBtn} activeOpacity={0.88} onPress={choosePlan}>
-            <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+            <LinearGradient colors={(aC.isDark ? PRIMARY_BTN_COLORS : ['#27467F', '#8C6A78', '#FF9654']) as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
             <Text style={s.selectTxt}>Select Plan</Text>
           </TouchableOpacity>
         )}

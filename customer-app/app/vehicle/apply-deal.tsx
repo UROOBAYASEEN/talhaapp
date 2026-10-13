@@ -168,7 +168,7 @@ export default function ApplyDealScreen() {
       <StatusBar barStyle={aC.isDark ? "light-content" : "dark-content"} backgroundColor={aC.bg} />
 
       {/* Header */}
-      <View style={[styles.header, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderBottomWidth: aC.isDark ? 0 : 1, borderBottomColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)' }]}>
+      <View style={[styles.header, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderBottomWidth: 0, borderBottomColor: 'transparent' }]}>
         <TouchableOpacity style={styles.headerIcon} onPress={() => router.back()} disabled={loading}>
           <Ionicons name="chevron-back" size={27} color={aC.isDark ? SUBTITLE : '#010a1f'} />
         </TouchableOpacity>
@@ -187,16 +187,15 @@ export default function ApplyDealScreen() {
         {/* Heading */}
         <View style={styles.headingBox}>
           <Text style={[styles.heading, { color: aC.isDark ? WHITE : '#010a1f' }]}>Complete Your Ad Payment</Text>
-          <Text style={[styles.subHeading, { color: aC.isDark ? SUBTITLE : '#475569' }]}>Your ad will be published after successful payment.</Text>
+          <Text style={[styles.subHeading, { color: aC.isDark ? SUBTITLE : '#4b5563' }]}>Your ad will be published after successful payment.</Text>
         </View>
 
         {/* Payment Details */}
         <Text style={[styles.sectionTitle, { color: aC.isDark ? WHITE : '#010a1f' }]}>Payment Details</Text>
-        <View style={[styles.detailCard, { backgroundColor: aC.isDark ? GLASS : '#ffffff', borderColor: aC.isDark ? BORDER : 'rgba(3,42,105,0.12)', overflow: 'hidden', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, shadowRadius: 12, elevation: aC.isDark ? 0 : 3 }]}>
-          {!aC.isDark && <><LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" /><LinearGradient colors={['transparent', 'rgba(226,103,27,0.09)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" /></>}
+        <View style={[styles.detailCard, { backgroundColor: aC.isDark ? GLASS : '#F2F4F8', borderColor: aC.isDark ? BORDER : 'rgba(0,0,0,0.04)', overflow: 'hidden', shadowColor: 'transparent', shadowOpacity: 0, shadowRadius: 12, elevation: 0 }, !aC.isDark && { borderRadius: 18, paddingBottom: 6, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
           {/* Vehicle preview */}
           <View style={styles.carRow}>
-            <View style={[styles.carImgBox, { backgroundColor: aC.isDark ? 'rgba(255,255,255,0.06)' : 'rgba(3,42,105,0.06)' }]}>
+            <View style={[styles.carImgBox, { backgroundColor: aC.isDark ? 'rgba(255,255,255,0.06)' : '#ffffff' }]}>
               {photo
                 ? <Image source={{ uri: photo }} style={StyleSheet.absoluteFillObject} resizeMode="cover" />
                 : <Ionicons name="car-outline" size={28} color={aC.isDark ? SUBTITLE : '#94a3b8'} />
@@ -205,7 +204,7 @@ export default function ApplyDealScreen() {
             <View style={styles.carInfo}>
               <Text style={[styles.carName, { color: aC.isDark ? WHITE : '#010a1f' }]} numberOfLines={2}>{title}</Text>
               <Text style={styles.carPrice}>PKR {formattedPrice}</Text>
-              <View style={styles.activeBadge}>
+              <View style={[styles.activeBadge, !aC.isDark && { backgroundColor: '#DDF5E5' }]}>
                 <View style={styles.activeDot} />
               <Text style={styles.activeTxt}>Active</Text>
               </View>
@@ -217,16 +216,16 @@ export default function ApplyDealScreen() {
             { label: "Featured",       value: `Rs ${FEATURED_FEE.toLocaleString()}` },
           ].map((r, i) => (
             <View key={i} style={[styles.feeRow, { borderBottomWidth: 0 }]}>
-              <Text style={[styles.feeLabel, { color: aC.isDark ? WHITE : '#64748b' }]}>{r.label}</Text>
+              <Text style={[styles.feeLabel, { color: aC.isDark ? WHITE : '#4b5563' }, !aC.isDark && { fontFamily: 'Poppins_500Medium' }]}>{r.label}</Text>
               <Text style={[styles.feeValue, { color: aC.isDark ? WHITE : '#010a1f' }]}>{r.value}</Text>
             </View>
           ))}
 
-          <View style={[styles.divider, { backgroundColor: aC.isDark ? 'rgba(255,255,255,0.12)' : 'rgba(3,42,105,0.08)', height: 1 }]} />
+          <View style={[styles.divider, { backgroundColor: aC.isDark ? 'rgba(255,255,255,0.12)' : '#A9C4F5', height: 1 }, !aC.isDark && { marginHorizontal: 12, marginTop: 4 }]} />
 
           <View style={styles.feeRow}>
             <Text style={[styles.totalLabel, { color: aC.isDark ? WHITE : '#010a1f' }]}>Total Amount</Text>
-            <Text style={[styles.totalValue, { color: aC.isDark ? WHITE : '#032a69' }]}>Rs {TOTAL.toLocaleString()}</Text>
+            <Text style={[styles.totalValue, { color: aC.isDark ? WHITE : '#e2671b' }, !aC.isDark && { fontFamily: 'Poppins_700Bold', fontSize: 15 }]}>Rs {TOTAL.toLocaleString()}</Text>
           </View>
         </View>
 

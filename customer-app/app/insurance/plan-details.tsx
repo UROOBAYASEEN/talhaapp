@@ -188,7 +188,7 @@ export default function PlanDetails() {
 
           >
             <LinearGradient
-              colors={PRIMARY_BTN_COLORS as any}
+              colors={(aC.isDark ? PRIMARY_BTN_COLORS : ['#27467F', '#8C6A78', '#FF9654']) as any}
               locations={[0, 0.5, 1]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}

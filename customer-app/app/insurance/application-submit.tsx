@@ -95,13 +95,12 @@ export default function ApplicantInformation() {
           <View style={s.row}>
             <View style={s.halfField}>
               <Text style={[s.label, s.smallLabel, { color: aC.isDark ? '#F2F1F5' : '#475569' }]}>Preferred Date:</Text>
-              <View style={[s.inputContainer, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, shadowRadius: 10, elevation: aC.isDark ? 0 : 2 }]}>
+              <View style={[s.inputContainer, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, shadowRadius: 10, elevation: aC.isDark ? 0 : 2 }, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
                 {aC.isDark ? (
                   <SearchInputEffect />
                 ) : (
                   <>
-                    <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                    <LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+
                   </>
                 )}
                 <TextInput style={[s.input, { color: aC.isDark ? WHITE : '#010a1f' }]} value={date} onChangeText={v => { setDate(v); setErrors(p => ({ ...p, date: '' })); }} placeholder="DD/MM/YY" placeholderTextColor={aC.isDark ? "#E6E4EA" : "#94a3b8"} />
@@ -111,13 +110,12 @@ export default function ApplicantInformation() {
 
             <View style={s.halfField}>
               <Text style={[s.label, s.smallLabel, { color: aC.isDark ? '#F2F1F5' : '#475569' }]}>Preferred Time:</Text>
-              <View style={[s.inputContainer, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, shadowRadius: 10, elevation: aC.isDark ? 0 : 2 }]}>
+              <View style={[s.inputContainer, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, shadowRadius: 10, elevation: aC.isDark ? 0 : 2 }, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
                 {aC.isDark ? (
                   <SearchInputEffect />
                 ) : (
                   <>
-                    <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                    <LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+
                   </>
                 )}
                 <TextInput style={[s.input, { color: aC.isDark ? WHITE : '#010a1f' }]} value={time} onChangeText={setTime} placeholder="11:00 AM" placeholderTextColor={aC.isDark ? "#E6E4EA" : "#94a3b8"} />
@@ -168,7 +166,7 @@ export default function ApplicantInformation() {
             }}
           >
             <LinearGradient
-              colors={PRIMARY_BTN_COLORS as any}
+              colors={(aC.isDark ? PRIMARY_BTN_COLORS : ['#27467F', '#8C6A78', '#FF9654']) as any}
               locations={[0, 0.5, 1]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
@@ -198,13 +196,12 @@ function InputField({ label, value, onChangeText, keyboardType, autoCapitalize =
   return (
     <View style={s.field}>
       <Text style={[s.label, { color: aC.isDark ? '#C9C6D0' : '#475569' }]}>{label}</Text>
-      <View style={[s.inputContainer, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, shadowRadius: 10, elevation: aC.isDark ? 0 : 2 }]}>
+      <View style={[s.inputContainer, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, shadowRadius: 10, elevation: aC.isDark ? 0 : 2 }, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
         {aC.isDark ? (
           <SearchInputEffect />
         ) : (
           <>
-            <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+
           </>
         )}
         <TextInput style={[s.input, { color: aC.isDark ? WHITE : '#010a1f' }]} value={value} onChangeText={onChangeText} keyboardType={keyboardType} autoCapitalize={autoCapitalize} placeholderTextColor={aC.isDark ? "#E6E4EA" : "#94a3b8"} />

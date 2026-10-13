@@ -1,3 +1,4 @@
+import { AUTH_EDGES } from '@/constants/authEdges';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -107,7 +108,7 @@ export default function VerifyOTPScreen() {
 
   return (
     <AuthGlowBackground>
-      <SafeAreaView style={styles.safe}>
+      <SafeAreaView edges={AUTH_EDGES} style={styles.safe}>
         <ScreenHeader logo />
         <View style={styles.content}>
           <Text style={styles.title}>Verify Code</Text>

@@ -160,8 +160,8 @@ export default function TrackerCompanyProfileScreen() {
       {/* DEVICES MODAL — Available Trackers light white + orange shade */}
       <SheetModal visible={showDevices} transparent animationType="slide" onRequestClose={() => setShowDevices(false)}>
         <View style={s.modalOverlay}>
-          <View style={[s.modalSheet, { backgroundColor: aC.isDark ? '#010A1F' : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.4)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.12, elevation: aC.isDark ? 0 : 8 }]}>
-            {aC.isDark ? <LinearGradient colors={['rgba(22,64,136,0.25)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/> : <><LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/><LinearGradient colors={['transparent', 'rgba(226,103,27,0.08)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/></>}
+          <View style={[s.modalSheet, { backgroundColor: aC.isDark ? '#010A1F' : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.4)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.12, elevation: aC.isDark ? 0 : 8 }, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
+            {aC.isDark ? <LinearGradient colors={['rgba(22,64,136,0.25)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/> : <></>}
             <View style={[s.modalHandle, { backgroundColor: aC.isDark ? 'rgba(255,255,255,0.2)' : 'rgba(3,42,105,0.15)' }]}/>
             <Text style={[s.modalTitle, { color: aC.isDark ? C.textPrimary : '#010a1f' }]}>Available Trackers</Text>
             <Text style={[s.modalSub, { color: aC.isDark ? C.textSecondary : '#475569' }]}>{name}</Text>
@@ -177,7 +177,7 @@ export default function TrackerCompanyProfileScreen() {
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ gap: 12, paddingBottom: 20 }}
                 renderItem={({ item: d }) => (
-                  <View style={[s.deviceCard, { backgroundColor: aC.isDark ? 'rgba(1,6,20,1)' : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.5)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }]}>
+                  <View style={[s.deviceCard, { backgroundColor: aC.isDark ? 'rgba(1,6,20,1)' : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.5)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3, overflow: 'hidden' }, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
                     {aC.isDark ? (
                       <>
                         <LinearGradient colors={['rgba(22,64,136,0.35)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.25 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
@@ -185,8 +185,7 @@ export default function TrackerCompanyProfileScreen() {
                       </>
                     ) : (
                       <>
-                        <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                        <LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+
                       </>
                     )}
                     <View style={s.deviceInfo}>
@@ -202,7 +201,7 @@ export default function TrackerCompanyProfileScreen() {
                     </View>
                     <TouchableOpacity style={s.bookBtn} activeOpacity={0.85}
                       onPress={() => { setShowDevices(false); router.push({ pathname: '/tracker-booking' as any, params: { providerId, providerName: name, deviceId: String(d.id), deviceName: d.name, price: String(d.price), installationFee: String(d.installation_fee || 0), monthlyFee: String(d.monthly_fee || 0) } }); }}>
-                      <LinearGradient colors={[NAVY, ORANGE]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject}/>
+                      <LinearGradient colors={aC.isDark ? [NAVY, ORANGE] : ['#27467F', '#FF9654']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject}/>
                       <Text style={s.bookBtnTxt}>Book Installation</Text>
                     </TouchableOpacity>
                   </View>
@@ -348,8 +347,8 @@ export default function TrackerCompanyProfileScreen() {
             <Text style={[s.sectionTitle, { color: aC.isDark ? C.textPrimary : '#010a1f' }]}>Ancillary Services</Text>
             <View style={s.servicesGrid}>
               {ANCILLARY.map((item, i) => (
-                <View key={i} style={[s.serviceCard, { backgroundColor: aC.isDark ? '#0A1838' : '#ffffff', borderColor: aC.isDark ? '#7E9FD6' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }]}>
-                  {aC.isDark ? <RingGlow radius={16} /> : <><LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/><LinearGradient colors={['transparent', 'rgba(226,103,27,0.06)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/></>}
+                <View key={i} style={[s.serviceCard, { backgroundColor: aC.isDark ? '#0A1838' : '#ffffff', borderColor: aC.isDark ? '#7E9FD6' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
+                  {aC.isDark ? <RingGlow radius={16} /> : <></>}
                   {item.icon}
                   <Text style={[s.serviceLabel, { color: aC.isDark ? '#E6E4EA' : '#010a1f' }]}>{item.label}</Text>
                 </View>
@@ -358,7 +357,7 @@ export default function TrackerCompanyProfileScreen() {
           </View>
 
           {/* ── REVIEW SUMMARY ── */}
-          <View style={[s.reviewSummary, { backgroundColor: aC.isDark ? '#0a2253' : '#ffffff', borderWidth: aC.isDark ? 0 : 1, borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }]}>
+          <View style={[s.reviewSummary, { backgroundColor: aC.isDark ? '#0a2253' : '#ffffff', borderWidth: aC.isDark ? 0 : 1, borderColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
             <View style={s.barsWrap}>
               {[5, 4, 3, 2, 1].map(star => {
                 const cnt  = breakdown[star] || 0;
@@ -388,7 +387,7 @@ export default function TrackerCompanyProfileScreen() {
           {/* ── COMMENT INPUT ── */}
           <View style={s.commentWrap}>
             <TextInput
-              style={[s.commentInput, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderColor: aC.isDark ? 'rgba(255,255,255,0.75)' : 'rgba(3,42,105,0.12)', color: aC.isDark ? C.textPrimary : '#010a1f', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.06)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }]}
+              style={[s.commentInput, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderColor: aC.isDark ? 'rgba(255,255,255,0.75)' : 'rgba(3,42,105,0.12)', color: aC.isDark ? C.textPrimary : '#010a1f', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.06)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}
               placeholder="Add a comment"
               placeholderTextColor={aC.isDark ? C.textPlaceholder : '#94a3b8'}
               value={comment}
@@ -430,7 +429,7 @@ export default function TrackerCompanyProfileScreen() {
         {/* ── FIXED BOTTOM BAR ── */}
         <View style={[s.bottomBar, { backgroundColor: aC.isDark ? 'rgba(10,22,48,0.96)' : '#ffffff', borderTopColor: aC.isDark ? 'rgba(126,159,214,0.35)' : 'rgba(3,42,105,0.08)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 8 }]}>
           <TouchableOpacity style={s.viewTrackerBtn} activeOpacity={0.85} onPress={() => setShowDevices(true)}>
-            <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject}/>
+            <LinearGradient colors={(aC.isDark ? PRIMARY_BTN_COLORS : ['#27467F', '#8C6A78', '#FF9654']) as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject}/>
             <Text style={s.viewTrackerTxt}>View Available Tracker</Text>
           </TouchableOpacity>
 

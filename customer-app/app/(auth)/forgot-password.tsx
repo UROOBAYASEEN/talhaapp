@@ -1,3 +1,4 @@
+import { AUTH_EDGES } from '@/constants/authEdges';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
@@ -43,7 +44,7 @@ export default function ForgotPasswordScreen() {
 
   return (
     <AuthGlowBackground>
-      <SafeAreaView style={styles.safe}>
+      <SafeAreaView edges={AUTH_EDGES} style={styles.safe}>
         <ScreenHeader logo />
         <View style={styles.content}>
           <Text style={styles.title}>Reset your password</Text>

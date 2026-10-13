@@ -68,11 +68,11 @@ function makeStyles(aC: ReturnType<typeof useAppColors>) {
     headerAvtWrap: { position: 'relative', width: 50, height: 50 },
     headerAvt: { width: 50, height: 50, borderRadius: 25, backgroundColor: aC.gradientStart, alignItems: 'center', justifyContent: 'center' },
     headerAvtTxt: { fontSize: 14, fontFamily: 'Poppins_700Bold', color: '#f9fafc' },
-    headerOnlineDot: { position: 'absolute', bottom: 2, right: 1, width: 11, height: 11, borderRadius: 6, backgroundColor: '#26c77a', borderWidth: 1, borderColor: '#010a1f' },
+    headerOnlineDot: { position: 'absolute', bottom: 2, right: 1, width: 11, height: 11, borderRadius: 6, backgroundColor: '#26c77a', borderWidth: aC.isDark ? 1 : 1.5, borderColor: aC.isDark ? '#010a1f' : '#ffffff' },
     headerName: { fontSize: 16, fontFamily: 'Poppins_500Medium', color: aC.textPrimary },
     headerOnline: { fontSize: 11, fontFamily: 'Poppins_400Regular', color: '#26c77a', marginTop: 2 },
     callBtn: { padding: 4 },
-    headerOffline: { fontSize: 10, fontFamily: 'Poppins_400Regular', color: aC.textSecondary },
+    headerOffline: { fontSize: 10, fontFamily: 'Poppins_400Regular', color: aC.isDark ? aC.textSecondary : '#6b7280' },
     callOverlay: { flex: 1, backgroundColor: 'rgba(1,10,31,0.92)', alignItems: 'center', justifyContent: 'center' },
     callCard: { width: 300, backgroundColor: aC.glassBg, borderRadius: 24, borderWidth: 1, borderColor: aC.glassBorder, alignItems: 'center', paddingVertical: 40, paddingHorizontal: 24, gap: 12 },
     callAvtRing: { width: 100, height: 100, borderRadius: 50, borderWidth: 3, borderColor: '#0088ff', alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
@@ -84,7 +84,7 @@ function makeStyles(aC: ReturnType<typeof useAppColors>) {
     callActions: { flexDirection: 'row', gap: 40, marginTop: 20 },
     declineBtn: { width: 64, height: 64, borderRadius: 32, backgroundColor: '#e53935', alignItems: 'center', justifyContent: 'center' },
     acceptBtn:  { width: 64, height: 64, borderRadius: 32, backgroundColor: '#34c759', alignItems: 'center', justifyContent: 'center' },
-    divider: { height: 1, backgroundColor: aC.isDark ? '#173569' : aC.divider, marginBottom: 0 },
+    divider: { height: 1, backgroundColor: aC.isDark ? '#173569' : 'rgba(0,0,0,0.08)', marginBottom: 0 },
     vehicleCard: {
       flexDirection: 'row', alignItems: 'center', gap: 9, height: 70,
       borderRadius: 16, borderWidth: 1, borderColor: 'rgba(220,232,255,0.68)',
@@ -94,24 +94,24 @@ function makeStyles(aC: ReturnType<typeof useAppColors>) {
     vehicleImgPlaceholder: { width: 80, height: 56, borderRadius: 9, backgroundColor: aC.glassBg, alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' },
     vehicleImg: { width: 80, height: 56, borderRadius: 9 },
     vehicleInfo: { flex: 1, gap: 1 },
-    vehicleTitle: { fontSize: 12, fontFamily: 'Poppins_500Medium', color: aC.textPrimary },
+    vehicleTitle: { fontSize: aC.isDark ? 12 : 13, fontFamily: 'Poppins_500Medium', color: aC.textPrimary },
     vehicleRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
     vehicleMeta: { fontSize: 11, fontFamily: 'Poppins_400Regular', color: aC.textSecondary },
-    vehiclePrice: { fontSize: 12, fontFamily: 'Poppins_600SemiBold', color: '#e2671b' },
+    vehiclePrice: { fontSize: aC.isDark ? 12 : 13, fontFamily: 'Poppins_600SemiBold', color: '#e2671b' },
     messageList: { paddingHorizontal: 18, paddingTop: 12, paddingBottom: 16, gap: 22, flexGrow: 1 },
     todayWrap:  { alignItems: 'center', marginBottom: 2 },
-    todayBadge: { backgroundColor: '#081f51', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 5 },
-    todayTxt: { fontSize: 11, fontFamily: 'Poppins_400Regular', color: aC.textPrimary },
+    todayBadge: { backgroundColor: aC.isDark ? '#081f51' : '#0B1F4D', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 5 },
+    todayTxt: { fontSize: 11, fontFamily: 'Poppins_400Regular', color: aC.isDark ? aC.textPrimary : '#ffffff' },
     msgRow:   { flexDirection: 'row', alignItems: 'center', gap: 12 },
     msgRowMe: { flexDirection: 'row-reverse' },
-    msgAvt: { width: 28, height: 28, borderRadius: 14, backgroundColor: aC.gradientStart, alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' },
+    msgAvt: { width: aC.isDark ? 28 : 32, height: aC.isDark ? 28 : 32, borderRadius: aC.isDark ? 14 : 16, backgroundColor: aC.gradientStart, alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' },
     msgAvtTxt: { fontSize: 11, fontFamily: 'Poppins_700Bold', color: '#f9fafc' },
-    msgAvtImg: { width: 28, height: 28, borderRadius: 14 },
-    bubble: { maxWidth: '76%', minWidth: 150, borderRadius: 10, paddingHorizontal: 12, paddingTop: 9, paddingBottom: 7, gap: 2, borderWidth: 0, overflow: 'hidden' },
-    bubbleThem: { backgroundColor: '#081e50' },
-    bubbleMe:   { backgroundColor: '#078cff' },
-    bubbleTxt: { fontSize: 12, fontFamily: 'Poppins_400Regular', color: '#f9fafc', lineHeight: 19 },
-    bubbleTime: { fontSize: 8, fontFamily: 'Poppins_400Regular', color: '#aba9bc', alignSelf: 'flex-end' },
+    msgAvtImg: { width: aC.isDark ? 28 : 32, height: aC.isDark ? 28 : 32, borderRadius: aC.isDark ? 14 : 16 },
+    bubble: { maxWidth: '76%', minWidth: 150, borderRadius: aC.isDark ? 10 : 12, paddingHorizontal: aC.isDark ? 12 : 14, paddingTop: aC.isDark ? 9 : 10, paddingBottom: aC.isDark ? 7 : 8, gap: 2, borderWidth: 0, overflow: 'hidden' },
+    bubbleThem: { backgroundColor: aC.isDark ? '#081e50' : '#17508A' },
+    bubbleMe:   { backgroundColor: aC.isDark ? '#078cff' : '#E2671B' },
+    bubbleTxt: { fontSize: aC.isDark ? 12 : 13, fontFamily: 'Poppins_400Regular', color: aC.isDark ? '#f9fafc' : '#ffffff', lineHeight: aC.isDark ? 19 : 20 },
+    bubbleTime: { fontSize: 8, fontFamily: 'Poppins_400Regular', color: aC.isDark ? '#aba9bc' : 'rgba(255,255,255,0.85)', alignSelf: 'flex-end' },
     bubbleTimeMe: { color: '#f9fafc' },
     msgImg: { width: 180, height: 140, borderRadius: 10 },
     imgBubble: { position: 'relative', borderRadius: 10, overflow: 'hidden', maxWidth: '55%' },
@@ -119,10 +119,10 @@ function makeStyles(aC: ReturnType<typeof useAppColors>) {
     previewOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', alignItems: 'center', justifyContent: 'center' },
     previewImg:     { width: SW, height: SH * 0.75 },
     previewClose:   { position: 'absolute', top: 50, right: 20, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' },
-    inputBar: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 18, paddingVertical: 10 },
-    inputIconBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: '#081f51', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-    inputFieldWrap: { flex: 1, minHeight: 34, maxHeight: 100, backgroundColor: '#081e50', borderRadius: 18, flexDirection: 'row', alignItems: 'center', paddingRight: 5 },
-    inputField: { flex: 1, minHeight: 34, maxHeight: 100, paddingHorizontal: 12, paddingVertical: 6, fontSize: 12, fontFamily: 'Poppins_400Regular', color: aC.textPrimary },
+    inputBar: { flexDirection: 'row', alignItems: 'center', gap: aC.isDark ? 8 : 10, paddingHorizontal: aC.isDark ? 18 : 16, paddingVertical: 10 },
+    inputIconBtn: { width: aC.isDark ? 34 : 42, height: aC.isDark ? 34 : 42, borderRadius: aC.isDark ? 17 : 21, backgroundColor: aC.isDark ? '#081f51' : '#17508A', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+    inputFieldWrap: { flex: 1, minHeight: aC.isDark ? 34 : 42, maxHeight: 100, backgroundColor: aC.isDark ? '#081e50' : '#17508A', borderRadius: aC.isDark ? 18 : 21, flexDirection: 'row', alignItems: 'center', paddingRight: aC.isDark ? 5 : 8 },
+    inputField: { flex: 1, minHeight: aC.isDark ? 34 : 42, maxHeight: 100, paddingHorizontal: aC.isDark ? 12 : 16, paddingVertical: 6, fontSize: aC.isDark ? 12 : 13, fontFamily: 'Poppins_400Regular', color: aC.isDark ? aC.textPrimary : '#ffffff' },
     emojiBtn: { padding: 4, flexShrink: 0 },
     recordingBar: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, paddingVertical: 6, backgroundColor: 'rgba(229,57,53,0.12)' },
     recordingDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#e53935' },
@@ -138,11 +138,11 @@ function makeStyles(aC: ReturnType<typeof useAppColors>) {
     emojiBtn2: { width: 38, height: 38, alignItems: 'center', justifyContent: 'center', borderRadius: 8 },
     emojiTxt: { fontSize: 22 },
 
-    richCard:     { flexDirection: 'row', alignItems: 'center', gap: 10, maxWidth: '75%', borderRadius: 14, borderWidth: 1, borderColor: 'rgba(100,160,255,0.45)', backgroundColor: 'rgba(3,12,40,0.85)', paddingHorizontal: 12, paddingVertical: 10, overflow: 'hidden' },
+    richCard:     { flexDirection: 'row', alignItems: 'center', gap: 10, maxWidth: '75%', borderRadius: 14, borderWidth: 1, borderColor: aC.isDark ? 'rgba(100,160,255,0.45)' : 'rgba(3,42,105,0.14)', backgroundColor: aC.isDark ? 'rgba(3,12,40,0.85)' : '#F2F4F8', paddingHorizontal: 12, paddingVertical: 10, overflow: 'hidden' },
     richCardIcon: { width: 38, height: 38, borderRadius: 19, backgroundColor: 'rgba(226,103,27,0.15)', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
     richCardType: { fontSize: 9, fontFamily: 'Poppins_500Medium', color: '#e2671b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 },
-    richCardTitle:{ fontSize: 13, fontFamily: 'Poppins_600SemiBold', color: '#f9fafc' },
-    richCardSub:  { fontSize: 11, fontFamily: 'Poppins_400Regular', color: '#baacb6', marginTop: 2 },
+    richCardTitle:{ fontSize: 13, fontFamily: 'Poppins_600SemiBold', color: aC.isDark ? '#f9fafc' : '#000000' },
+    richCardSub:  { fontSize: 11, fontFamily: 'Poppins_400Regular', color: aC.isDark ? '#baacb6' : '#4b5563', marginTop: 2 },
   });
 }
 
@@ -558,7 +558,7 @@ export default function ChatRoomScreen() {
   const displayName = name || otherNameFetched || 'User';
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={styles.safe} edges={!aC.isDark && Platform.OS === 'android' ? ['top', 'left', 'right'] : undefined}>
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
@@ -658,7 +658,7 @@ export default function ChatRoomScreen() {
           if (!vTitle) return null;
           return (
             <TouchableOpacity
-              style={[styles.vehicleCard, { backgroundColor: aC.isDark ? '#010a1f' : '#ffffff', borderColor: aC.isDark ? 'rgba(220,232,255,0.68)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? '#164088' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0.14 : 0.08, shadowRadius: 5, elevation: aC.isDark ? 2 : 3 }]}
+              style={[styles.vehicleCard, { backgroundColor: aC.isDark ? '#010a1f' : '#F2F4F8', borderColor: aC.isDark ? 'rgba(220,232,255,0.68)' : 'rgba(0,0,0,0.05)', shadowColor: aC.isDark ? '#164088' : 'transparent', shadowOpacity: aC.isDark ? 0.14 : 0, shadowRadius: 5, elevation: aC.isDark ? 2 : 0 }, !aC.isDark && { height: 76, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}
               activeOpacity={0.85}
               onPress={() => vId && router.push({ pathname: '/vehicle/[id]', params: { id: vId } })}
             >
@@ -667,12 +667,7 @@ export default function ChatRoomScreen() {
                   <LinearGradient colors={['#16408880', '#0D255480', '#010a1f', '#010a1f', '#0D255480', '#16408880']} locations={[0, 0.06, 0.21, 0.79, 0.94, 1]} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
                   <LinearGradient colors={['rgba(22,64,136,0.45)', 'rgba(13,37,84,0.16)', 'transparent', 'transparent', 'rgba(13,37,84,0.16)', 'rgba(22,64,136,0.45)']} locations={[0, 0.06, 0.2, 0.8, 0.94, 1]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
                 </>
-              ) : (
-                <>
-                  <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                  <LinearGradient colors={['transparent', 'rgba(226,103,27,0.08)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                </>
-              )}
+              ) : null}
               {convVehicle?.image
                 ? <Image source={{ uri: convVehicle.image }} style={styles.vehicleImg} resizeMode="cover" />
                 : (
@@ -682,8 +677,8 @@ export default function ChatRoomScreen() {
               <View style={styles.vehicleInfo}>
                 <Text style={[styles.vehicleTitle, { color: aC.isDark ? aC.textPrimary : '#010a1f' }]} numberOfLines={1}>{vTitle}</Text>
                 <View style={styles.vehicleRow}>
-                  <Ionicons name="location-outline" size={12} color={aC.isDark ? aC.textSecondary : '#64748b'} />
-                  <Text style={[styles.vehicleMeta, { color: aC.isDark ? aC.textSecondary : '#64748b' }]} numberOfLines={1}>{[vCity, vYear, convVehicle?.transmission].filter(Boolean).join(' • ')}</Text>
+                  <Ionicons name="location-outline" size={12} color={aC.isDark ? aC.textSecondary : '#000000'} />
+                  <Text style={[styles.vehicleMeta, { color: aC.isDark ? aC.textSecondary : '#111827' }]} numberOfLines={1}>{[vCity, vYear, convVehicle?.transmission].filter(Boolean).join(' • ')}</Text>
                 </View>
                 <Text style={styles.vehiclePrice}>{vPrice}</Text>
               </View>
@@ -871,13 +866,13 @@ export default function ChatRoomScreen() {
         )}
         <View style={styles.inputBar}>
           <TouchableOpacity style={styles.inputIconBtn} onPress={pickAndSendImage} disabled={isRecording}>
-            <Ionicons name="add" size={26} color={isRecording ? 'rgba(249,250,252,0.3)' : aC.textPrimary} />
+            <Ionicons name="add" size={26} color={isRecording ? 'rgba(249,250,252,0.3)' : aC.isDark ? aC.textPrimary : '#ffffff'} />
           </TouchableOpacity>
           <View style={styles.inputFieldWrap}>
           <TextInput
             style={styles.inputField}
             placeholder={isRecording ? 'Recording...' : 'Type a message...'}
-            placeholderTextColor={isRecording ? '#e53935' : aC.textSecondary}
+            placeholderTextColor={isRecording ? '#e53935' : aC.isDark ? aC.textSecondary : 'rgba(255,255,255,0.75)'}
             value={input}
             onChangeText={setInput}
             multiline
@@ -892,7 +887,7 @@ export default function ChatRoomScreen() {
             <Ionicons
               name={showEmojiPicker ? 'happy' : 'happy-outline'}
               size={20}
-              color={isRecording ? 'rgba(249,250,252,0.3)' : showEmojiPicker ? '#e2671b' : aC.textSecondary}
+              color={isRecording ? 'rgba(249,250,252,0.3)' : showEmojiPicker ? '#e2671b' : aC.isDark ? aC.textSecondary : '#ffffff'}
             />
           </TouchableOpacity>
           </View>
@@ -908,7 +903,7 @@ export default function ChatRoomScreen() {
             </TouchableOpacity>
           ) : (
             <TouchableOpacity style={styles.inputIconBtn} onPress={startRecording}>
-              <Ionicons name="mic-outline" size={20} color={aC.textPrimary} />
+              <Ionicons name="mic-outline" size={20} color={aC.isDark ? aC.textPrimary : '#ffffff'} />
             </TouchableOpacity>
           )}
         </View>

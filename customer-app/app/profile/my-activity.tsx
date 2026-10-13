@@ -17,29 +17,29 @@ function makeStyles(aC: ReturnType<typeof useAppColors>) {
     safe: { flex: 1, backgroundColor: '#010a1f' },
     header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: 0.5, borderBottomColor: aC.divider },
     backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: aC.glassBg, alignItems: 'center', justifyContent: 'center' },
-    headerTitle: { fontSize: 18, fontFamily: 'Poppins_600SemiBold', color: aC.textPrimary },
+    headerTitle: { fontSize: 18, fontFamily: aC.isDark ? 'Poppins_600SemiBold' : 'Poppins_500Medium', color: aC.textPrimary },
     list: { padding: 16, gap: 12, paddingBottom: 40 },
     tabsWrap: { marginBottom: 18 },
-    tabsRow: { flexDirection: 'row', gap: 10, paddingRight: 4 },
+    tabsRow: { flexDirection: 'row', gap: 10, paddingRight: 4, paddingBottom: aC.isDark ? 0 : 8 },
     tab: { height: 50, paddingHorizontal: 17, borderRadius: 16, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderWidth: 1 },
     tabText: { fontSize: 12, fontFamily: 'Poppins_500Medium' },
     loadingRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 20 },
     loadingTxt: { fontSize: 13, fontFamily: 'Poppins_400Regular', color: aC.textSecondary },
-    card: { backgroundColor: '#010A1F', borderRadius: 20, borderWidth: 1, borderColor: '#82a5d5', overflow: 'hidden', shadowColor: '#638ed0', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.15, shadowRadius: 5, elevation: 2 },
+    card: { backgroundColor: aC.isDark ? '#010A1F' : '#ffffff', borderRadius: 20, borderWidth: 1, borderColor: aC.isDark ? '#82a5d5' : 'rgba(226,103,27,0.28)', overflow: 'hidden', shadowColor: aC.isDark ? '#638ed0' : 'transparent', shadowOffset: { width: 0, height: 0 }, shadowOpacity: aC.isDark ? 0.15 : 0, shadowRadius: 5, elevation: aC.isDark ? 2 : 0, ...(aC.isDark ? null : { marginBottom: 4, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }) },
     cardTop: { paddingTop: 18 },
     cardImg: { width: '78%', height: 145, alignSelf: 'center' },
     cardImgPh: { backgroundColor: 'transparent', alignItems: 'center', justifyContent: 'center' },
     cardBody: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 10 },
     cardTitle: { fontSize: 14, fontFamily: 'Poppins_600SemiBold', color: aC.textPrimary, marginBottom: 5 },
     metaRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 10 },
-    metaTxt: { fontSize: 12, fontFamily: 'Poppins_400Regular', color: aC.textSecondary },
+    metaTxt: { fontSize: 12, fontFamily: 'Poppins_400Regular', color: aC.isDark ? aC.textSecondary : '#000000' },
     dot: { color: aC.textSecondary, fontSize: 11 },
-    purchasedBadge: { alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 14, backgroundColor: 'rgba(16,185,129,0.14)' },
-    purchasedTxt: { fontSize: 11, fontFamily: 'Poppins_500Medium', color: '#22c55e' },
-    cardDivider: { height: 1, width: '100%', backgroundColor: 'rgba(120,153,201,0.55)' },
+    purchasedBadge: { alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 14, backgroundColor: aC.isDark ? 'rgba(16,185,129,0.14)' : '#DDF5E5' },
+    purchasedTxt: { fontSize: 11, fontFamily: 'Poppins_500Medium', color: aC.isDark ? '#22c55e' : '#16a34a' },
+    cardDivider: { height: 1, width: '100%', backgroundColor: aC.isDark ? 'rgba(120,153,201,0.55)' : 'rgba(0,0,0,0.1)' },
     purchaseInfo: { flexDirection: 'row', paddingHorizontal: 20, paddingTop: 13, paddingBottom: 17 },
     purchaseCol: { width: '50%' },
-    purchaseLabel: { fontSize: 13, fontFamily: 'Poppins_500Medium', color: '#b8b0c1', marginBottom: 2 },
+    purchaseLabel: { fontSize: 13, fontFamily: 'Poppins_500Medium', color: aC.isDark ? '#b8b0c1' : '#6b7280', marginBottom: 2 },
     purchaseValue: { fontSize: 13, fontFamily: 'Poppins_500Medium', color: aC.textPrimary },
     empty: { alignItems: 'center', paddingVertical: 80, gap: 10 },
     emptyIconWrap: { width: 80, height: 80, borderRadius: 40, backgroundColor: aC.glassBg, alignItems: 'center', justifyContent: 'center' },
@@ -121,12 +121,13 @@ export default function MyActivityScreen() {
                       s.tab,
                       active
                         ? {
-                          backgroundColor: aC.isDark ? '#15386A' : '#e2671b',
-                          borderColor: aC.isDark ? '#6F89AF' : '#e2671b',
+                          backgroundColor: aC.isDark ? '#15386A' : '#F2F4F8',
+                          borderColor: aC.isDark ? '#6F89AF' : 'transparent',
                           borderWidth: aC.isDark ? 1.35 : 1,
+                          ...(aC.isDark ? null : { boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }),
                         }
                         : {
-                          backgroundColor: aC.isDark ? '#06235A' : '#ffffff',
+                          backgroundColor: aC.isDark ? '#06235A' : '#F7F8FA',
                           borderColor: 'transparent',
                         },
                     ]}
@@ -149,7 +150,7 @@ export default function MyActivityScreen() {
                         />
                       </>
                     )}
-                    <Text style={[s.tabText, { color: active ? aC.textPrimary : aC.textSecondary }]}>
+                    <Text style={[s.tabText, { color: aC.isDark ? (active ? aC.textPrimary : aC.textSecondary) : (active ? '#e2671b' : '#000000') }, !aC.isDark && active && { fontFamily: 'Poppins_700Bold' }]}>
                       {tab.label}
                     </Text>
                   </TouchableOpacity>
@@ -173,7 +174,7 @@ export default function MyActivityScreen() {
             <Text style={s.emptyTitle}>No Activity Yet</Text>
             <Text style={s.emptySub}>Your vehicle listings and reservations will appear here</Text>
             <TouchableOpacity style={{ borderRadius: 32, overflow: 'hidden', marginTop: 12 }} onPress={() => router.push('/(tabs)/explore' as any)}>
-              <LinearGradient colors={['#032a69', '#e2671b']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.emptyBtn}>
+              <LinearGradient colors={aC.isDark ? ['#032a69', '#e2671b'] : ['#27467F', '#FF9654']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.emptyBtn}>
                 <Text style={s.emptyBtnTxt}>Browse Vehicles</Text>
               </LinearGradient>
             </TouchableOpacity>
@@ -185,20 +186,20 @@ export default function MyActivityScreen() {
             onPress={() => router.push({ pathname: '/vehicle/[id]', params: { id: item.id } })}
             activeOpacity={0.87}
           >
-            <LinearGradient
+            {aC.isDark && <LinearGradient
               colors={['#16408880', 'transparent', 'transparent', '#16408880']}
               locations={[0, 0.08, 0.92, 1]}
               style={StyleSheet.absoluteFillObject}
               pointerEvents="none"
-            />
-            <LinearGradient
+            />}
+            {aC.isDark && <LinearGradient
               colors={['#16408880', 'transparent', 'transparent', '#16408880']}
               locations={[0, 0.05, 0.95, 1]}
               start={{ x: 0, y: 0.5 }}
               end={{ x: 1, y: 0.5 }}
               style={StyleSheet.absoluteFillObject}
               pointerEvents="none"
-            />
+            />}
 
             <View style={s.cardTop}>
               {item.images?.[0]
@@ -209,7 +210,7 @@ export default function MyActivityScreen() {
               <View style={s.cardBody}>
                 <Text style={s.cardTitle} numberOfLines={1}>{item.title}</Text>
                 <View style={s.metaRow}>
-                  <Ionicons name="location-outline" size={16} color={aC.textSecondary} />
+                  <Ionicons name="location-outline" size={16} color={aC.isDark ? aC.textSecondary : '#000000'} />
                   <Text style={s.metaTxt}>{item.city || 'Pakistan'}</Text>
                   <Text style={s.dot}>•</Text>
                   <Text style={s.metaTxt}>{item.year}</Text>

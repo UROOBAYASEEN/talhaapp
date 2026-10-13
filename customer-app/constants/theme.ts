@@ -88,3 +88,15 @@ export const Fonts = Platform.select({
     mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
   },
 });
+
+// Light-mode style overrides for screens whose StyleSheet is written for dark mode.
+// Returns the same keys as `base`, with `light[key]` layered on top where given —
+// dark mode keeps using `base` untouched.
+export function withLightStyles<T extends Record<string, any>>(base: T, light: Partial<Record<keyof T, any>>): T {
+  const out: any = { ...base };
+  for (const k in light) out[k] = [base[k], light[k]];
+  return out;
+}
+
+// Light mode "pop-up" drop shadow (Figma)
+export const LIGHT_POP_SHADOW = '2px 4px 5px rgba(0,0,0,0.24)';

@@ -21,7 +21,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
-import { useAppColors } from '@/constants/theme';
+import { LIGHT_POP_SHADOW, useAppColors, withLightStyles } from '@/constants/theme';
 
 import SheetModal from '@/components/shared/SheetModal';
 // Figma assets
@@ -39,6 +39,7 @@ export default function EditProfileScreen() {
   const router = useRouter();
   const { token, user, refreshUser } = useAuth();
   const aC = useAppColors();
+  const st = aC.isDark ? s : sLight;
   const [saving,        setSaving]       = useState(false);
   const [showPicker,    setShowPicker]   = useState(false);
   const [localAvatar,   setLocalAvatar]  = useState<string | null>(null);
@@ -176,7 +177,7 @@ export default function EditProfileScreen() {
   const avatarSource = localAvatar || resolvedAvatar || IMG_AVATAR;
 
   return (
-    <SafeAreaView style={[s.safe, { backgroundColor: aC.bg }]} edges={["top"]}>
+    <SafeAreaView style={[st.safe, { backgroundColor: aC.bg }]} edges={["top"]}>
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -184,7 +185,7 @@ export default function EditProfileScreen() {
         style={{ flex: 1 }}
       >
         <ScrollView
-          contentContainerStyle={s.scroll}
+          contentContainerStyle={st.scroll}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
@@ -192,46 +193,53 @@ export default function EditProfileScreen() {
         >
 
           {/* ── Header — same as profile ── */}
-      <View style={s.header}>
-        <TouchableOpacity style={s.iconBtn} onPress={() => router.back()}>
-          <Ionicons name="arrow-back-outline" size={24} color={WHITE} />
+      <View style={st.header}>
+        <TouchableOpacity style={st.iconBtn} onPress={() => router.back()}>
+          <Ionicons name="arrow-back-outline" size={24} color={aC.isDark ? WHITE : '#000000'} />
         </TouchableOpacity>
 
-        <View style={s.logoWrap} pointerEvents="none">
-          <Image source={IMG_LOGO} style={s.logo} resizeMode="contain" />
+        <View style={st.logoWrap} pointerEvents="none">
+          {aC.isDark ? (
+            <Image source={IMG_LOGO} style={st.logo} resizeMode="contain" />
+          ) : (
+            <Text style={{ fontSize: 18, fontFamily: 'Poppins_700Bold', letterSpacing: 0.5 }}>
+              <Text style={{ color: '#032a69' }}>Auto</Text>
+              <Text style={{ color: '#e2671b' }}>wizor</Text>
+            </Text>
+          )}
         </View>
 
-        <View style={s.headerRight}>
-          <TouchableOpacity style={s.iconBtn} onPress={() => router.push('/alert' as any)}>
-            <Ionicons name="notifications-outline" size={20} color={WHITE} />
+        <View style={st.headerRight}>
+          <TouchableOpacity style={st.iconBtn} onPress={() => router.push('/alert' as any)}>
+            <Ionicons name="notifications-outline" size={20} color={aC.isDark ? WHITE : '#000000'} />
           </TouchableOpacity>
-          <TouchableOpacity style={s.iconBtn} onPress={() => router.push('/profile/settings' as any)}>
-            <Ionicons name="settings-outline" size={20} color={WHITE} />
+          <TouchableOpacity style={st.iconBtn} onPress={() => router.push('/profile/settings' as any)}>
+            <Ionicons name="settings-outline" size={20} color={aC.isDark ? WHITE : '#000000'} />
           </TouchableOpacity>
         </View>
       </View>
 
           {/* ── Avatar ── */}
-          <View style={s.avatarSection}>
+          <View style={st.avatarSection}>
             <TouchableOpacity onPress={() => setShowPicker(true)} activeOpacity={0.85}>
-              <View style={s.avatarWrap}>
-                <Image source={{ uri: avatarSource }} style={s.avatar} resizeMode="cover" />
+              <View style={st.avatarWrap}>
+                <Image source={{ uri: avatarSource }} style={st.avatar} resizeMode="cover" />
                 {uploadingPhoto ? (
-                  <View style={[s.cameraBtn, { backgroundColor: 'rgba(0,0,0,0.6)' }]}>
+                  <View style={[st.cameraBtn, { backgroundColor: 'rgba(0,0,0,0.6)' }]}>
                     <ActivityIndicator size="small" color={WHITE} />
                   </View>
                 ) : (
-                  <View style={s.cameraBtn}>
+                  <View style={st.cameraBtn}>
                     <Ionicons name="camera-outline" size={12} color={WHITE} />
                   </View>
                 )}
               </View>
             </TouchableOpacity>
-            <Text style={s.avatarHint}>Tap to change photo</Text>
+            <Text style={st.avatarHint}>Tap to change photo</Text>
           </View>
 
           {/* ── Fields ── */}
-          <View style={s.fieldsWrap}>
+          <View style={st.fieldsWrap}>
 
             <EditField
               label="Full Name"
@@ -280,17 +288,17 @@ export default function EditProfileScreen() {
             onPress={handleSave}
             disabled={saving}
             activeOpacity={0.87}
-            style={s.saveBtnWrap}
+            style={st.saveBtnWrap}
           >
             <LinearGradient
-              colors={['#032a69', '#e2671b']}
+              colors={aC.isDark ? ['#032a69', '#e2671b'] : ['#27467F', '#FF9654']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
-              style={s.saveBtn}
+              style={st.saveBtn}
             >
               {saving
                 ? <ActivityIndicator color={WHITE} size="small" />
-                : <Text style={s.saveTxt} numberOfLines={1}>Save Changes</Text>
+                : <Text style={st.saveTxt} numberOfLines={1}>Save Changes</Text>
               }
             </LinearGradient>
           </TouchableOpacity>
@@ -301,47 +309,47 @@ export default function EditProfileScreen() {
 
       {/* ── Photo picker bottom sheet ── */}
       <SheetModal visible={showPicker} transparent animationType="slide" onRequestClose={() => setShowPicker(false)}>
-        <TouchableOpacity style={s.overlay} activeOpacity={1} onPress={() => setShowPicker(false)}>
-          <View style={s.sheet}>
-            <View style={s.sheetHandle} />
-            <Text style={s.sheetTitle}>Change Profile Photo</Text>
+        <TouchableOpacity style={st.overlay} activeOpacity={1} onPress={() => setShowPicker(false)}>
+          <View style={st.sheet}>
+            <View style={st.sheetHandle} />
+            <Text style={st.sheetTitle}>Change Profile Photo</Text>
 
-            <TouchableOpacity style={s.sheetOption} onPress={pickFromGallery} activeOpacity={0.8}>
-              <View style={s.sheetIcon}>
+            <TouchableOpacity style={st.sheetOption} onPress={pickFromGallery} activeOpacity={0.8}>
+              <View style={st.sheetIcon}>
                 <Ionicons name="images-outline" size={22} color="#e2671b" />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={s.sheetOptionTitle}>Photo Gallery</Text>
-                <Text style={s.sheetOptionSub}>Choose from your photos</Text>
+                <Text style={st.sheetOptionTitle}>Photo Gallery</Text>
+                <Text style={st.sheetOptionSub}>Choose from your photos</Text>
               </View>
-              <Ionicons name="chevron-forward" size={18} color={SUBTITLE} />
+              <Ionicons name="chevron-forward" size={18} color={aC.isDark ? SUBTITLE : '#000000'} />
             </TouchableOpacity>
 
-            <TouchableOpacity style={s.sheetOption} onPress={pickFromCamera} activeOpacity={0.8}>
-              <View style={s.sheetIcon}>
+            <TouchableOpacity style={st.sheetOption} onPress={pickFromCamera} activeOpacity={0.8}>
+              <View style={st.sheetIcon}>
                 <Ionicons name="camera-outline" size={22} color="#e2671b" />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={s.sheetOptionTitle}>Camera</Text>
-                <Text style={s.sheetOptionSub}>Take a new photo</Text>
+                <Text style={st.sheetOptionTitle}>Camera</Text>
+                <Text style={st.sheetOptionSub}>Take a new photo</Text>
               </View>
-              <Ionicons name="chevron-forward" size={18} color={SUBTITLE} />
+              <Ionicons name="chevron-forward" size={18} color={aC.isDark ? SUBTITLE : '#000000'} />
             </TouchableOpacity>
 
             {(localAvatar || form.avatar_url) ? (
-              <TouchableOpacity style={[s.sheetOption, { borderBottomWidth: 0 }]} onPress={removePhoto} activeOpacity={0.8}>
-                <View style={[s.sheetIcon, { backgroundColor: 'rgba(255,56,60,0.12)' }]}>
+              <TouchableOpacity style={[st.sheetOption, { borderBottomWidth: 0 }]} onPress={removePhoto} activeOpacity={0.8}>
+                <View style={[st.sheetIcon, { backgroundColor: 'rgba(255,56,60,0.12)' }]}>
                   <Ionicons name="trash-outline" size={22} color="#ff383c" />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={[s.sheetOptionTitle, { color: '#ff383c' }]}>Remove Photo</Text>
-                  <Text style={s.sheetOptionSub}>Reset to default avatar</Text>
+                  <Text style={[st.sheetOptionTitle, { color: '#ff383c' }]}>Remove Photo</Text>
+                  <Text style={st.sheetOptionSub}>Reset to default avatar</Text>
                 </View>
               </TouchableOpacity>
             ) : null}
 
-            <TouchableOpacity style={s.cancelBtn} onPress={() => setShowPicker(false)}>
-              <Text style={s.cancelTxt}>Cancel</Text>
+            <TouchableOpacity style={st.cancelBtn} onPress={() => setShowPicker(false)}>
+              <Text style={st.cancelTxt}>Cancel</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -362,32 +370,34 @@ function EditField({
   keyboardType?: any;
   editable?: boolean;
 }) {
+  const aC = useAppColors();
+  const st = aC.isDark ? s : sLight;
   return (
-    <View style={s.fieldGroup}>
+    <View style={st.fieldGroup}>
       {/* Label — Figma: Poppins Medium 14px #baacb6 */}
-      <Text style={s.fieldLabel}>{label}</Text>
+      <Text style={st.fieldLabel}>{label}</Text>
 
-      <View style={[s.inputWrap, !editable && s.inputDisabled]}>
-        <LinearGradient
+      <View style={[st.inputWrap, !editable && st.inputDisabled]}>
+        {aC.isDark && <LinearGradient
           colors={['#16408880', '#16408850', 'transparent', 'transparent', '#16408850', '#16408880']}
           locations={[0, 0.10, 0.22, 0.78, 0.90, 1]}
           style={StyleSheet.absoluteFillObject}
           pointerEvents="none"
-        />
-        <LinearGradient
+        />}
+        {aC.isDark && <LinearGradient
           colors={['#16408880', 'transparent', 'transparent', '#16408880']}
           locations={[0, 0.05, 0.95, 1]}
           start={{ x: 0, y: 0.5 }}
           end={{ x: 1, y: 0.5 }}
           style={StyleSheet.absoluteFillObject}
           pointerEvents="none"
-        />
+        />}
         <TextInput
-          style={s.input}
+          style={st.input}
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
-          placeholderTextColor="rgba(186,172,182,0.4)"
+          placeholderTextColor={aC.isDark ? "rgba(186,172,182,0.4)" : "#8f8f8f"}
           keyboardType={keyboardType}
           editable={editable}
           autoCapitalize="none"
@@ -601,4 +611,23 @@ const s = StyleSheet.create({
     fontFamily: "Poppins_600SemiBold",
     color: WHITE,
   },
+});
+
+// ── Light mode overrides (Figma light) — dark mode uses `s` as is ──────────
+const sLight = withLightStyles(s, {
+  avatar:           { borderColor: '#1a1a1a' },
+  cameraBtn:        { borderColor: '#ffffff', backgroundColor: '#0A2A66', shadowOpacity: 0, elevation: 0 },
+  avatarHint:       { color: '#4b5563' },
+  sheet:            { backgroundColor: '#ffffff' },
+  sheetHandle:      { backgroundColor: 'rgba(0,0,0,0.18)' },
+  sheetTitle:       { color: '#000000' },
+  sheetOption:      { borderBottomColor: 'rgba(0,0,0,0.1)' },
+  sheetOptionTitle: { color: '#000000' },
+  sheetOptionSub:   { color: '#4b5563' },
+  cancelBtn:        { borderColor: 'rgba(0,0,0,0.2)' },
+  cancelTxt:        { color: '#000000' },
+  inputWrap:        { backgroundColor: '#E8EAEF', borderColor: 'rgba(0,0,0,0.18)', shadowOpacity: 0, elevation: 0, boxShadow: LIGHT_POP_SHADOW },
+  inputDisabled:    { borderColor: 'rgba(0,0,0,0.18)' },
+  input:            { color: '#000000' },
+  saveBtnWrap:      { boxShadow: LIGHT_POP_SHADOW },
 });

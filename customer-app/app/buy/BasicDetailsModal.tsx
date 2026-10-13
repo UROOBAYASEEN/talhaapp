@@ -198,8 +198,7 @@ export default function BasicDetailsModal({ visible, onClose, brandName, dealerI
             </>
           ) : (
             <>
-              <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-              <LinearGradient colors={['transparent', 'rgba(226,103,27,0.06)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+
             </>
           )}
           <Text style={[styles.dropdownText, { color: !value ? '#8f8f8f' : (aC.isDark ? '#f9fafc' : '#010a1f') }, !value && styles.placeholder]}>
@@ -222,7 +221,7 @@ export default function BasicDetailsModal({ visible, onClose, brandName, dealerI
         )}
 
         {!locked && isOpen && (
-          <View style={[styles.optionsContainer, { backgroundColor: aC.isDark ? '#061b4a' : '#ffffff', borderColor: aC.isDark ? 'rgba(255,255,255,0.15)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 4 }]}>
+          <View style={[styles.optionsContainer, { backgroundColor: aC.isDark ? '#061b4a' : '#ffffff', borderColor: aC.isDark ? 'rgba(255,255,255,0.15)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 4 }, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
             {isCity && (
               <View style={[styles.citySearchWrap, { borderBottomColor: aC.isDark ? 'rgba(255,255,255,0.08)' : 'rgba(3,42,105,0.06)', backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#f8fafc' }]}>
                 <Ionicons name="search-outline" size={16} color="#8f8f8f" />
@@ -294,8 +293,8 @@ export default function BasicDetailsModal({ visible, onClose, brandName, dealerI
   return (
     <SheetModal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.overlay}>
-        <View style={[styles.modal, { backgroundColor: aC.isDark ? '#010a1f' : '#ffffff', borderColor: aC.isDark ? 'rgba(255,255,255,0.15)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 8 }]}>
-          {!aC.isDark && <><LinearGradient colors={['rgba(3,42,105,0.03)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.3 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" /><LinearGradient colors={['transparent', 'rgba(226,103,27,0.06)']} start={{ x: 0.5, y: 0.7 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" /></>}
+        <View style={[styles.modal, { backgroundColor: aC.isDark ? '#010a1f' : '#ffffff', borderColor: aC.isDark ? 'rgba(255,255,255,0.15)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 8 }, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
+          {!aC.isDark && <></>}
 
           {/* Header */}
           <View style={[styles.header, { borderBottomColor: aC.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(3,42,105,0.08)' }]}>

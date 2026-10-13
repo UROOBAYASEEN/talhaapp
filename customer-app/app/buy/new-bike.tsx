@@ -111,8 +111,8 @@ function VehicleCard({
 
   return (
     // .car-card — light: white + orange shade, dark: navy glass
-    <TouchableOpacity style={[vc.carCard, { backgroundColor: aC.isDark ? BG : '#ffffff', borderColor: aC.isDark ? '#82a5d5' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? '#1D53AF' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0.5 : 0.08, elevation: aC.isDark ? 8 : 3 }]} activeOpacity={0.88} onPress={onPress}>
-      {!aC.isDark && <><LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" /><LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" /></>}
+    <TouchableOpacity style={[vc.carCard, { backgroundColor: aC.isDark ? BG : '#ffffff', borderColor: aC.isDark ? '#82a5d5' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? '#1D53AF' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0.5 : 0.08, elevation: aC.isDark ? 8 : 3 }, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]} activeOpacity={0.88} onPress={onPress}>
+      {!aC.isDark && <></>}
       {/* .car-image */}
       <View style={[vc.carImage, { overflow: 'hidden' }]}>
         {imgUrl(item.images?.[0]) ? (
@@ -150,7 +150,7 @@ function VehicleCard({
         <View style={vc.cardActions}>
           <TouchableOpacity style={vc.viewBtnWrap} activeOpacity={0.85} onPress={onPress}>
             <LinearGradient
-              colors={[NAVY, ORANGE]}
+              colors={aC.isDark ? [NAVY, ORANGE] : ['#27467F', '#FF9654']}
               start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
               style={vc.viewBtn}
             >
@@ -223,8 +223,6 @@ const vc = StyleSheet.create({
     marginLeft: 2,
   },
 });
-
-
 
 // ── Main Screen ──────────────────────────────────────────────────────────────
 export default function BuyNewBikeScreen() {
@@ -360,7 +358,7 @@ export default function BuyNewBikeScreen() {
                           return (
                             <TouchableOpacity
                               key={b.id || name}
-                              style={[styles.brandBtn, { backgroundColor: aC.isDark ? BG : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.4)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? '#1D53AF' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0.5 : 0.08, elevation: aC.isDark ? 6 : 3 }]}
+                              style={[styles.brandBtn, { backgroundColor: aC.isDark ? BG : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.4)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? '#1D53AF' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0.5 : 0.08, elevation: aC.isDark ? 6 : 3 }, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}
                               activeOpacity={0.82}
                               onPress={() => openBrandModal(name)}
                             >
@@ -373,8 +371,7 @@ export default function BuyNewBikeScreen() {
                                 </>
                               ) : (
                                 <>
-                                  <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-                                  <LinearGradient colors={['transparent', 'rgba(226,103,27,0.08)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+
                                 </>
                               )}
                               {logo ? (
@@ -490,12 +487,11 @@ export default function BuyNewBikeScreen() {
               { img: IMG_COMPARE, title: 'Compare\nVehicle', desc: 'Compare vehicle features, prices, and specifications.', onPress: () => router.push({ pathname: '/compare-vehicle', params: { category: 'bike' } } as any) },
               { img: IMG_FINANCE, title: 'Smart Finance\nCalculator', desc: 'Calculate your monthly payments.', onPress: undefined },
             ].map((t, i) => (
-              <TouchableOpacity key={i} style={[styles.needCard, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderWidth: aC.isDark ? 0 : 1, borderColor: 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }]} onPress={t.onPress} activeOpacity={0.85}>
+              <TouchableOpacity key={i} style={[styles.needCard, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderWidth: aC.isDark ? 0 : 1, borderColor: 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]} onPress={t.onPress} activeOpacity={0.85}>
                 {aC.isDark
                   ? <LinearGradient colors={['#071B48', '#0A1F4C', '#2B2947', '#80504A']} locations={[0, 0.52, 0.76, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} />
                   : <>
-                      <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                      <LinearGradient colors={['transparent', 'rgba(226,103,27,0.10)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+
                     </>}
                 <Image source={t.img} style={styles.needImg} resizeMode="contain" />
                 <View style={styles.needTitleRow}>

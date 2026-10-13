@@ -1,4 +1,5 @@
 // Figma: Dealer profile (Book flow)
+import { useAppColors, withLightStyles, LIGHT_POP_SHADOW } from '@/constants/theme';
 import VerifiedIcon from '@/components/shared/VerifiedIcon';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -10,7 +11,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
-import { G, Glass, GlassButton, GradientButton } from '@/components/shared/GlowUI';
+import { G, Glass, GlassButton, GradientButton, GlowThemed } from '@/components/shared/GlowUI';
 import { CtaPanelGlass } from '@/components/shared/FigmaEffects';
 import { authHeaders, imgUrl } from '@/components/book/common';
 import { RatingSummary, ReviewItem } from '@/components/book/reviews';
@@ -22,7 +23,9 @@ function fmtCount(n: number) {
   return n >= 1000 ? `${+(n / 1000).toFixed(1)}k` : String(n);
 }
 
-export default function BookDealerProfile() {
+function BookDealerProfileInner() {
+  const aC = useAppColors();
+  const s = aC.isDark ? s_dark : s_light;
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { id, category } = useLocalSearchParams<{ id: string; category?: string }>();
@@ -115,7 +118,7 @@ export default function BookDealerProfile() {
   if (!dealer) {
     return (
       <SafeAreaView style={[s.root, { alignItems: 'center', justifyContent: 'center', gap: 12 }]}>
-        <Ionicons name="alert-circle-outline" size={48} color={G.muted} />
+        <Ionicons name="alert-circle-outline" size={48} color={aC.isDark ? G.muted : '#4b5563'} />
         <Text style={s.name}>Dealer not found</Text>
         <TouchableOpacity onPress={() => router.back()}><Text style={{ color: G.orange, fontFamily: 'Poppins_500Medium' }}>Go Back</Text></TouchableOpacity>
       </SafeAreaView>
@@ -151,7 +154,7 @@ export default function BookDealerProfile() {
             : <LinearGradient colors={['#1A3268', '#0B1D4A']} style={StyleSheet.absoluteFillObject} />}
           <View style={[s.bannerTop, { top: insets.top + 12 }]}>
             <TouchableOpacity onPress={() => router.back()} style={s.back} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-              <Ionicons name="chevron-back" size={28} color="#FFFFFF" />
+              <Ionicons name="chevron-back" size={28} color={aC.isDark ? '#FFFFFF' : '#000000'} />
             </TouchableOpacity>
             <Image source={require('@/assets/images/autowizor-logo-text.png')} style={s.bannerLogo} resizeMode="contain" />
           </View>
@@ -179,7 +182,7 @@ export default function BookDealerProfile() {
               <Ionicons name="star" size={20} color={G.orange} />
               <Text style={s.rateTxt}>{avg ? avg.toFixed(1) : '0.0'} ({count > 250 ? '250+' : count} Reviews)</Text>
               <View style={{ flex: 1 }} />
-              <GlassButton title={following ? 'Following' : 'Follow'} height={38} fontSize={15} color={G.white} loading={busyFollow} style={{ width: 104 }} onPress={toggleFollow} />
+              <GlassButton title={following ? 'Following' : 'Follow'} height={38} fontSize={15} color={aC.isDark ? G.white : '#000000'} loading={busyFollow} style={{ width: 104 }} onPress={toggleFollow} />
             </View>
           </View>
         </View>
@@ -229,7 +232,7 @@ export default function BookDealerProfile() {
       {/* Fixed bottom: View Available Cars + Call / Chat / WhatsApp */}
       <View style={[s.cta, { paddingBottom: Math.max(insets.bottom, 10) + 4 }]} onLayout={e => setCtaH(Math.ceil(e.nativeEvent.layout.height))}>
         {/* Same background effect as Buy Used Car → dealer profile footer (app/buy/dealer-profile.tsx) */}
-        <CtaPanelGlass />
+        {aC.isDark && <CtaPanelGlass />}
         <GradientButton
           title={`View Available ${isBike ? 'Bikes' : 'Cars'}`}
           height={48}
@@ -254,7 +257,7 @@ export default function BookDealerProfile() {
   );
 }
 
-const s = StyleSheet.create({
+const s_dark = StyleSheet.create({
   root:       { flex: 1, backgroundColor: G.bg },
   bannerTop:  { position: 'absolute', left: 0, right: 0, height: 36, alignItems: 'center', justifyContent: 'center' },
   back:       { position: 'absolute', left: 16 },
@@ -287,3 +290,26 @@ const s = StyleSheet.create({
   action:    { flexDirection: 'row', alignItems: 'center', gap: 10 },
   actionTxt: { color: '#E6E1E8', fontSize: 17, fontFamily: 'Poppins_400Regular' },
 });
+// Light mode layer for `s` — dark mode uses s_dark as is
+const s_light = withLightStyles(s_dark, {
+  root: { backgroundColor: '#ffffff' },
+  name: { color: '#000000' },
+  sub: { color: '#4b5563' },
+  rateTxt: { color: '#4b5563' },
+  statTxt: { color: '#000000' },
+  h2: { color: '#000000' },
+  about: { color: '#000000' },
+  infoTitle: { color: '#000000' },
+  infoLine: { color: '#4b5563' },
+  seeMore: { color: '#000000' },
+  cta: { borderColor: 'rgba(0,0,0,0.12)' },
+  actionTxt: { color: '#000000' },
+});
+
+
+// Follows the app theme (light mode) — see GlowThemed in components/shared/GlowUI
+export default function BookDealerProfile() {
+  const aC = useAppColors();
+  const s = aC.isDark ? s_dark : s_light;
+  return <GlowThemed><BookDealerProfileInner /></GlowThemed>;
+}

@@ -1,4 +1,5 @@
 // Figma: Book vehicle — reservation details
+import { useAppColors, withLightStyles, LIGHT_POP_SHADOW } from '@/constants/theme';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -16,6 +17,8 @@ function fmtCnic(v: string) {
 }
 
 export default function BookReserve() {
+  const aC = useAppColors();
+  const s = aC.isDark ? s_dark : s_light;
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { id, variantName } = useLocalSearchParams<{ id: string; variantName?: string }>();
@@ -58,7 +61,7 @@ export default function BookReserve() {
   }
 
   return (
-    <GlowBackground>
+    <GlowBackground themed>
       <SafeAreaView style={{ flex: 1 }} edges={['top']}>
         <ScreenHeader title="Book vehicle" />
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
@@ -81,7 +84,13 @@ export default function BookReserve() {
   );
 }
 
-const s = StyleSheet.create({
+const s_dark = StyleSheet.create({
   h:     { color: G.white, fontSize: 16, fontFamily: 'Poppins_500Medium', marginTop: 26, marginBottom: 4 },
   label: { color: G.muted, fontSize: 15, fontFamily: 'Poppins_400Regular', marginTop: 14, marginBottom: 8 },
 });
+// Light mode layer for `s` — dark mode uses s_dark as is
+const s_light = withLightStyles(s_dark, {
+  h: { color: '#000000' },
+  label: { color: '#4b5563' },
+});
+

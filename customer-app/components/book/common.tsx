@@ -1,4 +1,5 @@
 // Shared pieces for the Book-Vehicle flow (app/book/*)
+import { useAppColors, withLightStyles, LIGHT_POP_SHADOW } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { memo, useEffect, useState } from 'react';
@@ -97,6 +98,10 @@ export function SearchModal({
 }: {
   visible: boolean; brand: string; category: 'car' | 'bike'; onClose: () => void; onSearch: (d: SearchData) => void;
 }) {
+  const aC = useAppColors();
+  const vst = aC.isDark ? vst_dark : vst_light;
+  const vs = aC.isDark ? vs_dark : vs_light;
+  const m = aC.isDark ? m_dark : m_light;
   const { token } = useAuth();
   const insets = useSafeAreaInsets();
   const [cars, setCars] = useState<string[]>([]);
@@ -142,13 +147,17 @@ export function SearchModal({
   const chevron = <Ionicons name="chevron-down" size={20} color={G.orange} />;
 
   function OptionList({ field, options, empty }: { field: string; options: string[]; empty?: string }) {
+    const aC = useAppColors();
+    const vst = aC.isDark ? vst_dark : vst_light;
+    const vs = aC.isDark ? vs_dark : vs_light;
+    const m = aC.isDark ? m_dark : m_light;
     if (open !== field) return null;
     return (
       <View style={m.list}>
         <Glass radius={18} blur={12} />
         <ScrollView nestedScrollEnabled style={{ maxHeight: 180 }} keyboardShouldPersistTaps="handled">
           {options.length === 0 ? (
-            <Text style={[m.opt, { color: G.muted }]}>{loadingCars ? 'Loading…' : empty ?? `No ${category === 'bike' ? 'bikes' : 'cars'} listed for ${brand}`}</Text>
+            <Text style={[m.opt, { color: aC.isDark ? G.muted : '#4b5563' }]}>{loadingCars ? 'Loading…' : empty ?? `No ${category === 'bike' ? 'bikes' : 'cars'} listed for ${brand}`}</Text>
           ) : options.map(o => (
             <TouchableOpacity key={o} onPress={() => set(field as keyof SearchData)(o)} style={m.optRow}>
               <Text style={[m.opt, (form as any)[field] === o && { color: G.orange }]}>{o}</Text>
@@ -203,7 +212,7 @@ export function SearchModal({
   );
 }
 
-const m = StyleSheet.create({
+const m_dark = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.55)' },
   sheet: {
     maxHeight: '88%', backgroundColor: G.bg, borderTopLeftRadius: 24, borderTopRightRadius: 24,
@@ -216,6 +225,14 @@ const m = StyleSheet.create({
   optRow: { paddingHorizontal: 22, paddingVertical: 9 },
   opt:    { color: G.white, fontSize: 14, fontFamily: 'Poppins_400Regular', paddingHorizontal: 0 },
 });
+// Light mode layer for `m` — dark mode uses m_dark as is
+const m_light = withLightStyles(m_dark, {
+  sheet: { backgroundColor: '#ffffff', borderColor: 'rgba(0,0,0,0.12)' },
+  label: { color: '#4b5563' },
+  list: { backgroundColor: '#F2F4F8', borderColor: 'rgba(0,0,0,0.04)', boxShadow: LIGHT_POP_SHADOW },
+  opt: { color: '#000000' },
+});
+
 
 // ── Figma "Latest Video" section ──
 const VIDEO_FALLBACK = require('@/assets/images/video-thumb.png');
@@ -235,6 +252,10 @@ function fmtViews(n?: number) {
 }
 
 export const LatestVideos = memo(function LatestVideos({ count = 2 }: { count?: number }) {
+  const aC = useAppColors();
+  const vst = aC.isDark ? vst_dark : vst_light;
+  const vs = aC.isDark ? vs_dark : vs_light;
+  const m = aC.isDark ? m_dark : m_light;
   const [videos, setVideos] = useState<any[] | null>(null);
   useEffect(() => {
     (async () => {
@@ -258,10 +279,10 @@ export const LatestVideos = memo(function LatestVideos({ count = 2 }: { count?: 
         const thumb = imgUrl(v.thumbnail_url || (v.media_url && !/\.(mp4|mov|webm)$/i.test(v.media_url) ? v.media_url : null));
         return (
           <View key={v.id || v._id || i} style={[savedCardOuter, vs.card]}>
-            <SavedCardEffect />
+            {aC.isDark && <SavedCardEffect />}
             <View style={vs.thumb}>
               <Image source={thumb ? { uri: thumb } : VIDEO_FALLBACK} style={vs.thumbImg} resizeMode="cover" />
-              <View style={vs.play}><Ionicons name="play" size={16} color="#fff" style={{ marginLeft: 2 }} /></View>
+              <View style={vs.play}><Ionicons name="play" size={16} color={aC.isDark ? '#fff' : '#000000'} style={{ marginLeft: 2 }} /></View>
               <View style={vs.dur}><Text style={vs.durTxt}>{v.duration || '12:45'}</Text></View>
             </View>
             <View style={vs.info}>
@@ -282,7 +303,7 @@ export const LatestVideos = memo(function LatestVideos({ count = 2 }: { count?: 
   );
 });
 
-const vs = StyleSheet.create({
+const vs_dark = StyleSheet.create({
   card:     { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 9, borderRadius: 18, overflow: 'hidden' },
   thumb:    { width: 138, height: 112, borderRadius: 16, overflow: 'hidden' },
   thumbImg: { width: '100%', height: '100%' },
@@ -296,9 +317,22 @@ const vs = StyleSheet.create({
   meta:     { flexDirection: 'row', alignItems: 'center', gap: 4 },
   metaTxt:  { color: G.muted, fontSize: 9, fontFamily: 'Poppins_400Regular' },
 });
+// Light mode layer for `vs` — dark mode uses vs_dark as is
+const vs_light = withLightStyles(vs_dark, {
+  card: { backgroundColor: '#F2F4F8', borderColor: 'rgba(0,0,0,0.04)', boxShadow: LIGHT_POP_SHADOW },
+  durTxt: { color: '#000000' },
+  title: { color: '#000000' },
+  sub: { color: '#4b5563' },
+  metaTxt: { color: '#4b5563' },
+});
+
 
 // ── Small vehicle summary card (Book vehicle / Test drive) ──
 export function VehicleStrip({ v, onPress, warm, chevron }: { v: any; onPress?: () => void; warm?: boolean; chevron?: boolean }) {
+  const aC = useAppColors();
+  const vst = aC.isDark ? vst_dark : vst_light;
+  const vs = aC.isDark ? vs_dark : vs_light;
+  const m = aC.isDark ? m_dark : m_light;
   const img = imgUrl(v?.images?.[0]);
   const Box: any = onPress ? TouchableOpacity : View;
   const meta = [v?.city, v?.year, v?.transmission].filter(Boolean).join(' • ') || '—';
@@ -311,11 +345,11 @@ export function VehicleStrip({ v, onPress, warm, chevron }: { v: any; onPress?: 
       ) : <Glass radius={16} blur={16} />}
       {img
         ? <Image source={{ uri: img }} style={vst.img} resizeMode="cover" />
-        : <View style={[vst.img, vst.imgPh]}><Ionicons name="car-outline" size={28} color={G.muted} /></View>}
+        : <View style={[vst.img, vst.imgPh]}><Ionicons name="car-outline" size={28} color={aC.isDark ? G.muted : '#4b5563'} /></View>}
       <View style={{ flex: 1, gap: 2 }}>
         <Text style={vst.title} numberOfLines={1}>{v?.title || '—'}</Text>
         <View style={vst.metaRow}>
-          <Ionicons name="location-outline" size={14} color={G.muted} />
+          <Ionicons name="location-outline" size={14} color={aC.isDark ? G.muted : '#4b5563'} />
           <Text style={vst.meta} numberOfLines={1}>{meta}</Text>
         </View>
         <Text style={vst.price}>{fmtLac(v?.price)}</Text>
@@ -326,12 +360,16 @@ export function VehicleStrip({ v, onPress, warm, chevron }: { v: any; onPress?: 
 }
 
 function WarmFill() {
+  const aC = useAppColors();
+  const vst = aC.isDark ? vst_dark : vst_light;
+  const vs = aC.isDark ? vs_dark : vs_light;
+  const m = aC.isDark ? m_dark : m_light;
   return (
     <LinearGradient colors={['#0B1D4A', '#0E2152', '#3A2F4A', '#7D4B3C']} locations={[0, 0.45, 0.75, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} />
   );
 }
 
-const vst = StyleSheet.create({
+const vst_dark = StyleSheet.create({
   card:     { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 10, paddingRight: 14, borderRadius: 16, overflow: 'hidden' },
   warmWrap: { borderRadius: 16, borderWidth: 1, borderColor: '#B8683E', overflow: 'hidden' },
   img:      { width: 104, height: 66, borderRadius: 8 },
@@ -341,14 +379,26 @@ const vst = StyleSheet.create({
   meta:     { color: G.muted, fontSize: 12, fontFamily: 'Poppins_400Regular', flexShrink: 1 },
   price:    { color: G.orange, fontSize: 15, fontFamily: 'Poppins_600SemiBold' },
 });
+// Light mode layer for `vst` — dark mode uses vst_dark as is
+const vst_light = withLightStyles(vst_dark, {
+  card: { backgroundColor: '#F2F4F8', borderColor: 'rgba(0,0,0,0.04)', boxShadow: LIGHT_POP_SHADOW },
+  imgPh: { backgroundColor: '#F2F4F8' },
+  title: { color: '#000000' },
+  meta: { color: '#4b5563' },
+});
+
 
 // ── Party-popper success hero ──
 export function SuccessHero({ title, sub }: { title: string; sub?: string }) {
+  const aC = useAppColors();
+  const vst = aC.isDark ? vst_dark : vst_light;
+  const vs = aC.isDark ? vs_dark : vs_light;
+  const m = aC.isDark ? m_dark : m_light;
   return (
     <View style={{ alignItems: 'center', gap: 10 }}>
       <Image source={require('@/assets/images/successful.png')} style={{ width: 84, height: 84 }} resizeMode="contain" />
       <Text style={{ color: '#FFFFFF', fontSize: 20, fontFamily: 'Poppins_600SemiBold', textAlign: 'center', lineHeight: 30, marginTop: 6 }}>{title}</Text>
-      {sub ? <Text style={{ color: G.muted, fontSize: 14, fontFamily: 'Poppins_400Regular', textAlign: 'center', lineHeight: 21, paddingHorizontal: 20 }}>{sub}</Text> : null}
+      {sub ? <Text style={{ color: aC.isDark ? G.muted : '#4b5563', fontSize: 14, fontFamily: 'Poppins_400Regular', textAlign: 'center', lineHeight: 21, paddingHorizontal: 20 }}>{sub}</Text> : null}
     </View>
   );
 }

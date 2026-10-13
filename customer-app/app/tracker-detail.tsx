@@ -86,7 +86,7 @@ export default function TrackerDetails() {
           <View style={[styles.trackerCard, { backgroundColor: aC.isDark ? '#0B1D4A' : '#ffffff' }]}>
             {aC.isDark
               ? <LinearGradient colors={WARM_CARD_COLORS as any} locations={WARM_CARD_LOCATIONS as any} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-              : <><LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" /><LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" /></>}
+              : <></>}
             <View style={styles.trackerTop}>
               {deviceImgUrl ? (
                 <Image source={{ uri: deviceImgUrl }} style={styles.efuCircleImg} resizeMode="cover" />
@@ -191,7 +191,7 @@ export default function TrackerDetails() {
             }}
           >
             <LinearGradient
-              colors={PRIMARY_BTN_COLORS as any}
+              colors={(aC.isDark ? PRIMARY_BTN_COLORS : ['#27467F', '#8C6A78', '#FF9654']) as any}
               locations={[0, 0.5, 1]}
               start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
               style={styles.bookButton}

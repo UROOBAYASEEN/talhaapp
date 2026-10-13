@@ -1,3 +1,4 @@
+import { useAppColors, withLightStyles, LIGHT_POP_SHADOW } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
@@ -29,6 +30,8 @@ function postedDate(d = new Date()) {
 }
 
 export default function TestDriveSuccessScreen() {
+  const aC = useAppColors();
+  const s = aC.isDark ? s_dark : s_light;
   const router = useRouter();
   const { title = '', price = '', photo = '', city = '', year = '', trans = '', id = '' } =
     useLocalSearchParams<{ title?: string; price?: string; photo?: string; city?: string; year?: string; trans?: string; id?: string }>();
@@ -39,7 +42,7 @@ export default function TestDriveSuccessScreen() {
 
   return (
     <SafeAreaView style={s.root}>
-      <StatusBar barStyle="light-content" backgroundColor={BG} />
+      <StatusBar barStyle={aC.isDark ? "light-content" : "dark-content"} backgroundColor={aC.isDark ? BG : '#ffffff'} />
 
       <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
         <Ionicons name="chevron-back" size={26} color="#C9C6D0" />
@@ -58,7 +61,7 @@ export default function TestDriveSuccessScreen() {
           activeOpacity={0.88}
           onPress={() => id && router.push({ pathname: '/buy/car-detail', params: { id: String(id) } } as any)}
         >
-          <RingGlow radius={16} />
+          {aC.isDark && <RingGlow radius={16} />}
           <View style={s.imgBox}>
             {img
               ? <Image source={{ uri: img }} style={StyleSheet.absoluteFillObject} resizeMode="cover" />
@@ -85,7 +88,7 @@ export default function TestDriveSuccessScreen() {
 
         {/* Back to home */}
         <TouchableOpacity style={s.homeBtn} activeOpacity={0.88} onPress={() => router.dismissTo('/(tabs)' as any)}>
-          <RingGlow radius={28} peak={0.5} rings={14} />
+          {aC.isDark && <RingGlow radius={28} peak={0.5} rings={14} />}
           <Text style={s.homeTxt}>Back to home</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -93,7 +96,7 @@ export default function TestDriveSuccessScreen() {
   );
 }
 
-const s = StyleSheet.create({
+const s_dark = StyleSheet.create({
   root:    { flex: 1, backgroundColor: BG },
   backBtn: { width: 44, height: 40, justifyContent: 'center', paddingLeft: 12, marginTop: 4 },
   scroll:  { flexGrow: 1, paddingHorizontal: 18, paddingBottom: 30 },
@@ -118,3 +121,17 @@ const s = StyleSheet.create({
   homeBtn: { height: 52, borderRadius: 26, borderWidth: 1, borderColor: '#7E9FD6', backgroundColor: '#07142F', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   homeTxt: { color: '#EDEBF0', fontSize: 16, fontFamily: 'Poppins_400Regular' },
 });
+// Light mode layer for `s` — dark mode uses s_dark as is
+const s_light = withLightStyles(s_dark, {
+  root: { backgroundColor: '#ffffff' },
+  title: { color: '#000000' },
+  sub: { color: '#4b5563' },
+  card: { backgroundColor: '#F2F4F8', borderColor: 'rgba(0,0,0,0.04)', boxShadow: LIGHT_POP_SHADOW },
+  imgBox: { backgroundColor: '#F2F4F8' },
+  carName: { color: '#000000' },
+  metaTxt: { color: '#4b5563' },
+  posted: { color: '#4b5563' },
+  homeBtn: { backgroundColor: '#F2F4F8', borderColor: 'rgba(0,0,0,0.04)', boxShadow: LIGHT_POP_SHADOW },
+  homeTxt: { color: '#000000' },
+});
+

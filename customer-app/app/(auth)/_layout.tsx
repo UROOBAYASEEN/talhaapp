@@ -13,6 +13,8 @@ export default function AuthLayout() {
         <Stack.Screen name="onboarding" />
         <Stack.Screen name="login" />
         <Stack.Screen name="register" />
+        <Stack.Screen name="partner-register" />
+        <Stack.Screen name="partner-login" />
         <Stack.Screen name="personal-info" />
         <Stack.Screen name="verify-otp" />
         <Stack.Screen name="business-info" />

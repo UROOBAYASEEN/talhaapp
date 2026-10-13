@@ -9,6 +9,8 @@ import {
   TextInputProps, TouchableOpacity, View, ViewStyle,
 } from 'react-native';
 import InnerGlow from '@/components/shared/InnerGlow';
+import LightGradientBorder from '@/components/shared/LightGradientBorder';
+import { LIGHT_POP_SHADOW, useAppColors } from '@/constants/theme';
 
 export const G = {
   bg:     '#010A1F',
@@ -23,13 +25,28 @@ export const G = {
 export const BTN_COLORS = ['#0B3585', '#7E4F5C', '#E8702A'] as const;
 
 
+// ── Light mode is opt-in ──
+// This kit is dark by design (Auth + dealer screens stay dark in both themes).
+// Screens that pass `themed` to GlowBackground (or wrap themselves in GlowThemed)
+// follow the app theme: in light mode every kit component below renders its light look.
+const GlowLightCtx = React.createContext(false);
+export function useGlowLight() { return React.useContext(GlowLightCtx); }
+export function GlowThemed({ children }: { children?: React.ReactNode }) {
+  const aC = useAppColors();
+  return <GlowLightCtx.Provider value={!aC.isDark}>{children}</GlowLightCtx.Provider>;
+}
+
 // ── Screen background: flat #010A1F (Figma Book-vehicle screens) ──
-export function GlowBackground({ children, style }: { children?: React.ReactNode; style?: StyleProp<ViewStyle> }) {
+export function GlowBackground({ children, style, themed }: { children?: React.ReactNode; style?: StyleProp<ViewStyle>; themed?: boolean }) {
+  const aC = useAppColors();
+  const light = !!themed && !aC.isDark;
   return (
-    <View style={[{ flex: 1, backgroundColor: G.bg }, style]}>
-      <StatusBar style="light" />
-      {children}
-    </View>
+    <GlowLightCtx.Provider value={light}>
+      <View style={[{ flex: 1, backgroundColor: light ? '#ffffff' : G.bg }, style]}>
+        <StatusBar style={light ? 'dark' : 'light'} />
+        {children}
+      </View>
+    </GlowLightCtx.Provider>
   );
 }
 
@@ -37,6 +54,8 @@ export function GlowBackground({ children, style }: { children?: React.ReactNode
 export function Glass({
   radius = 16, fill = '#030C24', glow = '#1E4A8F', blur = 18, border = ['#A3B8E2', '#6F8BC4'], borderWidth = 1.2,
 }: { radius?: number; fill?: string; glow?: string; blur?: number; border?: [string, string]; borderWidth?: number }) {
+  const light = useGlowLight();
+  if (light) return <View pointerEvents="none" style={[StyleSheet.absoluteFillObject, { borderRadius: radius, backgroundColor: '#F2F4F8', borderWidth: 1, borderColor: 'rgba(0,0,0,0.08)' }]} />;
   return <InnerGlow radius={radius} fill={fill} glowColor={glow} blur={blur} borderColors={border} borderWidth={borderWidth} />;
 }
 
@@ -57,12 +76,13 @@ export function GradientButton({
   title: string; onPress?: () => void; loading?: boolean; loadingTitle?: string; disabled?: boolean;
   height?: number; fontSize?: number; icon?: React.ReactNode; style?: StyleProp<ViewStyle>;
 }) {
+  const light = useGlowLight();
   return (
     <TouchableOpacity
-      style={[{ height, borderRadius: height / 2, overflow: 'hidden' }, disabled && { opacity: 0.6 }, style]}
+      style={[{ height, borderRadius: height / 2, overflow: 'hidden' }, light && { boxShadow: LIGHT_POP_SHADOW }, disabled && { opacity: 0.6 }, style]}
       onPress={onPress} disabled={disabled || loading} activeOpacity={0.88}
     >
-      <LinearGradient colors={BTN_COLORS as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.btnInner}>
+      <LinearGradient colors={(light ? ['#27467F', '#8C6A78', '#FF9654'] : BTN_COLORS) as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.btnInner}>
         {loading && !loadingTitle ? <ActivityIndicator color="#fff" /> : (
           <>
             {icon}
@@ -82,14 +102,17 @@ export function GlassButton({
   icon?: React.ReactNode; style?: StyleProp<ViewStyle>; loading?: boolean; textStyle?: any; radius?: number;
 }) {
   const r = radius ?? height / 2;
+  const light = useGlowLight();
   return (
     <TouchableOpacity style={[{ height, borderRadius: r, overflow: 'hidden' }, style]} onPress={onPress} activeOpacity={0.88} disabled={loading}>
-      <Glass radius={r} blur={14} />
+      {light
+        ? <LightGradientBorder radius={r} fill="#ffffff" colors={['#032a69', '#e2671b']} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} />
+        : <Glass radius={r} blur={14} />}
       <View style={s.btnInner}>
-        {loading ? <ActivityIndicator color="#fff" /> : (
+        {loading ? <ActivityIndicator color={light ? '#000' : '#fff'} /> : (
           <>
             {icon}
-            <Text style={[{ color, fontSize, fontFamily: 'Poppins_400Regular' }, textStyle]}>{title}</Text>
+            <Text style={[{ color, fontSize, fontFamily: 'Poppins_400Regular' }, textStyle, light && { color: '#000000' }]}>{title}</Text>
           </>
         )}
       </View>
@@ -101,13 +124,14 @@ export function GlassButton({
 export function GlassField({
   right, containerStyle, height = 48, ...props
 }: TextInputProps & { right?: React.ReactNode; containerStyle?: StyleProp<ViewStyle>; height?: number }) {
+  const light = useGlowLight();
   return (
-    <View style={[{ height, borderRadius: height / 2, overflow: 'hidden', flexDirection: 'row', alignItems: 'center' }, containerStyle]}>
-      <Glass radius={height / 2} blur={14} />
+    <View style={[{ height, borderRadius: height / 2, overflow: 'hidden', flexDirection: 'row', alignItems: 'center' }, light && s.lightField, containerStyle]}>
+      {!light && <Glass radius={height / 2} blur={14} />}
       <TextInput
         placeholderTextColor="#8F8A96"
         {...props}
-        style={[s.fieldInput, props.style]}
+        style={[s.fieldInput, light && { color: '#000000' }, props.style]}
       />
       {right ? <View style={{ paddingRight: 18 }}>{right}</View> : null}
     </View>
@@ -121,10 +145,11 @@ export function GlassSelect({
   value?: string; placeholder?: string; onPress?: () => void; right?: React.ReactNode;
   height?: number; style?: StyleProp<ViewStyle>; textStyle?: any;
 }) {
+  const light = useGlowLight();
   return (
-    <TouchableOpacity activeOpacity={0.85} onPress={onPress} style={[{ height, borderRadius: height / 2, overflow: 'hidden', flexDirection: 'row', alignItems: 'center' }, style]}>
-      <Glass radius={height / 2} blur={14} />
-      <Text style={[s.selectTxt, !value && { color: '#8F8A96' }, textStyle]} numberOfLines={1}>{value || placeholder}</Text>
+    <TouchableOpacity activeOpacity={0.85} onPress={onPress} style={[{ height, borderRadius: height / 2, overflow: 'hidden', flexDirection: 'row', alignItems: 'center' }, light && s.lightField, style]}>
+      {!light && <Glass radius={height / 2} blur={14} />}
+      <Text style={[s.selectTxt, light && { color: '#000000' }, !value && { color: '#8F8A96' }, textStyle]} numberOfLines={1}>{value || placeholder}</Text>
       {right ? <View style={{ paddingRight: 18 }}>{right}</View> : null}
     </TouchableOpacity>
   );
@@ -133,17 +158,20 @@ export function GlassSelect({
 // ── Centered-title header with thin back chevron (and optional close X) ──
 export function ScreenHeader({ title, onBack, onClose, logo }: { title?: string; onBack?: () => void; onClose?: () => void; logo?: boolean }) {
   const router = useRouter();
+  const light = useGlowLight();
   return (
     <View style={s.header}>
       <TouchableOpacity style={s.headerLeft} onPress={onBack ?? (() => router.back())} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-        <Ionicons name="chevron-back" size={26} color={G.muted} />
+        <Ionicons name="chevron-back" size={26} color={light ? '#000000' : G.muted} />
       </TouchableOpacity>
       {logo
-        ? <Image source={require('@/assets/images/autowizor-logo-text.png')} style={s.logo} resizeMode="contain" />
-        : <Text style={s.headerTitle} numberOfLines={1}>{title}</Text>}
+        ? (light
+          ? <Text style={{ fontSize: 20, fontFamily: 'Poppins_700Bold', letterSpacing: 0.5 }}><Text style={{ color: '#032a69' }}>Auto</Text><Text style={{ color: '#e2671b' }}>wizor</Text></Text>
+          : <Image source={require('@/assets/images/autowizor-logo-text.png')} style={s.logo} resizeMode="contain" />)
+        : <Text style={[s.headerTitle, light && { color: '#000000' }]} numberOfLines={1}>{title}</Text>}
       {onClose ? (
         <TouchableOpacity style={s.headerRight} onPress={onClose} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-          <Ionicons name="close" size={24} color={G.muted} />
+          <Ionicons name="close" size={24} color={light ? '#000000' : G.muted} />
         </TouchableOpacity>
       ) : null}
     </View>
@@ -178,6 +206,7 @@ export function OrDivider() {
 }
 
 const s = StyleSheet.create({
+  lightField:  { backgroundColor: '#E8EAEF', borderWidth: 1, borderColor: 'rgba(0,0,0,0.18)', boxShadow: LIGHT_POP_SHADOW },
   btnInner:    { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingHorizontal: 16 },
   btnTxt:      { color: '#FFFFFF', fontFamily: 'Poppins_600SemiBold' },
   fieldInput:  { flex: 1, height: '100%', paddingHorizontal: 22, color: G.white, fontSize: 14, fontFamily: 'Poppins_400Regular' },

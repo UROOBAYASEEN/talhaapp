@@ -1,3 +1,4 @@
+import LightGradientBorder from '@/components/shared/LightGradientBorder';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
@@ -10,7 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useAppColors } from '@/constants/theme';
+import { useAppColors, LIGHT_POP_SHADOW, withLightStyles } from '@/constants/theme';
 
 export type PayMethod = 'card' | 'jazzcash' | 'easypaisa';
 
@@ -34,6 +35,7 @@ export default function PaymentSection({
   beforePayButton,
 }: Props) {
   const aC = useAppColors();
+  const st = aC.isDark ? s : sLight;
   const [method, setMethod] = useState<PayMethod>('card');
   const [walletNumbers, setWalletNumbers] = useState({ jazzcash: '', easypaisa: '' });
   const [cardFields, setCardFields] = useState({ number: '', expiry: '', cvv: '' });
@@ -45,13 +47,13 @@ export default function PaymentSection({
   const formattedPrice = `PKR ${displayAmount}`;
 
   return (
-    <View style={s.wrapper}>
+    <View style={st.wrapper}>
 
-      <Text style={[s.sectionTitle, { color: aC.isDark ? '#f9fafc' : '#010a1f' }]}>Select Payment Method</Text>
+      <Text style={[st.sectionTitle, { color: aC.isDark ? '#f9fafc' : '#010a1f' }]}>Select Payment Method</Text>
 
       {/* Credit / Debit Card */}
       <View
-        style={[s.methodCard, { backgroundColor: aC.isDark ? '#010817' : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.5)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, elevation: aC.isDark ? 0 : 2 }, method === 'card' && (aC.isDark ? s.methodCardActive : { borderColor: '#e2671b', backgroundColor: 'rgba(226,103,27,0.06)' })]}
+        style={[st.methodCard, { backgroundColor: aC.isDark ? '#010817' : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.5)' : 'transparent', shadowColor: 'transparent', shadowOpacity: 0, elevation: 0 }, method === 'card' && (aC.isDark ? st.methodCardActive : { boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' })]}
       >
         {aC.isDark ? (
           <>
@@ -63,30 +65,27 @@ export default function PaymentSection({
             </>}
           </>
         ) : (
-          <>
-            <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          </>
+          <LightGradientBorder radius={16} fill="#ffffff" colors={method === 'card' ? ['#032a69', '#e2671b'] : ['rgba(0,0,0,0.12)', 'rgba(0,0,0,0.12)']} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} />
         )}
-        <TouchableOpacity activeOpacity={0.85} onPress={() => setMethod('card')} disabled={loading} style={s.methodTop}>
-          <View style={[s.radio, { borderColor: aC.isDark ? '#baacb6' : 'rgba(3,42,105,0.18)', backgroundColor: aC.isDark ? 'transparent' : '#ffffff' }, method === 'card' && s.radioActive]}>
-            {method === 'card' && <View style={s.radioRing}><View style={s.radioDot} /></View>}
+        <TouchableOpacity activeOpacity={0.85} onPress={() => setMethod('card')} disabled={loading} style={st.methodTop}>
+          <View style={[st.radio, { borderColor: aC.isDark ? '#baacb6' : 'rgba(0,0,0,0.35)', backgroundColor: aC.isDark ? 'transparent' : '#ffffff' }, method === 'card' && st.radioActive, !aC.isDark && method === 'card' && { width: 22, height: 22, borderRadius: 11, borderColor: '#1F3F7A', backgroundColor: '#1F3F7A' }]}>
+            {method === 'card' && (aC.isDark ? <View style={st.radioRing}><View style={st.radioDot} /></View> : <View style={{ width: 9, height: 9, borderRadius: 5, backgroundColor: '#ffffff' }} />)}
           </View>
-          <View style={s.cardLogos}>
-            <Image source={require('../../assets/images/visaCard.png')} style={s.visaLogo} resizeMode="contain" />
-            <View style={[s.mcCircle, { backgroundColor: '#EB001B', marginRight: -8 }]} />
-            <View style={[s.mcCircle, { backgroundColor: '#F79E1B' }]} />
+          <View style={st.cardLogos}>
+            <Image source={require('../../assets/images/visaCard.png')} style={st.visaLogo} resizeMode="contain" />
+            <View style={[st.mcCircle, { backgroundColor: '#EB001B', marginRight: -8 }]} />
+            <View style={[st.mcCircle, { backgroundColor: '#F79E1B' }]} />
           </View>
-          <Text style={[s.methodLabel, { color: aC.isDark ? '#f9fafc' : '#010a1f' }]}>Credit / Debit Card</Text>
+          <Text style={[st.methodLabel, { color: aC.isDark ? '#f9fafc' : '#010a1f' }]}>Credit / Debit Card</Text>
         </TouchableOpacity>
         {method === 'card' && (
-          <View style={s.cardFields}>
-            <Text style={s.fieldLabel}>Card No:</Text>
-            <View style={s.fieldBox}>
+          <View style={st.cardFields}>
+            <Text style={st.fieldLabel}>Card No:</Text>
+            <View style={st.fieldBox}>
               <TextInput
-                style={s.cardInput}
+                style={st.cardInput}
                 placeholder="4242 4242 4242 4242"
-                placeholderTextColor="#c7cbd5"
+                placeholderTextColor={aC.isDark ? "#c7cbd5" : "#8f8f8f"}
                 keyboardType="number-pad"
                 maxLength={19}
                 value={cardFields.number}
@@ -96,16 +95,16 @@ export default function PaymentSection({
                 }}
                 editable={!loading}
               />
-              <Ionicons name="card-outline" size={20} color="#c7cbd5" />
+              <Ionicons name="card-outline" size={20} color={aC.isDark ? '#c7cbd5' : '#000000'} />
             </View>
-            <View style={s.fieldColumns}>
-              <View style={s.fieldColumn}>
-                <Text style={s.fieldLabel}>Expiry Date:</Text>
-                <View style={s.fieldBox}>
+            <View style={st.fieldColumns}>
+              <View style={st.fieldColumn}>
+                <Text style={st.fieldLabel}>Expiry Date:</Text>
+                <View style={st.fieldBox}>
                   <TextInput
-                    style={s.cardInput}
+                    style={st.cardInput}
                     placeholder="MM/YY"
-                    placeholderTextColor="#c7cbd5"
+                    placeholderTextColor={aC.isDark ? "#c7cbd5" : "#8f8f8f"}
                     keyboardType="number-pad"
                     maxLength={5}
                     value={cardFields.expiry}
@@ -115,16 +114,16 @@ export default function PaymentSection({
                     }}
                     editable={!loading}
                   />
-                  <Ionicons name="calendar-outline" size={19} color="#c7cbd5" />
+                  <Ionicons name="calendar-outline" size={19} color={aC.isDark ? '#c7cbd5' : '#000000'} />
                 </View>
               </View>
-              <View style={s.fieldColumn}>
-                <Text style={s.fieldLabel}>CVV Code:</Text>
-                <View style={s.fieldBox}>
+              <View style={st.fieldColumn}>
+                <Text style={st.fieldLabel}>CVV Code:</Text>
+                <View style={st.fieldBox}>
                   <TextInput
-                    style={s.cardInput}
+                    style={st.cardInput}
                     placeholder="123"
-                    placeholderTextColor="#c7cbd5"
+                    placeholderTextColor={aC.isDark ? "#c7cbd5" : "#8f8f8f"}
                     keyboardType="number-pad"
                     maxLength={4}
                     secureTextEntry
@@ -132,7 +131,7 @@ export default function PaymentSection({
                     onChangeText={value => setCardFields(current => ({ ...current, cvv: value.replace(/\D/g, '') }))}
                     editable={!loading}
                   />
-                  <Ionicons name="help-circle-outline" size={19} color="#c7cbd5" />
+                  <Ionicons name="help-circle-outline" size={19} color={aC.isDark ? '#c7cbd5' : '#000000'} />
                 </View>
               </View>
             </View>
@@ -142,7 +141,7 @@ export default function PaymentSection({
 
       {/* JazzCash */}
       <View
-        style={[s.methodCard, s.walletCard, { backgroundColor: aC.isDark ? '#010817' : '#ffffff', borderColor: aC.isDark ? 'rgba(155,191,248,0.72)' : 'rgba(3,42,105,0.12)' }, method === 'jazzcash' && (aC.isDark ? s.methodCardActive : { borderColor: '#e2671b', backgroundColor: 'rgba(226,103,27,0.06)' })]}
+        style={[st.methodCard, st.walletCard, { backgroundColor: aC.isDark ? '#010817' : '#ffffff', borderColor: aC.isDark ? 'rgba(155,191,248,0.72)' : 'transparent' }, method === 'jazzcash' && (aC.isDark ? st.methodCardActive : { boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' })]}
       >
         {aC.isDark ? (
           <>
@@ -150,25 +149,22 @@ export default function PaymentSection({
             <LinearGradient colors={['#16408880', '#0D255480', '#00000001', '#00000001', '#0D255480', '#16408880']} locations={[0, 0.04, 0.12, 0.88, 0.96, 1]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
           </>
         ) : (
-          <>
-            <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          </>
+          <LightGradientBorder radius={25} fill="#ffffff" colors={method === 'jazzcash' ? ['#032a69', '#e2671b'] : ['rgba(0,0,0,0.12)', 'rgba(0,0,0,0.12)']} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} />
         )}
-        <TouchableOpacity activeOpacity={0.85} onPress={() => setMethod('jazzcash')} disabled={loading} style={s.methodTop}>
-          <View style={[s.radio, s.walletRadio, { borderColor: aC.isDark ? '#c2bdc7' : 'rgba(3,42,105,0.18)', backgroundColor: aC.isDark ? 'transparent' : '#ffffff' }, method === 'jazzcash' && s.radioActive]}>
-            {method === 'jazzcash' && <View style={s.radioRing}><View style={s.radioDot} /></View>}
+        <TouchableOpacity activeOpacity={0.85} onPress={() => setMethod('jazzcash')} disabled={loading} style={st.methodTop}>
+          <View style={[st.radio, st.walletRadio, { borderColor: aC.isDark ? '#c2bdc7' : 'rgba(0,0,0,0.35)', backgroundColor: aC.isDark ? 'transparent' : '#ffffff' }, method === 'jazzcash' && st.radioActive, !aC.isDark && method === 'jazzcash' && { width: 22, height: 22, borderRadius: 11, borderColor: '#1F3F7A', backgroundColor: '#1F3F7A' }]}>
+            {method === 'jazzcash' && (aC.isDark ? <View style={st.radioRing}><View style={st.radioDot} /></View> : <View style={{ width: 9, height: 9, borderRadius: 5, backgroundColor: '#ffffff' }} />)}
           </View>
-          <Image source={require('../../assets/images/jazzCashIcon.png')} style={s.jazzLogo} resizeMode="contain" />
-          <Text style={[s.walletLabel, { color: aC.isDark ? '#baacb6' : '#010a1f' }]}>JazzCash</Text>
+          <Image source={require('../../assets/images/jazzCashIcon.png')} style={st.jazzLogo} resizeMode="contain" />
+          <Text style={[st.walletLabel, { color: aC.isDark ? '#baacb6' : '#010a1f' }]}>JazzCash</Text>
         </TouchableOpacity>
         {method === 'jazzcash' && (
-          <View style={s.walletFields}>
-            <Text style={s.fieldLabel}>JazzCash Mobile Number:</Text>
+          <View style={st.walletFields}>
+            <Text style={st.fieldLabel}>JazzCash Mobile Number:</Text>
             <TextInput
-              style={s.walletInput}
+              style={st.walletInput}
               placeholder="03XX XXXXXXX"
-              placeholderTextColor="#c7cbd5"
+              placeholderTextColor={aC.isDark ? "#c7cbd5" : "#8f8f8f"}
               keyboardType="phone-pad"
               maxLength={11}
               value={walletNumbers.jazzcash}
@@ -181,7 +177,7 @@ export default function PaymentSection({
 
       {/* Easypaisa */}
       <View
-        style={[s.methodCard, s.walletCard, { backgroundColor: aC.isDark ? '#010817' : '#ffffff', borderColor: aC.isDark ? 'rgba(155,191,248,0.72)' : 'rgba(3,42,105,0.12)' }, method === 'easypaisa' && (aC.isDark ? s.methodCardActive : { borderColor: '#e2671b', backgroundColor: 'rgba(226,103,27,0.06)' })]}
+        style={[st.methodCard, st.walletCard, { backgroundColor: aC.isDark ? '#010817' : '#ffffff', borderColor: aC.isDark ? 'rgba(155,191,248,0.72)' : 'transparent' }, method === 'easypaisa' && (aC.isDark ? st.methodCardActive : { boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' })]}
       >
         {aC.isDark ? (
           <>
@@ -189,25 +185,22 @@ export default function PaymentSection({
             <LinearGradient colors={['#16408880', '#0D255480', '#00000001', '#00000001', '#0D255480', '#16408880']} locations={[0, 0.04, 0.12, 0.88, 0.96, 1]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
           </>
         ) : (
-          <>
-            <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          </>
+          <LightGradientBorder radius={25} fill="#ffffff" colors={method === 'easypaisa' ? ['#032a69', '#e2671b'] : ['rgba(0,0,0,0.12)', 'rgba(0,0,0,0.12)']} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} />
         )}
-        <TouchableOpacity activeOpacity={0.85} onPress={() => setMethod('easypaisa')} disabled={loading} style={s.methodTop}>
-          <View style={[s.radio, s.walletRadio, { borderColor: aC.isDark ? '#c2bdc7' : 'rgba(3,42,105,0.18)', backgroundColor: aC.isDark ? 'transparent' : '#ffffff' }, method === 'easypaisa' && s.radioActive]}>
-            {method === 'easypaisa' && <View style={s.radioRing}><View style={s.radioDot} /></View>}
+        <TouchableOpacity activeOpacity={0.85} onPress={() => setMethod('easypaisa')} disabled={loading} style={st.methodTop}>
+          <View style={[st.radio, st.walletRadio, { borderColor: aC.isDark ? '#c2bdc7' : 'rgba(0,0,0,0.35)', backgroundColor: aC.isDark ? 'transparent' : '#ffffff' }, method === 'easypaisa' && st.radioActive, !aC.isDark && method === 'easypaisa' && { width: 22, height: 22, borderRadius: 11, borderColor: '#1F3F7A', backgroundColor: '#1F3F7A' }]}>
+            {method === 'easypaisa' && (aC.isDark ? <View style={st.radioRing}><View style={st.radioDot} /></View> : <View style={{ width: 9, height: 9, borderRadius: 5, backgroundColor: '#ffffff' }} />)}
           </View>
-          <Image source={require('../../assets/images/easyPaisaIcon.png')} style={s.walletLogo} resizeMode="contain" />
-          <Text style={[s.walletLabel, { color: aC.isDark ? '#baacb6' : '#010a1f' }]}>Easypaisa</Text>
+          <Image source={require('../../assets/images/easyPaisaIcon.png')} style={st.walletLogo} resizeMode="contain" />
+          <Text style={[st.walletLabel, { color: aC.isDark ? '#baacb6' : '#010a1f' }]}>Easypaisa</Text>
         </TouchableOpacity>
         {method === 'easypaisa' && (
-          <View style={s.walletFields}>
-            <Text style={s.fieldLabel}>Easypaisa Mobile Number:</Text>
+          <View style={st.walletFields}>
+            <Text style={st.fieldLabel}>Easypaisa Mobile Number:</Text>
             <TextInput
-              style={s.walletInput}
+              style={st.walletInput}
               placeholder="03XX XXXXXXX"
-              placeholderTextColor="#c7cbd5"
+              placeholderTextColor={aC.isDark ? "#c7cbd5" : "#8f8f8f"}
               keyboardType="phone-pad"
               maxLength={11}
               value={walletNumbers.easypaisa}
@@ -223,24 +216,24 @@ export default function PaymentSection({
       {/* Pay Button */}
       <TouchableOpacity
         activeOpacity={0.87}
-        style={[s.payBtnWrap, loading && { opacity: 0.7 }]}
+        style={[st.payBtnWrap, loading && { opacity: 0.7 }]}
         onPress={() => onPay(method)}
         disabled={loading}
       >
-        <LinearGradient colors={['#032a69', '#e2671b']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.payBtn}>
+        <LinearGradient colors={aC.isDark ? ['#032a69', '#e2671b'] : ['#27467F', '#FF9654']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={st.payBtn}>
           {loading
             ? <ActivityIndicator color="#fff" size="small" />
             : payLabel
-              ? <Text style={s.payTxt}>{payLabel}</Text>
+              ? <Text style={st.payTxt}>{payLabel}</Text>
               : <>
                   <Ionicons name="lock-closed" size={16} color="#fff" />
-                  <Text style={s.payTxt}>Pay {formattedPrice}</Text>
+                  <Text style={st.payTxt}>Pay {formattedPrice}</Text>
                 </>
           }
         </LinearGradient>
       </TouchableOpacity>
 
-      {/* <Text style={[s.secureTxt, { color: aC.isDark ? '#baacb6' : '#64748b' }]}>🔒 Secured by SafePay</Text> */}
+      {/* <Text style={[st.secureTxt, { color: aC.isDark ? '#baacb6' : '#64748b' }]}>🔒 Secured by SafePay</Text> */}
     </View>
   );
 }
@@ -308,4 +301,14 @@ const s = StyleSheet.create({
   payTxt:     { fontSize: 16, fontFamily: 'Poppins_600SemiBold', color: '#fff' },
 
   secureTxt: { textAlign: 'center', fontSize: 12, fontFamily: 'Poppins_400Regular', color: '#baacb6' },
+});
+
+// ── Light mode overrides (Figma light) — dark mode uses `s` as is ──────────
+const sLight = withLightStyles(s, {
+  methodCard:  { borderWidth: 0 },
+  fieldLabel:  { color: '#9a8f98' },
+  fieldBox:    { height: 46, borderRadius: 23, paddingHorizontal: 18, backgroundColor: '#E8EAEF', borderWidth: 1, borderColor: 'rgba(0,0,0,0.18)', boxShadow: LIGHT_POP_SHADOW },
+  cardInput:   { color: '#000000' },
+  walletInput: { height: 46, borderRadius: 23, paddingHorizontal: 18, backgroundColor: '#E8EAEF', color: '#000000', borderWidth: 1, borderColor: 'rgba(0,0,0,0.18)', boxShadow: LIGHT_POP_SHADOW },
+  payBtnWrap:  { boxShadow: LIGHT_POP_SHADOW },
 });

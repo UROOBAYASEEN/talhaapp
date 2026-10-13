@@ -1,4 +1,5 @@
 // Figma: Test Drive Booked Successfully
+import { useAppColors, withLightStyles, LIGHT_POP_SHADOW } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -19,6 +20,8 @@ function postedOn(iso?: string) {
 }
 
 export default function BookTestDriveSuccess() {
+  const aC = useAppColors();
+  const s = aC.isDark ? s_dark : s_light;
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -39,7 +42,7 @@ export default function BookTestDriveSuccess() {
   const meta = [v?.city, v?.year, v?.transmission].filter(Boolean).join(' • ');
 
   return (
-    <GlowBackground>
+    <GlowBackground themed>
       <SafeAreaView style={{ flex: 1 }} edges={['top']}>
         <ScreenHeader title="Book Test Drive" onBack={() => router.back()} onClose={home} />
         <View style={{ flex: 1, paddingHorizontal: 16, paddingTop: 64 }}>
@@ -48,12 +51,12 @@ export default function BookTestDriveSuccess() {
             <Glass radius={18} blur={20} />
             {img
               ? <Image source={{ uri: img }} style={s.img} resizeMode="cover" />
-              : <View style={[s.img, { backgroundColor: '#0B1D4A', alignItems: 'center', justifyContent: 'center' }]}><Ionicons name="car-outline" size={30} color={G.muted} /></View>}
+              : <View style={[s.img, { backgroundColor: aC.isDark ? '#0B1D4A' : '#ffffff', alignItems: 'center', justifyContent: 'center' }]}><Ionicons name="car-outline" size={30} color={aC.isDark ? G.muted : '#4b5563'} /></View>}
             <View style={{ flex: 1, gap: 3 }}>
               <Text style={s.title} numberOfLines={1}>{v?.title || '—'}</Text>
               <Text style={s.price}>{fmtLac(v?.price)}</Text>
               <View style={s.metaRow}>
-                <Ionicons name="location-outline" size={15} color={G.muted} />
+                <Ionicons name="location-outline" size={15} color={aC.isDark ? G.muted : '#4b5563'} />
                 <Text style={s.meta} numberOfLines={1}>{meta || '—'}</Text>
               </View>
               <View style={s.metaRow}>
@@ -72,7 +75,7 @@ export default function BookTestDriveSuccess() {
   );
 }
 
-const s = StyleSheet.create({
+const s_dark = StyleSheet.create({
   card:      { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 18, overflow: 'hidden', padding: 9, paddingRight: 12, marginTop: 20 },
   img:       { width: 100, height: 82, borderRadius: 12 },
   title:     { color: G.white, fontSize: 13, fontFamily: 'Poppins_500Medium' },
@@ -83,3 +86,11 @@ const s = StyleSheet.create({
   activeTxt: { color: '#2ECC71', fontSize: 11, fontFamily: 'Poppins_400Regular' },
   posted:    { color: G.muted, fontSize: 8, fontFamily: 'Poppins_400Regular', flexShrink: 1 },
 });
+// Light mode layer for `s` — dark mode uses s_dark as is
+const s_light = withLightStyles(s_dark, {
+  card: { backgroundColor: '#F2F4F8', borderColor: 'rgba(0,0,0,0.04)', boxShadow: LIGHT_POP_SHADOW },
+  title: { color: '#000000' },
+  meta: { color: '#4b5563' },
+  posted: { color: '#4b5563' },
+});
+

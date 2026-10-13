@@ -721,7 +721,8 @@ export default function VehicleDetailScreen() {
         </View>
       </View>
 
-      <SheetModal visible={compareSheet && !!secondVehicle} transparent animationType="slide" onRequestClose={() => setCompareSheet(false)}>
+      {/* "Selected Cars" sheet — hidden per request (original: visible={compareSheet && !!secondVehicle}) */}
+      <SheetModal visible={false} transparent animationType="slide" onRequestClose={() => setCompareSheet(false)}>
         <View style={styles.sheetOverlay}>
           <TouchableOpacity style={StyleSheet.absoluteFillObject} activeOpacity={1} onPress={() => setCompareSheet(false)} />
 

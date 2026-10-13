@@ -24,8 +24,7 @@ function GlassInset() {
   if (!aC.isDark) {
     return (
       <>
-        <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-        <LinearGradient colors={['transparent', 'rgba(226,103,27,0.06)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+
       </>
     );
   }
@@ -42,7 +41,7 @@ function Dropdown({ label, value, placeholder, options, onSelect }: {
     <View style={[s.fieldWrap, { zIndex: open ? 99 : 1 }]}>
       <Text style={[s.fieldLabel, { color: aC.isDark ? '#C9C6D0' : '#475569' }]}>{label}</Text>
       <TouchableOpacity
-        style={[s.pill, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#ffffff', borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.12)' }]}
+        style={[s.pill, { backgroundColor: aC.isDark ? 'rgba(3,12,40,0.6)' : '#E8EAEF', borderColor: aC.isDark ? '#829fd0' : 'rgba(0,0,0,0.18)' }, !aC.isDark && { boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}
         onPress={() => setOpen(!open)}
         activeOpacity={0.85}
       >
@@ -141,7 +140,6 @@ export default function TrackerSearchScreen() {
 
           <Dropdown label="Year" value={year} placeholder="Select Year" options={YEARS} onSelect={setYear} />
 
-
           {/* Registered */}
           <View style={s.radioRow}>
             <Text style={[s.radioLabel, { color: dark ? '#C9C6D0' : '#475569' }]}>Registered</Text>
@@ -183,7 +181,7 @@ export default function TrackerSearchScreen() {
 
           {/* SEARCH BUTTON */}
           <TouchableOpacity style={s.searchBtn} activeOpacity={0.85} onPress={handleSearch}>
-            <LinearGradient colors={PRIMARY_BTN_COLORS as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+            <LinearGradient colors={(aC.isDark ? PRIMARY_BTN_COLORS : ['#27467F', '#8C6A78', '#FF9654']) as any} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
             <Text style={s.searchTxt}>Search Trackers</Text>
           </TouchableOpacity>
 

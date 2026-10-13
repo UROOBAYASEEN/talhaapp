@@ -1,4 +1,5 @@
 // Figma: Reviews (Insurance company profile → See More)
+import { useAppColors, withLightStyles, LIGHT_POP_SHADOW } from '@/constants/theme';
 import { useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, StyleSheet, View } from 'react-native';
@@ -13,6 +14,8 @@ import { ReviewItem, WriteReviewModal } from '@/components/book/reviews';
 const toItem = (r: any) => ({ id: r.id, reviewer_name: r.name || r.reviewer_name, comment: r.comment, rating: r.rating, time: r.date, created_at: r.created_at });
 
 export default function InsuranceReviews() {
+  const aC = useAppColors();
+  const s = aC.isDark ? s_dark : s_light;
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { token } = useAuth();
@@ -34,7 +37,7 @@ export default function InsuranceReviews() {
   const list = reviews.length ? reviews : DUMMY_REVIEWS.map(toItem);
 
   return (
-    <GlowBackground>
+    <GlowBackground themed>
       <SafeAreaView style={{ flex: 1 }} edges={['top']}>
         <ScreenHeader title="Reviews" />
         {loading ? <ActivityIndicator color={G.orange} style={{ marginTop: 40 }} /> : (
@@ -62,6 +65,11 @@ export default function InsuranceReviews() {
   );
 }
 
-const s = StyleSheet.create({
+const s_dark = StyleSheet.create({
   bottom: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 24, paddingTop: 8 },
 });
+// Light mode layer for `s` — dark mode uses s_dark as is
+const s_light = withLightStyles(s_dark, {
+
+});
+

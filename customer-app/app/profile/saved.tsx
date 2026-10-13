@@ -1,3 +1,4 @@
+import LightGradientBorder from '@/components/shared/LightGradientBorder';
 import VerifiedIcon from '@/components/shared/VerifiedIcon';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -29,17 +30,17 @@ function makeStyles(aC: ReturnType<typeof useAppColors>) {
     logo: { width: 120, height: 36 },
     headerRight: { flexDirection: 'row', alignItems: 'center', gap: 12 },
     content: { paddingHorizontal: 20, gap: 20 },
-    searchBar: { height: 48, flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 32, borderWidth: 1, borderColor: aC.isDark ? '#829fd0' : 'rgba(3,42,105,0.12)', backgroundColor: aC.glassBg, paddingHorizontal: 20, overflow: 'hidden' },
+    searchBar: { height: 48, flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 32, borderWidth: 1, borderColor: aC.isDark ? '#829fd0' : 'rgba(0,0,0,0.1)', backgroundColor: aC.isDark ? aC.glassBg : '#ffffff', paddingHorizontal: 20, overflow: 'hidden', ...(aC.isDark ? null : { boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }) },
     searchInput: { flex: 1, fontSize: 12, fontFamily: 'Poppins_400Regular', color: aC.isDark ? aC.textPrimary : '#010a1f', padding: 0 },
     filterRow: { gap: 12, paddingVertical: 4 },
-    filterChip: { height: 40, borderRadius: 16, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20, overflow: 'hidden', borderWidth: 0, backgroundColor: aC.isDark ? '#08245C' : '#ffffff' },
-    filterChipActive: { borderWidth: 1.35, borderColor: aC.isDark ? '#6F89AF' : '#e2671b', backgroundColor: aC.isDark ? '#15386A' : 'rgba(226,103,27,0.10)', overflow: 'hidden' },
+    filterChip: { height: 40, borderRadius: 16, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20, overflow: 'hidden', borderWidth: 0, backgroundColor: aC.isDark ? '#08245C' : '#F7F8FA' },
+    filterChipActive: { borderWidth: aC.isDark ? 1.35 : 0, borderColor: aC.isDark ? '#6F89AF' : 'transparent', backgroundColor: aC.isDark ? '#15386A' : '#F2F4F8', overflow: 'hidden', ...(aC.isDark ? null : { boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }) },
     filterChipInactive: {},
     filterTxt: { fontSize: 13, fontFamily: 'Poppins_700Bold' },
     filterTxtActive:   { color: '#e2671b' },
     filterTxtInactive: { color: aC.isDark ? aC.textPrimary : '#010a1f', fontFamily: 'Poppins_500Medium' },
     cardList: { gap: 14 },
-    outerCard: { borderRadius: 20, backgroundColor: aC.isDark ? '#010A1F' : '#ffffff', borderWidth: 1, borderColor: aC.isDark ? '#82a5d5' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? '#638ed0' : 'rgba(3,42,105,0.12)', shadowOffset: { width: 0, height: 0 }, shadowOpacity: aC.isDark ? 0.15 : 0.08, shadowRadius: aC.isDark ? 5 : 10, elevation: aC.isDark ? 2 : 8, overflow: 'hidden' },
+    outerCard: { borderRadius: 20, backgroundColor: aC.isDark ? '#010A1F' : '#ffffff', borderWidth: 1, borderColor: aC.isDark ? '#82a5d5' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? '#638ed0' : 'rgba(3,42,105,0.12)', shadowOffset: { width: 0, height: 0 }, shadowOpacity: aC.isDark ? 0.15 : 0.08, shadowRadius: aC.isDark ? 5 : 10, elevation: aC.isDark ? 2 : 0, overflow: 'hidden', ...(aC.isDark ? null : { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }) },
     card: { borderRadius: 18, padding: 14, paddingBottom: 14, overflow: 'hidden', backgroundColor: aC.isDark ? '#010A1F' : '#ffffff' },
     cardTop: { flexDirection: 'row', gap: 12 },
     cardImg: { width: 120, height: 120, borderRadius: 14 },
@@ -57,7 +58,7 @@ function makeStyles(aC: ReturnType<typeof useAppColors>) {
     availTxt: { fontSize: 10, fontFamily: 'Poppins_600SemiBold', color: '#19d865' },
     price: { fontSize: 13, fontFamily: 'Poppins_700Bold', color: '#e2671b' },
     btnRow: { flexDirection: 'row', gap: 12, marginTop: 12 },
-    viewBtnWrap: { flex: 1, borderRadius: 28, overflow: 'hidden' },
+    viewBtnWrap: { flex: 1, borderRadius: 28, overflow: 'hidden', ...(aC.isDark ? null : { boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }) },
     viewBtn: { height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 28 },
     viewBtnTxt: { fontSize: 13, fontFamily: 'Poppins_600SemiBold', color: '#fff' },
     contactBtn: { flex: 1, height: 40, borderRadius: 28, borderWidth: 2, borderColor: aC.isDark ? '#477bc4' : '#a0b8e8', backgroundColor: aC.isDark ? '#102c5b' : '#dde8ff', alignItems: 'center', justifyContent: 'center' },
@@ -98,7 +99,6 @@ function VehicleCard({ item, onViewDetails, onContact, onUnsave, aC, s }: {
         ) : (
           <>
             <LinearGradient colors={['rgba(3,42,105,0.03)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            <LinearGradient colors={['transparent', 'rgba(226,103,27,0.07)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
           </>
         )}
         {/* Top Section */}
@@ -132,11 +132,12 @@ function VehicleCard({ item, onViewDetails, onContact, onUnsave, aC, s }: {
         {/* Buttons */}
         <View style={s.btnRow}>
           <TouchableOpacity style={s.viewBtnWrap} onPress={onViewDetails} activeOpacity={0.85}>
-            <LinearGradient colors={['#153c87', '#ee5d13']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.viewBtn}>
+            <LinearGradient colors={aC.isDark ? ['#153c87', '#ee5d13'] : ['#27467F', '#FF9654']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.viewBtn}>
               <Text style={s.viewBtnTxt}>View Details</Text>
             </LinearGradient>
           </TouchableOpacity>
-          <TouchableOpacity style={[s.contactBtn, { borderColor: aC.isDark ? '#477bc4' : 'rgba(3,42,105,0.12)', backgroundColor: aC.isDark ? '#102c5b' : '#ffffff' }]} onPress={onContact} activeOpacity={0.85}>
+          <TouchableOpacity style={[s.contactBtn, { borderColor: aC.isDark ? '#477bc4' : 'transparent', backgroundColor: aC.isDark ? '#102c5b' : '#ffffff' }, !aC.isDark && { borderWidth: 0, overflow: 'hidden' }]} onPress={onContact} activeOpacity={0.85}>
+            {!aC.isDark && <LightGradientBorder radius={20} fill="#ffffff" colors={['#032a69', '#e2671b']} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} />}
             <Text style={s.contactBtnTxt}>Contact Dealer</Text>
           </TouchableOpacity>
         </View>
@@ -214,7 +215,6 @@ export default function MyFavoritesScreen() {
             </>
             ) : (
               <>
-                <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
                 <LinearGradient colors={['transparent', 'rgba(226,103,27,0.06)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
               </>
             )}

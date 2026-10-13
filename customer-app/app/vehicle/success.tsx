@@ -1,3 +1,4 @@
+import LightGradientBorder from '@/components/shared/LightGradientBorder';
 import React, { useState } from "react";
 import {
   View,
@@ -48,6 +49,9 @@ function formatVehiclePrice(value: string) {
   return numeric.toLocaleString();
 }
 
+// Plan card corner radius (styles.planCard) — light mode gradient border follows it
+const PLAN_RADIUS = 14;
+
 export default function SuccessScreen() {
   const router = useRouter();
   const aC = useAppColors();
@@ -70,20 +74,17 @@ export default function SuccessScreen() {
         {/* Celebration */}
         <Image source={require('../../assets/images/successful.png')} style={styles.celebrationImage} resizeMode="contain" />
         <Text style={[styles.title, { color: aC.isDark ? WHITE : '#010a1f' }]}>Ad Published Successfully!</Text>
-        <Text style={[styles.subtitle, { color: aC.isDark ? SUBTITLE : '#475569' }]}>
+        <Text style={[styles.subtitle, { color: aC.isDark ? SUBTITLE : '#4b5563' }]}>
           Your ad is now live & visible to{"\n"}thousand of buyers
         </Text>
 
         {/* Ad preview card */}
-        <LinearGradient colors={aC.isDark ? ['#E2671B', '#032A69'] : ['rgba(3,42,105,0.14)', 'rgba(3,42,105,0.14)']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={styles.previewBorder}>
-          <View style={[styles.previewCard, { backgroundColor: aC.isDark ? GLASS : '#ffffff', overflow: 'hidden', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, shadowRadius: 12, elevation: aC.isDark ? 0 : 3 }]}>
+        <LinearGradient colors={aC.isDark ? ['#E2671B', '#032A69'] : ['rgba(226,103,27,0.75)', 'rgba(3,42,105,0.75)']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={[styles.previewBorder, !aC.isDark && { boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
+          <View style={[styles.previewCard, { backgroundColor: aC.isDark ? GLASS : '#ffffff', overflow: 'hidden', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: 0, shadowRadius: 12, elevation: 0 }]}>
             {aC.isDark ? (
               <LinearGradient colors={['#010A1F', '#071837', '#663A2B']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
             ) : (
-              <>
-                <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                <LinearGradient colors={['transparent', 'rgba(226,103,27,0.13)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-              </>
+              null
             )}
             {/* Car image */}
             <View style={[styles.previewImgBox, { backgroundColor: aC.isDark ? 'rgba(255,255,255,0.06)' : 'rgba(3,42,105,0.06)' }]}>
@@ -98,10 +99,10 @@ export default function SuccessScreen() {
               <Text style={[styles.previewName, { color: aC.isDark ? WHITE : '#010a1f' }]} numberOfLines={2}>{title}</Text>
               <Text style={styles.previewPrice}>PKR {formatVehiclePrice(price)}</Text>
 
-              <View style={styles.metaRow}><Ionicons name="location-outline" size={18} color={SUBTITLE} /><Text style={[styles.previewMeta, { color: aC.isDark ? SUBTITLE : '#64748b' }]}>Karachi • 2024 • CVT</Text><Ionicons name="share-social-outline" size={18} color={ORANGE} /></View>
+              <View style={styles.metaRow}><Ionicons name="location-outline" size={18} color={aC.isDark ? SUBTITLE : '#000000'} /><Text style={[styles.previewMeta, { color: aC.isDark ? SUBTITLE : '#000000' }]}>Karachi • 2024 • CVT</Text><Ionicons name="share-social-outline" size={18} color={ORANGE} /></View>
 
               <View style={styles.activeDateRow}>
-                <View style={styles.activeBadge}>
+                <View style={[styles.activeBadge, !aC.isDark && { backgroundColor: '#DDF5E5' }]}>
                   <View style={styles.activeDot} />
                   <Text style={styles.activeTxt}>Active</Text>
                 </View>
@@ -115,7 +116,7 @@ export default function SuccessScreen() {
         </LinearGradient>
 
         {/* Featured Ad */}
-        <View style={[styles.featuredSection, { backgroundColor: aC.isDark ? '#010716' : '#ffffff', borderColor: aC.isDark ? 'rgba(255,255,255,0.14)' : 'rgba(3,42,105,0.12)' }]}>
+        <View style={[styles.featuredSection, { backgroundColor: aC.isDark ? '#010716' : '#F2F4F8', borderColor: aC.isDark ? 'rgba(255,255,255,0.14)' : 'rgba(0,0,0,0.04)' }, !aC.isDark && { paddingHorizontal: 10, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
           <View style={styles.featuredBox}>
             <View style={styles.featuredHeader}>
               <Ionicons name="star" size={23} color={ORANGE} />
@@ -123,8 +124,8 @@ export default function SuccessScreen() {
             </View>
             {FEATURES.map((item, i) => (
               <View key={i} style={styles.bulletRow}>
-                <View style={styles.bullet} />
-                <Text style={[styles.bulletTxt, { color: aC.isDark ? SUBTITLE : '#475569' }]}>{item}</Text>
+                <View style={[styles.bullet, !aC.isDark && { backgroundColor: '#e2671b' }]} />
+                <Text style={[styles.bulletTxt, { color: aC.isDark ? SUBTITLE : '#000000' }]}>{item}</Text>
               </View>
             ))}
           </View>
@@ -136,14 +137,14 @@ export default function SuccessScreen() {
                 key={i}
                 activeOpacity={0.85}
                 onPress={() => setSelectedPlan(i)}
-                style={[styles.planCard, { backgroundColor: aC.isDark ? (selectedPlan === i ? '#061B4A' : '#010817') : '#ffffff', borderColor: aC.isDark ? (selectedPlan === i ? 'transparent' : '#FFFFFF') : 'rgba(3,42,105,0.12)', borderWidth: aC.isDark && selectedPlan !== i ? 0.8 : 1, shadowColor: aC.isDark ? '#164088' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark && selectedPlan !== i ? 0.12 : aC.isDark ? 0 : 0.06, shadowRadius: 4, elevation: aC.isDark ? 0 : 2, overflow: 'hidden' }, selectedPlan === i && !aC.isDark && { borderColor: ORANGE, backgroundColor: 'rgba(226,103,27,0.08)' }]}
+                style={[styles.planCard, { backgroundColor: aC.isDark ? (selectedPlan === i ? '#061B4A' : '#010817') : '#ffffff', borderColor: aC.isDark ? (selectedPlan === i ? 'transparent' : '#FFFFFF') : 'rgba(3,42,105,0.12)', borderWidth: aC.isDark && selectedPlan !== i ? 0.8 : 1, shadowColor: aC.isDark ? '#164088' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark && selectedPlan !== i ? 0.12 : aC.isDark ? 0 : 0.06, shadowRadius: 4, elevation: aC.isDark ? 0 : 2, overflow: 'hidden' }, !aC.isDark && { borderWidth: 0, shadowOpacity: 0, elevation: 0, backgroundColor: '#ffffff' }, selectedPlan === i && !aC.isDark && { boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}
               >
-                {aC.isDark ? null : selectedPlan === i ? <LinearGradient colors={['rgba(226,103,27,0.08)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" /> : <LinearGradient colors={['rgba(3,42,105,0.03)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
+                {aC.isDark ? null : selectedPlan === i ? <LightGradientBorder radius={PLAN_RADIUS} fill="#ffffff" colors={['#032a69', '#e2671b']} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} /> : <LightGradientBorder radius={PLAN_RADIUS} fill="#ffffff" colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.1)']} />}
                 {aC.isDark && selectedPlan !== i && <><LinearGradient colors={['#16408880', '#0D255480', '#00000001', '#00000001', '#0D255480', '#16408880']} locations={[0, 0.08, 0.22, 0.78, 0.92, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" /><LinearGradient colors={['#16408880', '#0D255480', '#00000001', '#00000001', '#0D255480', '#16408880']} locations={[0, 0.04, 0.12, 0.88, 0.96, 1]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" /></>}
                 <View style={styles.planLeft}>
-                  <View style={styles.planTop}><Text style={[styles.planWeeks, { color: aC.isDark ? WHITE : '#010a1f' }]}>{plan.weeks} weeks</Text><View style={[styles.radio, selectedPlan === i && styles.radioActive]}>{selectedPlan === i && <View style={styles.radioDot} />}</View></View>
+                  <View style={styles.planTop}><Text style={[styles.planWeeks, { color: aC.isDark ? WHITE : '#010a1f' }]}>{plan.weeks} weeks</Text><View style={[styles.radio, selectedPlan === i && styles.radioActive, !aC.isDark && { backgroundColor: selectedPlan === i ? '#1F3F7A' : 'transparent', borderColor: selectedPlan === i ? '#1F3F7A' : 'rgba(0,0,0,0.35)' }]}>{selectedPlan === i && <View style={[styles.radioDot, !aC.isDark && { backgroundColor: '#ffffff' }]} />}</View></View>
                   <View style={styles.planBottom}>
-                    <Text style={[styles.planDesc, { color: aC.isDark ? SUBTITLE : '#475569' }]}>{plan.desc}</Text>
+                    <Text style={[styles.planDesc, { color: aC.isDark ? SUBTITLE : '#000000' }]}>{plan.desc}</Text>
                     <Text style={styles.planPrice}>{plan.price}</Text><Ionicons name="chevron-forward" size={19} color={ORANGE} />
                   </View>
                 </View>
@@ -154,12 +155,12 @@ export default function SuccessScreen() {
 
         {/* View My Ads */}
         <TouchableOpacity
-          style={styles.primaryBtn}
+          style={[styles.primaryBtn, !aC.isDark && { boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}
           activeOpacity={0.87}
           onPress={() => router.replace("/my-ads")}
         >
           <LinearGradient
-            colors={["#032a69", ORANGE]}
+            colors={aC.isDark ? ["#032a69", ORANGE] : ['#27467F', '#FF9654']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={styles.gradBtn}
@@ -170,7 +171,7 @@ export default function SuccessScreen() {
 
         {/* Apply Deal */}
         <TouchableOpacity
-          style={[styles.secondaryBtn, { backgroundColor: aC.isDark ? '#030D23' : '#ffffff', borderColor: aC.isDark ? '#9CB7DE' : 'rgba(3,42,105,0.14)', shadowColor: aC.isDark ? '#759DE0' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0.18 : 0.06, shadowRadius: 5, elevation: aC.isDark ? 0 : 2 }]}
+          style={[styles.secondaryBtn, { backgroundColor: aC.isDark ? '#030D23' : '#ffffff', borderColor: aC.isDark ? '#9CB7DE' : 'transparent', shadowColor: aC.isDark ? '#759DE0' : 'transparent', shadowOpacity: aC.isDark ? 0.18 : 0, shadowRadius: 5, elevation: 0 }, !aC.isDark && { borderWidth: 0, overflow: 'hidden' }]}
           activeOpacity={0.8}
           onPress={() => router.push({ pathname: "/vehicle/apply-deal", params: { vehicleId, photo, title, price } })}
         >
@@ -180,12 +181,9 @@ export default function SuccessScreen() {
               <LinearGradient colors={['rgba(48,104,193,0.27)', 'transparent', 'transparent', 'rgba(48,104,193,0.27)']} locations={[0, 0.08, 0.92, 1]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
             </>
           ) : (
-            <>
-              <LinearGradient colors={['rgba(3,42,105,0.05)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-              <LinearGradient colors={['transparent', 'rgba(226,103,27,0.08)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-            </>
+            <LightGradientBorder radius={25} fill="#ffffff" colors={['#032a69', '#e2671b']} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} />
           )}
-          <Text style={[styles.secondaryTxt, { color: aC.isDark ? '#D0D0D8' : '#032a69' }]}>Apply Deal</Text>
+          <Text style={[styles.secondaryTxt, { color: aC.isDark ? '#D0D0D8' : '#000000' }]}>Apply Deal</Text>
         </TouchableOpacity>
 
       </ScrollView>

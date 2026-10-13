@@ -1,3 +1,4 @@
+import { useAppColors, withLightStyles, LIGHT_POP_SHADOW } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -36,6 +37,8 @@ function formatPrice(p: number) {
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  const aC = useAppColors();
+  const s = aC.isDark ? s_dark : s_light;
   return (
     <View style={s.fieldWrap}>
       <Text style={s.fieldLabel}>{label}</Text>
@@ -45,6 +48,8 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 export default function ReserveScreen() {
+  const aC = useAppColors();
+  const s = aC.isDark ? s_dark : s_light;
   const router = useRouter();
   const { id, variantName } = useLocalSearchParams<{ id: string; variantName?: string }>();
   const { token, user } = useAuth();
@@ -99,32 +104,32 @@ export default function ReserveScreen() {
 
   return (
     <SafeAreaView style={s.root}>
-      <KeyboardAvoidingView style={{ flex: 1, backgroundColor: BG }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView style={{ flex: 1, backgroundColor: aC.isDark ? BG : '#ffffff' }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
 
         {/* Header */}
         <View style={s.header}>
           <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-            <Ionicons name="chevron-back" size={22} color={WHITE} />
+            <Ionicons name="chevron-back" size={22} color={aC.isDark ? WHITE : '#000000'} />
           </TouchableOpacity>
           <Text style={s.headerTitle}>{vehicle?.category === 'bike' ? 'Reserve Your Bike' : 'Reserve Your Car'}</Text>
           <View style={{ width: 36 }} />
         </View>
 
-        <ScrollView showsVerticalScrollIndicator={false} style={{ backgroundColor: BG }} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40, backgroundColor: BG }} keyboardShouldPersistTaps="handled">
+        <ScrollView showsVerticalScrollIndicator={false} style={{ backgroundColor: aC.isDark ? BG : '#ffffff' }} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40, backgroundColor: aC.isDark ? BG : '#ffffff' }} keyboardShouldPersistTaps="handled">
 
           {/* Car Summary Card */}
           <TouchableOpacity style={s.carCard} activeOpacity={0.85} onPress={() => router.back()}>
-            <SavedCardEffect />
+            {aC.isDark && <SavedCardEffect />}
             {carImg
               ? <Image source={{ uri: carImg }} style={s.carImg} resizeMode="cover" />
-              : <View style={[s.carImg, { backgroundColor: '#0d1e3d', alignItems: 'center', justifyContent: 'center' }]}>
-                  <Ionicons name="car-outline" size={28} color={MUTED} />
+              : <View style={[s.carImg, { backgroundColor: aC.isDark ? '#0d1e3d' : '#ffffff', alignItems: 'center', justifyContent: 'center' }]}>
+                  <Ionicons name="car-outline" size={28} color={aC.isDark ? MUTED : '#4b5563'} />
                 </View>
             }
             <View style={{ flex: 1 }}>
               <Text style={s.carName} numberOfLines={1}>{carName}</Text>
               <View style={s.carMeta}>
-                <Ionicons name="location-outline" size={12} color={MUTED} />
+                <Ionicons name="location-outline" size={12} color={aC.isDark ? MUTED : '#4b5563'} />
                 <Text style={s.carMetaTxt}>{carCity}  •  {carYear}  •  {carTrans}</Text>
               </View>
               <Text style={s.carPrice}>{carPrice}</Text>
@@ -137,23 +142,23 @@ export default function ReserveScreen() {
 
             <Field label="Full Name">
               <View style={s.inputWrap}>
-                <SearchInputEffect />
-                <TextInput style={s.input} value={form.fullName} onChangeText={set('fullName')} placeholder="Enter your full name" placeholderTextColor={MUTED} />
+                {aC.isDark && <SearchInputEffect />}
+                <TextInput style={s.input} value={form.fullName} onChangeText={set('fullName')} placeholder="Enter your full name" placeholderTextColor={aC.isDark ? MUTED : '#8f8f8f'} />
               </View>
             </Field>
 
             <Field label="Phone Number">
               <View style={s.inputWrap}>
-                <SearchInputEffect />
-                <TextInput style={s.input} value={form.phone} onChangeText={set('phone')} placeholder="+92 3XX XXXXXXX" placeholderTextColor={MUTED} keyboardType="phone-pad" />
+                {aC.isDark && <SearchInputEffect />}
+                <TextInput style={s.input} value={form.phone} onChangeText={set('phone')} placeholder="+92 3XX XXXXXXX" placeholderTextColor={aC.isDark ? MUTED : '#8f8f8f'} keyboardType="phone-pad" />
               </View>
             </Field>
 
             <Field label="City">
               <TouchableOpacity style={s.inputWrap} onPress={() => setCityOpen(o => !o)} activeOpacity={0.85}>
-                <SearchInputEffect />
+                {aC.isDark && <SearchInputEffect />}
                 <Text style={[s.input, { paddingTop: 14 }]}>{form.city}</Text>
-                <Ionicons name={cityOpen ? 'chevron-up' : 'chevron-down'} size={16} color={MUTED} style={{ position: 'absolute', right: 20, top: 14 }} />
+                <Ionicons name={cityOpen ? 'chevron-up' : 'chevron-down'} size={16} color={aC.isDark ? MUTED : '#4b5563'} style={{ position: 'absolute', right: 20, top: 14 }} />
               </TouchableOpacity>
               {cityOpen && (
                 <View style={s.cityDropdown}>
@@ -168,20 +173,20 @@ export default function ReserveScreen() {
 
             <Field label="CNIC">
               <View style={s.inputWrap}>
-                <SearchInputEffect />
-                <TextInput style={s.input} value={form.cnic} onChangeText={set('cnic')} placeholder="XXXXX-XXXXXXX-X" placeholderTextColor={MUTED} keyboardType="numeric" />
+                {aC.isDark && <SearchInputEffect />}
+                <TextInput style={s.input} value={form.cnic} onChangeText={set('cnic')} placeholder="XXXXX-XXXXXXX-X" placeholderTextColor={aC.isDark ? MUTED : '#8f8f8f'} keyboardType="numeric" />
               </View>
             </Field>
 
             <Field label="Reservation Notes (Optional)">
               <View style={[s.inputWrap, s.textareaWrap, s.notesCard]}>
-                <SavedCardEffect />
+                {aC.isDark && <SavedCardEffect />}
                 <TextInput
                   style={[s.input, s.textarea]}
                   value={form.notes}
                   onChangeText={set('notes')}
                   placeholder="Any specific requests or notes..."
-                  placeholderTextColor={MUTED}
+                  placeholderTextColor={aC.isDark ? MUTED : '#8f8f8f'}
                   multiline
                   numberOfLines={4}
                   textAlignVertical="top"
@@ -193,7 +198,7 @@ export default function ReserveScreen() {
 
           {/* Submit Button */}
           <TouchableOpacity style={s.submitBtn} onPress={handleSubmit} activeOpacity={0.88}>
-            <LinearGradient colors={[NAVY, ORANGE]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
+            <LinearGradient colors={aC.isDark ? [NAVY, ORANGE] : ['#27467F', '#FF9654']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
             <Text style={s.submitTxt}>Review your Reservation</Text>
           </TouchableOpacity>
 
@@ -203,7 +208,7 @@ export default function ReserveScreen() {
   );
 }
 
-const s = StyleSheet.create({
+const s_dark = StyleSheet.create({
   root: { flex: 1, backgroundColor: BG },
 
   header:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12 },
@@ -234,3 +239,19 @@ const s = StyleSheet.create({
   submitBtn: { height: 54, borderRadius: 30, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', marginTop: 32 },
   submitTxt: { color: WHITE, fontSize: 15, fontFamily: 'Poppins_700Bold' },
 });
+// Light mode layer for `s` — dark mode uses s_dark as is
+const s_light = withLightStyles(s_dark, {
+  root: { backgroundColor: '#ffffff' },
+  headerTitle: { color: '#000000' },
+  carCard: { backgroundColor: '#F2F4F8', borderColor: 'rgba(0,0,0,0.04)', boxShadow: LIGHT_POP_SHADOW },
+  carName: { color: '#000000' },
+  carMetaTxt: { color: '#4b5563' },
+  fieldLabel: { color: '#000000' },
+  inputWrap: { backgroundColor: '#E8EAEF', borderWidth: 1, borderColor: 'rgba(0,0,0,0.18)', boxShadow: LIGHT_POP_SHADOW },
+  input: { color: '#000000' },
+  notesCard: { backgroundColor: '#E8EAEF', borderColor: 'rgba(0,0,0,0.18)', shadowOpacity: 0, elevation: 0, boxShadow: LIGHT_POP_SHADOW },
+  cityDropdown: { backgroundColor: '#E8EAEF', borderColor: 'rgba(0,0,0,0.18)', boxShadow: LIGHT_POP_SHADOW },
+  cityOption: { borderColor: 'rgba(0,0,0,0.12)' },
+  cityOptionTxt: { color: '#000000' },
+});
+

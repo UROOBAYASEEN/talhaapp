@@ -1,3 +1,4 @@
+import LightGradientBorder from '@/components/shared/LightGradientBorder';
 import React from 'react';
 import {
   Alert,
@@ -45,7 +46,7 @@ export default function SettingScreen() {
         {SETTINGS.map((item, i) => (
           <TouchableOpacity
             key={i}
-            style={[s.option, { backgroundColor: C.isDark ? '#010A1F' : C.glassBg, borderColor: C.isDark ? '#829fd0' : 'rgba(3,42,105,0.2)' }]}
+            style={[s.option, { backgroundColor: C.isDark ? '#010A1F' : '#F5F6F8', borderColor: C.isDark ? '#829fd0' : 'transparent' }, !C.isDark && { borderWidth: 0, borderRadius: 18 }]}
             activeOpacity={0.8}
             onPress={() => item.route && router.push(item.route as any)}
           >
@@ -67,7 +68,7 @@ export default function SettingScreen() {
                 />
               </>
             ) : (
-              <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+              <LightGradientBorder radius={18} fill="#F5F6F8" />
             )}
             <View style={s.optionLeft}>
               {'asset' in item && item.asset ? (
@@ -77,13 +78,13 @@ export default function SettingScreen() {
               )}
               <Text style={[s.optionText, { color: C.textPrimary }]}>{item.title}</Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color={C.textSecondary} />
+            <Ionicons name="chevron-forward" size={20} color={C.isDark ? C.textSecondary : '#000000'} />
           </TouchableOpacity>
         ))}
 
         {/* Logout */}
         <TouchableOpacity
-          style={[s.option, { backgroundColor: C.isDark ? '#010A1F' : C.glassBg, borderColor: C.isDark ? '#829fd0' : 'rgba(3,42,105,0.2)' }]}
+          style={[s.option, { backgroundColor: C.isDark ? '#010A1F' : '#F5F6F8', borderColor: C.isDark ? '#829fd0' : 'transparent' }, !C.isDark && { borderWidth: 0, borderRadius: 18 }]}
           activeOpacity={0.8}
           onPress={() =>
             Alert.alert('Logout', 'Are you sure you want to logout?', [
@@ -110,7 +111,7 @@ export default function SettingScreen() {
               />
             </>
           ) : (
-            <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+            <LightGradientBorder radius={18} fill="#F5F6F8" />
           )}
           <View style={s.optionLeft}>
             <Image source={require('../../assets/Icons/logoutIcon.png')} style={s.menuIcon} resizeMode="contain" />

@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAppColors } from '@/constants/theme';
+import { useAppColors, LIGHT_POP_SHADOW, withLightStyles } from '@/constants/theme';
 
 const BG     = '#010a1f';
 const ORANGE = '#e2671b';
@@ -31,75 +31,76 @@ const CONTACT = [
 export default function HelpScreen() {
   const router = useRouter();
   const aC = useAppColors();
+  const st = aC.isDark ? s : sLight;
   const [expanded, setExpanded] = useState<number | null>(null);
 
   return (
-    <SafeAreaView style={[s.safe, { backgroundColor: aC.bg }]}>
+    <SafeAreaView style={[st.safe, { backgroundColor: aC.bg }]}>
       {/* Header */}
-      <View style={[s.header, { borderBottomColor: aC.divider }]}>
-        <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
+      <View style={[st.header, { borderBottomColor: aC.divider }]}>
+        <TouchableOpacity onPress={() => router.back()} style={st.backBtn}>
           <Ionicons name="arrow-back" size={22} color={aC.textPrimary} />
         </TouchableOpacity>
-        <Text style={[s.headerTitle, { color: aC.textPrimary }]}>Help & Support</Text>
+        <Text style={[st.headerTitle, { color: aC.textPrimary }]}>Help & Support</Text>
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView style={[s.scrollView, { backgroundColor: aC.bg }]} contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView style={[st.scrollView, { backgroundColor: aC.bg }]} contentContainerStyle={st.scroll} showsVerticalScrollIndicator={false}>
 
         {/* Banner */}
-        <LinearGradient colors={['#032a69', '#061b4a']} style={s.banner}>
-          <View style={s.bannerIcon}>
+        <LinearGradient colors={aC.isDark ? ['#032a69', '#061b4a'] : ['#1F3F7A', '#17508A']} style={st.banner}>
+          <View style={st.bannerIcon}>
             <Ionicons name="headset-outline" size={36} color={ORANGE} />
           </View>
-          <Text style={s.bannerTitle}>How can we help?</Text>
-          <Text style={s.bannerSub}>Our support team is here for you</Text>
+          <Text style={st.bannerTitle}>How can we help?</Text>
+          <Text style={st.bannerSub}>Our support team is here for you</Text>
         </LinearGradient>
 
         {/* Contact Us */}
-        <Text style={s.sectionLabel}>CONTACT US</Text>
-        <View style={s.card}>
-          <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+        <Text style={st.sectionLabel}>CONTACT US</Text>
+        <View style={st.card}>
+          {aC.isDark && <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
+          {aC.isDark && <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
+          {aC.isDark && <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
           {CONTACT.map((item, i) => (
             <View key={item.label}>
-              <TouchableOpacity style={s.contactRow} onPress={item.onPress} activeOpacity={0.8}>
-                <View style={s.iconWrap}>
+              <TouchableOpacity style={st.contactRow} onPress={item.onPress} activeOpacity={0.8}>
+                <View style={st.iconWrap}>
                   <Ionicons name={item.icon as any} size={20} color={ORANGE} />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={s.contactLabel}>{item.label}</Text>
-                  <Text style={s.contactValue}>{item.value}</Text>
+                  <Text style={st.contactLabel}>{item.label}</Text>
+                  <Text style={st.contactValue}>{item.value}</Text>
                 </View>
-                <Ionicons name="chevron-forward" size={16} color={SUB} />
+                <Ionicons name="chevron-forward" size={16} color={aC.isDark ? SUB : '#000000'} />
               </TouchableOpacity>
-              {i < CONTACT.length - 1 && <View style={s.sep} />}
+              {i < CONTACT.length - 1 && <View style={st.sep} />}
             </View>
           ))}
         </View>
 
         {/* FAQ */}
-        <Text style={s.sectionLabel}>FREQUENTLY ASKED QUESTIONS</Text>
-        <View style={s.card}>
-          <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-          <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+        <Text style={st.sectionLabel}>FREQUENTLY ASKED QUESTIONS</Text>
+        <View style={st.card}>
+          {aC.isDark && <LinearGradient colors={['rgba(22,64,136,0.2)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.6 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
+          {aC.isDark && <LinearGradient colors={['rgba(13,37,84,0.18)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.45, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
+          {aC.isDark && <LinearGradient colors={['transparent', 'rgba(29,83,175,0.2)']} start={{ x: 0.5, y: 0.4 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
           {FAQS.map((faq, i) => (
             <View key={i}>
               <TouchableOpacity
-                style={s.faqRow}
+                style={st.faqRow}
                 onPress={() => setExpanded(expanded === i ? null : i)}
                 activeOpacity={0.8}
               >
-                <Text style={s.faqQ}>{faq.q}</Text>
+                <Text style={st.faqQ}>{faq.q}</Text>
                 <Ionicons
                   name={expanded === i ? 'chevron-up' : 'chevron-down'}
                   size={16}
-                  color={SUB}
+                  color={aC.isDark ? SUB : '#000000'}
                 />
               </TouchableOpacity>
-              {expanded === i && <Text style={s.faqA}>{faq.a}</Text>}
-              {i < FAQS.length - 1 && <View style={s.sep} />}
+              {expanded === i && <Text style={st.faqA}>{faq.a}</Text>}
+              {i < FAQS.length - 1 && <View style={st.sep} />}
             </View>
           ))}
         </View>
@@ -170,4 +171,19 @@ const s = StyleSheet.create({
   faqRow: { flexDirection: 'row', alignItems: 'center', padding: 16, gap: 8 },
   faqQ:   { flex: 1, fontSize: 14, fontFamily: 'Poppins_500Medium', color: WHITE },
   faqA:   { fontSize: 13, fontFamily: 'Poppins_400Regular', color: SUB, paddingHorizontal: 16, paddingBottom: 16, lineHeight: 20 },
+});
+
+// ── Light mode overrides (Figma light) — dark mode uses `s` as is ──────────
+const sLight = withLightStyles(s, {
+  backBtn:      { backgroundColor: '#F2F4F8' },
+  headerTitle:  { fontFamily: 'Poppins_500Medium' },
+  banner:       { boxShadow: LIGHT_POP_SHADOW },
+  bannerSub:    { color: '#E6EEF8' },
+  sectionLabel: { color: '#6b7280' },
+  card:         { backgroundColor: '#FCFCFD', borderColor: 'rgba(0,0,0,0.05)', boxShadow: LIGHT_POP_SHADOW },
+  contactLabel: { color: '#000000' },
+  contactValue: { color: '#4b5563' },
+  sep:          { height: 1, backgroundColor: '#A9C4F5', marginHorizontal: 0 },
+  faqQ:         { color: '#000000' },
+  faqA:         { color: '#4b5563' },
 });

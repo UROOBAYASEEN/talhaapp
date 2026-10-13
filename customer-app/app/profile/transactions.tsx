@@ -101,13 +101,14 @@ export default function TransactionsScreen() {
               filter === f
                 ? {
                     borderWidth: 1.35,
-                    borderColor: C.isDark ? '#6F89AF' : ORANGE,
-                    backgroundColor: C.isDark ? '#15386A' : 'rgba(226,103,27,0.10)',
+                    borderColor: C.isDark ? '#6F89AF' : 'transparent',
+                    backgroundColor: C.isDark ? '#15386A' : '#F2F4F8',
                     overflow: 'hidden',
+                    ...(C.isDark ? null : { boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }),
                   }
                 : {
                     borderWidth: 0,
-                    backgroundColor: C.isDark ? NAVY : '#ffffff',
+                    backgroundColor: C.isDark ? NAVY : '#F7F8FA',
                     borderColor: 'transparent',
                     overflow: 'hidden',
                   },
@@ -145,7 +146,7 @@ export default function TransactionsScreen() {
                 />
               ) : null
             )}
-            <Text style={[s.chipTxt, filter === f ? s.chipTxtOn : { fontFamily: 'Poppins_500Medium', color: C.isDark ? WHITE : '#032a69', fontSize: 10 }]}>
+            <Text style={[s.chipTxt, filter === f ? s.chipTxtOn : { fontFamily: 'Poppins_500Medium', color: C.isDark ? WHITE : '#000000', fontSize: 10 }]}>
               {f}
             </Text>
           </TouchableOpacity>
@@ -167,7 +168,7 @@ export default function TransactionsScreen() {
           </View>
         }
         renderItem={({ item }) => (
-          <TouchableOpacity style={[s.card, { backgroundColor: C.isDark ? '#010A1F' : '#ffffff', borderColor: C.isDark ? '#829fd0' : 'rgba(3,42,105,0.12)', shadowColor: C.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: C.isDark ? 0 : 0.08, shadowRadius: 10, elevation: C.isDark ? 0 : 3, overflow: 'hidden' }]} activeOpacity={0.85}>
+          <TouchableOpacity style={[s.card, { backgroundColor: C.isDark ? '#010A1F' : '#ffffff', borderColor: C.isDark ? '#829fd0' : 'rgba(3,42,105,0.12)', shadowColor: C.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: C.isDark ? 0 : 0.08, shadowRadius: 10, elevation: C.isDark ? 0 : 3, overflow: 'hidden' }, !C.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]} activeOpacity={0.85}>
             {C.isDark ? (
               <>
                 <LinearGradient
@@ -187,12 +188,10 @@ export default function TransactionsScreen() {
               </>
             ) : (
               <>
-                <LinearGradient colors={['rgba(3,42,105,0.04)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.4 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                <LinearGradient colors={['transparent', 'rgba(226,103,27,0.08)']} start={{ x: 0.5, y: 0.6 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
               </>
             )}
             {/* Initials box */}
-            <View style={[s.avatar, { backgroundColor: C.isDark ? '#0d1f4a' : '#eef2ff', borderColor: C.isDark ? 'rgba(255,255,255,0.15)' : 'rgba(3,42,105,0.12)' }]}>
+            <View style={[s.avatar, { backgroundColor: C.isDark ? '#0d1f4a' : '#F2F4F8', borderColor: C.isDark ? 'rgba(255,255,255,0.15)' : 'rgba(3,42,105,0.12)' }]}>
               <Text style={[s.avatarTxt, { color: C.isDark ? WHITE : '#032a69' }]}>{item.initials}</Text>
             </View>
 

@@ -1,3 +1,4 @@
+import { useAppColors, withLightStyles, LIGHT_POP_SHADOW } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -43,6 +44,8 @@ function formatPrice(p: number) {
 }
 
 export default function PaymentScreen() {
+  const aC = useAppColors();
+  const s = aC.isDark ? s_dark : s_light;
   const router = useRouter();
   const params = useLocalSearchParams<{ id?: string; reserveDate?: string; preferredTime?: string }>();
   const { token } = useAuth();
@@ -152,15 +155,15 @@ export default function PaymentScreen() {
           <View style={{ width: 36 }} />
         </View>
 
-        <ScrollView showsVerticalScrollIndicator={false} style={{ backgroundColor: BG }} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40, backgroundColor: BG }} keyboardShouldPersistTaps="handled">
+        <ScrollView showsVerticalScrollIndicator={false} style={{ backgroundColor: aC.isDark ? BG : '#ffffff' }} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40, backgroundColor: aC.isDark ? BG : '#ffffff' }} keyboardShouldPersistTaps="handled">
 
           {/* Car Summary Card */}
           <View style={s.carCard}>
-            <SavedCardEffect />
+            {aC.isDark && <SavedCardEffect />}
             {carImg
               ? <Image source={{ uri: carImg }} style={s.carImg} resizeMode="cover" />
-              : <View style={[s.carImg, { backgroundColor: '#0d1e3d', alignItems: 'center', justifyContent: 'center' }]}>
-                  <Ionicons name="car-outline" size={24} color={MUTED} />
+              : <View style={[s.carImg, { backgroundColor: aC.isDark ? '#0d1e3d' : '#ffffff', alignItems: 'center', justifyContent: 'center' }]}>
+                  <Ionicons name="car-outline" size={24} color={aC.isDark ? MUTED : '#4b5563'} />
                 </View>
             }
             <View style={{ flex: 1 }}>
@@ -177,7 +180,7 @@ export default function PaymentScreen() {
           {/* Your Reservation — border: orange (top) → blue (bottom) */}
           <LinearGradient colors={['#E2671B', '#8A5A55', '#2E4F8E']} locations={[0, 0.5, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={s.reserveBorder}>
           <View style={s.reserveCard}>
-            <LinearGradient colors={WARM_CARD_COLORS as any} locations={WARM_CARD_LOCATIONS as any} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+            {aC.isDark && <LinearGradient colors={(aC.isDark ? WARM_CARD_COLORS : ['#F1F4F8', '#FCDCC8']) as any} locations={(aC.isDark ? WARM_CARD_LOCATIONS : [0, 1]) as any} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
             <Text style={s.reserveTitle}>Your Reservation</Text>
             <View style={[s.row, s.rowBorder]}>
               <Text style={s.rowLabel}>Reservation Date</Text>
@@ -194,12 +197,12 @@ export default function PaymentScreen() {
           <View style={{ marginTop: 18 }}>
             <Text style={s.fieldLabel}>Pay Preservation Amount</Text>
             <View style={s.inputWrap}>
-              <SearchInputEffect />
+              {aC.isDark && <SearchInputEffect />}
               <TextInput
                 style={s.input}
                 value={`Rs. ${amount.toLocaleString()}`}
                 onChangeText={t => setAmount(Number(t.replace(/[^0-9]/g, '')) || 50000)}
-                placeholderTextColor={MUTED}
+                placeholderTextColor={aC.isDark ? MUTED : '#8f8f8f'}
                 keyboardType="numeric"
               />
             </View>
@@ -209,9 +212,9 @@ export default function PaymentScreen() {
           <View style={{ marginTop: 16 }}>
             <Text style={s.fieldLabel}>Select Time</Text>
             <TouchableOpacity style={s.inputWrap} onPress={() => setTimeOpen(o => !o)} activeOpacity={0.85}>
-              <SearchInputEffect />
+              {aC.isDark && <SearchInputEffect />}
               <Text style={s.input}>{time}</Text>
-              <Ionicons name={timeOpen ? 'chevron-up' : 'chevron-down'} size={20} color="#E6E4EA" style={{ position: 'absolute', right: 20 }} />
+              <Ionicons name={timeOpen ? 'chevron-up' : 'chevron-down'} size={20} color={aC.isDark ? '#E6E4EA' : '#000000'} style={{ position: 'absolute', right: 20 }} />
             </TouchableOpacity>
             {timeOpen && (
               <View style={s.dropdown}>
@@ -262,7 +265,7 @@ export default function PaymentScreen() {
   );
 }
 
-const s = StyleSheet.create({
+const s_dark = StyleSheet.create({
   root: { flex: 1, backgroundColor: BG },
   header:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, paddingTop: 8, paddingBottom: 12 },
   backBtn:     { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
@@ -295,3 +298,24 @@ const s = StyleSheet.create({
   infoIcon: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#0E2552', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 },
   infoTxt:  { flex: 1, color: '#C9C6D0', fontSize: 12.5, fontFamily: 'Poppins_400Regular', lineHeight: 20 },
 });
+// Light mode layer for `s` — dark mode uses s_dark as is
+const s_light = withLightStyles(s_dark, {
+  root: { backgroundColor: '#ffffff' },
+  headerTitle: { color: '#000000' },
+  carCard: { backgroundColor: '#F2F4F8', borderColor: 'rgba(0,0,0,0.04)', boxShadow: LIGHT_POP_SHADOW },
+  carName: { color: '#000000' },
+  carMetaTxt: { color: '#4b5563' },
+  reserveCard: { backgroundColor: '#F2F4F8', borderColor: 'rgba(226,103,27,0.28)', boxShadow: LIGHT_POP_SHADOW },
+  rowBorder: { borderColor: 'rgba(0,0,0,0.12)' },
+  rowLabel: { color: '#4b5563' },
+  rowVal: { color: '#000000' },
+  fieldLabel: { color: '#000000' },
+  inputWrap: { backgroundColor: '#E8EAEF', borderWidth: 1, borderColor: 'rgba(0,0,0,0.18)', boxShadow: LIGHT_POP_SHADOW },
+  input: { color: '#000000' },
+  dropdown: { backgroundColor: '#E8EAEF', borderColor: 'rgba(0,0,0,0.18)', boxShadow: LIGHT_POP_SHADOW },
+  dropOption: { borderColor: 'rgba(0,0,0,0.12)' },
+  dropOptionTxt: { color: '#000000' },
+  infoIcon: { backgroundColor: '#F2F4F8' },
+  infoTxt: { color: '#000000' },
+});
+
