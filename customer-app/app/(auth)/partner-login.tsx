@@ -11,19 +11,6 @@ import { G, Glass, GradientButton, ScreenHeader } from '@/components/shared/Glow
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 
-// Same rule as the user Login screen — admin / business accounts are not allowed in this app
-const BLOCKED_ROLES = ['admin', 'bank_representative', 'dealership_owner', 'insurance_provider', 'tracker_provider'];
-
-function blockedMessage(role?: string) {
-  const label =
-    role === 'admin' ? 'Admin' :
-    role === 'bank_representative' ? 'Bank' :
-    role === 'dealership_owner' ? 'Dealership' :
-    role === 'insurance_provider' ? 'Insurance' :
-    role === 'tracker_provider' ? 'Tracker' : 'Business';
-  return `No customer account found with this email. ${label} accounts cannot log in here — please use the business (panels) app.`;
-}
-
 export default function PartnerLoginScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -65,13 +52,15 @@ export default function PartnerLoginScreen() {
         Alert.alert('Login Failed', 'Could not verify account details. Please try again.');
         return;
       }
-      if (BLOCKED_ROLES.includes(loggedInUser.role)) {
-        await logout();
-        Alert.alert('Account Not Found', blockedMessage(loggedInUser?.role));
-        return;
-      }
-      if (loggedInUser?.role === 'individual_seller') {
-        router.replace('/Become_a_Seller' as any);
+      const BUSINESS_ROLES = ['bank_representative', 'dealership_owner', 'individual_seller', 'insurance_provider', 'tracker_provider'];
+      if (loggedInUser.role === 'admin') {
+        router.replace('/(admin)' as any);
+      } else if (BUSINESS_ROLES.includes(loggedInUser.role)) {
+        if (loggedInUser.role === 'dealership_owner')         router.replace('/(dealer)' as any);
+        else if (loggedInUser.role === 'bank_representative') router.replace('/(bank)' as any);
+        else if (loggedInUser.role === 'insurance_provider')  router.replace('/(insurance_provider)' as any);
+        else if (loggedInUser.role === 'tracker_provider')    router.replace('/(tracker)' as any);
+        else                                                  router.replace('/Become_a_Seller' as any);
       } else {
         router.replace('/(tabs)');
       }

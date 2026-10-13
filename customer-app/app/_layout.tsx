@@ -41,13 +41,25 @@ export const unstable_settings = {
 // ── Auth Middleware ─────────────────────────────────────────────────────────
 // Runs on every navigation. If not logged in → redirect to login.
 // If logged in and on auth screen → redirect to tabs or dealer panel.
+function redirectByRole(user: any, router: ReturnType<typeof useRouter>) {
+  const BUSINESS_ROLES = ['bank_representative', 'dealership_owner', 'individual_seller', 'insurance_provider', 'tracker_provider'];
+  if (user.role === 'admin') {
+    router.replace('/(admin)' as any);
+  } else if (BUSINESS_ROLES.includes(user.role)) {
+    if (user.role === 'dealership_owner')         router.replace('/(dealer)' as any);
+    else if (user.role === 'bank_representative') router.replace('/(bank)' as any);
+    else if (user.role === 'insurance_provider')  router.replace('/(insurance_provider)' as any);
+    else if (user.role === 'tracker_provider')    router.replace('/(tracker)' as any);
+    else                                          router.replace('/Become_a_Seller' as any);
+  } else {
+    router.replace('/(tabs)');
+  }
+}
+
 function AuthGuard() {
-  const { token, user, isLoading, logout } = useAuth();
+  const { token, user, isLoading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
-
-  // Admin / business accounts are not allowed in the customer app
-  const BLOCKED_ROLES = ['admin', 'bank_representative', 'dealership_owner', 'insurance_provider', 'tracker_provider'];
 
   useEffect(() => {
     if (isLoading) return;
@@ -56,20 +68,8 @@ function AuthGuard() {
 
     if (!token && !inAuth) {
       router.replace('/(auth)/login');
-    } else if (token && user && BLOCKED_ROLES.includes(user.role || '')) {
-      // Stale business session (e.g. logged in before the restriction) — force logout
-      logout().then(() => router.replace('/(auth)/login'));
-    } else if (token && user && user.is_active === false) {
-      if (segments.join('/') !== '(auth)/suspended') {
-        router.replace('/(auth)/suspended' as any);
-      }
     } else if (token && inAuth && user) {
-      // Customer app — seller goes to the Become_a_Seller panel, everyone else to customer tabs
-      if (user.role === 'individual_seller') {
-        router.replace('/Become_a_Seller' as any);
-      } else {
-        router.replace('/(tabs)');
-      }
+      redirectByRole(user, router);
     }
   }, [token, isLoading, user?.role, user?.is_active, segments[0]]);
 
@@ -171,7 +171,7 @@ const nb = StyleSheet.create({
 // Ye screens/groups pehle se khud bottom inset handle karti hain — inko skip karo
 // warna double jagah ban jayegi.
 const HANDLES_OWN_BOTTOM_INSET = new Set([
-  '(tabs)', '(seller)', 'Become_a_Seller',
+  '(tabs)', '(seller)', '(admin)', '(bank)', '(dealer)', '(insurance_provider)', '(tracker)', 'Become_a_Seller',
   'book/dealer-profile', 'book/test-drive', 'book/booked', 'book/test-drive-success',
   'book/vehicle-detail', 'book/reserve', 'book/reviews',
   'buy/test-drive',
@@ -203,6 +203,11 @@ function RootLayoutNav() {
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="(seller)" />
+        <Stack.Screen name="(admin)" />
+        <Stack.Screen name="(bank)" />
+        <Stack.Screen name="(dealer)" />
+        <Stack.Screen name="(insurance_provider)" />
+        <Stack.Screen name="(tracker)" />
         <Stack.Screen name="Become_a_Seller" />
         <Stack.Screen name="tracker-search"  options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="tracker-results" options={{ animation: 'slide_from_right' }} />

@@ -83,7 +83,7 @@ export default function Splash2Screen() {
             title="Continue"
             height={52}
             fontSize={18}
-            onPress={() => router.replace('/(auth)/onboarding')}
+            onPress={() => router.replace('/(auth)/login')}
           />
         </Animated.View>
 

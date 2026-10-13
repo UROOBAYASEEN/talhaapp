@@ -55,12 +55,12 @@ export default function OnboardingScreen() {
         <ScreenHeader logo />
 
         <View style={styles.textBlock}>
-          <Text style={styles.headline}>
-            {"Welcome to Pakistan's\nFirst Integrated "}
-            <Text style={{ color: '#e2671b' }}>Auto{'\n'}Ecosystem</Text>
-          </Text>
-          <Text style={styles.subtitle}>
-            Connecting buyers, dealers, banks, insurance, and tracker companies on one platform.
+          <Text style={styles.headline}>Already have an account?</Text>
+          <Text style={{ color: '#E2671B', fontFamily: 'Poppins_500Medium', marginTop: 4, fontSize: 14 }}>
+            {"Already a partner? "}
+            <Text onPress={() => router.push('/(auth)/partner-login' as any)} style={{ color: '#E2671B', fontFamily: 'Poppins_500Medium', textDecorationLine: 'underline' }}>
+              Login
+            </Text>
           </Text>
         </View>
 
@@ -76,10 +76,10 @@ export default function OnboardingScreen() {
           {/* <WhitePill icon={<Ionicons name="logo-apple" size={26} color="#000000" />} label="Continue with Apple" /> */}
           <View style={{ paddingHorizontal: 10 }}><OrDivider /></View>
           <GradientButton title="Login" height={52} fontSize={18} onPress={() => router.push('/(auth)/login')} />
-          <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
+          <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
             <Text style={styles.signUp}>
-              {"Don't have any account? "}
-              <Text style={{ color: '#e2671b', fontFamily: 'Poppins_500Medium' }}>Sign Up</Text>
+              {"Already have an account? "}
+              <Text style={{ color: '#e2671b', fontFamily: 'Poppins_500Medium' }}>Login</Text>
             </Text>
           </TouchableOpacity>
         </View>
