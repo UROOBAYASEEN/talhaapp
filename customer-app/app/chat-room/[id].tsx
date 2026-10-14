@@ -31,6 +31,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAppColors } from '@/constants/theme';
+import createAgoraRtcEngine, {
+  IRtcEngine,
+  ChannelProfileType,
+  ClientRoleType,
+} from 'react-native-agora';
+
+const AGORA_APP_ID = process.env.EXPO_PUBLIC_AGORA_APP_ID || '';
 
 const EMOJI_CATEGORIES = [
   { label: '😊 Smileys', emojis: ['😀','😂','😊','😍','🥰','😎','😭','😅','🤣','😇','🥺','😏','😒','😔','😌','🤔','😴','🤗','😤','🤩','😆','😋','😜','🤪','😝','🥳','😱','😳','🤭','🫠'] },
@@ -175,7 +182,9 @@ export default function ChatRoomScreen() {
   const [callId,       setCallId]       = useState<string | null>(null);
   const [callDuration, setCallDuration] = useState(0);
   const [incomingCall, setIncomingCall] = useState<{ id: string; callerName: string } | null>(null);
+  const [isMuted,      setIsMuted]      = useState(false);
 
+  const agoraRef       = useRef<IRtcEngine | null>(null);
   const soundRef       = useRef<Audio.Sound | null>(null);
   const pulseAnim      = useRef(new Animated.Value(1)).current;
   const ringAnim       = useRef(new Animated.Value(1)).current;
@@ -185,6 +194,41 @@ export default function ChatRoomScreen() {
   const callPollRef    = useRef<ReturnType<typeof setInterval>>();
   const callTimerRef   = useRef<ReturnType<typeof setInterval>>();
   const heartbeatRef   = useRef<ReturnType<typeof setInterval>>();
+
+  // Agora engine init + cleanup
+  useEffect(() => {
+    const engine = createAgoraRtcEngine();
+    engine.initialize({
+      appId: AGORA_APP_ID,
+      channelProfile: ChannelProfileType.ChannelProfileCommunication,
+    });
+    engine.enableAudio();
+    agoraRef.current = engine;
+    return () => {
+      engine.leaveChannel();
+      engine.release();
+    };
+  }, []);
+
+  async function joinAgoraChannel(channelName: string) {
+    const engine = agoraRef.current;
+    if (!engine) return;
+    await Audio.requestPermissionsAsync();
+    engine.joinChannel(null, channelName, 0, {
+      clientRoleType: ClientRoleType.ClientRoleBroadcaster,
+    });
+  }
+
+  function leaveAgoraChannel() {
+    agoraRef.current?.leaveChannel();
+    setIsMuted(false);
+  }
+
+  function toggleMute() {
+    const next = !isMuted;
+    agoraRef.current?.muteLocalAudioStream(next);
+    setIsMuted(next);
+  }
 
   const loadMessages = useCallback(async () => {
     if (!token || !id) { setLoading(false); return; }
@@ -395,6 +439,7 @@ export default function ChatRoomScreen() {
       const d = await res.json();
       setCallId(d.call_id);
       setCallState('calling');
+      await joinAgoraChannel(String(id));
     } catch { Alert.alert('Error', 'Could not initiate call.'); }
   }
 
@@ -402,6 +447,7 @@ export default function ChatRoomScreen() {
     if (!callId || !token) return;
     try {
       await fetch(`${API_BASE}/calls/${callId}/accept`, { method: 'PUT', headers: { Authorization: `Bearer ${token}` } });
+      await joinAgoraChannel(String(id));
       setCallState('connected');
       setCallDuration(0);
       callTimerRef.current = setInterval(() => setCallDuration(s => s + 1), 1000);
@@ -411,6 +457,7 @@ export default function ChatRoomScreen() {
   async function declineCall() {
     if (!callId || !token) return;
     try { await fetch(`${API_BASE}/calls/${callId}/decline`, { method: 'PUT', headers: { Authorization: `Bearer ${token}` } }); } catch { /* offline */ }
+    leaveAgoraChannel();
     setCallState('idle');
     setCallId(null);
     setIncomingCall(null);
@@ -421,6 +468,7 @@ export default function ChatRoomScreen() {
     if (callId && token) {
       try { await fetch(`${API_BASE}/calls/${callId}/end`, { method: 'PUT', headers: { Authorization: `Bearer ${token}` } }); } catch { /* offline */ }
     }
+    leaveAgoraChannel();
     setCallState('idle');
     setCallId(null);
     setIncomingCall(null);

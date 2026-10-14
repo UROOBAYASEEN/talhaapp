@@ -24,6 +24,12 @@ const ORANGE = '#e2671b';
 const DARK_BLUE = '#061B4A';
 const BLUE_BORDER = 'rgba(255,255,255,0.15)';
 
+const SERVER = API_BASE.replace('/api/v1', '');
+function resolveUrl(url?: string) {
+  if (!url) return null;
+  return url.startsWith('http') ? url : `${SERVER}${url}`;
+}
+
 const QUICK_ACTIONS = [
   { title: 'Tracker Req',        icon: <Ionicons name="locate-outline" size={24} color="#E2671B" />, route: '/(insurance_provider)/tracker-requests' },
   { title: 'Customers',          icon: <DIcon src={DICON.customers} size={24} />,     route: '/(insurance_provider)/customers' },
@@ -48,6 +54,7 @@ export default function InsuranceHomeScreen() {
   const { user, token } = useAuth();
   const router = useRouter();
 
+  const [profile,   setProfile]  = useState<any>(null);
   const [stats,    setStats]    = useState<any>(null);
   const [activity, setActivity] = useState<any[]>([]);
   const [chartData, setChartData] = useState<any[]>([]);
@@ -62,13 +69,11 @@ export default function InsuranceHomeScreen() {
   async function load(mode = viewMode) {
     if (!token || !user?.id) return;
     try {
-      const [sRes, aRes] = await Promise.all([
-        fetch(`${API_BASE}/insurance/${user.id}/dashboard?mode=${modeParam[mode]}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch(`${API_BASE}/insurance/${user.id}/activity?limit=3`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
+      const headers = { Authorization: `Bearer ${token}` };
+      const [sRes, aRes, pRes] = await Promise.all([
+        fetch(`${API_BASE}/insurance/${user.id}/dashboard?mode=${modeParam[mode]}`, { headers }),
+        fetch(`${API_BASE}/insurance/${user.id}/activity?limit=3`, { headers }),
+        fetch(`${API_BASE}/insurance/me`, { headers }),
       ]);
       if (sRes.ok) {
         const d = await sRes.json();
@@ -76,6 +81,7 @@ export default function InsuranceHomeScreen() {
         if (d.chart_data?.length) setChartData(d.chart_data);
       }
       if (aRes.ok) { const d = await aRes.json(); setActivity(d.items || d || []); }
+      if (pRes.ok) { setProfile(await pRes.json()); }
     } catch { /* offline */ }
   }
 
@@ -127,8 +133,8 @@ export default function InsuranceHomeScreen() {
         {/* ── HEADER ── */}
         <View style={s.header}>
           <View style={s.profileRow}>
-            {user?.avatar_url ? (
-              <Image source={{ uri: user.avatar_url }} style={s.avatar} />
+            {resolveUrl(profile?.avatar_url || profile?.logo_url || user?.avatar_url) ? (
+              <Image source={{ uri: resolveUrl(profile?.avatar_url || profile?.logo_url || user?.avatar_url)! }} style={s.avatar} />
             ) : (
               <View style={s.avatarFallback}>
                 <Text style={s.avatarLetter}>{companyName[0]?.toUpperCase()}</Text>

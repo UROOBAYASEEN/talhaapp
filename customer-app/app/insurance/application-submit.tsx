@@ -47,7 +47,7 @@ export default function ApplicantInformation() {
     const e: Record<string, string> = {};
     if (!fullName.trim())  e.fullName = 'Full name is required';
     if (!cnic.trim())      e.cnic     = 'CNIC is required';
-    else if (cnic.replace(/-/g, '').length !== 13) e.cnic = 'Enter valid 13-digit CNIC';
+    else if (cnic.replace(/\D/g, '').length !== 13) e.cnic = 'Enter valid 13-digit CNIC';
     if (!phone.trim())     e.phone    = 'Phone number is required';
     else if (phone.replace(/\s/g, '').length < 10) e.phone = 'Enter valid phone number';
     if (!email.trim())     e.email    = 'Email is required';
@@ -84,7 +84,7 @@ export default function ApplicantInformation() {
 
           <InputField label="Full Name"    value={fullName} onChangeText={v => { setFullName(v); setErrors(p => ({ ...p, fullName: '' })); }} />
           {errors.fullName && <Text style={s.errTxt}>{errors.fullName}</Text>}
-          <InputField label="CNIC"         value={cnic}     onChangeText={v => { setCnic(v);     setErrors(p => ({ ...p, cnic:     '' })); }} keyboardType="numeric" />
+          <InputField label="CNIC"         value={cnic}     onChangeText={v => { setCnic(v);     setErrors(p => ({ ...p, cnic:     '' })); }} keyboardType="default" />
           {errors.cnic && <Text style={s.errTxt}>{errors.cnic}</Text>}
           <InputField label="Phone Number" value={phone}    onChangeText={v => { setPhone(v);    setErrors(p => ({ ...p, phone:    '' })); }} keyboardType="phone-pad" />
           {errors.phone && <Text style={s.errTxt}>{errors.phone}</Text>}
