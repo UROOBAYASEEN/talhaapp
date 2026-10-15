@@ -101,9 +101,9 @@ function NotifBanner() {
     hide();
     const data = banner.data || {};
     if (banner.type === 'message' && data.conversation_id) {
-      router.push({ pathname: '/chat-room/[id]', params: { id: data.conversation_id, name: data.sender_name || 'User' } });
+      router.push({ pathname: `/chat-room/${data.conversation_id}` as any, params: { name: data.sender_name || 'User' } });
     } else if (banner.type === 'call' && data.conversation_id) {
-      router.push({ pathname: '/chat-room/[id]', params: { id: data.conversation_id, name: data.caller_name || 'User' } });
+      router.push({ pathname: `/chat-room/${data.conversation_id}` as any, params: { name: data.caller_name || 'User' } });
     } else {
       router.push('/notifications');
     }

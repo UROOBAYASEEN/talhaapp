@@ -58,7 +58,19 @@ function VideoCard({ item, onPlay, savedStyle }: { item: any; onPlay: () => void
         </>
       ) : null}
       <View style={s.thumb}>
-        <Image source={{ uri: thumb }} style={s.thumbImg} resizeMode="cover" />
+        {isVideo ? (
+          // Discover More jaisa — asli video ka pehla frame (play se pehle), muted + paused
+          <Video
+            source={{ uri: thumb }}
+            style={s.thumbImg}
+            resizeMode={ResizeMode.COVER}
+            shouldPlay={false}
+            isMuted
+            positionMillis={1}
+          />
+        ) : (
+          <Image source={{ uri: thumb }} style={s.thumbImg} resizeMode="cover" />
+        )}
         <View style={s.playBtn}>
           <Ionicons name={isVideo ? "videocam" : "play"} size={14} color={WHITE} />
         </View>
@@ -99,18 +111,45 @@ export default function LatestVideoSection({ count = 2, savedCardStyle = false, 
   const [videos, setVideos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [playing, setPlaying] = useState<{ uri: string; title: string } | null>(null);
+
+  // Saare partners (dealer/bank/insurance/tracker/seller) ki user-ids — /sellers
+  // in paanch roles ko deta hai, admin nahi. Is se admin vs partner pehchan hoti hai.
+  async function fetchPartnerIds(): Promise<Set<string> | null> {
+    const ids = new Set<string>();
+    try {
+      for (let page = 1; page <= 5; page++) {
+        const url = `${API_BASE}/sellers/?page=${page}&limit=100`;
+        const t0 = Date.now();
+        const res = await fetch(url);
+        const data = await res.json().catch(() => undefined);
+        logApi('Latest Video › partners', 'GET', url, res, data, t0);
+        if (!res.ok || !Array.isArray(data)) break;
+        data.forEach((p: any) => p?.id && ids.add(String(p.id)));
+        if (data.length < 100) break;   // aakhri page
+      }
+    } catch (e) {
+      logApiError('Latest Video › partners', 'GET', `${API_BASE}/sellers/`, e, Date.now());
+    }
+    return ids.size ? ids : null;
+  }
+
   useEffect(() => {
     (async () => {
       const url = `${API_BASE}/video-ads`;
       const t0 = Date.now();
       try {
-        const res = await fetch(url);
+        const [res, partnerIds] = await Promise.all([fetch(url), fetchPartnerIds()]);
         const data = await res.json().catch(() => undefined);
         logApi('Latest Video', 'GET', url, res, data, t0);
         if (res.ok) {
           const items = Array.isArray(data) ? data : data.items || [];
+          // SIRF admin ki ads — yani jo kisi partner (dealer/bank/insurance/tracker/seller)
+          // ki na ho. Partner list me jo nahi, wahi admin ki hai.
+          const adminOnly = partnerIds
+            ? items.filter((v: any) => !v?.dealer_id || !partnerIds.has(String(v.dealer_id)))
+            : items;
           // Latest first — start ki videos (koi random/shuffle nahi)
-          const sorted = [...items].sort((a, b) => {
+          const sorted = [...adminOnly].sort((a, b) => {
             const da = new Date(a.created_at || a.createdAt || 0).getTime();
             const db = new Date(b.created_at || b.createdAt || 0).getTime();
             return db - da;

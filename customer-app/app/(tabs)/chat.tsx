@@ -224,7 +224,12 @@ export default function ChatListScreen() {
               >
                 <TouchableOpacity
                   style={[styles.convCard, { backgroundColor: aC.isDark ? '#010b1e' : '#ffffff', borderWidth: 0, overflow: 'hidden' }]}
-                  onPress={() => router.push({ pathname: '/chat-room/[id]', params: { id: item.id, name, otherId: item.participant_info?.[0]?.id ?? '' } })}
+                  onPress={() => {
+                    const cid = item.id || item._id || item.conversation_id;
+                    if (!cid) { console.warn('[chat] conversation me id nahi mila:', item); return; }
+                    const oid = item.participant_info?.[0]?.id ?? '';
+                    router.push(`/chat-room/${cid}?name=${encodeURIComponent(name)}&otherId=${encodeURIComponent(oid)}` as any);
+                  }}
                   activeOpacity={0.92}
                 >
                   {aC.isDark ? (
