@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -17,7 +17,7 @@ import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { Plus, X } from 'lucide-react-native';
 import {
-  AddChip, BottomActions, Chip, D, DField, DHeader, OutlineCard, PlanOption, PromoCard,
+  AddChip, BottomActions, Chip, D, DField, DHeader, DSelect, OutlineCard, PlanOption, PromoCard,
   SaveDraftAction, TermsRow, UploadBox,
 } from '@/components/dealer/DealerUI';
 import { GlassButton, GradientButton } from '@/components/shared/GlowUI';
@@ -26,9 +26,19 @@ import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 import PromoteModal from '@/components/dealer/PromoteModal';
 import { GlowPublishButton, GlowDraftButton } from "@/components/shared/ActionFooterGlow";
+import SelectSheet from '@/components/shared/SelectSheet';
+import {
+  BIKE_BODY_TYPES, BIKE_MODELS, BIKE_VARIANTS, CAR_BODY_TYPES, CAR_MODELS, CAR_VARIANTS, FUEL_TYPES, OTHER, TRANSMISSIONS,
+  VEHICLE_CITIES, VEHICLE_YEARS,
+} from '@/constants/vehicleOptions';
 
 const ORANGE = '#E2671B';
-const C      = AppColors;
+const C = AppColors;
+
+// "4,699,000" → 4699000 (empty → 0)
+const toNum = (v: string) => parseFloat(String(v).replace(/,/g, '')) || 0;
+
+type Picker = 'city' | 'brand' | 'model' | 'variant' | 'transmission' | 'fuel' | 'extraVariant' | 'year' | 'body' | null;
 
 /* ── Input Field (glass pill) ── */
 function InputField({
@@ -87,38 +97,52 @@ function ChipInput({ value, onChange, onDone, onCancel, placeholder }: { value: 
         autoFocus
         returnKeyType="done"
       />
-      <TouchableOpacity onPress={onDone}><Plus size={16} color={ORANGE}/></TouchableOpacity>
-      <TouchableOpacity onPress={onCancel}><X size={16} color={C.textSecondary}/></TouchableOpacity>
+      <TouchableOpacity onPress={onDone}><Plus size={16} color={ORANGE} /></TouchableOpacity>
+      <TouchableOpacity onPress={onCancel}><X size={16} color={C.textSecondary} /></TouchableOpacity>
     </View>
   );
 }
 
 /* ── Main Screen ── */
 export default function AddVehicleScreen() {
-  const router  = useRouter();
+  const router = useRouter();
   const { token, user } = useAuth();
 
-  const [vehicleType, setVehicleType]   = useState<'car' | 'bike'>('car');
-  const [brand, setBrand]               = useState('');
-  const [model, setModel]               = useState('');
-  const [variant, setVariant]           = useState('');
-  const [modelYear, setModelYear]       = useState('2026');
-  const [bodyType, setBodyType]         = useState('');
-  const [exFactory, setExFactory]       = useState('');
-  const [onMoney, setOnMoney]           = useState('');
-  const [booking, setBooking]           = useState('');
+  // Pricing breakdown (WHT / Estimated Total) sirf Dealer ke liye — Seller / Become_a_Seller me sirf Vehicle Price
+  const isDealer = (user as any)?.role === 'dealership_owner';
+
+  const [vehicleType, setVehicleType] = useState<'car' | 'bike'>('car');
+  const [city, setCity] = useState('');
+  const [brand, setBrand] = useState('');
+  const [model, setModel] = useState('');
+  const [variant, setVariant] = useState('');
+  // "Other" select karne pe user apna naam likhta hai
+  const [brandOther, setBrandOther] = useState(false);
+  const [modelOther, setModelOther] = useState(false);
+  const [variantOther, setVariantOther] = useState(false);
+  // Is vehicle ke dosre variants — customer side "Compare Variants" me dikhte hain
+  const [extraVariants, setExtraVariants] = useState<string[]>([]);
+  const [transmission, setTransmission] = useState('');
+  const [fuelType, setFuelType] = useState('');
+  const [modelYear, setModelYear] = useState('2026');
+  const [bodyType, setBodyType] = useState('');
+  const [picker, setPicker] = useState<Picker>(null);
+  const [apiBrands, setApiBrands] = useState<string[]>([]);
+  const [vehiclePrice, setVehiclePrice] = useState('');
+  const [whtFiler, setWhtFiler] = useState('');
+  const [whtNonFiler, setWhtNonFiler] = useState('');
   const [vehicleStatus, setVehicleStatus] = useState('Available');
   const [selectedPlan, setSelectedPlan] = useState('Hot Selling listing');
-  const [accepted, setAccepted]         = useState(false);
-  const [showModal, setShowModal]       = useState(false);
-  const [images, setImages]             = useState<string[]>([]);
-  const [publishing, setPublishing]     = useState(false);
+  const [accepted, setAccepted] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [images, setImages] = useState<string[]>([]);
+  const [publishing, setPublishing] = useState(false);
   const [createdVehicleId, setCreatedVehicleId] = useState<string | null>(null);
 
-  const [colors,        setColors]        = useState(['Wine Red', 'Black', 'White', 'Silver', 'Blue', 'Grey']);
+  const [colors, setColors] = useState(['Wine Red', 'Black', 'White', 'Silver', 'Blue', 'Grey']);
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [showColorInput, setShowColorInput] = useState(false);
-  const [customColor,    setCustomColor]    = useState('');
+  const [customColor, setCustomColor] = useState('');
   const [features, setFeatures] = useState([
     'ABS', 'Airbags', 'Alloy Wheels', 'Cruise Control', 'Push Start',
     'Sunroof', 'Navigation', 'Parking Sensors', 'Reverse Camera', 'Climate Control',
@@ -127,7 +151,58 @@ export default function AddVehicleScreen() {
     'Airbags', 'Cruise Control', 'Sunroof',
   ]);
   const [showFeatureInput, setShowFeatureInput] = useState(false);
-  const [customFeature,    setCustomFeature]    = useState('');
+  const [customFeature, setCustomFeature] = useState('');
+
+  // Brands — backend `/brands` (category wise); offline / empty → local list
+  useEffect(() => {
+    let alive = true;
+    setApiBrands([]);
+    (async () => {
+      try {
+        const res = await fetch(`${API_BASE}/brands?category=${vehicleType}`);
+        if (res.ok) {
+          const d = await res.json();
+          if (alive && Array.isArray(d)) setApiBrands(d.map((b: any) => b?.name).filter(Boolean));
+        }
+      } catch { }
+    })();
+    return () => { alive = false; };
+  }, [vehicleType]);
+
+  const modelMap = vehicleType === 'car' ? CAR_MODELS : BIKE_MODELS;
+  const brandOptions = [...(apiBrands.length ? apiBrands : Object.keys(modelMap)), OTHER];
+  // Brand ke models (naam case-insensitive match) — na milen to sirf "Other"
+  const brandKey = Object.keys(modelMap).find(k => k.toLowerCase() === brand.trim().toLowerCase());
+  const modelOptions = [...(brandKey ? modelMap[brandKey] : []), OTHER];
+  const variantList = vehicleType === 'car' ? CAR_VARIANTS : BIKE_VARIANTS;
+  const variantOptions = [...variantList, OTHER];
+  const extraVariantOptions = variantList.filter(v => v !== variant && !extraVariants.includes(v));
+  const bodyOptions = vehicleType === 'car' ? CAR_BODY_TYPES : BIKE_BODY_TYPES;
+
+  function changeVehicleType(t: 'car' | 'bike') {
+    if (t === vehicleType) return;
+    setVehicleType(t);
+    setBrand(''); setModel(''); setVariant(''); setBodyType(''); setExtraVariants([]);
+    setBrandOther(false); setModelOther(false); setVariantOther(false);
+  }
+
+  function pickBrand(v: string) {
+    const other = v === OTHER;
+    setBrandOther(other);
+    setBrand(other ? '' : v);
+    setModel(''); setModelOther(false);
+  }
+  function pickModel(v: string) {
+    const other = v === OTHER;
+    setModelOther(other);
+    setModel(other ? '' : v);
+  }
+  function pickVariant(v: string) {
+    const other = v === OTHER;
+    setVariantOther(other);
+    setVariant(other ? '' : v);
+    if (!other) setExtraVariants(prev => prev.filter(x => x !== v));
+  }
 
   function toggleFeature(f: string) {
     setSelectedFeatures(prev =>
@@ -186,23 +261,40 @@ export default function AddVehicleScreen() {
           const d = await res.json();
           urls.push(`${BASE}${d.url}`);
         }
-      } catch {}
+      } catch { }
     }
     return urls;
   }
 
   async function handlePublish() {
+    // Fields ki tarteeb se: City → Brand → Vehicle → Variant → Transmission → Fuel → Year → Body Type → Vehicle Price
+    // ("Other Variants" optional hai — uski koi condition nahi)
+    if (!city) {
+      Alert.alert('Required', 'Please select your city.'); return;
+    }
     if (!brand.trim()) {
-      Alert.alert('Required', 'Please enter the vehicle Brand.'); return;
+      Alert.alert('Required', brandOther ? 'Please enter your brand name.' : 'Please select your brand.'); return;
     }
     if (!model.trim()) {
-      Alert.alert('Required', 'Please enter the vehicle Model.'); return;
+      Alert.alert('Required', modelOther ? 'Please enter your vehicle name.' : 'Please select your vehicle.'); return;
     }
-    if (!modelYear.trim()) {
-      Alert.alert('Required', 'Please enter the Model Year.'); return;
+    if (!variant.trim()) {
+      Alert.alert('Required', variantOther ? 'Please enter your variant name.' : 'Please select your variant.'); return;
     }
-    if (!exFactory.trim()) {
-      Alert.alert('Required', 'Please enter the vehicle Price.'); return;
+    if (!transmission) {
+      Alert.alert('Required', 'Please select the transmission.'); return;
+    }
+    if (!fuelType) {
+      Alert.alert('Required', 'Please select the fuel type.'); return;
+    }
+    if (!modelYear) {
+      Alert.alert('Required', 'Please select the year.'); return;
+    }
+    if (!bodyType) {
+      Alert.alert('Required', 'Please select the body type.'); return;
+    }
+    if (!toNum(vehiclePrice)) {
+      Alert.alert('Required', 'Please enter the vehicle price.'); return;
     }
     if (images.length === 0) {
       Alert.alert('Images Required', 'Please add at least one vehicle image before posting.'); return;
@@ -213,22 +305,35 @@ export default function AddVehicleScreen() {
     setPublishing(true);
     try {
       const uploadedUrls = await uploadImages();
-      const price = parseFloat(exFactory.replace(/,/g, '')) || 0;
+      const price = toNum(vehiclePrice);
+      // Pehla variant = ye listing khud (Dealer ki price breakdown isi me); baqi variants Compare Variants ke liye
+      const ownVariant: Record<string, any> = { name: variant.trim() || `${brand} ${model}`.trim(), price };
+      if (isDealer) {
+        if (whtFiler.trim()) ownVariant.withholding_tax_filer = toNum(whtFiler);
+        if (whtNonFiler.trim()) ownVariant.withholding_tax_non_filer = toNum(whtNonFiler);
+      }
+      const variantsPayload = extraVariants.length
+        ? [ownVariant, ...extraVariants.map(name => ({ name }))]
+        : (isDealer ? [ownVariant] : []);
       // Non-dealer (individual seller) inventory used me jata hai taake Buy Used me show ho
       const isIndividual = (user as any)?.role === 'individual_seller';
       const payload = {
-        title:    `${brand} ${model}${variant ? ' ' + variant : ''}`,
-        make:     brand,
+        title: `${brand} ${model}${variant ? ' ' + variant : ''}`,
+        make: brand,
         model,
-        variant:  variant || undefined,
-        year:     parseInt(modelYear) || new Date().getFullYear(),
+        variant: variant || undefined,
+        year: parseInt(modelYear) || new Date().getFullYear(),
         price,
+        variants: variantsPayload,
+        city: city || undefined,
+        transmission: transmission.toLowerCase(),
+        fuel_type: fuelType.toLowerCase(),
         category: vehicleType,
         condition: isIndividual ? 'used' : 'new',
-        color:    selectedColor || undefined,
+        color: selectedColor || undefined,
         body_type: bodyType || undefined,
         features: selectedFeatures,
-        images:   uploadedUrls,
+        images: uploadedUrls,
       };
       const res = await fetch(`${API_BASE}/vehicles/`, {
         method: 'POST',
@@ -245,9 +350,9 @@ export default function AddVehicleScreen() {
         router.push({
           pathname: '/dealer-panel/ad-limit-reached',
           params: {
-            plan:  detail.plan  ?? 'basic',
+            plan: detail.plan ?? 'basic',
             limit: String(detail.limit ?? 5),
-            used:  String(detail.used  ?? 5),
+            used: String(detail.used ?? 5),
             pendingPayload: JSON.stringify(payload),
             vehicleTitle: payload.title,
             vehicleImage: uploadedUrls[0] || '',
@@ -278,9 +383,9 @@ export default function AddVehicleScreen() {
   }
 
   const PLANS = [
-    { title: 'Hot Selling listing', desc: 'Recommended for popular cars',     price: 'Rs 6,650' },
-    { title: 'Home page Listing',   desc: 'Balanced exposure for more buyers', price: 'Rs 5,500', fire: true },
-    { title: 'New Listing',         desc: 'Notify Buyers About New Listings',  price: 'Rs 4,450' },
+    { title: 'Hot Selling listing', desc: 'Recommended for popular cars', price: 'Rs 6,650' },
+    { title: 'Home page Listing', desc: 'Balanced exposure for more buyers', price: 'Rs 5,500', fire: true },
+    { title: 'New Listing', desc: 'Notify Buyers About New Listings', price: 'Rs 4,450' },
   ];
 
   function addColor() {
@@ -326,9 +431,9 @@ export default function AddVehicleScreen() {
               contentContainerStyle={{ gap: 10, paddingHorizontal: 2 }}
               renderItem={({ item }) => (
                 <View style={s.imgThumbWrap}>
-                  <Image source={{ uri: item }} style={s.imgThumb} resizeMode="cover"/>
+                  <Image source={{ uri: item }} style={s.imgThumb} resizeMode="cover" />
                   <TouchableOpacity style={s.imgRemoveBtn} onPress={() => removeImage(item)}>
-                    <X size={12} color="#fff" strokeWidth={2.5}/>
+                    <X size={12} color="#fff" strokeWidth={2.5} />
                   </TouchableOpacity>
                 </View>
               )}
@@ -339,22 +444,50 @@ export default function AddVehicleScreen() {
           <Text style={s.label}>Vehicle Type</Text>
           <View style={s.typeRow}>
             {(['car', 'bike'] as const).map(t => (
-              <Chip key={t} label={t === 'car' ? 'Car' : 'Bike'} selected={vehicleType === t} onPress={() => setVehicleType(t)} />
+              <Chip key={t} label={t === 'car' ? 'Car' : 'Bike'} selected={vehicleType === t} onPress={() => changeVehicleType(t)} />
             ))}
           </View>
 
-          {/* BASIC FIELDS */}
-          <InputField label="Brand"      placeholder="e.g. Honda"          value={brand}     onChangeText={setBrand} />
-          <InputField label="Model"      placeholder="e.g. City"           value={model}     onChangeText={setModel} />
-          <InputField label="Variant"    placeholder="e.g. 1.2 Aspire CVT" value={variant}   onChangeText={setVariant} />
-          <InputField label="Model Year" placeholder="2026"                value={modelYear} onChangeText={setModelYear} keyboardType="numeric" />
-          <InputField label="Body Type"  placeholder="e.g. Sedan"          value={bodyType}  onChangeText={setBodyType} />
+          {/* BASIC FIELDS — dropdowns: City → Brand → Vehicle → Variant → Year → Body Type */}
+          <DSelect label="City" placeholder="Select your city" value={city} onPress={() => setPicker('city')} />
 
-          {/* PRICING */}
+          <DSelect label="Brand" placeholder="Select your brand" value={brandOther ? OTHER : brand} onPress={() => setPicker('brand')} />
+          {brandOther && <View style={s.otherInput}><InputField label="" placeholder="Enter brand name ex: (Honda)" value={brand} onChangeText={setBrand} /></View>}
+
+          <DSelect label="Vehicle" placeholder="Select your vehicle" value={modelOther ? OTHER : model}
+            onPress={() => (brand.trim() || brandOther ? setPicker('model') : Alert.alert('Select Brand', 'Please select the brand first.'))} />
+          {modelOther && <View style={s.otherInput}><InputField label="" placeholder="Enter vehicle name ex: (City)" value={model} onChangeText={setModel} /></View>}
+
+          <DSelect label="Variant" placeholder="Select your variant" value={variantOther ? OTHER : variant} onPress={() => setPicker('variant')} />
+          {variantOther && <View style={s.otherInput}><InputField label="" placeholder="Enter variant name ex: (1.2 Aspire CVT)" value={variant} onChangeText={setVariant} /></View>}
+
+          <DSelect label="Transmission" placeholder="Select your transmission" value={transmission} onPress={() => setPicker('transmission')} />
+          <DSelect label="Fuel" placeholder="Select your fuel type" value={fuelType} onPress={() => setPicker('fuel')} />
+
+          {/* Dosre variants — customer side vehicle detail ke "Compare Variants" me show hote hain */}
+          <Text style={s.label}>Other Variants (Optional)</Text>
+          <View style={s.chipsWrap}>
+            {extraVariants.map(v => (
+              <TouchableOpacity key={v} style={s.variantChip} activeOpacity={0.85} onPress={() => setExtraVariants(prev => prev.filter(x => x !== v))}>
+                <Text style={s.variantChipTxt}>{v}</Text>
+                <X size={13} color={ORANGE} />
+              </TouchableOpacity>
+            ))}
+            <AddChip onPress={() => setPicker('extraVariant')} />
+          </View>
+
+          <DSelect label="Year" placeholder="Select your year" value={modelYear} onPress={() => setPicker('year')} />
+          <DSelect label="Body Type" placeholder="Select your body type" value={bodyType} onPress={() => setPicker('body')} />
+
+          {/* PRICING — Dealer: full breakdown; Seller / Become_a_Seller: sirf Vehicle Price */}
           <Text style={s.sectionTitle}>Pricing Details</Text>
-          <InputField label="Ex-Factory Price (PKR)" placeholder="4,699,000" value={exFactory} onChangeText={setExFactory} keyboardType="numeric" />
-          <InputField label="Estimated On-Money"     placeholder="250,000"   value={onMoney}  onChangeText={setOnMoney}  keyboardType="numeric" />
-          <InputField label="Booking Amount"         placeholder="1,000,000" value={booking}  onChangeText={setBooking}  keyboardType="numeric" />
+          <InputField label="Vehicle Price (PKR)" placeholder="Enter vehicle price" value={vehiclePrice} onChangeText={setVehiclePrice} keyboardType="numeric" />
+          {isDealer && (
+            <>
+              <InputField label="Withholding Tax (Filer)" placeholder="Enter withholding tax (filer)" value={whtFiler} onChangeText={setWhtFiler} keyboardType="numeric" />
+              <InputField label="Withholding Tax (Non-Filer)" placeholder="Enter withholding tax (non-filer)" value={whtNonFiler} onChangeText={setWhtNonFiler} keyboardType="numeric" />
+            </>
+          )}
 
           {/* FEATURES */}
           <OutlineCard style={s.box}>
@@ -418,6 +551,18 @@ export default function AddVehicleScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
 
+      {/* Dropdown sheets */}
+      <SelectSheet visible={picker === 'city'} title="City" options={VEHICLE_CITIES} selected={city} onSelect={setCity} onClose={() => setPicker(null)} />
+      <SelectSheet visible={picker === 'brand'} title="Brand" options={brandOptions} selected={brandOther ? OTHER : brand} onSelect={pickBrand} onClose={() => setPicker(null)} />
+      <SelectSheet visible={picker === 'model'} title="Vehicle" options={modelOptions} selected={modelOther ? OTHER : model} onSelect={pickModel} onClose={() => setPicker(null)} />
+      <SelectSheet visible={picker === 'variant'} title="Variant" options={variantOptions} selected={variantOther ? OTHER : variant} onSelect={pickVariant} onClose={() => setPicker(null)} />
+      <SelectSheet visible={picker === 'transmission'} title="Transmission" options={TRANSMISSIONS} selected={transmission} onSelect={setTransmission} onClose={() => setPicker(null)} />
+      <SelectSheet visible={picker === 'fuel'} title="Fuel" options={FUEL_TYPES} selected={fuelType} onSelect={setFuelType} onClose={() => setPicker(null)} />
+      <SelectSheet visible={picker === 'extraVariant'} title="Other Variant" options={extraVariantOptions} selected=""
+        onSelect={v => setExtraVariants(prev => (prev.includes(v) ? prev : [...prev, v]))} onClose={() => setPicker(null)} />
+      <SelectSheet visible={picker === 'year'} title="Year" options={VEHICLE_YEARS} selected={modelYear} onSelect={setModelYear} onClose={() => setPicker(null)} />
+      <SelectSheet visible={picker === 'body'} title="Body Type" options={bodyOptions} selected={bodyType} onSelect={setBodyType} onClose={() => setPicker(null)} />
+
       <PromoteModal
         visible={showModal}
         onClose={() => setShowModal(false)}
@@ -434,36 +579,39 @@ export default function AddVehicleScreen() {
 }
 
 const s = StyleSheet.create({
-  root:   { flex: 1, backgroundColor: D.bg },
+  root: { flex: 1, backgroundColor: D.bg },
   scroll: { paddingHorizontal: 20, paddingBottom: 30 },
 
   /* AD LIMIT */
   adLimit: { color: D.muted, fontSize: 12, fontFamily: 'Poppins_600SemiBold', marginTop: 4, marginBottom: 14 },
 
   imgThumbWrap: { width: 90, height: 70, borderRadius: 10, overflow: 'hidden', position: 'relative' },
-  imgThumb:     { width: '100%', height: '100%' },
+  imgThumb: { width: '100%', height: '100%' },
   imgRemoveBtn: { position: 'absolute', top: 4, right: 4, width: 20, height: 20, borderRadius: 10, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center' },
 
-  label:   { color: D.muted, fontSize: 14, fontFamily: 'Poppins_500Medium', marginTop: 16, marginBottom: 8 },
+  label: { color: D.muted, fontSize: 14, fontFamily: 'Poppins_500Medium', marginTop: 16, marginBottom: 8 },
   typeRow: { flexDirection: 'row', gap: 10 },
+  otherInput: { marginTop: 10 },
+  variantChip: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 36, paddingHorizontal: 14, borderRadius: 18, borderWidth: 1, borderColor: ORANGE, backgroundColor: '#2A1A1C' },
+  variantChipTxt: { color: ORANGE, fontSize: 12, fontFamily: 'Poppins_500Medium' },
 
   /* SECTION */
   sectionTitle: { color: '#FFFFFF', fontSize: 15, fontFamily: 'Poppins_600SemiBold', marginTop: 22, marginBottom: 12 },
 
   /* FEATURE / COLOR BOXES */
-  box:       { marginTop: 18, paddingTop: 22, paddingBottom: 18 },
-  boxTitle:  { color: '#FFFFFF', fontSize: 14, fontFamily: 'Poppins_600SemiBold', marginBottom: 16 },
+  box: { marginTop: 18, paddingTop: 22, paddingBottom: 18 },
+  boxTitle: { color: '#FFFFFF', fontSize: 14, fontFamily: 'Poppins_600SemiBold', marginBottom: 16 },
   chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   chipInputWrap: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 10, height: 36, borderRadius: 18, borderWidth: 1, borderColor: ORANGE, backgroundColor: D.navy },
-  chipInput:     { color: C.textPrimary, fontSize: 12, fontFamily: 'Poppins_400Regular', minWidth: 100, paddingVertical: 0 },
+  chipInput: { color: C.textPrimary, fontSize: 12, fontFamily: 'Poppins_400Regular', minWidth: 100, paddingVertical: 0 },
 
   /* STATUS */
-  statusOption:      { height: 48, borderRadius: 24, borderWidth: 1, borderColor: 'rgba(200,200,215,0.35)', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 22, marginBottom: 12 },
-  statusOptionActive:{ borderColor: ORANGE, backgroundColor: '#2A1A1C' },
-  statusDot:         { width: 8, height: 8, borderRadius: 4, backgroundColor: D.muted, marginRight: 14 },
-  statusDotActive:   { backgroundColor: ORANGE },
-  statusText:        { color: D.muted, fontSize: 16, fontFamily: 'Poppins_400Regular' },
-  statusTextActive:  { color: ORANGE },
+  statusOption: { height: 48, borderRadius: 24, borderWidth: 1, borderColor: 'rgba(200,200,215,0.35)', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 22, marginBottom: 12 },
+  statusOptionActive: { borderColor: ORANGE, backgroundColor: '#2A1A1C' },
+  statusDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: D.muted, marginRight: 14 },
+  statusDotActive: { backgroundColor: ORANGE },
+  statusText: { color: D.muted, fontSize: 16, fontFamily: 'Poppins_400Regular' },
+  statusTextActive: { color: ORANGE },
 
   /* PROMOTE */
   planSub: { color: '#FFFFFF', fontSize: 12, fontFamily: 'Poppins_400Regular', marginBottom: 16 },

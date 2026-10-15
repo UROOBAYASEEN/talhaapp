@@ -667,7 +667,7 @@ export default function BuyUsedCarScreen() {
             <TouchableOpacity key={i} style={[styles.needCard, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderWidth: aC.isDark ? 0 : 1, borderColor: 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.08, elevation: aC.isDark ? 0 : 3 }, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]} onPress={() => router.push(t.route as any)} activeOpacity={0.85}>
               {aC.isDark
                 ? <LinearGradient colors={['#071B48', '#0A1F4C', '#2B2947', '#80504A']} locations={[0, 0.52, 0.76, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} />
-                : <GlassInset />}
+                : <LinearGradient colors={['#F4F7FA', '#F4F7FA', '#FFB5875C']} locations={[0, 0.45, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
               <Image source={t.img} style={styles.needImg} resizeMode="contain" />
               <View style={styles.needTitleRow}>
                 <Text style={[styles.needTitle, { color: aC.isDark ? '#F2F1F5' : '#010a1f' }]}>{t.title}</Text>

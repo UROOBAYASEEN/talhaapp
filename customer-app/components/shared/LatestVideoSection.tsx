@@ -4,6 +4,7 @@ import { Video, ResizeMode } from 'expo-av';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Image, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { API_BASE } from '@/constants/api';
+import { logApi, logApiError } from '@/constants/apiLog';
 import { useAppColors } from '@/constants/theme';
 
 const VIDEO_IMG =
@@ -100,10 +101,13 @@ export default function LatestVideoSection({ count = 2, savedCardStyle = false, 
   const [playing, setPlaying] = useState<{ uri: string; title: string } | null>(null);
   useEffect(() => {
     (async () => {
+      const url = `${API_BASE}/video-ads`;
+      const t0 = Date.now();
       try {
-        const res = await fetch(`${API_BASE}/video-ads`);
+        const res = await fetch(url);
+        const data = await res.json().catch(() => undefined);
+        logApi('Latest Video', 'GET', url, res, data, t0);
         if (res.ok) {
-          const data = await res.json();
           const items = Array.isArray(data) ? data : data.items || [];
           // Latest first — start ki videos (koi random/shuffle nahi)
           const sorted = [...items].sort((a, b) => {
@@ -113,7 +117,7 @@ export default function LatestVideoSection({ count = 2, savedCardStyle = false, 
           });
           setVideos(sorted.slice(0, count));
         }
-      } catch {}
+      } catch (e) { logApiError('Latest Video', 'GET', url, e, t0); }
       finally { setLoading(false); }
     })();
   }, [count]);

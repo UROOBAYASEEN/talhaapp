@@ -286,7 +286,7 @@ export default function CompareResult() {
   }
 
   return (
-    <SafeAreaView style={[s.safe, { backgroundColor: aC.bg }]}>
+    <SafeAreaView style={[s.safe, { backgroundColor: aC.bg }]} edges={['top']}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 28, backgroundColor: aC.bg }}>
         {/* Topbar */}
         <View style={[s.topbar, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff', borderBottomWidth: aC.isDark ? 0 : 1, borderBottomColor: 'rgba(3,42,105,0.08)' }]}>

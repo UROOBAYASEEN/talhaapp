@@ -78,14 +78,21 @@ function BookVehicleDetailInner() {
   const rating = v.average_rating > 0 ? v.average_rating : 4.9;
   const reviews = v.review_count > 0 ? `${v.review_count} Reviews` : '250+ Reviews';
 
-  const filerTax = tax?.filer_tax;
-  const nonFilerTax = tax?.non_filer_tax;
-  const priceRows = [
+  // Dealer ki di hui breakdown (Add Vehicle → variants[0]) pehle; na ho to /tax API wali calculation
+  const own = (Array.isArray(v.variants) && v.variants[0]) || {};
+  const filerTax = own.withholding_tax_filer ?? tax?.filer_tax;
+  const nonFilerTax = own.withholding_tax_non_filer ?? tax?.non_filer_tax;
+  const filerTotal = own.estimated_total_filer ?? (filerTax != null ? v.price + filerTax : null);
+  const nonFilerTotal = own.estimated_total_non_filer ?? (nonFilerTax != null ? v.price + nonFilerTax : null);
+  // Non-dealer (Seller / Become_a_Seller) → sirf Vehicle Price
+  const priceRows = isDealer ? [
     { l: 'Vehicle price', val: fmtPKR(v.price) },
     { l: 'Withholding Tax (Filer)', val: filerTax != null ? fmtPKR(filerTax) : '—' },
-    { l: 'Withholding Tax (non-Filer)', val: nonFilerTax != null ? fmtPKR(nonFilerTax) : '—' },
-    { l: 'Estimated Total (Filer)', val: filerTax != null ? fmtPKR(v.price + filerTax) : '—' },
-    { l: 'Estimated Total (Non-Filer)', val: nonFilerTax != null ? fmtPKR(v.price + nonFilerTax) : '—' },
+    { l: 'Estimated Total (Filer)', val: filerTotal != null ? fmtPKR(filerTotal) : '—' },
+    { l: 'Withholding Tax (Non-Filer)', val: nonFilerTax != null ? fmtPKR(nonFilerTax) : '—' },
+    { l: 'Estimated Total (Non-Filer)', val: nonFilerTotal != null ? fmtPKR(nonFilerTotal) : '—' },
+  ] : [
+    { l: 'Vehicle price', val: fmtPKR(v.price) },
   ];
 
   const specs = [

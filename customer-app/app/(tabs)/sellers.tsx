@@ -332,9 +332,9 @@ export default function AdsScreen() {
               {/* You May Need This */}
               <Text style={[styles.sectionTitle, { color: aC.textPrimary, fontSize: 17, marginBottom: 14 }]}>You May Need This</Text>
               <View style={styles.needsRow}>
-                <TouchableOpacity style={[styles.needCard, { backgroundColor: aC.isDark ? '#010A1F' : '#F1F4F8' }, !aC.isDark && { borderRadius: 16, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]} activeOpacity={0.85}>
+                <TouchableOpacity style={[styles.needCard, { backgroundColor: aC.isDark ? '#010A1F' : '#FFFFFF' }, !aC.isDark && { borderRadius: 16, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]} activeOpacity={0.85}>
                   <LinearGradient
-                    colors={aC.isDark ? ['#051539', '#061A44', '#0D1E47', '#2A2941', '#4E343A', '#653D37'] : ['#F1F4F8', '#F1F4F8', '#FCDCC8']}
+                    colors={aC.isDark ? ['#051539', '#061A44', '#0D1E47', '#2A2941', '#4E343A', '#653D37'] : ['#F4F7FA', '#F4F7FA', '#FFB5875C']}
                     locations={aC.isDark ? [0, 0.36, 0.52, 0.68, 0.86, 1] : [0, 0.4, 1]}
                     start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
                     style={[StyleSheet.absoluteFillObject, styles.needGradBg, !aC.isDark && { borderRadius: 16 }]}
@@ -352,9 +352,9 @@ export default function AdsScreen() {
                   </View>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={[styles.needCard, { backgroundColor: aC.isDark ? '#010A1F' : '#F1F4F8' }, !aC.isDark && { borderRadius: 16, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]} activeOpacity={0.85}>
+                <TouchableOpacity style={[styles.needCard, { backgroundColor: aC.isDark ? '#010A1F' : '#FFFFFF' }, !aC.isDark && { borderRadius: 16, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]} activeOpacity={0.85}>
                   <LinearGradient
-                    colors={aC.isDark ? ['#051539', '#061A44', '#0D1E47', '#2A2941', '#4E343A', '#653D37'] : ['#F1F4F8', '#F1F4F8', '#FCDCC8']}
+                    colors={aC.isDark ? ['#051539', '#061A44', '#0D1E47', '#2A2941', '#4E343A', '#653D37'] : ['#F4F7FA', '#F4F7FA', '#FFB5875C']}
                     locations={aC.isDark ? [0, 0.36, 0.52, 0.68, 0.86, 1] : [0, 0.4, 1]}
                     start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
                     style={[StyleSheet.absoluteFillObject, styles.needGradBg, !aC.isDark && { borderRadius: 16 }]}

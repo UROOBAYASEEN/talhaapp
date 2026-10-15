@@ -47,6 +47,10 @@ export default function AlertPage() {
         const d = await res.json();
         const items = Array.isArray(d?.items) ? d.items : (Array.isArray(d) ? d : []);
         setAlerts(items.length ? items : DUMMY_ALERTS);
+        // Screen khulte hi sab read — Home bell ka unread badge clear ho jata hai
+        if (items.some((n: any) => !n.is_read)) {
+          fetch(`${API_BASE}/notifications/mark-read`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } }).catch(() => {});
+        }
       }
     } catch { setAlerts(DUMMY_ALERTS); }
     finally { setLoading(false); setRefreshing(false); }

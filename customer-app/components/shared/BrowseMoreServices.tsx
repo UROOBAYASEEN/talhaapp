@@ -17,6 +17,7 @@ const SERVICES = [
     sub: 'Submit your financing application online in just a few easy steps.',
     route: '/(tabs)/sellers',
     params: { role: 'bank_representative' },
+    serviceRoute: '/auto-financing',
   },
   {
     icon: 'location-outline' as const,
@@ -24,6 +25,7 @@ const SERVICES = [
     sub: 'Compare Prices and Schedule Installation.',
     route: '/(tabs)/sellers',
     params: { role: 'tracker_provider' },
+    serviceRoute: '/tracker-search',
   },
   {
     icon: 'shield-checkmark-outline' as const,
@@ -31,10 +33,12 @@ const SERVICES = [
     sub: 'Pick the Right Coverage and Get Insured Easily.',
     route: '/(tabs)/sellers',
     params: { role: 'insurance_provider' },
+    serviceRoute: '/insurance-search',
   },
 ];
 
-export default function BrowseMoreServices({ hideIconCircle = false }: { hideIconCircle?: boolean }) {
+// directRoutes: card seedha us service ki screen kholta hai (Home). Baaki screens purana behaviour rakhti hain.
+export default function BrowseMoreServices({ hideIconCircle = false, directRoutes = false }: { hideIconCircle?: boolean; directRoutes?: boolean }) {
   const router = useRouter();
   const C = useAppColors();
 
@@ -47,7 +51,7 @@ export default function BrowseMoreServices({ hideIconCircle = false }: { hideIco
           key={i}
           style={[s.item, { backgroundColor: C.isDark ? '#061B4A' : '#F5F6F8', borderColor: C.isDark ? 'rgba(100,160,255,0.15)' : 'transparent', borderWidth: C.isDark ? 1 : 0 }, !C.isDark && { borderRadius: 18 }]}
           activeOpacity={0.84}
-          onPress={() => router.push({ pathname: item.route as any, params: item.params })}
+          onPress={() => directRoutes ? router.push(item.serviceRoute as any) : router.push({ pathname: item.route as any, params: item.params })}
         >
           {!C.isDark && <LightGradientBorder radius={18} fill="#F5F6F8" />}
           <View style={[s.iconWrap, hideIconCircle ? { backgroundColor: 'transparent', borderWidth: 0 } : { backgroundColor: C.isDark ? DARK_NAV : '#e8eeff', borderColor: C.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(3,12,40,0.1)' }]}>

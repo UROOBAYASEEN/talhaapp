@@ -388,15 +388,22 @@ export default function CarDetailScreen() {
     { key: 'safety',   title: 'Safety Features',       items: safetyF.length   ? safetyF   : ['ABS Brakes'] },
   ];
 
-  const filerTotal    = tax ? vehicle.price + tax.filer_tax     : null;
-  const nonFilerTotal = tax ? vehicle.price + tax.non_filer_tax : null;
+  // Dealer ki di hui breakdown (Add Vehicle → variants[0]) pehle; na ho to /tax API wali calculation
+  const own           = (Array.isArray(vehicle.variants) && vehicle.variants[0]) || {};
+  const filerTax      = own.withholding_tax_filer     ?? tax?.filer_tax;
+  const nonFilerTax   = own.withholding_tax_non_filer ?? tax?.non_filer_tax;
+  const filerTotal    = own.estimated_total_filer     ?? (filerTax    != null ? vehicle.price + filerTax    : null);
+  const nonFilerTotal = own.estimated_total_non_filer ?? (nonFilerTax != null ? vehicle.price + nonFilerTax : null);
 
-  const priceRows = [
-    { label: 'Vehicle Price',                  value: formatPrice(vehicle.price),                             highlight: false },
-    { label: 'Withholding Tax (Filer)',        value: tax ? formatPrice(tax.filer_tax)     : '—',             highlight: false },
-    { label: 'Estimated Total (Filer)',        value: filerTotal    ? formatPrice(filerTotal)    : '—',       highlight: false },
-    { label: 'Withholding Tax (Non-Filer)',    value: tax ? formatPrice(tax.non_filer_tax) : '—',             highlight: false },
-    { label: 'Estimated Total (Non-Filer)',    value: nonFilerTotal ? formatPrice(nonFilerTotal) : '—',       highlight: false },
+  // Non-dealer (Seller / Become_a_Seller) → sirf Vehicle Price
+  const priceRows = isDealer ? [
+    { label: 'Vehicle Price',                  value: formatPrice(vehicle.price),                                     highlight: false },
+    { label: 'Withholding Tax (Filer)',        value: filerTax      != null ? formatPrice(filerTax)      : '—',       highlight: false },
+    { label: 'Estimated Total (Filer)',        value: filerTotal    != null ? formatPrice(filerTotal)    : '—',       highlight: false },
+    { label: 'Withholding Tax (Non-Filer)',    value: nonFilerTax   != null ? formatPrice(nonFilerTax)   : '—',       highlight: false },
+    { label: 'Estimated Total (Non-Filer)',    value: nonFilerTotal != null ? formatPrice(nonFilerTotal) : '—',       highlight: false },
+  ] : [
+    { label: 'Vehicle Price',                  value: formatPrice(vehicle.price),                                     highlight: false },
   ];
 
   const specs = [
@@ -659,7 +666,7 @@ export default function CarDetailScreen() {
                   <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
                     <View style={{ flex: 1 }}>
                       <Text style={[s.variantName2, { color: aC.isDark ? WHITE : '#010a1f' }]}>{v.name}</Text>
-                      <Text style={[s.variantMeta, { color: aC.isDark ? MUTED : '#475569' }]}>{v.cc}  •  {v.fuel}  •  {v.trans}</Text>
+                      <Text style={[s.variantMeta, { color: aC.isDark ? MUTED : '#475569' }]}>{[v.cc, v.fuel || vehicle.fuel_type, v.trans || vehicle.transmission].filter(Boolean).join('  •  ')}</Text>
                       <Text style={[s.variantMeta, { color: aC.isDark ? MUTED : '#475569' }]}>Delivery: {v.delivery || 'Immediate'}</Text>
                     </View>
                     <Text style={[s.variantPrice2, { paddingBottom: 2 }]}>{v.price ? `Rs ${Number(v.price).toLocaleString()}` : formatPrice(vehicle.price)}</Text>

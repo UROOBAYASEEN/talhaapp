@@ -13,12 +13,13 @@ import LatestVideoSection from '@/components/shared/LatestVideoSection';
 import VehicleSearch from '@/components/shared/VehicleSearch';
 import YouMayNeedThis from '@/components/shared/YouMayNeedThis';
 import { API_BASE } from '@/constants/api';
+import { logApi, logApiError } from '@/constants/apiLog';
 import { useAppColors } from '@/constants/theme';
 import { useAuth } from '@/contexts/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Animated,
@@ -102,16 +103,114 @@ const MORE_SERVICES = [
   { icon: 'locate-outline', title: 'Track My Vehicle', sub: 'Real-time GPS tracking for your vehicle' },
 ];
 
-// node 1986:11792  — Recent Activity
-const RECENT_ACTIVITY = [
-  { icon: 'business-outline', title: 'Financing Application Submitted', sub: 'Toyota Corolla • 2 hrs ago' },
-  { icon: 'calendar-outline', title: 'Insurance Renewal Due', sub: 'Toyota Corolla • 2 hrs ago' },
-  { icon: 'calendar-outline', title: 'Tracker Installation Pending', sub: 'Toyota Corolla • 1 day ago' },
-];
+// ─── Recent Activity (real data only) ─────────────────────────────────────
+type Activity = { id: string; icon: string; title: string; sub: string; at: number; route: string };
 
-// Har activity ke hisab se alag icon (bank/insurance/tracker/...)
+function timeAgo(iso?: string): string {
+  const t = iso ? new Date(iso).getTime() : NaN;
+  if (!isFinite(t)) return '';
+  const mins = Math.max(0, Math.floor((Date.now() - t) / 60000));
+  if (mins < 1) return 'Just now';
+  if (mins < 60) return `${mins} min ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs} hr${hrs > 1 ? 's' : ''} ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 30) return `${days} day${days > 1 ? 's' : ''} ago`;
+  return new Date(t).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function statusLabel(st?: string): string {
+  const v = String(st || '').replace(/_/g, ' ').trim();
+  return v ? v.charAt(0).toUpperCase() + v.slice(1) : '';
+}
+
+const joinParts = (...parts: (string | undefined | null | false)[]) =>
+  parts.map(p => (typeof p === 'string' ? p.trim() : '')).filter(Boolean).join(' • ');
+
+// User ki apni activity — financing, insurance, tracker orders aur posted ads (newest first)
+async function fetchRecentActivity(token: string): Promise<Activity[]> {
+  const headers = { Authorization: `Bearer ${token}` };
+  const get = async (path: string) => {
+    const url = `${API_BASE}${path}`;
+    const t0 = Date.now();
+    try {
+      const r = await fetch(url, { headers });
+      const body = await r.json().catch(() => undefined);
+      logApi('Home › Recent Activity', 'GET', url, r, body, t0);
+      if (!r.ok) throw new Error(`${path} ${r.status}`);
+      return body;
+    } catch (e) {
+      logApiError('Home › Recent Activity', 'GET', url, e, t0);
+      throw e;
+    }
+  };
+  const [fin, insApps, claims, trackers, ads] = await Promise.allSettled([
+    get('/financing/applications/my'),
+    get('/insurance/my-applications'),
+    get('/insurance/my-claims'),
+    get('/tracker-bookings/my-orders'),
+    get('/vehicles/my?limit=5'),
+  ]);
+  // Sab requests fail hon to error dikhayein (khali list nahi)
+  if ([fin, insApps, claims, trackers, ads].every(r => r.status === 'rejected')) throw new Error('activity unavailable');
+  const val = (r: PromiseSettledResult<any>) => {
+    if (r.status !== 'fulfilled') return [];
+    const v = r.value;
+    return Array.isArray(v) ? v : Array.isArray(v?.items) ? v.items : [];
+  };
+
+  const out: Activity[] = [];
+  const claimList = val(claims);
+  const claimById = new Map<string, any>(claimList.map((c: any) => [String(c.id), c]));
+  const appliedClaimIds = new Set<string>();
+
+  for (const a of val(fin)) out.push({
+    id: `fin-${a.id}`, icon: 'bank',
+    title: 'Financing Application',
+    sub: joinParts(statusLabel(a.status), a.bank_name, `${a.brand || ''} ${a.car_model || ''}`, timeAgo(a.created_at)),
+    at: new Date(a.created_at).getTime() || 0, route: '/alert',
+  });
+  for (const a of val(insApps)) {
+    const c = claimById.get(String(a.claim_id));
+    if (a.claim_id) appliedClaimIds.add(String(a.claim_id));
+    out.push({
+      id: `ins-${a.id}`, icon: 'shield-checkmark-outline',
+      title: 'Insurance Application',
+      sub: joinParts(statusLabel(a.status), c ? `${c.brand || ''} ${c.model || ''}` : '', timeAgo(a.created_at)),
+      at: new Date(a.created_at).getTime() || 0, route: '/alert',
+    });
+  }
+  for (const c of claimList) {
+    if (appliedClaimIds.has(String(c.id))) continue;
+    out.push({
+      id: `claim-${c.id}`, icon: 'shield-outline',
+      title: 'Insurance Request',
+      sub: joinParts(statusLabel(c.status), `${c.brand || ''} ${c.model || ''} ${c.year || ''}`, timeAgo(c.created_at)),
+      at: new Date(c.created_at).getTime() || 0, route: '/alert',
+    });
+  }
+  for (const b of val(trackers)) out.push({
+    id: `trk-${b.id}`, icon: 'locate-outline',
+    title: 'Tracker Booking',
+    sub: joinParts(statusLabel(b.status), b.device_name, b.vehicle, timeAgo(b.created_at)),
+    at: new Date(b.created_at).getTime() || 0, route: '/alert',
+  });
+  for (const v of val(ads)) out.push({
+    id: `ad-${v.id}`, icon: 'megaphone-outline',
+    title: 'Ad Posted',
+    sub: joinParts(statusLabel(v.status), v.title || `${v.make || ''} ${v.model || ''}`, timeAgo(v.created_at)),
+    at: new Date(v.created_at).getTime() || 0, route: '/profile/my-listings',
+  });
+
+  const recent = out.sort((x, y) => y.at - x.at).slice(0, 5);
+  if (__DEV__) console.log(`[API] Home › Recent Activity — showing ${recent.length} of ${out.length}:`, recent.map(a => `${a.title} | ${a.sub}`));
+  return recent;
+}
+
+// Har activity ke hisab se icon (bank/insurance/tracker/...)
 const ACT_FALLBACK_ICONS = ['business-outline', 'shield-checkmark-outline', 'locate-outline', 'calendar-outline', 'cash-outline'];
 function actIconName(a: any, index: number): string {
+  if (a?.icon) return a.icon;
   const t = `${a?.title || ''} ${a?.sub || ''}`.toLowerCase();
   if (t.includes('financ') || t.includes('bank') || t.includes('loan')) return 'bank';
   if (t.includes('insur')) return 'shield-checkmark-outline';
@@ -122,15 +221,32 @@ function actIconName(a: any, index: number): string {
   return ACT_FALLBACK_ICONS[index % ACT_FALLBACK_ICONS.length];
 }
 
-// Visual cards used only when the bike API has fewer entries than Featured Cars.
-const FEATURED_BIKE_PREVIEWS = [
-  { title: 'Honda CG 125', price: 238900, variant: 'Self Start', city: 'Karachi', year: 2024, transmission: 'Manual' },
-  { title: 'Yamaha YBR 125', price: 466000, variant: '125G', city: 'Lahore', year: 2024, transmission: 'Manual' },
-  { title: 'Suzuki GS 150', price: 382000, variant: '150cc', city: 'Islamabad', year: 2025, transmission: 'Manual' },
-  { title: 'Honda CD 70', price: 157900, variant: '70cc', city: 'Karachi', year: 2025, transmission: 'Manual' },
-  { title: 'Suzuki GR 150', price: 547000, variant: '150cc', city: 'Lahore', year: 2024, transmission: 'Manual' },
-  { title: 'Yamaha YB 125Z', price: 424000, variant: '125cc', city: 'Rawalpindi', year: 2025, transmission: 'Manual' },
-];
+// Featured = promoted (is_featured) pehle, phir latest listings — sirf API data, max 6
+async function fetchFeatured(category: 'car' | 'bike', headers: Record<string, string>): Promise<any[]> {
+  const base = `${API_BASE}/vehicles/?category=${category}&condition=new&limit=6`;
+  const label = `Home › Featured ${category === 'car' ? 'Cars' : 'Bikes'}`;
+  // Ek request — response JSON parse karke log karta hai
+  const call = async (url: string) => {
+    const t0 = Date.now();
+    try {
+      const r = await fetch(url, { headers });
+      const body = await r.json().catch(() => undefined);
+      logApi(label, 'GET', url, r, body, t0);
+      return { ok: r.ok, status: r.status, items: r.ok ? ((body as any)?.items ?? []) : [] };
+    } catch (e) {
+      logApiError(label, 'GET', url, e, t0);
+      return { ok: false, status: 0, items: [] };
+    }
+  };
+  const [promoted, latest] = await Promise.all([call(`${base}&featured=true`), call(base)]);
+  if (!promoted.ok && !latest.ok) throw new Error(`featured ${category} ${latest.status}`);
+  const seen = new Set<string>();
+  const result = [...promoted.items, ...latest.items]
+    .filter((v: any) => v?.id && !seen.has(v.id) && seen.add(v.id))
+    .slice(0, 6);
+  if (__DEV__) console.log(`[API] ${label} — showing ${result.length} (promoted ${promoted.items.length}, latest ${latest.items.length}); images:`, result.map((v: any) => v.images?.[0] ?? '<no image>'));
+  return result;
+}
 
 // ─── Marquee auto-scroll stats ticker ─────────────────────────────────────
 const CARD_W = 178;   // must match scrollStatCard width
@@ -376,65 +492,65 @@ function SettingsMenu({ visible, onClose, anchor }: { visible: boolean; onClose:
     // Rendered inside the screen (not a Modal) so it sits exactly under the settings icon.
     // `anchor` is the icon's position relative to the screen root.
     visible ? (
-    <View style={[StyleSheet.absoluteFill, { zIndex: 1000, elevation: 1000 }]}>
-      <TouchableOpacity style={sm.overlay} activeOpacity={1} onPress={onClose}>
-        <TouchableOpacity activeOpacity={1} style={[sm.card, anchor
-          // Right-aligned just below the settings icon
-          ? { position: 'absolute', top: anchor.y + anchor.h + 4, right: Math.max(8, Dimensions.get('window').width - (anchor.x + anchor.w)) }
-          : { position: 'absolute', top: 56, right: 14 }, { backgroundColor: dark ? '#081D4A' : '#ffffff', borderColor: dark ? 'rgba(255,255,255,0.12)' : 'rgba(3,42,105,0.12)' }]}>
-          <View style={sm.row}>
-            <Text style={[sm.label, { color: txt }]}>Light Mode</Text>
-            <Switch
-              value={lightOn}
-              onValueChange={v => Appearance.setColorScheme(v ? 'light' : 'dark')}
-              trackColor={{ false: '#0B2E6B', true: '#0B2E6B' }}
-              thumbColor="#ffffff"
-              ios_backgroundColor="#0B2E6B"
-              style={sm.switch}
-            />
-          </View>
-          <View style={[sm.divider, { backgroundColor: line }]} />
-          <TouchableOpacity style={sm.row} activeOpacity={0.8} onPress={() => { onClose(); router.push('/(tabs)/profile' as any); }}>
-            <View style={sm.iconBox}><Ionicons name="person-outline" size={17} color="#E2671B" /></View>
-            <Text style={[sm.label, { color: txt, flex: 1 }]}>Profile</Text>
-          </TouchableOpacity>
-          <View style={[sm.divider, { backgroundColor: line }]} />
-          <TouchableOpacity style={sm.row} activeOpacity={0.8} onPress={() => { onClose(); router.push('/vehicle/create' as any); }}>
-            <View style={sm.iconBox}>
-              <MaterialCommunityIcons name="car-outline" size={19} color="#E2671B" />
-              <MaterialCommunityIcons name="tag-outline" size={10} color="#E2671B" style={sm.tag} />
+      <View style={[StyleSheet.absoluteFill, { zIndex: 1000, elevation: 1000 }]}>
+        <TouchableOpacity style={sm.overlay} activeOpacity={1} onPress={onClose}>
+          <TouchableOpacity activeOpacity={1} style={[sm.card, anchor
+            // Right-aligned just below the settings icon
+            ? { position: 'absolute', top: anchor.y + anchor.h + 4, right: Math.max(8, Dimensions.get('window').width - (anchor.x + anchor.w)) }
+            : { position: 'absolute', top: 56, right: 14 }, { backgroundColor: dark ? '#081D4A' : '#ffffff', borderColor: dark ? 'rgba(255,255,255,0.12)' : 'rgba(3,42,105,0.12)' }]}>
+            <View style={sm.row}>
+              <Text style={[sm.label, { color: txt }]}>Light Mode</Text>
+              <Switch
+                value={lightOn}
+                onValueChange={v => Appearance.setColorScheme(v ? 'light' : 'dark')}
+                trackColor={{ false: '#0B2E6B', true: '#0B2E6B' }}
+                thumbColor="#ffffff"
+                ios_backgroundColor="#0B2E6B"
+                style={sm.switch}
+              />
             </View>
-            <Text style={[sm.label, { color: txt, flex: 1 }]}>Become A Seller</Text>
-            {/* Same toggle as Light Mode */}
-            <Switch
-              value={sellerOn}
-              onValueChange={v => {
-                setSellerOn(v);
-                // ON → Become_a_Seller panel (API logic will come later)
-                if (v) { onClose(); router.replace('/Become_a_Seller' as any); }
-              }}
-              trackColor={{ false: '#0B2E6B', true: '#0B2E6B' }}
-              thumbColor="#ffffff"
-              ios_backgroundColor="#0B2E6B"
-              style={sm.switch}
-            />
+            <View style={[sm.divider, { backgroundColor: line }]} />
+            <TouchableOpacity style={sm.row} activeOpacity={0.8} onPress={() => { onClose(); router.push('/(tabs)/profile' as any); }}>
+              <View style={sm.iconBox}><Ionicons name="person-outline" size={17} color="#E2671B" /></View>
+              <Text style={[sm.label, { color: txt, flex: 1 }]}>Profile</Text>
+            </TouchableOpacity>
+            <View style={[sm.divider, { backgroundColor: line }]} />
+            <TouchableOpacity style={sm.row} activeOpacity={0.8} onPress={() => { onClose(); router.push('/vehicle/create' as any); }}>
+              <View style={sm.iconBox}>
+                <MaterialCommunityIcons name="car-outline" size={19} color="#E2671B" />
+                <MaterialCommunityIcons name="tag-outline" size={10} color="#E2671B" style={sm.tag} />
+              </View>
+              <Text style={[sm.label, { color: txt, flex: 1 }]}>Become A Seller</Text>
+              {/* Same toggle as Light Mode */}
+              <Switch
+                value={sellerOn}
+                onValueChange={v => {
+                  setSellerOn(v);
+                  // ON → Become_a_Seller panel (API logic will come later)
+                  if (v) { onClose(); router.replace('/Become_a_Seller' as any); }
+                }}
+                trackColor={{ false: '#0B2E6B', true: '#0B2E6B' }}
+                thumbColor="#ffffff"
+                ios_backgroundColor="#0B2E6B"
+                style={sm.switch}
+              />
+            </TouchableOpacity>
           </TouchableOpacity>
         </TouchableOpacity>
-      </TouchableOpacity>
-    </View>
+      </View>
     ) : null
   );
 }
 
 const sm = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)' },
-  card:    { width: 178, borderRadius: 16, borderWidth: 1, paddingHorizontal: 6, paddingVertical: 4, shadowColor: '#000', shadowOpacity: 0.35, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 12 },
-  row:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 8, paddingVertical: 12, gap: 10 },
-  label:   { fontSize: 12.5, fontFamily: 'Poppins_500Medium' },
+  card: { width: 178, borderRadius: 16, borderWidth: 1, paddingHorizontal: 6, paddingVertical: 4, shadowColor: '#000', shadowOpacity: 0.35, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 12 },
+  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 8, paddingVertical: 12, gap: 10 },
+  label: { fontSize: 12.5, fontFamily: 'Poppins_500Medium' },
   divider: { height: 1 },
   iconBox: { width: 22, alignItems: 'center', justifyContent: 'center' },
-  tag:     { position: 'absolute', top: -3, right: -5 },
-  switch:  { transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }], marginVertical: -6, marginRight: -6 },
+  tag: { position: 'absolute', top: -3, right: -5 },
+  switch: { transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }], marginVertical: -6, marginRight: -6 },
 });
 
 export default function HomeScreen() {
@@ -449,8 +565,12 @@ export default function HomeScreen() {
   const [featured, setFeatured] = useState<any[]>([]);
   const [bikes, setBikes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [featuredError, setFeaturedError] = useState(false);
   const [refresh, setRefresh] = useState(false);
-  const [recentReal, setRecentReal] = useState<any[] | null>(null);
+  const [unread, setUnread] = useState(0);
+  const [activity, setActivity] = useState<Activity[]>([]);
+  const [activityLoading, setActivityLoading] = useState(false);
+  const [activityError, setActivityError] = useState(false);
 
   // ── Find Your Perfect Vehicle interactive state ──
   const [payOption, setPayOption] = useState<'Cash' | 'Finance'>('Cash');
@@ -468,492 +588,523 @@ export default function HomeScreen() {
     ? (user.avatar_url.startsWith('http') ? user.avatar_url : `${BASE_URL}${user.avatar_url}`)
     : null;
 
-  async function load() {
-    try {
-      const [a, b] = await Promise.all([
-        fetch(`${API_BASE}/vehicles?category=car&condition=new&limit=6`),
-        fetch(`${API_BASE}/vehicles?category=bike&condition=new&seller_type=dealership&limit=6`),
-      ]);
-      const sortAds = (items: any[]) => [...items].sort((x, y) => {
-        const priceDiff = Number(y.price || 0) - Number(x.price || 0);
-        if (priceDiff !== 0) return priceDiff;
-        const dx = new Date(y.created_at || y.createdAt || 0).getTime();
-        const dy = new Date(x.created_at || x.createdAt || 0).getTime();
-        return dx - dy;
-      });
-      if (a.ok) { const d = await a.json(); setFeatured(sortAds(d.items || d || [])); }
-      if (b.ok) { const d = await b.json(); setBikes(sortAds(d.items || d || [])); }
-    } catch { /* offline */ }
-    finally { setLoading(false); setRefresh(false); }
+  async function loadFeatured() {
+    const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+    const [cars, bikeList] = await Promise.allSettled([fetchFeatured('car', headers), fetchFeatured('bike', headers)]);
+    if (cars.status === 'fulfilled') setFeatured(cars.value);
+    if (bikeList.status === 'fulfilled') setBikes(bikeList.value);
+    setFeaturedError(cars.status === 'rejected' && bikeList.status === 'rejected');
+    setLoading(false);
   }
-  useEffect(() => { load(); }, []);
 
-  // Real recent activity — from notifications (if any) otherwise fallback to static
-  useEffect(() => {
-    if (!token) return;
-    (async () => {
-      try {
-        const res = await fetch(`${API_BASE}/notifications/?limit=5`, { headers: { Authorization: `Bearer ${token}` } });
-        if (res.ok) {
-          const d = await res.json();
-          const items = d.items || d || [];
-          if (items.length) {
-            const mapped = items.slice(0, 5).map((n: any) => ({
-              icon: n.type === 'payment' ? 'business-outline' : n.type === 'message' ? 'chatbubble-outline' : 'shield-outline',
-              title: n.title || 'Notification',
-              sub: (n.body || n.message || '').slice(0, 50) || '—',
-            }));
-            setRecentReal(mapped);
-          }
-        }
-      } catch { }
-    })();
-  }, [token]);
+  // Bell badge — server ka unread_count
+  async function loadUnread() {
+    if (!token) { setUnread(0); return; }
+    const url = `${API_BASE}/notifications/?limit=1`;
+    const t0 = Date.now();
+    try {
+      const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+      const body = await res.json().catch(() => undefined);
+      logApi('Home › Notification badge', 'GET', url, res, body, t0);
+      if (res.ok) setUnread(Number((body as any)?.unread_count) || 0);
+    } catch (e) { logApiError('Home › Notification badge', 'GET', url, e, t0); /* badge pichli value pe rehta hai */ }
+  }
+
+  async function loadActivity() {
+    if (!token) { setActivity([]); return; }
+    setActivityLoading(true);
+    try {
+      setActivity(await fetchRecentActivity(token));
+      setActivityError(false);
+    } catch {
+      setActivityError(true);
+    } finally {
+      setActivityLoading(false);
+    }
+  }
+
+  async function onRefresh() {
+    setRefresh(true);
+    await Promise.all([loadFeatured(), loadUnread(), loadActivity()]);
+    setRefresh(false);
+  }
+
+  useEffect(() => { loadFeatured(); }, [token]);
+
+  // Screen pe wapas aane par (e.g. Alerts parh kar) badge aur activity fresh karo
+  useFocusEffect(useCallback(() => {
+    loadUnread();
+    loadActivity();
+  }, [token]));
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: aC.bg }]}>
       <View ref={screenRef} style={{ flex: 1 }} collapsable={false}>
-      <ScrollView
-        onScrollBeginDrag={() => settingsOpen && setSettingsOpen(false)}
-        showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refresh} onRefresh={() => { setRefresh(true); load(); }} tintColor="#e2671b" />}
-      >
-
-        {/* ════════════════════════════════════════════════════
-            1 · HEADER + HERO (upper section) — bg #061B4A
-        ════════════════════════════════════════════════════ */}
-        <View style={[styles.upperBg, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff' }]}> 
-          {aC.isDark && <View pointerEvents="none" style={styles.upperBgShape} />}
-          {/* Light (Figma): grey-blue → peach header shape, rounded bottom + soft shadow */}
-          {!aC.isDark && (
-            <>
-              <LinearGradient pointerEvents="none" colors={['#F3F5F9', '#F3F5F9', '#FBE0D0']} locations={[0, 0.4, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={styles.upperBgShapeLight} />
-            </>
-          )}
-          <View style={[styles.header, { backgroundColor: aC.isDark ? '#071c49' : 'transparent' }]}>
-
-            {/* ── Top row: back-arrow · company name · icons ── */}
-            <View style={[styles.logoRow, !aC.isDark && { marginHorizontal: 0 }]}>
-
-              {/* LEFT: arrow-left 24×24 */}
-              <TouchableOpacity style={[styles.backArrow, !aC.isDark && { alignItems: 'flex-start' }]} onPress={() => router.back()}>
-                <Ionicons name="arrow-back-outline" size={24} color={aC.isDark ? '#c5bdc9' : aC.textPrimary} />
-              </TouchableOpacity>
-
-              {/* CENTER: Autowizor logo — Figma node 259:2027 exact image */}
-              <View style={styles.companyNameWrap}>
-                {aC.isDark ? (
-                  <Image
-                    source={require('@/assets/images/autowizor-logo-text.png')}
-                    style={styles.companyNameImg}
-                    resizeMode="contain"
-                  />
-                ) : (
-                  <Text style={styles.companyNameTextLight}>
-                    <Text style={{ color: '#032a69' }}>Auto</Text>
-                    <Text style={{ color: '#e2671b' }}>wizor</Text>
-                  </Text>
-                )}
-              </View>
-
-              {/* RIGHT: notification + settings — fixed width row */}
-              <View style={styles.topIcons}>
-                <TouchableOpacity
-                  style={styles.headerIconBtn}
-                  onPress={() => router.push('/alert' as any)}
-                >
-                  <Ionicons name="notifications-outline" size={21} color={aC.isDark ? '#e2deea' : aC.textPrimary} />
-                  <View style={[styles.notifDot, { borderColor: aC.bg }]} />
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  ref={settingsBtnRef as any}
-                  style={[styles.headerIconBtn, !aC.isDark && { alignItems: 'flex-end' }]}
-                  onPress={() => {
-                    const node: any = settingsBtnRef.current;
-                    const root: any = screenRef.current;
-                    if (node?.measureInWindow && root?.measureInWindow) {
-                      root.measureInWindow((rx: number, ry: number) => {
-                        node.measureInWindow((x: number, y: number, w: number, h: number) => {
-                          setSettingsAnchor({ x: x - rx, y: y - ry, w, h });
-                          setSettingsOpen(true);
-                        });
-                      });
-                    } else {
-                      setSettingsOpen(true);
-                    }
-                  }}
-                >
-                  <Ionicons name="settings-outline" size={21} color={aC.isDark ? '#e2deea' : aC.textPrimary} />
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* ── [FRAME] Frame 1686558744  343×51 — greeting block ── */}
-            <View style={[styles.greetBlock, !aC.isDark && { marginHorizontal: 0 }]}>
-              <View style={styles.greetRow}>
-                <TouchableOpacity
-                  onPress={() => router.push('/profile/edit' as any)}
-                  style={styles.greetAvatarPlaceholder}
-                >
-                  {resolvedAvatar ? (
-                    <Image
-                      source={{ uri: resolvedAvatar }}
-                      style={styles.greetAvatar}
-                      resizeMode="cover"
-                    />
-                  ) : (
-                    <Image source={require('@/assets/images/profileDummyImage.png')} style={styles.greetAvatar} resizeMode="cover" />
-                  )}
-                </TouchableOpacity>
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.greetName, { color: aC.textPrimary }]}>Hello, {firstName}👋</Text>
-                  <Text style={[styles.greetSub, { color: aC.textSecondary }]}>How can we help today?</Text>
-                </View>
-              </View>
-            </View>
-
-            {/* ── [FRAME] Frame 1686559043 — search bar 350×48 / radius=32 ── */}
-            <TouchableOpacity
-              style={[styles.searchBar, { backgroundColor: aC.isDark ? '#142c59' : '#ffffff', borderColor: aC.isDark ? '#87a3cc' : 'rgba(0,0,0,0.1)' }, !aC.isDark && styles.searchBarLight]}
-              onPress={() => router.push('/(tabs)/explore')}
-              activeOpacity={0.85}
-            >
-              {aC.isDark && <LinearGradient colors={['#20467f', '#182e59', '#122650', '#1a366a']} locations={[0, 0.32, 0.72, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
-              <Ionicons name="search-outline" size={20} color={aC.isDark ? '#d2d2d2' : '#000000'} />
-              <Text style={[styles.searchPh, { color: aC.isDark ? aC.textSecondary : '#000000' }]}>Search cars, banks & dealers...</Text>
-            </TouchableOpacity>
-
-          </View>
+        <ScrollView
+          onScrollBeginDrag={() => settingsOpen && setSettingsOpen(false)}
+          showsVerticalScrollIndicator={false}
+          refreshControl={<RefreshControl refreshing={refresh} onRefresh={onRefresh} tintColor="#e2671b" />}
+        >
 
           {/* ════════════════════════════════════════════════════
+            1 · HEADER + HERO (upper section) — bg #061B4A
+        ════════════════════════════════════════════════════ */}
+          <View style={[styles.upperBg, { backgroundColor: aC.isDark ? 'transparent' : '#ffffff' }]}>
+            {aC.isDark && <View pointerEvents="none" style={styles.upperBgShape} />}
+            {/* Light (Figma): grey-blue → peach header shape, rounded bottom + soft shadow */}
+            {!aC.isDark && (
+              <>
+                <LinearGradient pointerEvents="none" colors={['#F3F5F9', '#F3F5F9', '#FBE0D0']} locations={[0, 0.4, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={styles.upperBgShapeLight} />
+              </>
+            )}
+            <View style={[styles.header, { backgroundColor: aC.isDark ? '#071c49' : 'transparent' }]}>
+
+              {/* ── Top row: logo (left) · notification + settings (right) ── */}
+              {/* Home root tab hai — back arrow nahi */}
+              <View style={[styles.logoRow, !aC.isDark && { marginHorizontal: 0 }]}>
+
+                {/* LEFT: Autowizor logo — Figma node 259:2027 exact image */}
+                <View style={styles.brandLogoWrap}>
+                  {aC.isDark ? (
+                    <Image
+                      source={require('@/assets/images/autowizor-logo-text.png')}
+                      style={styles.companyNameImg}
+                      resizeMode="contain"
+                    />
+                  ) : (
+                    <Text style={styles.companyNameTextLight}>
+                      <Text style={{ color: '#032a69' }}>Auto</Text>
+                      <Text style={{ color: '#e2671b' }}>wizor</Text>
+                    </Text>
+                  )}
+                </View>
+
+                {/* RIGHT: notification + settings — fixed width row */}
+                <View style={styles.topIcons}>
+                  <TouchableOpacity
+                    style={[styles.headerIconBtn, aC.isDark ? styles.headerIconBtnDark : styles.headerIconBtnLight]}
+                    onPress={() => router.push('/alert' as any)}
+                    accessibilityRole="button"
+                    accessibilityLabel={unread > 0 ? `Notifications, ${unread} unread` : 'Notifications'}
+                  >
+                    <Ionicons name="notifications-outline" size={20} color={aC.isDark ? '#e2deea' : aC.textPrimary} />
+                    {unread > 0 && (
+                      <View style={[styles.notifBadge, { borderColor: aC.isDark ? '#071c49' : '#F3F5F9' }]}>
+                        <Text style={styles.notifBadgeTxt}>{unread > 99 ? '99+' : unread}</Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    ref={settingsBtnRef as any}
+                    style={[styles.headerIconBtn, aC.isDark ? styles.headerIconBtnDark : styles.headerIconBtnLight]}
+                    accessibilityRole="button"
+                    accessibilityLabel="Settings"
+                    onPress={() => {
+                      const node: any = settingsBtnRef.current;
+                      const root: any = screenRef.current;
+                      if (node?.measureInWindow && root?.measureInWindow) {
+                        root.measureInWindow((rx: number, ry: number) => {
+                          node.measureInWindow((x: number, y: number, w: number, h: number) => {
+                            setSettingsAnchor({ x: x - rx, y: y - ry, w, h });
+                            setSettingsOpen(true);
+                          });
+                        });
+                      } else {
+                        setSettingsOpen(true);
+                      }
+                    }}
+                  >
+                    <Ionicons name="settings-outline" size={20} color={aC.isDark ? '#e2deea' : aC.textPrimary} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* ── [FRAME] Frame 1686558744  343×51 — greeting block ── */}
+              <View style={[styles.greetBlock, !aC.isDark && { marginHorizontal: 0 }]}>
+                <View style={styles.greetRow}>
+                  <TouchableOpacity
+                    onPress={() => router.push('/profile/edit' as any)}
+                    style={styles.greetAvatarPlaceholder}
+                  >
+                    {resolvedAvatar ? (
+                      <Image
+                        source={{ uri: resolvedAvatar }}
+                        style={styles.greetAvatar}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <Image source={require('@/assets/images/profileDummyImage.png')} style={styles.greetAvatar} resizeMode="cover" />
+                    )}
+                  </TouchableOpacity>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.greetName, { color: aC.textPrimary }]}>Hello, {firstName}👋</Text>
+                    <Text style={[styles.greetSub, { color: aC.textSecondary }]}>How can we help today?</Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* ── [FRAME] Frame 1686559043 — search bar 350×48 / radius=32 ── */}
+              <TouchableOpacity
+                style={[styles.searchBar, { backgroundColor: aC.isDark ? '#142c59' : '#ffffff', borderColor: aC.isDark ? '#87a3cc' : 'rgba(0,0,0,0.1)' }, !aC.isDark && styles.searchBarLight]}
+                onPress={() => router.push('/(tabs)/explore')}
+                activeOpacity={0.85}
+              >
+                {aC.isDark && <LinearGradient colors={['#20467f', '#182e59', '#122650', '#1a366a']} locations={[0, 0.32, 0.72, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
+                <Ionicons name="search-outline" size={20} color={aC.isDark ? '#d2d2d2' : '#000000'} />
+                <Text style={[styles.searchPh, { color: aC.isDark ? aC.textSecondary : '#000000' }]}>Search cars, banks & dealers...</Text>
+              </TouchableOpacity>
+
+            </View>
+
+            {/* ════════════════════════════════════════════════════
             2 · HERO BANNER  (node 1986:11122 — Glass Button 350×229)
             Figma: bg=rgba(6,27,74,0.6), border=rgba(255,255,255,0.15)
         ════════════════════════════════════════════════════ */}
-          <View style={styles.pad}>
+            <View style={styles.pad}>
+              <LinearGradient
+                colors={['#E2671B', '#032A69']}
+                start={{ x: 0.5, y: 0 }}
+                end={{ x: 0.5, y: 1 }}
+                style={[styles.heroBorder, !aC.isDark && { boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}
+              >
+                <View style={[styles.heroBanner, { backgroundColor: aC.isDark ? '#061538' : '#ffffff', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, shadowRadius: 10, elevation: aC.isDark ? 0 : 2 }]}>
+                  {/* Light mood: pure white, no shade — Dark: orange + 4-side shade */}
+                  {aC.isDark ? (
+                    <>
+                      <LinearGradient colors={['#061538', '#061538', '#24243a', '#52343b']} locations={[0, 0.58, 0.78, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+                    </>
+                  ) : null}
+
+                  {/* Figma node 1986:11227 — hero car image */}
+                  <Image
+                    source={require('@/screenshot/realllogo.png')}
+                    style={styles.heroCarImg}
+                    resizeMode="contain"
+                  />
+
+                  {/* Existing title and statistics, positioned to match the Figma banner */}
+                  <View style={styles.heroLeft}>
+                    {/* Title — #ffffff, 18px, 600 */}
+                    {aC.isDark ? (
+                      <Text style={[styles.heroTitle, { color: aC.isDark ? '#ffffff' : '#032a69' }]}>
+                        Pakistan's First{'\n'}Connected{' '}
+                        <Text style={{ color: '#e2671b' }}>Auto{'\n'}Ecosystem</Text>
+                      </Text>
+                    ) : (
+                      <Text style={[styles.heroTitle, { color: '#1f2f63' }]}>
+                        Pakistan's <Text style={{ color: '#e2671b' }}>First</Text>{'\n'}Connected{' '}
+                        <Text style={{ color: '#e2671b' }}>Auto</Text>{'\n'}Ecosystem
+                      </Text>
+                    )}
+                    {/* Stats at the bottom — values #e2671b, labels #d2d2d2 (light: black) */}
+                    <View style={styles.heroBannerStats}>
+                      {MINI_STATS.map((s, i) => (
+                        <React.Fragment key={s.label}>
+                          <View>
+                            <Text style={styles.heroBannerVal}>{s.value}</Text>
+                            <Text style={[styles.heroBannerLabel, { color: aC.isDark ? '#d2d2d2' : '#000000' }]}>{s.label}</Text>
+                          </View>
+                          {i < MINI_STATS.length - 1 && (
+                            <View style={styles.heroStatDiv} />
+                          )}
+                        </React.Fragment>
+                      ))}
+                    </View>
+                  </View>
+                </View>
+              </LinearGradient>
+              <View style={styles.heroDots} pointerEvents="none">
+                <View style={[styles.heroDot, { backgroundColor: aC.isDark ? '#ffffff' : '#9a94a0' }]} />
+                <View style={[styles.heroDot, { backgroundColor: aC.isDark ? '#baacb6' : 'rgba(3,42,105,0.35)' }]} />
+                <View style={[styles.heroDot, { backgroundColor: aC.isDark ? '#baacb6' : 'rgba(3,42,105,0.35)' }]} />
+              </View>
+            </View>
+          </View>
+
+          {/* ════════════════════════════════════════════════════
+            4 · ALL SERVICES  (node 1986:11312)  ← FIRST
+            "All services" title + 2 rows × 4 items = 8
+        ════════════════════════════════════════════ */}
+          <View style={[styles.sec, styles.pad, styles.servicesSection]}>
+            <SH title="All services" />
+            <View style={styles.servGrid}>
+              {ALL_SERVICES.map(s => (
+                <TouchableOpacity
+                  key={s.label}
+                  style={[styles.servCard, { width: servW, backgroundColor: aC.isDark ? '#010a1f' : '#F2F4F8', borderColor: aC.isDark ? '#8ba7d2' : 'transparent' }, !aC.isDark && styles.servCardLight]}
+                  onPress={() => {
+                    if (s.p && Object.keys(s.p).length > 0) {
+                      router.push({ pathname: s.route as any, params: s.p });
+                    } else {
+                      router.push(s.route as any);
+                    }
+                  }}
+                  activeOpacity={0.82}
+                >
+                  {aC.isDark ? (
+                    <>
+                      {/* Top shade */}
+                      <LinearGradient
+                        colors={['rgba(22,64,136,0.55)', 'transparent']}
+                        start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.2 }}
+                        style={StyleSheet.absoluteFillObject} pointerEvents="none"
+                      />
+                      {/* Bottom shade */}
+                      <LinearGradient
+                        colors={['transparent', 'rgba(29,83,175,0.45)']}
+                        start={{ x: 0.5, y: 0.8 }} end={{ x: 0.5, y: 1 }}
+                        style={StyleSheet.absoluteFillObject} pointerEvents="none"
+                      />
+                      {/* Left shade */}
+                      <LinearGradient
+                        colors={['rgba(13,37,84,0.6)', 'transparent']}
+                        start={{ x: 0, y: 0.5 }} end={{ x: 0.2, y: 0.5 }}
+                        style={StyleSheet.absoluteFillObject} pointerEvents="none"
+                      />
+                      {/* Right shade */}
+                      <LinearGradient
+                        colors={['transparent', 'rgba(13,37,84,0.6)']}
+                        start={{ x: 0.8, y: 0.5 }} end={{ x: 1, y: 0.5 }}
+                        style={StyleSheet.absoluteFillObject} pointerEvents="none"
+                      />
+                    </>
+                  ) : (
+                    <LightGradientBorder radius={16} fill="#F2F4F8" colors={['rgba(226,103,27,0.45)', 'rgba(3,42,105,0.4)']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} />
+                  )}
+                  {(s as any).image ? (
+                    <Image source={(s as any).image} style={{ width: (s as any).imageSize || 26, height: (s as any).imageSize || 26, marginTop: (s as any).imageMarginTop || 0 }} resizeMode="contain" />
+                  ) : (
+                    <Ionicons name={s.icon as any} size={22} color="#e2671b" />
+                  )}
+                  <Text style={[styles.servLabel, { color: aC.isDark ? aC.textSecondary : '#000000' }]}>{s.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            {/* Pagination dots */}
+            <View style={styles.servDots}>
+              <View style={[styles.servDot, { backgroundColor: aC.isDark ? '#fff' : '#9a94a0' }]} />
+              <View style={[styles.servDot, { backgroundColor: aC.isDark ? C.textSec : 'rgba(3,42,105,0.22)' }]} />
+            </View>
+          </View>
+
+          {/* ════════════════════════════════════════════════════
+            5 · FINANCE BANNER
+        ════════════════════════════════════════════════════ */}
+          <View style={[styles.sec, styles.pad]}>
+            <AskariBank />
+          </View>
+
+          {/* ════════════════════════════════════════════════════
+            6 · VEHICLE SEARCH
+        ════════════════════════════════════════════════════ */}
+          <View style={[styles.sec, styles.pad]}>
             <LinearGradient
               colors={['#E2671B', '#032A69']}
               start={{ x: 0.5, y: 0 }}
               end={{ x: 0.5, y: 1 }}
-              style={[styles.heroBorder, !aC.isDark && { boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}
+              style={styles.vehicleSearchWrapper}
             >
-            <View style={[styles.heroBanner, { backgroundColor: aC.isDark ? '#061538' : '#ffffff', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.08)', shadowOpacity: aC.isDark ? 0 : 0.06, shadowRadius: 10, elevation: aC.isDark ? 0 : 2 }]}> 
-              {/* Light mood: pure white, no shade — Dark: orange + 4-side shade */}
-              {aC.isDark ? (
-                <>
-                  <LinearGradient colors={['#061538', '#061538', '#24243a', '#52343b']} locations={[0, 0.58, 0.78, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
-                </>
-              ) : null}
-
-              {/* Figma node 1986:11227 — hero car image */}
-              <Image
-                source={require('@/screenshot/realllogo.png')}
-                style={styles.heroCarImg}
-                resizeMode="contain"
-              />
-
-              {/* Existing title and statistics, positioned to match the Figma banner */}
-              <View style={styles.heroLeft}>
-                {/* Title — #ffffff, 18px, 600 */}
-                {aC.isDark ? (
-                <Text style={[styles.heroTitle, { color: aC.isDark ? '#ffffff' : '#032a69' }]}>
-                  Pakistan's First{'\n'}Connected{' '}
-                  <Text style={{ color: '#e2671b' }}>Auto{'\n'}Ecosystem</Text>
-                </Text>
-                ) : (
-                <Text style={[styles.heroTitle, { color: '#1f2f63' }]}>
-                  Pakistan's <Text style={{ color: '#e2671b' }}>First</Text>{'\n'}Connected{' '}
-                  <Text style={{ color: '#e2671b' }}>Auto</Text>{'\n'}Ecosystem
-                </Text>
-                )}
-                {/* Stats at the bottom — values #e2671b, labels #d2d2d2 (light: black) */}
-                <View style={styles.heroBannerStats}>
-                  {MINI_STATS.map((s, i) => (
-                    <React.Fragment key={s.label}>
-                      <View>
-                        <Text style={styles.heroBannerVal}>{s.value}</Text>
-                        <Text style={[styles.heroBannerLabel, { color: aC.isDark ? '#d2d2d2' : '#000000' }]}>{s.label}</Text>
-                      </View>
-                      {i < MINI_STATS.length - 1 && (
-                        <View style={styles.heroStatDiv} />
-                      )}
-                    </React.Fragment>
-                  ))}
-                </View>
+              <View style={[styles.vehicleSearchSurface, { backgroundColor: aC.isDark ? '#010A1F' : '#F1F4F8' }]}>
+                {/* background: linear-gradient(2.51deg, #E2671B -59.87%, #061B4A 49.25%, #010A1F 158.37%) */}
+                {aC.isDark && <LinearGradient colors={['#693D35', '#061B4A', '#041336']} locations={[0, 0.4925, 1]} start={{ x: 0.5, y: 1 }} end={{ x: 0.5, y: 0 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
+                <VehicleSearch lightPeachBg />
               </View>
-            </View>
             </LinearGradient>
-            <View style={styles.heroDots} pointerEvents="none">
-              <View style={[styles.heroDot, { backgroundColor: aC.isDark ? '#ffffff' : '#9a94a0' }]} />
-              <View style={[styles.heroDot, { backgroundColor: aC.isDark ? '#baacb6' : 'rgba(3,42,105,0.35)' }]} />
-              <View style={[styles.heroDot, { backgroundColor: aC.isDark ? '#baacb6' : 'rgba(3,42,105,0.35)' }]} />
-            </View>
           </View>
-        </View>
 
-        {/* ════════════════════════════════════════════════════
-            4 · ALL SERVICES  (node 1986:11312)  ← FIRST
-            "All services" title + 2 rows × 4 items = 8
-        ════════════════════════════════════════════ */}
-        <View style={[styles.sec, styles.pad, styles.servicesSection]}>
-          <SH title="All services" />
-          <View style={styles.servGrid}>
-            {ALL_SERVICES.map(s => (
-              <TouchableOpacity
-                key={s.label}
-                style={[styles.servCard, { width: servW, backgroundColor: aC.isDark ? '#010a1f' : '#F2F4F8', borderColor: aC.isDark ? '#8ba7d2' : 'transparent' }, !aC.isDark && styles.servCardLight]}
-                onPress={() => {
-                  if (s.p && Object.keys(s.p).length > 0) {
-                    router.push({ pathname: s.route as any, params: s.p });
-                  } else {
-                    router.push(s.route as any);
-                  }
-                }}
-                activeOpacity={0.82}
-              >
-                {aC.isDark ? (
-                  <>
-                    {/* Top shade */}
-                    <LinearGradient
-                      colors={['rgba(22,64,136,0.55)', 'transparent']}
-                      start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.2 }}
-                      style={StyleSheet.absoluteFillObject} pointerEvents="none"
-                    />
-                    {/* Bottom shade */}
-                    <LinearGradient
-                      colors={['transparent', 'rgba(29,83,175,0.45)']}
-                      start={{ x: 0.5, y: 0.8 }} end={{ x: 0.5, y: 1 }}
-                      style={StyleSheet.absoluteFillObject} pointerEvents="none"
-                    />
-                    {/* Left shade */}
-                    <LinearGradient
-                      colors={['rgba(13,37,84,0.6)', 'transparent']}
-                      start={{ x: 0, y: 0.5 }} end={{ x: 0.2, y: 0.5 }}
-                      style={StyleSheet.absoluteFillObject} pointerEvents="none"
-                    />
-                    {/* Right shade */}
-                    <LinearGradient
-                      colors={['transparent', 'rgba(13,37,84,0.6)']}
-                      start={{ x: 0.8, y: 0.5 }} end={{ x: 1, y: 0.5 }}
-                      style={StyleSheet.absoluteFillObject} pointerEvents="none"
-                    />
-                  </>
-                ) : (
-                  <LightGradientBorder radius={16} fill="#F2F4F8" colors={['rgba(226,103,27,0.45)', 'rgba(3,42,105,0.4)']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} />
-                )}
-                {(s as any).image ? (
-                  <Image source={(s as any).image} style={{ width: (s as any).imageSize || 26, height: (s as any).imageSize || 26, marginTop: (s as any).imageMarginTop || 0 }} resizeMode="contain" />
-                ) : (
-                  <Ionicons name={s.icon as any} size={22} color="#e2671b" />
-                )}
-                <Text style={[styles.servLabel, { color: aC.isDark ? aC.textSecondary : '#000000' }]}>{s.label}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          {/* Pagination dots */}
-          <View style={styles.servDots}>
-            <View style={[styles.servDot, { backgroundColor: aC.isDark ? '#fff' : '#9a94a0' }]} />
-            <View style={[styles.servDot, { backgroundColor: aC.isDark ? C.textSec : 'rgba(3,42,105,0.22)' }]} />
-          </View>
-        </View>
-
-        {/* ════════════════════════════════════════════════════
-            5 · FINANCE BANNER
-        ════════════════════════════════════════════════════ */}
-        <View style={[styles.sec, styles.pad]}>
-          <AskariBank />
-        </View>
-
-        {/* ════════════════════════════════════════════════════
-            6 · VEHICLE SEARCH
-        ════════════════════════════════════════════════════ */}
-        <View style={[styles.sec, styles.pad]}>
-          <LinearGradient
-            colors={['#E2671B', '#032A69']}
-            start={{ x: 0.5, y: 0 }}
-            end={{ x: 0.5, y: 1 }}
-            style={styles.vehicleSearchWrapper}
-          >
-            <View style={[styles.vehicleSearchSurface, { backgroundColor: aC.isDark ? '#010A1F' : '#F1F4F8' }]}>
-              {/* background: linear-gradient(2.51deg, #E2671B -59.87%, #061B4A 49.25%, #010A1F 158.37%) */}
-              {aC.isDark && <LinearGradient colors={['#693D35', '#061B4A', '#041336']} locations={[0, 0.4925, 1]} start={{ x: 0.5, y: 1 }} end={{ x: 0.5, y: 0 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />}
-              <VehicleSearch lightPeachBg />
-            </View>
-          </LinearGradient>
-        </View>
-
-        {/* ════════════════════════════════════════════════════
+          {/* ════════════════════════════════════════════════════
             6 · LATEST VIDEO — commented out temporarily
         ════════════════════════════════════════════════════ */}
-        {/* <View style={[styles.sec, styles.pad]}>
+          {/* <View style={[styles.sec, styles.pad]}>
           <SH title="Latest Video" onViewAll={() => {}} />
           ...
         </View> */}
 
 
-        {/* ════════════════════════════════════════════════════
+          {/* ════════════════════════════════════════════════════
             8 · FEATURED CARS
         ════════════════════════════════════════════════════ */}
-        <View style={[styles.sec, styles.pad]}>
-          <SH title="Featured Cars" onViewAll={() => router.push({ pathname: '/buy/search-results', params: { category: 'car', condition: 'new', title: 'Featured Cars' } } as any)} />
-          {loading ? (
-            <ActivityIndicator color="#e2671b" style={{ paddingVertical: 28 }} />
-          ) : featured.length === 0 ? (
-            <View style={[styles.emptyBox, { backgroundColor: aC.glassBg, borderColor: aC.divider }]}>
-              <Ionicons name="car-outline" size={40} color={aC.textSecondary} />
-              <Text style={[styles.emptyTxt, { color: aC.textSecondary }]}>No vehicles listed yet</Text>
-            </View>
-          ) : (
-            <FlatList
-              horizontal
-              data={featured}
-              keyExtractor={i => i.id}
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ gap: 16 }}
-              renderItem={({ item, index }) => (
-                <FeaturedVehicleCard
-                  item={item}
-                  fallbackIndex={index}
-                  onPress={() => router.push({ pathname: '/buy/car-detail', params: { id: item.id } } as any)}
-                />
-              )}
-            />
-          )}
-        </View>
+          <View style={[styles.sec, styles.pad]}>
+            <SH title="Featured Cars" onViewAll={() => router.push({ pathname: '/buy/search-results', params: { category: 'car', condition: 'new', title: 'Featured Cars' } } as any)} />
+            {loading ? (
+              <ActivityIndicator color="#e2671b" style={{ paddingVertical: 28 }} />
+            ) : featured.length === 0 ? (
+              <View style={[styles.emptyBox, { backgroundColor: aC.glassBg, borderColor: aC.divider }]}>
+                <Ionicons name={featuredError ? 'cloud-offline-outline' : 'car-outline'} size={40} color={aC.textSecondary} />
+                <Text style={[styles.emptyTxt, { color: aC.textSecondary }]}>{featuredError ? "Couldn't load cars. Pull down to retry." : 'No cars listed yet'}</Text>
+              </View>
+            ) : (
+              <FlatList
+                horizontal
+                data={featured}
+                keyExtractor={i => i.id}
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ gap: 16 }}
+                renderItem={({ item, index }) => (
+                  <FeaturedVehicleCard
+                    item={item}
+                    fallbackIndex={index}
+                    onPress={() => router.push({ pathname: '/buy/car-detail', params: { id: item.id } } as any)}
+                  />
+                )}
+              />
+            )}
+          </View>
 
-        {/* ════════════════════════════════════════════════════
+          {/* ════════════════════════════════════════════════════
             9 · FEATURED BIKES
         ════════════════════════════════════════════════════ */}
-        <View style={[styles.sec, styles.pad]}>
-          <SH title="Featured Bikes" onViewAll={() => router.push({ pathname: '/buy/search-results', params: { category: 'bike', condition: 'new', title: 'Featured Bikes' } } as any)} />
-          {bikes.length === 0 ? (
-            <View style={[styles.emptyBox, { backgroundColor: aC.glassBg, borderColor: aC.divider }]}>
-              <Ionicons name="bicycle-outline" size={40} color={aC.textSecondary} />
-              <Text style={[styles.emptyTxt, { color: aC.textSecondary }]}>No bikes listed yet</Text>
-            </View>
-          ) : (
-            <FlatList
-              horizontal
-              data={Array.from({ length: featured.length || 6 }, (_, index) => bikes[index] ?? { ...FEATURED_BIKE_PREVIEWS[index % FEATURED_BIKE_PREVIEWS.length], id: `featured-bike-placeholder-${index}`, isPlaceholder: true })}
-              keyExtractor={i => String(i.id)}
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ gap: 16 }}
-              renderItem={({ item, index }) => (
-                <FeaturedVehicleCard
-                  item={item}
-                  category="bike"
-                  fallbackIndex={index}
-                  onPress={() => item.isPlaceholder ? router.push({ pathname: '/(tabs)/explore', params: { category: 'bike' } } as any) : router.push({ pathname: '/buy/car-detail', params: { id: item.id } } as any)}
-                />
-              )}
-            />
-          )}
-        </View>
+          <View style={[styles.sec, styles.pad]}>
+            <SH title="Featured Bikes" onViewAll={() => router.push({ pathname: '/buy/search-results', params: { category: 'bike', condition: 'new', title: 'Featured Bikes' } } as any)} />
+            {loading ? (
+              <ActivityIndicator color="#e2671b" style={{ paddingVertical: 28 }} />
+            ) : bikes.length === 0 ? (
+              <View style={[styles.emptyBox, { backgroundColor: aC.glassBg, borderColor: aC.divider }]}>
+                <Ionicons name={featuredError ? 'cloud-offline-outline' : 'bicycle-outline'} size={40} color={aC.textSecondary} />
+                <Text style={[styles.emptyTxt, { color: aC.textSecondary }]}>{featuredError ? "Couldn't load bikes. Pull down to retry." : 'No bikes listed yet'}</Text>
+              </View>
+            ) : (
+              <FlatList
+                horizontal
+                data={bikes}
+                keyExtractor={i => String(i.id)}
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ gap: 16 }}
+                renderItem={({ item, index }) => (
+                  <FeaturedVehicleCard
+                    item={item}
+                    category="bike"
+                    fallbackIndex={index}
+                    onPress={() => router.push({ pathname: '/buy/car-detail', params: { id: item.id } } as any)}
+                  />
+                )}
+              />
+            )}
+          </View>
 
 
-        {/* ════════════════════════════════════════════════════
+          {/* ════════════════════════════════════════════════════
             10 · DISCOVER MORE
         ════════════════════════════════════════════════════ */}
-        <View style={styles.sec}>
-          <DiscoverMore />
-        </View>
+          <View style={styles.sec}>
+            <DiscoverMore />
+          </View>
 
-        {/* ════════════════════════════════════════════════════
+          {/* ════════════════════════════════════════════════════
             11 · YOU MAY NEED THIS
         ════════════════════════════════════════════════════ */}
-        <View style={[styles.sec, styles.pad]} collapsable={false}>
-          {/* Data load hone pe upar ke sections ki height badalti hai — section ko fresh mount karo taake draw miss na ho */}
-          <YouMayNeedThis key={loading ? 'loading' : 'ready'} />
-        </View>
+          <View style={[styles.sec, styles.pad]} collapsable={false}>
+            {/* Data load hone pe upar ke sections ki height badalti hai — section ko fresh mount karo taake draw miss na ho */}
+            <YouMayNeedThis key={loading ? 'loading' : 'ready'} />
+          </View>
 
 
-        {/* ════════════════════════════════════════════════════
+          {/* ════════════════════════════════════════════════════
             12 · LATEST VIDEO — commented out temporarily
         ════════════════════════════════════════════════════ */}
-        {/* <View style={[styles.sec, styles.pad]}>
+          {/* <View style={[styles.sec, styles.pad]}>
           <SH title="Latest Video" onViewAll={() => {}} />
           ...
         </View> */}
 
-        {/* ════════════════════════════════════════════════════
+          {/* ════════════════════════════════════════════════════
             14 · BROWSE MORE SERVICES
         ════════════════════════════════════════════════════ */}
-        <View style={[styles.sec, styles.pad]}>
-          <BrowseMoreServices hideIconCircle />
-        </View>
+          <View style={[styles.sec, styles.pad]}>
+            <BrowseMoreServices hideIconCircle directRoutes />
+          </View>
 
-        {/* ════════════════════════════════════════════════════
+          {/* ════════════════════════════════════════════════════
             15 · LATEST VIDEO
         ════════════════════════════════════════════════════ */}
-        <View style={[styles.sec, styles.pad]}>
-          <LatestVideoSection count={2} savedCardStyle />
-        </View>
+          <View style={[styles.sec, styles.pad]}>
+            <LatestVideoSection count={2} savedCardStyle />
+          </View>
 
-        {/* ════════════════════════════════════════════════════
+          {/* ════════════════════════════════════════════════════
             13 · RECENT ACTIVITY  (node 1986:11792) — real if available
         ════════════════════════════════════════════════════ */}
-        <View style={[styles.sec, styles.pad]}>
-          <SH title="Recent Activity" />
-          <View style={{ gap: 8 }}>
-            {(recentReal && recentReal.length ? recentReal : RECENT_ACTIVITY).map((a: any, index: number) => {
-              const iconName = actIconName(a, index);
-              return (
-              <TouchableOpacity key={a.title + a.sub} style={[styles.actItem, { backgroundColor: aC.isDark ? '#010b1e' : '#F5F6F8', borderColor: aC.isDark ? '#7D96C0' : 'transparent' }, !aC.isDark && { borderWidth: 0, borderRadius: 18 }]} activeOpacity={0.84}>
-                {aC.isDark ? (
-                  <>
-                    {/* Top shade (All Services wali) */}
-                    <LinearGradient
-                      colors={['rgba(22,64,136,0.68)', 'transparent']}
-                      start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.25 }}
-                      style={StyleSheet.absoluteFillObject} pointerEvents="none"
-                    />
-                    {/* Bottom shade */}
-                    <LinearGradient
-                      colors={['transparent', 'rgba(29,83,175,0.28)']}
-                      start={{ x: 0.5, y: 0.65 }} end={{ x: 0.5, y: 1 }}
-                      style={StyleSheet.absoluteFillObject} pointerEvents="none"
-                    />
-                    {/* Left shade */}
-                    <LinearGradient
-                      colors={['rgba(30,60,110,0.72)', 'transparent']}
-                      start={{ x: 0, y: 0.5 }} end={{ x: 0.085, y: 0.5 }}
-                      style={StyleSheet.absoluteFillObject} pointerEvents="none"
-                    />
-                    {/* Right shade */}
-                    <LinearGradient
-                      colors={['transparent', 'rgba(30,60,110,0.7)']}
-                      start={{ x: 0.935, y: 0.5 }} end={{ x: 1, y: 0.5 }}
-                      style={StyleSheet.absoluteFillObject} pointerEvents="none"
-                    />
-                  </>
-                ) : (
-                  <LightGradientBorder radius={18} fill="#F5F6F8" />
-                )}
-                <View style={[styles.actIcon, { backgroundColor: aC.isDark ? '#061b4a' : 'transparent', borderColor: 'transparent' }]}>
-                  {iconName === 'bank' ? (
-                    <Image source={require('@/assets/images/hugeicons_bank.png')} style={styles.activityBankIcon} resizeMode="contain" />
-                  ) : (
-                    <Ionicons name={iconName as any} size={20} color="#e2671b" />
-                  )}
-                </View>
-                <View style={{ flex: 1, gap: 1 }}>
-                  <Text style={[styles.actTitle, { color: aC.textPrimary }]} numberOfLines={1}>{a.title}</Text>
-                  <Text style={[styles.actSub, { color: aC.textSecondary }]} numberOfLines={1}>{a.sub}</Text>
-                </View>
-                <View style={styles.actArrow}>
-                  <Ionicons name="chevron-forward" size={24} color={aC.isDark ? '#e2671b' : '#000000'} />
-                </View>
-              </TouchableOpacity>
-              );
-            })}
+          <View style={[styles.sec, styles.pad]}>
+            <SH title="Recent Activity" />
+            {!token ? (
+              <View style={[styles.emptyBox, { backgroundColor: aC.glassBg, borderColor: aC.divider }]}>
+                <Ionicons name="time-outline" size={36} color={aC.textSecondary} />
+                <Text style={[styles.emptyTxt, { color: aC.textSecondary }]}>Log in to see your recent activity</Text>
+              </View>
+            ) : activityLoading && activity.length === 0 ? (
+              <ActivityIndicator color="#e2671b" style={{ paddingVertical: 24 }} />
+            ) : activity.length === 0 ? (
+              <View style={[styles.emptyBox, { backgroundColor: aC.glassBg, borderColor: aC.divider }]}>
+                <Ionicons name={activityError ? 'cloud-offline-outline' : 'time-outline'} size={36} color={aC.textSecondary} />
+                <Text style={[styles.emptyTxt, { color: aC.textSecondary, textAlign: 'center' }]}>
+                  {activityError
+                    ? "Couldn't load your activity. Pull down to retry."
+                    : 'No recent activity yet.\nYour applications, bookings and ads will appear here.'}
+                </Text>
+              </View>
+            ) : (
+            <View style={{ gap: 8 }}>
+              {activity.map((a, index) => {
+                const iconName = actIconName(a, index);
+                return (
+                  <TouchableOpacity key={a.id} style={[styles.actItem, { backgroundColor: aC.isDark ? '#010b1e' : '#F5F6F8', borderColor: aC.isDark ? '#7D96C0' : 'transparent' }, !aC.isDark && { borderWidth: 0, borderRadius: 18 }]} activeOpacity={0.84} onPress={() => router.push(a.route as any)}>
+                    {aC.isDark ? (
+                      <>
+                        {/* Top shade (All Services wali) */}
+                        <LinearGradient
+                          colors={['rgba(22,64,136,0.68)', 'transparent']}
+                          start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.25 }}
+                          style={StyleSheet.absoluteFillObject} pointerEvents="none"
+                        />
+                        {/* Bottom shade */}
+                        <LinearGradient
+                          colors={['transparent', 'rgba(29,83,175,0.28)']}
+                          start={{ x: 0.5, y: 0.65 }} end={{ x: 0.5, y: 1 }}
+                          style={StyleSheet.absoluteFillObject} pointerEvents="none"
+                        />
+                        {/* Left shade */}
+                        <LinearGradient
+                          colors={['rgba(30,60,110,0.72)', 'transparent']}
+                          start={{ x: 0, y: 0.5 }} end={{ x: 0.085, y: 0.5 }}
+                          style={StyleSheet.absoluteFillObject} pointerEvents="none"
+                        />
+                        {/* Right shade */}
+                        <LinearGradient
+                          colors={['transparent', 'rgba(30,60,110,0.7)']}
+                          start={{ x: 0.935, y: 0.5 }} end={{ x: 1, y: 0.5 }}
+                          style={StyleSheet.absoluteFillObject} pointerEvents="none"
+                        />
+                      </>
+                    ) : (
+                      <LightGradientBorder radius={18} fill="#F5F6F8" />
+                    )}
+                    <View style={[styles.actIcon, { backgroundColor: aC.isDark ? '#061b4a' : 'transparent', borderColor: 'transparent' }]}>
+                      {iconName === 'bank' ? (
+                        <Image source={require('@/assets/images/hugeicons_bank.png')} style={styles.activityBankIcon} resizeMode="contain" />
+                      ) : (
+                        <Ionicons name={iconName as any} size={20} color="#e2671b" />
+                      )}
+                    </View>
+                    <View style={{ flex: 1, gap: 1 }}>
+                      <Text style={[styles.actTitle, { color: aC.textPrimary }]} numberOfLines={1}>{a.title}</Text>
+                      <Text style={[styles.actSub, { color: aC.textSecondary }]} numberOfLines={1}>{a.sub}</Text>
+                    </View>
+                    <View style={styles.actArrow}>
+                      <Ionicons name="chevron-forward" size={24} color={aC.isDark ? '#e2671b' : '#000000'} />
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+            )}
           </View>
-        </View>
 
-        <View style={{ height: 90 }} />
-      </ScrollView>
-      {/* Chatbot FAB — corner company logo (icon) */}
-      <Chatbot />
-      <SettingsMenu visible={settingsOpen} anchor={settingsAnchor} onClose={() => setSettingsOpen(false)} />
+          <View style={{ height: 90 }} />
+        </ScrollView>
+        {/* Chatbot FAB — corner company logo (icon) */}
+        <Chatbot />
+        <SettingsMenu visible={settingsOpen} anchor={settingsAnchor} onClose={() => setSettingsOpen(false)} />
       </View>
     </SafeAreaView>
   );
@@ -965,7 +1116,7 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: 'rgba(1,10,31,1)' },
-  pad: { paddingHorizontal: 16 },
+  pad: { paddingHorizontal: 20 },
   sec: { marginTop: 20 },
   servicesSection: { paddingHorizontal: 12, marginTop: 6 },
 
@@ -994,13 +1145,13 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 120,
   },
 
-  // Light mode header shape — hero banner ke aadhe tak
+  // Light mode header shape — hero banner ke center se thoda neeche tak (Figma)
   upperBgShapeLight: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
-    bottom: 105,
+    bottom: 75,
     borderBottomLeftRadius: 40,
     borderBottomRightRadius: 40,
     boxShadow: '2px 4px 5px rgba(0,0,0,0.24)',
@@ -1049,25 +1200,59 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: 'Poppins_700Bold',
     letterSpacing: 0.5,
-    textAlign: 'center',
+    textAlign: 'left',
   },
 
   /* [FRAME] Frame 1686559183 — notification + settings */
+  brandLogoWrap: {
+    flex: 1,
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+  },
   topIcons: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 0,
+    gap: 10,
   },
   topIconBtn: {
     width: 36, height: 36, borderRadius: 18,
     alignItems: 'center', justifyContent: 'center',
   },
   headerIconBtn: {
-    width: 32,
-    height: 36,
-    borderRadius: 18,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+  },
+
+  headerIconBtnDark: {
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderColor: 'rgba(130,165,213,0.35)',
+  },
+  headerIconBtnLight: {
+    backgroundColor: '#ffffff',
+    borderColor: 'rgba(3,42,105,0.08)',
+    boxShadow: '1px 2px 4px rgba(0,0,0,0.12)',
+  },
+  /* Unread count badge on the bell */
+  notifBadge: {
+    position: 'absolute',
+    top: -4, right: -5,
+    minWidth: 18, height: 18,
+    paddingHorizontal: 4,
+    borderRadius: 9,
+    backgroundColor: '#e1131f',
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  notifBadgeTxt: {
+    color: '#ffffff',
+    fontSize: 10,
+    lineHeight: 12,
+    fontFamily: 'Poppins_600SemiBold',
   },
 
   /* Notification red dot */

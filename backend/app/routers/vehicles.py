@@ -1,3 +1,4 @@
+import re
 from datetime import datetime, timedelta
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status, Request
@@ -153,6 +154,7 @@ async def list_vehicles(
     variant:      Optional[str] = None,
     color:        Optional[str] = None,
     transmission: Optional[str] = None,
+    fuel_type:    Optional[str] = None,
     body_type:    Optional[str] = None,
     seller_type:  Optional[str] = None,
     seller_id:    Optional[str] = None,
@@ -169,6 +171,7 @@ async def list_vehicles(
     if variant:      query["variant"]      = {"$regex": variant, "$options": "i"}
     if color:        query["color"]        = {"$regex": color, "$options": "i"}
     if transmission: query["transmission"] = {"$regex": transmission, "$options": "i"}
+    if fuel_type:    query["fuel_type"]    = {"$regex": f"^{re.escape(fuel_type)}$", "$options": "i"}
     if body_type:    query["body_type"]    = {"$regex": body_type, "$options": "i"}
     if seller_id:    query["seller_id"]   = seller_id
     if featured is not None: query["is_featured"] = featured

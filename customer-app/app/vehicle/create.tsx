@@ -524,7 +524,7 @@ export default function SellMyVehicle() {
             <PickerModal visible={pickerFor === "fuel"}     title="Select Fuel Type"    options={FUEL_TYPES}    onSelect={setFuelType}     onClose={() => setPickerFor(null)} />
             <PickerModal visible={pickerFor === "color"}    title="Select Color"        options={COLORS}        onSelect={setColor}        onClose={() => setPickerFor(null)} />
             <PickerModal visible={pickerFor === "duration"} title="Select Ad Duration"  options={AD_DURATIONS}  onSelect={setAdDuration}   onClose={() => setPickerFor(null)} />
-            <PickerModal visible={pickerFor === "trans"}    title="Transmission"        options={TRANSMISSIONS} onSelect={setTransmission} onClose={() => setPickerFor(null)} />
+            <PickerModal visible={pickerFor === "trans"}    title="Transmission"        options={TRANSMISSIONS.filter(o => o !== "Other")} onSelect={setTransmission} onClose={() => setPickerFor(null)} />
             <PickerModal visible={pickerFor === "variant"}  title="Select Variant"      options={VARIANTS}      onSelect={setVariant}      onClose={() => setPickerFor(null)} />
             <PickerModal visible={pickerFor === "cond"}     title="Condition"           options={CONDITIONS}    onSelect={setCondition}    onClose={() => setPickerFor(null)} />
 
@@ -537,15 +537,19 @@ export default function SellMyVehicle() {
                 <LinearGradient colors={['rgba(35,83,165,0.30)', 'transparent']} start={{ x: 1, y: 0 }} end={{ x: 0, y: 0 }} style={styles.step2GlowRight} pointerEvents="none" />
               </>}
               {/* Vehicle Type selection is handled in Step 1; the duplicate Step 2 toggle is intentionally commented out. */}
+              {/* Order: City → Brand → Vehicle → Variant → Transmission → Fuel → baqi fields */}
+              <Step2FigmaField label="City" value={city} sample="Karachi" onPress={() => setPickerFor("city")} dark={aC.isDark} />
               <Step2FigmaField label="Brand" value={brand === "Any" ? otherBrand || "Any" : brand} sample="Honda" onPress={() => setPickerFor("brand")} dark={aC.isDark} />
               {brand === "Any" && <TextInput value={otherBrand} onChangeText={setOtherBrand} placeholder="Which brand?" placeholderTextColor="#b8acba" style={[styles.step2OtherInput, { color: aC.textPrimary }, !aC.isDark && { height: 48, borderRadius: 24, paddingHorizontal: 20, backgroundColor: '#E8EAEF', borderWidth: 1, borderColor: 'rgba(0,0,0,0.18)', boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]} />}
-              <Step2FigmaField label="City" value={city} sample="Karachi" onPress={() => setPickerFor("city")} dark={aC.isDark} />
-              <Step2FigmaField label="Year" value={year} sample="2024" onPress={() => setPickerFor("year")} dark={aC.isDark} />
+              <Step2FigmaField label="Vehicle" value={carModel} sample="City" onPress={() => setPickerFor("model")} dark={aC.isDark} />
+              {carModel === "Other" && <TextInput value={otherModel} onChangeText={setOtherModel} placeholder="Enter vehicle" placeholderTextColor="#b8acba" style={[styles.step2OtherInput, { color: aC.textPrimary }, !aC.isDark && { height: 48, borderRadius: 24, paddingHorizontal: 20, backgroundColor: '#E8EAEF', borderWidth: 1, borderColor: 'rgba(0,0,0,0.18)', boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]} />}
               <Step2FigmaField label="Variant" value={variant} sample="1.2 Aspire CVT" onPress={() => setPickerFor("variant")} dark={aC.isDark} />
               {variant === "Other" && <TextInput value={otherVariant} onChangeText={setOtherVariant} placeholder="Enter variant" placeholderTextColor="#b8acba" style={[styles.step2OtherInput, { color: aC.textPrimary }, !aC.isDark && { height: 48, borderRadius: 24, paddingHorizontal: 20, backgroundColor: '#E8EAEF', borderWidth: 1, borderColor: 'rgba(0,0,0,0.18)', boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]} />}
-              <Step2FigmaField label="Ad Duration" value={adDuration} sample="1 week" onPress={() => setPickerFor("duration")} dark={aC.isDark} />
+              <Step2FigmaField label="Transmission" value={transmission} sample="Automatic" onPress={() => setPickerFor("trans")} dark={aC.isDark} />
               <Step2FigmaField label="Fuel Type" value={fuelType} sample="Petrol" onPress={() => setPickerFor("fuel")} dark={aC.isDark} />
               {fuelType === "Other" && <TextInput value={otherFuel} onChangeText={setOtherFuel} placeholder="Enter fuel type" placeholderTextColor="#b8acba" style={[styles.step2OtherInput, { color: aC.textPrimary }, !aC.isDark && { height: 48, borderRadius: 24, paddingHorizontal: 20, backgroundColor: '#E8EAEF', borderWidth: 1, borderColor: 'rgba(0,0,0,0.18)', boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]} />}
+              <Step2FigmaField label="Year" value={year} sample="2024" onPress={() => setPickerFor("year")} dark={aC.isDark} />
+              <Step2FigmaField label="Ad Duration" value={adDuration} sample="1 week" onPress={() => setPickerFor("duration")} dark={aC.isDark} />
               <Step2FigmaField label="KM" value={km} sample="5000" onChangeText={setKm} numeric dark={aC.isDark} />
               <Step2FigmaField label="Color" value={color} sample="Grey" onPress={() => setPickerFor("color")} dark={aC.isDark} />
               {color === "Other" && <TextInput value={otherColor} onChangeText={setOtherColor} placeholder="Enter color" placeholderTextColor="#b8acba" style={[styles.step2OtherInput, { color: aC.textPrimary }, !aC.isDark && { height: 48, borderRadius: 24, paddingHorizontal: 20, backgroundColor: '#E8EAEF', borderWidth: 1, borderColor: 'rgba(0,0,0,0.18)', boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]} />}

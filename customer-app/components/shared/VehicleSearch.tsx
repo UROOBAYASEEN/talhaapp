@@ -11,6 +11,7 @@ import {
   View,
 } from 'react-native';
 import { useAppColors } from '@/constants/theme';
+import { logApi, logApiError } from '@/constants/apiLog';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 import SelectSheet from '@/components/shared/SelectSheet';
@@ -22,7 +23,12 @@ import { getBrandLogo } from '@/components/book/common';
 // Same option lists as the Buy Used Car search
 const CURRENT_YEAR = String(new Date().getFullYear());
 const CITIES = ['All Cities', 'Karachi', 'Lahore', 'Islamabad', 'Rawalpindi', 'Faisalabad', 'Multan', 'Peshawar', 'Quetta', 'Hyderabad', 'Sialkot', 'Gujranwala', 'Bahawalpur', 'Sargodha', 'Abbottabad', 'Gujrat', 'Jhang', 'Sahiwal', 'Sukkur', 'Larkana', 'Mardan', 'Sheikhupura', 'Kasur', 'Okara', 'Dera Ghazi Khan', 'Jhelum', 'Wah Cantt', 'Muzaffarabad', 'Gilgit', 'Gwadar'];
+// Area — abhi ke liye sirf Lahore ke kuch areas (baad me city wise list aayegi)
+const AREAS = ['All Areas', 'DHA', 'Gulberg', 'Johar Town', 'Model Town', 'Bahria Town', 'Wapda Town', 'Garden Town', 'Faisal Town', 'Iqbal Town', 'Valencia', 'Cantt', 'Township'];
 const ALL_YEARS = ['Any Year', ...Array.from({ length: 27 }, (_, i) => String(2026 - i))];
+// Backend enums (VehicleListing.transmission / fuel_type)
+const TRANSMISSIONS = ['Any', 'Automatic', 'Manual'];
+const FUEL_TYPES = ['Any', 'Petrol', 'Diesel', 'Hybrid', 'Electric', 'CNG'];
 const COLORS = ['All Colors', 'White', 'Black', 'Silver', 'Grey', 'Red', 'Blue', 'Beige', 'Green', 'Brown', 'Orange', 'Golden'];
 const VARIANTS = ['Any Variant', '1.0 MT', '1.0 CVT', '1.2 MT', '1.2 CVT', '1.3 MT', '1.3 CVT', '1.5 MT', '1.5 CVT', '1.8 MT', '2.0 MT', 'Standard', 'GL', 'GLi', 'XLi', 'Grande', 'Alpha', 'Sport', 'AWD'];
 // Financing budget options (Used Car + Finance pe show hota hai)
@@ -53,7 +59,7 @@ function parseBudgetTxt(t: string): number | null {
 }
 const round50k = (v: number) => Math.round(v / 50000) * 50000;
 
-type FieldKey = 'city' | 'brand' | 'year' | 'car' | 'variant' | 'color' | 'dealer';
+type FieldKey = 'city' | 'area' | 'brand' | 'year' | 'car' | 'variant' | 'color' | 'transmission' | 'fuel' | 'dealer';
 
 export default function VehicleSearch({ lightPeachBg = false }: { lightPeachBg?: boolean } = {}) {
   const router = useRouter();
@@ -64,11 +70,14 @@ export default function VehicleSearch({ lightPeachBg = false }: { lightPeachBg?:
 
   // ── Search form (dynamic, like Buy Used Car) ──
   const [city, setCity] = useState('Karachi');
+  const [area, setArea] = useState('All Areas');
   const [brand, setBrand] = useState('All Brands');
   const [year, setYear] = useState('Any Year');
   const [car, setCar] = useState('All Models');
   const [variant, setVariant] = useState('Any Variant');
   const [color, setColor] = useState('All Colors');
+  const [transmission, setTransmission] = useState('Any');
+  const [fuel, setFuel] = useState('Any');
   const [dealer, setDealer] = useState('All Dealership');
   const [budget, setBudget] = useState('PKR 25 Lac');
   const [sellerType, setSellerType] = useState('All (Non Dealer + Individual)');
@@ -171,15 +180,18 @@ export default function VehicleSearch({ lightPeachBg = false }: { lightPeachBg?:
   useEffect(() => {
     let alive = true;
     (async () => {
+      const url = `${API_BASE}/brands`;
+      const t0 = Date.now();
       try {
-        const res = await fetch(`${API_BASE}/brands`);
+        const res = await fetch(url);
+        const d = await res.json().catch(() => undefined);
+        logApi('Home › Search › Brands', 'GET', url, res, d, t0);
         if (res.ok) {
-          const d = await res.json();
           if (alive && Array.isArray(d)) {
             setApiBrands(d.filter((b: any) => b?.name).map((b: any) => ({ name: b.name, logo_url: b.logo_url ?? null })));
           }
         }
-      } catch { /* offline → sirf All Brands */ }
+      } catch (e) { logApiError('Home › Search › Brands', 'GET', url, e, t0); /* offline → sirf All Brands */ }
     })();
     return () => { alive = false; };
   }, []);
@@ -196,9 +208,12 @@ export default function VehicleSearch({ lightPeachBg = false }: { lightPeachBg?:
       try {
         const q = new URLSearchParams({ limit: '100', condition, category });
         if (brand !== 'All Brands') q.set('make', brand);
-        const res = await fetch(`${API_BASE}/vehicles?${q}`, { headers });
+        const url = `${API_BASE}/vehicles?${q}`;
+        const t0 = Date.now();
+        const res = await fetch(url, { headers }).catch(e => { logApiError('Home › Search › Models', 'GET', url, e, t0); throw e; });
+        const d = await res.json().catch(() => undefined);
+        logApi('Home › Search › Models', 'GET', url, res, d, t0);
         if (res.ok) {
-          const d = await res.json();
           const names = Array.from(new Set((d.items || []).map((v: any) => `${v.make || ''} ${v.model || ''}`.trim() || v.title).filter(Boolean))).sort() as string[];
           setModels(names);
         }
@@ -211,9 +226,12 @@ export default function VehicleSearch({ lightPeachBg = false }: { lightPeachBg?:
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch(`${API_BASE}/dealers/?limit=50`, { headers });
+        const url = `${API_BASE}/dealers/?limit=50`;
+        const t0 = Date.now();
+        const res = await fetch(url, { headers }).catch(e => { logApiError('Home › Search › Dealers', 'GET', url, e, t0); throw e; });
+        const d = await res.json().catch(() => undefined);
+        logApi('Home › Search › Dealers', 'GET', url, res, d, t0);
         if (res.ok) {
-          const d = await res.json();
           setDealers((d || []).map((x: any) => ({ id: x.id, name: x.dealership_name || x.full_name || 'Dealer' })));
         }
       } catch { }
@@ -221,22 +239,29 @@ export default function VehicleSearch({ lightPeachBg = false }: { lightPeachBg?:
   }, []);
 
   const FIELD_DEFS: Record<FieldKey, { label: string; value: string; options: string[]; setter: (v: string) => void; loading?: boolean }> = {
-    city: { label: 'City', value: city, options: CITIES, setter: setCity },
+    city: { label: 'City', value: city, options: CITIES, setter: v => { setCity(v); setArea('All Areas'); } },
+    area: { label: 'Area', value: area, options: AREAS, setter: setArea },
     brand: { label: 'Brand', value: brand, options: BRAND_OPTIONS, setter: v => { setBrand(v); setCar('All Models'); } },
     year: { label: 'Year', value: year, options: YEAR_OPTIONS, setter: setYear },
     car: { label: isBike ? 'Bike' : 'Car', value: car, options: ['All Models', ...models], setter: setCar, loading: loadingModels },
     variant: { label: 'Variant', value: variant, options: VARIANTS, setter: setVariant },
     color: { label: 'Color', value: color, options: COLORS, setter: setColor },
+    transmission: { label: 'Transmission', value: transmission, options: TRANSMISSIONS, setter: setTransmission },
+    fuel: { label: 'Fuel Type', value: fuel, options: FUEL_TYPES, setter: setFuel },
     dealer: { label: 'Dealership', value: dealer, options: ['All Dealership', ...dealers.map(d => d.name)], setter: setDealer },
   };
 
   const FIELDS: { key: FieldKey; icon: string | null; image?: any }[] = [
-    { key: 'car', icon: isBike ? 'bicycle-outline' : 'car-outline' },
-    { key: 'brand', icon: null, image: require('@/screenshot/brand.png') },
-    { key: 'year', icon: null, image: require('@/screenshot/year.png') },
+    // Order — Add Vehicle (Vehicle Type) jaisa: City → Area → Brand → Car → Variant → Year → Color
     { key: 'city', icon: 'location-outline' },
+    { key: 'area', icon: 'map-outline' },
+    { key: 'brand', icon: null, image: require('@/screenshot/brand.png') },
+    { key: 'car', icon: isBike ? 'bicycle-outline' : 'car-outline' },
     { key: 'variant', icon: null, image: require('@/screenshot/varient.png') },
+    { key: 'year', icon: null, image: require('@/screenshot/year.png') },
     { key: 'color', icon: 'color-palette-outline' },
+    { key: 'transmission', icon: 'cog-outline' },
+    { key: 'fuel', icon: 'flame-outline' },
   ];
 
   function handleSearch() {
@@ -252,11 +277,14 @@ export default function VehicleSearch({ lightPeachBg = false }: { lightPeachBg?:
     if (condition === 'used') params.from = 'usedCar';
     else if (!isBike) params.from = 'newCarCash';
     if (city !== 'All Cities') params.city = city;
+    if (area !== 'All Areas') params.area = area;
     if (brand !== 'All Brands') params.search = brand;
     if (car !== 'All Models') params.search = car;
     if (year !== 'Any Year') params.year = year;
     if (variant !== 'Any Variant') params.variant = variant;
     if (color !== 'All Colors') params.color = color;
+    if (transmission !== 'Any') params.transmission = transmission.toLowerCase();
+    if (fuel !== 'Any') params.fuel_type = fuel.toLowerCase();
     if (showUsedExtras) {
       params.min_price = String(minV);
       params.max_price = String(maxV);

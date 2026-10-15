@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import { AppColors, useAppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
+import { logApi, logApiError } from '@/constants/apiLog';
 import { useAuth } from '@/contexts/AuthContext';
 
 import SheetModal from '@/components/shared/SheetModal';
@@ -58,12 +59,15 @@ export default function Chatbot() {
     setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 100);
     try {
       const history = messages.slice(-8).map((m) => ({ role: m.from === 'user' ? 'user' : 'assistant', content: m.text }));
-      const res = await fetch(`${API_BASE}/chatbot`, {
+      const url = `${API_BASE}/chatbot`;
+      const t0 = Date.now();
+      const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ message: txt, history }),
-      });
+      }).catch(e => { logApiError('Chatbot', 'POST', url, e, t0); throw e; });
       const data = await res.json().catch(() => ({}));
+      logApi('Chatbot', 'POST', url, res, data, t0);
       const reply = data.reply || 'Apologies — I couldn’t respond. Please try again.';
       const b: Msg = { id: (Date.now() + 1).toString(), from: 'bot', text: reply, time: nowTime() };
       setMessages((prev) => [...prev, b]);

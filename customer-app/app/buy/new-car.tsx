@@ -506,8 +506,8 @@ export default function BuyNewCarScreen() {
                   <Text style={styles.needSub}>Compare vehicle features, prices, and specifications.</Text>
                 </LinearGradient>
               ) : (
-                <View style={[styles.needGrad, { backgroundColor: '#F1F4F8' }]}>
-                  <LinearGradient colors={['#F1F4F8', '#F1F4F8', '#FCDCC8']} locations={[0, 0.4, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+                <View style={[styles.needGrad, { backgroundColor: '#FFFFFF' }]}>
+                  <LinearGradient colors={['#F4F7FA', '#F4F7FA', '#FFB5875C']} locations={[0, 0.4, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
 
                   <Image source={IMG_COMPARE} style={styles.needImgCompare} resizeMode="contain" />
                   <View style={styles.needTitleRow}>
@@ -536,8 +536,8 @@ export default function BuyNewCarScreen() {
                   <Text style={styles.needSub}>Compare financing plans and calculate your monthly payments.</Text>
                 </LinearGradient>
               ) : (
-                <View style={[styles.needGrad, { backgroundColor: '#F1F4F8' }]}>
-                  <LinearGradient colors={['#F1F4F8', '#F1F4F8', '#FCDCC8']} locations={[0, 0.4, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+                <View style={[styles.needGrad, { backgroundColor: '#FFFFFF' }]}>
+                  <LinearGradient colors={['#F4F7FA', '#F4F7FA', '#FFB5875C']} locations={[0, 0.4, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
 
                   <Image source={IMG_FINANCE} style={styles.needImgFinance} resizeMode="contain" />
                   <View style={styles.needTitleRow}>

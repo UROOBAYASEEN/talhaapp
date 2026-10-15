@@ -70,8 +70,8 @@ function NeedThisSection({ variant = 'newCar' }: { variant?: 'newCar' | 'usedCar
                 <Text style={styles.needSub}>{c.sub}</Text>
               </LinearGradient>
             ) : (
-              <View style={[styles.needGrad, { backgroundColor: '#F1F4F8' }]}>
-                  <LinearGradient colors={['#F1F4F8', '#F1F4F8', '#FCDCC8']} locations={[0, 0.4, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+              <View style={[styles.needGrad, { backgroundColor: '#FFFFFF' }]}>
+                  <LinearGradient colors={['#F4F7FA', '#F4F7FA', '#FFB5875C']} locations={[0, 0.4, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
 
                 <Image source={c.img} style={styles.needImg} resizeMode="contain" />
                 <View style={styles.needTitleRow}>
@@ -328,7 +328,7 @@ export default function SearchResultsScreen() {
   const aC = useAppColors();
   const params  = useLocalSearchParams<{
     city?: string; car?: string; variant?: string;
-    year?: string; color?: string; sellerType?: string; seller_type?: string;
+    year?: string; color?: string; transmission?: string; fuel_type?: string; sellerType?: string; seller_type?: string;
     brand?: string; dealerId?: string; make?: string;
     condition?: string; min_price?: string; max_price?: string;
     search?: string; hot?: string; category?: string; featured?: string; from?: string; title?: string;
@@ -394,6 +394,8 @@ export default function SearchResultsScreen() {
       if (params.year && params.year !== 'Any Year')           query.set('year', params.year);
       if (params.variant && params.variant !== 'Any Variant') query.set('variant', params.variant);
       if (params.color && params.color !== 'Any Color' && params.color !== 'All Colors')        query.set('color', params.color);
+      if (params.transmission) query.set('transmission', params.transmission);
+      if (params.fuel_type)    query.set('fuel_type',    params.fuel_type);
       // URL params (from used-car search form)
       if (params.min_price)  query.set('min_price',  params.min_price);
       if (params.max_price)  query.set('max_price',  params.max_price);

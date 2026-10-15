@@ -11,6 +11,7 @@ import { G, GlowBackground, ScreenHeader } from '@/components/shared/GlowUI';
 import { SavedCardEffect } from '@/components/shared/FigmaEffects';
 import { BIKE_BRANDS, Brand, CAR_BRANDS, SearchModal } from '@/components/book/common';
 import LatestVideoSection from '@/components/shared/LatestVideoSection';
+import LightGradientBorder from '@/components/shared/LightGradientBorder';
 
 // NOTE: grid widths har phone size + rotation pe reactive hain —
 // har tile apni width `useWindowDimensions()` se khud calculate karta hai.
@@ -22,6 +23,26 @@ const IMG_COMPARE_VEHICLE   = require('@/assets/images/compareVehicle.png');
 const IMG_BIKE              = require('@/assets/Icons/bikeWhite.png');
 const IMG_COMPARE_INSURANCE = require('@/assets/images/compareInsurance.png');
 
+// Light mode tile surface: hairline gradient border + soft white → grey-blue fill (premium raised look).
+// Always mounted with the same structure — only colours change on select.
+function LightTileBg({ radius, on }: { radius: number; on: boolean }) {
+  return (
+    <>
+      <LightGradientBorder
+        radius={radius}
+        fill="#FFFFFF"
+        colors={on ? ['rgba(226,103,27,0.9)', 'rgba(3,42,105,0.9)'] : ['rgba(226,103,27,0.22)', 'rgba(3,42,105,0.22)']}
+      />
+      <LinearGradient
+        colors={on ? ['#FFFFFF', '#FFF6F0'] : ['#FFFFFF', '#EEF1F6']}
+        start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }}
+        style={{ position: 'absolute', top: 1, left: 1, right: 1, bottom: 1, borderRadius: radius - 1 }}
+        pointerEvents="none"
+      />
+    </>
+  );
+}
+
 // Same effect as the Insurance screen's "Select Vehicle Type" cards — gradient glow, no Skia canvas,
 // so switching Cars/Bikes and brand pages re-renders instantly.
 
@@ -32,7 +53,7 @@ const BrandTile = memo(function BrandTile({ b, onPress }: { b: Brand; onPress: (
   const tileW = (W - PAD * 2 - GAP * 3) / 4;
   return (
     <TouchableOpacity style={[st.tile, st.tileOn, { width: tileW }]} activeOpacity={0.85} onPress={() => onPress(b.name)}>
-      {aC.isDark && <SavedCardEffect band={12} />}
+      {aC.isDark ? <SavedCardEffect band={12} /> : <LightTileBg radius={18} on={false} />}
       {b.logo
         ? <Image source={b.logo} style={[st.tileLogo, { width: tileW * 0.52 }]} resizeMode="contain" />
         : <Text style={st.tileInitial}>{b.name[0]}</Text>}
@@ -57,11 +78,12 @@ function TypeTile({ k, label, sel, onPress }: { k: 'car' | 'bike'; label: string
       <View style={[StyleSheet.absoluteFillObject, { opacity: sel ? 1 : 0 }]} pointerEvents="none">
         {aC.isDark && <SavedCardEffect />}
       </View>
+      {!aC.isDark && <LightTileBg radius={20} on={sel} />}
       <View style={st.typeContent}>
         {k === 'car'
           ? <MaterialCommunityIcons name="car" size={26} color={sel ? G.orange : (aC.isDark ? '#FFFFFF' : '#000000')} />
           : <Image source={IMG_BIKE} style={[st.bikeIcon, !aC.isDark && { tintColor: '#000000' }, sel && { tintColor: G.orange }]} resizeMode="contain" />}
-        <Text style={st.typeTxt}>{label}</Text>
+        <Text style={[st.typeTxt, !aC.isDark && sel && { color: G.orange, fontFamily: 'Poppins_600SemiBold' }]}>{label}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -134,8 +156,8 @@ export default function BookVehicleScreen() {
               { img: IMG_COMPARE_VEHICLE, title: 'Compare\nVehicle', sub: 'Compare vehicle features, prices, and specifications.', go: () => router.push({ pathname: '/compare-vehicle', params: { category: type, from: 'book' } } as any) },
               { img: IMG_COMPARE_INSURANCE, title: 'Compare\nInsurance Plans', sub: 'Compare coverage, benefits, and prices to find the right plan.', go: () => router.push('/insurance-search' as any) },
             ].map(c => (
-              <TouchableOpacity key={c.title} style={[st.needCard, { width: needW }]} activeOpacity={0.88} onPress={c.go}>
-                <LinearGradient colors={aC.isDark ? ['#061845', '#0A1F4C', '#2B2947', '#7E5048'] : ['#F1F4F8', '#F1F4F8', '#F8E6DB', '#FCDCC8']} locations={[0, 0.5, 0.76, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={st.needGrad}>
+              <TouchableOpacity key={c.title} style={[st.needCard, { width: needW }, !aC.isDark && st.needCardLight]} activeOpacity={0.88} onPress={c.go}>
+                <LinearGradient colors={aC.isDark ? ['#061845', '#0A1F4C', '#2B2947', '#7E5048'] : ['#F4F7FA', '#F4F7FA', '#FFB5875C']} locations={aC.isDark ? [0, 0.5, 0.76, 1] : [0, 0.45, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={st.needGrad}>
                   <Image source={c.img} style={st.needImg} resizeMode="contain" />
                   <View style={st.needTitleRow}>
                     <Text style={st.needTitle}>{c.title}</Text>
@@ -173,6 +195,7 @@ export default function BookVehicleScreen() {
 }
 
 const st_dark = StyleSheet.create({
+  needCardLight: {},
   sec:      { color: G.white, fontSize: 16, fontFamily: 'Poppins_400Regular', marginTop: 10, marginBottom: 12, paddingHorizontal: PAD },
   typeRow:  { flexDirection: 'row', gap: 16, paddingHorizontal: PAD, marginBottom: 8 },
   typeTile:    { height: 94, borderRadius: 20, overflow: 'hidden', borderWidth: 1, elevation: 0 },
@@ -204,14 +227,23 @@ const st_dark = StyleSheet.create({
 });
 // Light mode layer for `st` — dark mode uses st_dark as is
 const st_light = withLightStyles(st_dark, {
-  sec: { color: '#000000' },
-  typeTileOn: { backgroundColor: '#ffffff', borderColor: 'rgba(0,0,0,0.12)' },
-  typeTileOff: { backgroundColor: '#F2F4F8' },
+  sec: { color: '#0B1220', fontFamily: 'Poppins_500Medium' },
+  // Selected: white raised tile + orange↔navy border + orange icon/text; unselected: flat grey-blue, faint border
+  typeTile: { borderWidth: 0 },
+  typeTileOn: { backgroundColor: 'transparent', boxShadow: LIGHT_POP_SHADOW },
+  typeTileOff: { backgroundColor: 'transparent', boxShadow: '1px 2px 3px rgba(0,0,0,0.10)' },
   typeTxt: { color: '#000000' },
-  tileOn: { backgroundColor: '#ffffff', borderColor: 'rgba(0,0,0,0.12)' },
-  tile: { backgroundColor: '#F2F4F8', borderColor: 'rgba(0,0,0,0.04)', boxShadow: LIGHT_POP_SHADOW },
-  tileName: { color: '#000000' },
-  needTitle: { color: '#000000' },
-  needSub: { color: '#4b5563' },
+  tile: { borderRadius: 18, boxShadow: LIGHT_POP_SHADOW },
+  tileOn: { backgroundColor: 'transparent', borderWidth: 0, elevation: 0 },
+  tileName: { color: '#111827', fontFamily: 'Poppins_600SemiBold', letterSpacing: 0.3 },
+  tileInitial: { color: '#C9D1DE' },
+  dot: { backgroundColor: '#C7CCD6' },
+  dotOn: { width: 18, backgroundColor: G.orange },
+  needCardLight: { backgroundColor: '#FFFFFF', boxShadow: LIGHT_POP_SHADOW },
+  // Tighter spacing (same card size) so 3-line titles like "Compare Insurance Plans" don't clip the subtitle
+  needGrad: { paddingTop: 8, paddingBottom: 8 },
+  needImg: { marginBottom: 0 },
+  needTitleRow: { marginBottom: 2 },
+  needTitle: { color: '#000000', lineHeight: 18 },
+  needSub: { color: '#4b5563', lineHeight: 13.5 },
 });
-

@@ -1,10 +1,13 @@
 import VerifiedIcon from '@/components/shared/VerifiedIcon';
 import { API_BASE } from '@/constants/api';
+import { logApi, logApiError } from '@/constants/apiLog';
 import { useAppColors } from '@/constants/theme';
+import { useAuth } from '@/contexts/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import {
+  Alert,
   Dimensions,
   Image,
   StyleSheet,
@@ -15,8 +18,16 @@ import {
 
 const { width: W } = Dimensions.get('window');
 const CARD_W = W * 0.63;
-const FALLBACK_CARS = [require('@/screenshot/featureCar1.png'), require('@/screenshot/featureCar2.png')];
-const BIKE_IMAGES = [require('@/assets/images/bike1.png'), require('@/assets/images/bike2.png')];
+const SERVER = API_BASE.replace('/api/v1', '');
+
+// Listing ki pehli photo (relative path → full URL). Photo na ho to null — koi stock image nahi.
+function vehiclePhoto(item: any): string | null {
+  const first = Array.isArray(item?.images) ? item.images.find((u: any) => typeof u === 'string' && u) : null;
+  if (!first) return null;
+  return first.startsWith('http') ? first : `${SERVER}${first.startsWith('/') ? '' : '/'}${first}`;
+}
+
+const cap = (v?: string) => (v ? v.charAt(0).toUpperCase() + v.slice(1) : '');
 
 function displayPrice(value: unknown) {
   const price = Number(String(value ?? '').replace(/,/g, ''));
@@ -33,15 +44,49 @@ interface Props {
   category?: 'car' | 'bike';
 }
 
-export default function FeaturedVehicleCard({ item, onPress, fallbackIndex = 0, category = 'car' }: Props) {
-  const [liked, setLiked] = useState(false);
+export default function FeaturedVehicleCard({ item, onPress, category = 'car' }: Props) {
+  const { token } = useAuth() as any;
+  const [liked, setLiked] = useState<boolean>(!!item?.is_saved);
+  const [saving, setSaving] = useState(false);
   const C = useAppColors();
-  const cardImage = (category === 'bike' ? BIKE_IMAGES : FALLBACK_CARS)[fallbackIndex % 2];
+  const [photoFailed, setPhotoFailed] = useState(false);
+  const photo = photoFailed ? null : vehiclePhoto(item);
+  const meta = [item.city, item.year ? String(item.year) : '', cap(item.transmission)].filter(Boolean).join(' • ');
+
+  // Favourite — server pe save/unsave (/vehicles/{id}/save toggle)
+  async function toggleSave() {
+    if (!token) { Alert.alert('Login Required', 'Please log in to save vehicles.'); return; }
+    if (saving) return;
+    setSaving(true);
+    const prev = liked;
+    setLiked(!prev);
+    const url = `${API_BASE}/vehicles/${item.id}/save`;
+    const t0 = Date.now();
+    try {
+      const res = await fetch(url, { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+      const d = await res.json().catch(() => null);
+      logApi('Featured card › Save', 'POST', url, res, d, t0);
+      if (!res.ok) throw new Error(String(res.status));
+      if (typeof d?.saved === 'boolean') setLiked(d.saved);
+    } catch (e) {
+      logApiError('Featured card › Save', 'POST', url, e, t0);
+      setLiked(prev);
+      Alert.alert('Error', 'Could not update favourites. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
     <View style={[styles.card, { backgroundColor: C.isDark ? '#010b1e' : '#ffffff', borderColor: C.isDark ? '#8aa6d6' : 'rgba(3,12,40,0.08)' }, !C.isDark && styles.cardLight]}>
       {/* Vehicle Image */}
-      <Image source={cardImage} style={styles.carImage} resizeMode="cover" />
+      {photo ? (
+        <Image source={{ uri: photo }} style={styles.carImage} resizeMode="cover" onError={(e) => { if (__DEV__) console.warn(`[API] Featured card › Image failed: ${photo} — ${e?.nativeEvent?.error ?? 'load error'}`); setPhotoFailed(true); }} />
+      ) : (
+        <View style={[styles.carImage, styles.carImageEmpty, !C.isDark && { backgroundColor: '#EEF1F6' }]}>
+          <Ionicons name={category === 'bike' ? 'bicycle-outline' : 'car-outline'} size={44} color={C.isDark ? '#5d7bb0' : '#94a3b8'} />
+        </View>
+      )}
 
       {/* Bottom Content */}
       <View style={styles.content}>
@@ -58,16 +103,16 @@ export default function FeaturedVehicleCard({ item, onPress, fallbackIndex = 0, 
 
         {/* Variant */}
         <Text style={[styles.variant, { color: C.textSecondary }]} numberOfLines={1}>
-          {item.variant || item.color || item.fuel_type || '—'}
+          {item.variant || item.color || cap(item.fuel_type) || '—'}
         </Text>
 
         {/* Location / Year / Transmission */}
-        <View style={styles.infoRow}>
-          <Ionicons name="location-outline" size={16} color={C.textSecondary} />
-          <Text style={[styles.infoText, { color: C.textSecondary }]}>
-            {item.city || 'Pakistan'} • {item.year} • {item.transmission || 'CVT'}
-          </Text>
-        </View>
+        {!!meta && (
+          <View style={styles.infoRow}>
+            <Ionicons name={item.city ? 'location-outline' : 'calendar-outline'} size={16} color={C.textSecondary} />
+            <Text style={[styles.infoText, { color: C.textSecondary }]} numberOfLines={1}>{meta}</Text>
+          </View>
+        )}
 
         {/* View + Heart */}
         <View style={styles.bottomRow}>
@@ -85,7 +130,9 @@ export default function FeaturedVehicleCard({ item, onPress, fallbackIndex = 0, 
           <TouchableOpacity
             activeOpacity={0.8}
             style={[styles.heartButton, { backgroundColor: C.isDark ? '#061b40' : 'transparent' }]}
-            onPress={() => setLiked(!liked)}
+            onPress={toggleSave}
+            disabled={saving}
+            accessibilityLabel={liked ? 'Remove from favourites' : 'Save to favourites'}
           >
             <Ionicons
               name={liked ? 'heart' : 'heart-outline'}

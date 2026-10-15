@@ -17,7 +17,7 @@ import { authHeaders, imgUrl } from '@/components/book/common';
 import { RatingSummary, ReviewItem } from '@/components/book/reviews';
 
 const BANNER_H = 232;
-const AVATAR = 96;
+const AVATAR = 84;
 
 function fmtCount(n: number) {
   return n >= 1000 ? `${+(n / 1000).toFixed(1)}k` : String(n);
@@ -138,9 +138,10 @@ function BookDealerProfileInner() {
     { icon: 'people-outline' as const, t: `${fmtCount(dealer.follower_count || 0)}+Customers` },
     { icon: 'calendar-outline' as const, t: dealer.established_year ? `Since ${dealer.established_year}` : `Since ${new Date(dealer.member_since || Date.now()).getFullYear()}` },
   ];
+  const contact = [dealer.phone, dealer.email].filter(Boolean);
   const info = [
-    { icon: 'location-outline' as const, t: 'Location', lines: [dealer.location || dealer.city || '—', dealer.location ? '' : 'Pakistan'].filter(Boolean) },
-    { icon: 'call-outline' as const, t: 'Contact', lines: [dealer.phone || '—', dealer.email || ''].filter(Boolean) },
+    { icon: 'location-outline' as const, t: 'Location', lines: dealer.location ? [dealer.location] : dealer.city ? [`${dealer.city},`, 'Pakistan'] : ['Pakistan'] },
+    { icon: 'call-outline' as const, t: 'Contact', lines: contact.length ? contact : ['—'] },
     { icon: 'time-outline' as const, t: 'Working hour', lines: hours },
   ];
 
@@ -165,7 +166,7 @@ function BookDealerProfileInner() {
           <View style={s.avatar}>
             {avatar ? <Image source={{ uri: avatar }} style={{ width: '100%', height: '100%' }} /> : null}
           </View>
-          <View style={{ flex: 1, paddingTop: 10 }}>
+          <View style={{ flex: 1, paddingTop: 6 }}>
             <View style={s.nameRow}>
               <Text style={s.name} numberOfLines={1}>{name}</Text>
               {isDealer && <VerifiedIcon size={21} />}
@@ -179,10 +180,10 @@ function BookDealerProfileInner() {
             </View>
             <Text style={s.sub}>{isDealer ? 'Official Dealership' : 'Individual Seller'}</Text>
             <View style={s.rateRow}>
-              <Ionicons name="star" size={20} color={G.orange} />
-              <Text style={s.rateTxt}>{avg ? avg.toFixed(1) : '0.0'} ({count > 250 ? '250+' : count} Reviews)</Text>
+              <Ionicons name="star" size={18} color={G.orange} />
+              <Text style={s.rateTxt} numberOfLines={1}>{avg ? avg.toFixed(1) : '0.0'} ({count > 250 ? '250+' : count} Reviews)</Text>
               <View style={{ flex: 1 }} />
-              <GlassButton title={following ? 'Following' : 'Follow'} height={38} fontSize={15} color={aC.isDark ? G.white : '#000000'} loading={busyFollow} style={{ width: 104 }} onPress={toggleFollow} />
+              <GlassButton title={following ? 'Following' : 'Follow'} height={36} fontSize={14} color={aC.isDark ? G.white : '#000000'} loading={busyFollow} style={{ width: 92 }} onPress={toggleFollow} />
             </View>
           </View>
         </View>
@@ -211,7 +212,8 @@ function BookDealerProfileInner() {
               <View key={x.t} style={s.info}>
                 <Ionicons name={x.icon} size={22} color={G.orange} />
                 <Text style={s.infoTitle}>{x.t}</Text>
-                {x.lines.map((l, i) => <Text key={i} style={s.infoLine} numberOfLines={2}>{l}</Text>)}
+                {/* Email: '@' ke baad break allow (zero-width space) taake font chhota kiye baghair 2 lines mein aaye */}
+                {x.lines.map((l, i) => <Text key={i} style={s.infoLine} numberOfLines={2}>{String(l).replace('@', '@\u200B')}</Text>)}
               </View>
             ))}
           </View>
@@ -264,17 +266,17 @@ const s_dark = StyleSheet.create({
   bannerLogo: { width: 118, height: 24 },
 
   identity: { flexDirection: 'row', paddingLeft: 12, paddingRight: 16, gap: 12 },
-  avatar:   { width: AVATAR, height: AVATAR, borderRadius: AVATAR / 2, backgroundColor: '#FFFFFF', borderWidth: 2, borderColor: '#0B1D4A', marginTop: -AVATAR * 0.42, overflow: 'hidden' },
+  avatar:   { width: AVATAR, height: AVATAR, borderRadius: AVATAR / 2, backgroundColor: '#FFFFFF', borderWidth: 2, borderColor: '#0B1D4A', marginTop: -AVATAR * 0.5, overflow: 'hidden' },
   nameRow:  { flexDirection: 'row', alignItems: 'center', gap: 6 },
   name:     { color: G.white, fontSize: 19, fontFamily: 'Poppins_500Medium', flexShrink: 1 },
-  sub:      { color: G.muted, fontSize: 14, fontFamily: 'Poppins_400Regular', marginTop: 1 },
-  rateRow:  { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 },
-  rateTxt:  { color: G.muted, fontSize: 14, fontFamily: 'Poppins_400Regular' },
+  sub:      { color: G.muted, fontSize: 14, fontFamily: 'Poppins_400Regular', lineHeight: 20, marginTop: -2 },
+  rateRow:  { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 0 },
+  rateTxt:  { color: G.muted, fontSize: 13, fontFamily: 'Poppins_400Regular', flexShrink: 1 },
 
-  stats:   { flexDirection: 'row', alignItems: 'center', marginTop: 18, paddingHorizontal: 12 },
-  stat:    { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
+  stats:   { flexDirection: 'row', alignItems: 'center', marginTop: 18, paddingHorizontal: 8 },
+  stat:    { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 4 },
   statSep: { width: 1, height: 26, backgroundColor: 'rgba(255,255,255,0.3)' },
-  statTxt: { color: '#D9D2DA', fontSize: 12, fontFamily: 'Poppins_400Regular' },
+  statTxt: { color: '#D9D2DA', fontSize: 12, fontFamily: 'Poppins_400Regular', flexShrink: 1 },
 
   pad:       { paddingHorizontal: 20 },
   h2:        { color: G.white, fontSize: 18, fontFamily: 'Poppins_500Medium', marginTop: 26 },
