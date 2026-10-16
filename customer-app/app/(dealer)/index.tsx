@@ -30,6 +30,7 @@ const QUICK_ACTIONS = [
   { title: 'Add special offer', icon: DICON.addVideoAdd,    route: '/dealer-panel/special-offer' },
   { title: 'Advertisement',     icon: DICON.advertisement,  route: '/dealer-panel/advertisement' },
   { title: 'Promote Vehicle',   icon: DICON.promoteVehicle, route: '/dealer-panel/promote-vehicle' },
+  { title: 'Drafts',            icon: null,                 ion: 'document-text-outline', route: '/dealer-panel/drafts' },
 ];
 
 export default function DealerHomeScreen() {
@@ -342,7 +343,9 @@ export default function DealerHomeScreen() {
                     )
                   }
                 >
-                  <DIcon src={action.icon} size={22} />
+                  {(action as any).ion
+                    ? <Ionicons name={(action as any).ion} size={22} color={D.orange} />
+                    : <DIcon src={action.icon} size={22} />}
                   <Text style={s.actionText}>{action.title}</Text>
                 </TouchableOpacity>
               ))}
@@ -377,7 +380,7 @@ export default function DealerHomeScreen() {
           <View style={{ height: tabSpace }} />
         </ScrollView>
       </View>
-      <Chatbot />
+      <Chatbot aboveTabBar />
     </SafeAreaView>
   );
 }

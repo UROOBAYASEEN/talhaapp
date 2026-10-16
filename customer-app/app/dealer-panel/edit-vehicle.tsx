@@ -304,7 +304,7 @@ export default function EditVehicleScreen() {
           <InputField label="Brand"      placeholder="e.g. Honda"     value={brand}    onChangeText={setBrand}  />
           <InputField label="Model"      placeholder="e.g. City"      value={model}    onChangeText={setModel}  />
           <InputField label="Variant"    placeholder="e.g. Aspire CVT" value={variant} onChangeText={setVariant}/>
-          <InputField label="Year"       placeholder="2026"            value={year}     onChangeText={setYear}     keyboardType="numeric"/>
+          <InputField label="Year"       placeholder="Select your year" value={year}     onChangeText={setYear}     keyboardType="numeric"/>
           <InputField label="Body Type"  placeholder="e.g. Sedan"     value={bodyType} onChangeText={setBodyType}/>
           <InputField label="Color"      placeholder="e.g. White"     value={color}    onChangeText={setColor}  />
           <InputField label="City"       placeholder="e.g. Karachi"   value={city}     onChangeText={setCity}   />

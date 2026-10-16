@@ -17,14 +17,14 @@ import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { Plus, X } from 'lucide-react-native';
 import {
-  AddChip, BottomActions, Chip, D, DField, DHeader, DSelect, OutlineCard, PlanOption, PromoCard,
+  AddChip, BottomActions, Chip, D, DField, DHeader, DSelect, OutlineCard,
   SaveDraftAction, TermsRow, UploadBox,
 } from '@/components/dealer/DealerUI';
 import { GlassButton, GradientButton } from '@/components/shared/GlowUI';
 import { AppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
-import PromoteModal from '@/components/dealer/PromoteModal';
+import PublishPromoteModal from '@/components/dealer/PublishPromoteModal';
 import { GlowPublishButton, GlowDraftButton } from "@/components/shared/ActionFooterGlow";
 import SelectSheet from '@/components/shared/SelectSheet';
 import {
@@ -110,6 +110,8 @@ export default function AddVehicleScreen() {
 
   // Pricing breakdown (WHT / Estimated Total) sirf Dealer ke liye — Seller / Become_a_Seller me sirf Vehicle Price
   const isDealer = (user as any)?.role === 'dealership_owner';
+  // Publish ke baad panel home: Seller / Become_a_Seller → Become_a_Seller, warna Dealer (same as promote-payment)
+  const panelHome = (user as any)?.role === 'individual_seller' || (user as any)?.role === 'customer' ? '/Become_a_Seller' : '/(dealer)';
 
   const [vehicleType, setVehicleType] = useState<'car' | 'bike'>('car');
   const [city, setCity] = useState('');
@@ -124,7 +126,7 @@ export default function AddVehicleScreen() {
   const [extraVariants, setExtraVariants] = useState<string[]>([]);
   const [transmission, setTransmission] = useState('');
   const [fuelType, setFuelType] = useState('');
-  const [modelYear, setModelYear] = useState('2026');
+  const [modelYear, setModelYear] = useState('');
   const [bodyType, setBodyType] = useState('');
   const [picker, setPicker] = useState<Picker>(null);
   const [apiBrands, setApiBrands] = useState<string[]>([]);
@@ -266,42 +268,55 @@ export default function AddVehicleScreen() {
     return urls;
   }
 
-  async function handlePublish() {
+  // Publish tap → pehle form check, phir promotion popup
+  function handlePublish() {
+    if (publishing) return;
+    if (validate()) setShowModal(true);
+  }
+
+  // true = sab required fields theek hain
+  function validate(): boolean {
     // Fields ki tarteeb se: City → Brand → Vehicle → Variant → Transmission → Fuel → Year → Body Type → Vehicle Price
     // ("Other Variants" optional hai — uski koi condition nahi)
     if (!city) {
-      Alert.alert('Required', 'Please select your city.'); return;
+      Alert.alert('Required', 'Please select your city.'); return false;
     }
     if (!brand.trim()) {
-      Alert.alert('Required', brandOther ? 'Please enter your brand name.' : 'Please select your brand.'); return;
+      Alert.alert('Required', brandOther ? 'Please enter your brand name.' : 'Please select your brand.'); return false;
     }
     if (!model.trim()) {
-      Alert.alert('Required', modelOther ? 'Please enter your vehicle name.' : 'Please select your vehicle.'); return;
+      Alert.alert('Required', modelOther ? 'Please enter your vehicle name.' : 'Please select your vehicle.'); return false;
     }
     if (!variant.trim()) {
-      Alert.alert('Required', variantOther ? 'Please enter your variant name.' : 'Please select your variant.'); return;
+      Alert.alert('Required', variantOther ? 'Please enter your variant name.' : 'Please select your variant.'); return false;
     }
     if (!transmission) {
-      Alert.alert('Required', 'Please select the transmission.'); return;
+      Alert.alert('Required', 'Please select the transmission.'); return false;
     }
     if (!fuelType) {
-      Alert.alert('Required', 'Please select the fuel type.'); return;
+      Alert.alert('Required', 'Please select the fuel type.'); return false;
     }
     if (!modelYear) {
-      Alert.alert('Required', 'Please select the year.'); return;
+      Alert.alert('Required', 'Please select the year.'); return false;
     }
     if (!bodyType) {
-      Alert.alert('Required', 'Please select the body type.'); return;
+      Alert.alert('Required', 'Please select the body type.'); return false;
     }
     if (!toNum(vehiclePrice)) {
-      Alert.alert('Required', 'Please enter the vehicle price.'); return;
+      Alert.alert('Required', 'Please enter the vehicle price.'); return false;
     }
     if (images.length === 0) {
-      Alert.alert('Images Required', 'Please add at least one vehicle image before posting.'); return;
+      Alert.alert('Images Required', 'Please add at least one vehicle image before posting.'); return false;
     }
     if (!accepted) {
-      Alert.alert('Terms Required', 'Please accept the terms and conditions first.'); return;
+      Alert.alert('Terms Required', 'Please accept the terms and conditions first.'); return false;
     }
+    return true;
+  }
+
+  // Popup ke button se: promote = true → publish ke baad promote flow, false → publish ke baad panel home
+  async function publishVehicle(promote: boolean) {
+    setShowModal(false);
     setPublishing(true);
     try {
       const uploadedUrls = await uploadImages();
@@ -343,7 +358,12 @@ export default function AddVehicleScreen() {
       if (res.ok) {
         const data = await res.json();
         setCreatedVehicleId(data.id);
-        setShowModal(true);
+        if (promote) {
+          // Pehle wala promote flow
+          router.replace({ pathname: '/dealer-panel/promote-new' } as any);
+        } else {
+          router.dismissTo(panelHome as any);
+        }
       } else if (res.status === 402) {
         const err = await res.json();
         const detail = typeof err.detail === 'object' ? err.detail : {};
@@ -366,15 +386,6 @@ export default function AddVehicleScreen() {
       Alert.alert('Error', 'Network error. Please try again.');
     } finally {
       setPublishing(false);
-    }
-  }
-
-  function handlePromote() {
-    setShowModal(false);
-    if (createdVehicleId) {
-      router.replace({
-        pathname: '/dealer-panel/promote-new',
-      } as any);
     }
   }
 
@@ -526,23 +537,7 @@ export default function AddVehicleScreen() {
             </View>
           </OutlineCard>
 
-          {/* PROMOTE */}
-          <Text style={[s.sectionTitle, { marginBottom: 0 }]}>Promote Vehicle</Text>
-          <Text style={s.planSub}>Select Placement Plan</Text>
-
-          <PromoCard title="Promote to Get Your  Vehicle Seen Faster" sub="Get 5x more visibility by featuring your listing">
-            {PLANS.map(p => (
-              <PlanOption
-                key={p.title}
-                title={p.title}
-                sub={p.desc}
-                price={p.price}
-                fire={p.fire}
-                selected={selectedPlan === p.title}
-                onPress={() => setSelectedPlan(p.title)}
-              />
-            ))}
-          </PromoCard>
+          {/* PROMOTE — ab Publish dabane pe popup me (PublishPromoteModal) */}
 
           {/* TERMS */}
           <TermsRow checked={accepted} onToggle={() => setAccepted(v => !v)} />
@@ -563,10 +558,14 @@ export default function AddVehicleScreen() {
       <SelectSheet visible={picker === 'year'} title="Year" options={VEHICLE_YEARS} selected={modelYear} onSelect={setModelYear} onClose={() => setPicker(null)} />
       <SelectSheet visible={picker === 'body'} title="Body Type" options={bodyOptions} selected={bodyType} onSelect={setBodyType} onClose={() => setPicker(null)} />
 
-      <PromoteModal
+      <PublishPromoteModal
         visible={showModal}
+        plans={PLANS}
+        selectedPlan={selectedPlan}
+        onSelectPlan={setSelectedPlan}
+        onPromote={() => publishVehicle(true)}
+        onSkip={() => publishVehicle(false)}
         onClose={() => setShowModal(false)}
-        onPromote={handlePromote}
       />
 
       {/* BOTTOM BUTTONS */}

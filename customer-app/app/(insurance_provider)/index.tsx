@@ -295,7 +295,7 @@ export default function InsuranceHomeScreen() {
 
         <View style={{ height: 100 }} />
       </ScrollView>
-      <Chatbot />
+      <Chatbot aboveTabBar />
     </SafeAreaView>
   );
 }

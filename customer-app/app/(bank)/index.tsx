@@ -431,7 +431,7 @@ export default function BankHomeScreen() {
         {/* Home indicator */}
         <View style={{ height: tabSpace }} />
       </ScrollView>
-      <Chatbot />
+      <Chatbot aboveTabBar />
     </SafeAreaView>
   );
 }

@@ -20,6 +20,7 @@ import { logApi, logApiError } from '@/constants/apiLog';
 import { useAuth } from '@/contexts/AuthContext';
 
 import SheetModal from '@/components/shared/SheetModal';
+import { useTabBarSpace } from '@/components/shared/PillTabBar';
 type Msg = { id: string; from: 'user' | 'bot'; text: string; time?: string };
 
 const BOT_GREETING = 'Welcome to Autowizor — Pakistan\'s Connected Auto Ecosystem. I\'m your assistant. How may I help you today?';
@@ -30,7 +31,9 @@ function nowTime() {
   return new Date().toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' });
 }
 
-export default function Chatbot() {
+// `aboveTabBar` = lift the FAB clear of the floating bottom tab bar (panel dashboards); customer Home keeps bottom: 90
+export default function Chatbot({ aboveTabBar }: { aboveTabBar?: boolean } = {}) {
+  const tabSpace = useTabBarSpace(90, 12);
   const { token } = useAuth();
   const C = useAppColors();
   const [visible, setVisible] = useState(false);
@@ -83,7 +86,7 @@ export default function Chatbot() {
   return (
     <>
       {/* FAB — just icon, no border/shade (user request) */}
-      <TouchableOpacity style={cb.fabSimple} activeOpacity={0.88} onPress={() => setVisible(true)}>
+      <TouchableOpacity style={[cb.fabSimple, aboveTabBar && { bottom: tabSpace }]} activeOpacity={0.88} onPress={() => setVisible(true)}>
         <Image source={require('@/assets/images/autowizor-logo-icon.png')} style={cb.fabLogoSimple} resizeMode="contain" />
       </TouchableOpacity>
 

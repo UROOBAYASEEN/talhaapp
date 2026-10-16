@@ -336,7 +336,7 @@ export default function TrackerHomeScreen() {
 
         <View style={{ height: 100 }} />
       </ScrollView>
-      <Chatbot />
+      <Chatbot aboveTabBar />
     </SafeAreaView>
   );
 }

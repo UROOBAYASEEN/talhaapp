@@ -111,18 +111,7 @@ export default function AdLimitReachedScreen() {
             <Text style={s.primaryTxt}>Post Extra Ad — PKR 500</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={s.secondaryBtn}
-            activeOpacity={0.8}
-            onPress={() => router.push(((user as any)?.role === 'customer' ? '/Become_a_Seller/plan' : '/(dealer)/plan') as any)}
-          >
-            <LinearGradient
-              colors={['rgba(22,64,136,0.2)','transparent']}
-              start={{x:0.5,y:0}} end={{x:0.5,y:1}}
-              style={StyleSheet.absoluteFillObject} pointerEvents="none"
-            />
-            <Text style={s.secondaryTxt}>Upgrade Plan</Text>
-          </TouchableOpacity>
+          {/* Upgrade Plan button removed (user request) */}
         </View>
       </View>
     </SafeAreaView>
