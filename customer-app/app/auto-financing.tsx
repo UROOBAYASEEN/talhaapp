@@ -15,16 +15,16 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { PRIMARY_BTN_COLORS, SavedCardEffect, SearchInputEffect } from '@/components/shared/FigmaEffects';
 
 import SheetModal from '@/components/shared/SheetModal';
-const C      = AppColors;
+const C = AppColors;
 const ORANGE = '#e2671b';
-const NAVY   = '#032a69';
+const NAVY = '#032a69';
 const SERVER = API_BASE.replace('/api/v1', '');
 
-const CITIES     = ['Karachi', 'Lahore', 'Islamabad', 'Faisalabad', 'Rawalpindi'];
-const BRANDS     = ['Select Brand', 'Honda', 'Toyota', 'Suzuki', 'Kia', 'Hyundai'];
-const COLORS     = ['Select Color', 'White', 'Black', 'Silver', 'Red', 'Grey'];
-const VARIANTS   = ['Select Variant', '1.0 VXR', '1.2 Aspire CVT', '1.3 GLi MT', '1.5 Aspire CVT', '1.6 Altis X CVT', '1.8 Oriel CVT', '2.0 Grande'];
-const YEARS      = ['2026', '2025', '2024', '2023', '2022'];
+const CITIES = ['Karachi', 'Lahore', 'Islamabad', 'Faisalabad', 'Rawalpindi'];
+const BRANDS = ['Select Brand', 'Honda', 'Toyota', 'Suzuki', 'Kia', 'Hyundai'];
+const COLORS = ['Select Color', 'White', 'Black', 'Silver', 'Red', 'Grey'];
+const VARIANTS = ['Select Variant', '1.0 VXR', '1.2 Aspire CVT', '1.3 GLi MT', '1.5 Aspire CVT', '1.6 Altis X CVT', '1.8 Oriel CVT', '2.0 Grande'];
+const YEARS = ['2026', '2025', '2024', '2023', '2022'];
 const DEALERSHIP = ['All (Dealership + Individual)', 'Dealership only', 'Individual only'];
 
 type Vehicle = {
@@ -43,8 +43,8 @@ function VehiclePickerModal({
 }) {
   const aC = useAppColors();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [loading,  setLoading]  = useState(false);
-  const [search,   setSearch]   = useState('');
+  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState('');
 
   const category = vehicleType === 'bikes' ? 'bike' : 'car';
 
@@ -62,7 +62,7 @@ function VehiclePickerModal({
         const data = await res.json();
         setVehicles(data.items || []);
       }
-    } catch {}
+    } catch { }
     finally { setLoading(false); }
   }, [category, condition, search]);
 
@@ -156,20 +156,20 @@ function VehiclePickerModal({
 
 const pm = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
-  sheet:   { backgroundColor: '#010A1F', borderTopLeftRadius: 24, borderTopRightRadius: 24, borderWidth: 1, borderColor: 'rgba(100,160,255,0.3)', maxHeight: '80%', paddingBottom: 10 },
-  header:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 12 },
-  title:   { color: '#fff', fontSize: 17, fontFamily: 'Poppins_600SemiBold' },
-  closeBtn:{ width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center' },
-  searchBox:  { flexDirection: 'row', alignItems: 'center', gap: 10, marginHorizontal: 16, marginBottom: 12, height: 46, borderRadius: 14, borderWidth: 1, borderColor: 'rgba(100,160,255,0.4)', backgroundColor: '#061B4A', paddingHorizontal: 14 },
-  searchInput:{ flex: 1, color: '#fff', fontSize: 14, fontFamily: 'Poppins_400Regular' },
-  empty:   { alignItems: 'center', paddingVertical: 40, gap: 12 },
-  emptyTxt:{ color: 'rgba(255,255,255,0.3)', fontSize: 13, fontFamily: 'Poppins_400Regular' },
-  item:    { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' },
-  thumb:   { width: 56, height: 44, borderRadius: 10, backgroundColor: '#061B4A', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 },
-  thumbImg:{ width: '100%', height: '100%' },
-  itemInfo:{ flex: 1 },
-  itemTitle:{ color: '#fff', fontSize: 13, fontFamily: 'Poppins_600SemiBold' },
-  itemSub:  { color: '#94a3b8', fontSize: 11, fontFamily: 'Poppins_400Regular', marginTop: 2 },
+  sheet: { backgroundColor: '#010A1F', borderTopLeftRadius: 24, borderTopRightRadius: 24, borderWidth: 1, borderColor: 'rgba(100,160,255,0.3)', maxHeight: '80%', paddingBottom: 10 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 12 },
+  title: { color: '#fff', fontSize: 17, fontFamily: 'Poppins_600SemiBold' },
+  closeBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center' },
+  searchBox: { flexDirection: 'row', alignItems: 'center', gap: 10, marginHorizontal: 16, marginBottom: 12, height: 46, borderRadius: 14, borderWidth: 1, borderColor: 'rgba(100,160,255,0.4)', backgroundColor: '#061B4A', paddingHorizontal: 14 },
+  searchInput: { flex: 1, color: '#fff', fontSize: 14, fontFamily: 'Poppins_400Regular' },
+  empty: { alignItems: 'center', paddingVertical: 40, gap: 12 },
+  emptyTxt: { color: 'rgba(255,255,255,0.3)', fontSize: 13, fontFamily: 'Poppins_400Regular' },
+  item: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' },
+  thumb: { width: 56, height: 44, borderRadius: 10, backgroundColor: '#061B4A', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 },
+  thumbImg: { width: '100%', height: '100%' },
+  itemInfo: { flex: 1 },
+  itemTitle: { color: '#fff', fontSize: 13, fontFamily: 'Poppins_600SemiBold' },
+  itemSub: { color: '#94a3b8', fontSize: 11, fontFamily: 'Poppins_400Regular', marginTop: 2 },
 });
 
 // ── Reusable Dropdown ─────────────────────────────────────────────────────────
@@ -213,10 +213,10 @@ function Dropdown({ value, onChange, options, placeholder }: {
         <View style={[dd.list, { backgroundColor: aC.isDark ? 'rgba(6,18,52,0.99)' : '#ffffff', borderColor: aC.isDark ? 'rgba(100,160,255,0.3)' : 'rgba(3,42,105,0.12)', shadowColor: aC.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOpacity: aC.isDark ? 0 : 0.12, shadowRadius: 10, elevation: aC.isDark ? 0 : 8 }, !aC.isDark && { borderColor: 'rgba(226,103,27,0.28)', shadowOpacity: 0, elevation: 0, boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}>
           {aC.isDark ? (
             <>
-              <LinearGradient colors={['rgba(22,64,136,0.35)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.25 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <LinearGradient colors={['transparent', 'rgba(29,83,175,0.35)']} start={{ x: 0.5, y: 0.75 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <LinearGradient colors={['rgba(13,37,84,0.35)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.25, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
-              <LinearGradient colors={['transparent', 'rgba(13,37,84,0.35)']} start={{ x: 0.75, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none"/>
+              <LinearGradient colors={['rgba(22,64,136,0.35)', 'transparent']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.25 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+              <LinearGradient colors={['transparent', 'rgba(29,83,175,0.35)']} start={{ x: 0.5, y: 0.75 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+              <LinearGradient colors={['rgba(13,37,84,0.35)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 0.25, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+              <LinearGradient colors={['transparent', 'rgba(13,37,84,0.35)']} start={{ x: 0.75, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
             </>
           ) : (
             <>
@@ -235,13 +235,13 @@ function Dropdown({ value, onChange, options, placeholder }: {
 }
 
 const dd = StyleSheet.create({
-  wrap:        { marginBottom: 12, zIndex: 1 },
-  btn:         { height: 46, borderRadius: 32, borderWidth: 1, borderColor: '#829fd0', backgroundColor: 'rgba(3,12,40,0.6)', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, overflow: 'hidden' },
-  val:         { color: '#fff', fontSize: 13.5, fontFamily: 'Poppins_400Regular', flex: 1 },
-  list:        { position: 'absolute', top: 50, left: 0, right: 0, backgroundColor: 'rgba(6,18,52,0.99)', borderRadius: 14, borderWidth: 1, borderColor: 'rgba(100,160,255,0.3)', overflow: 'hidden', zIndex: 100 },
-  option:      { paddingHorizontal: 20, paddingVertical: 13, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' },
-  optionActive:{ backgroundColor: 'rgba(226,103,27,0.1)' },
-  optTxt:      { color: '#fff', fontSize: 13, fontFamily: 'Poppins_400Regular' },
+  wrap: { marginBottom: 12, zIndex: 1 },
+  btn: { height: 46, borderRadius: 32, borderWidth: 1, borderColor: '#829fd0', backgroundColor: 'rgba(3,12,40,0.6)', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, overflow: 'hidden' },
+  val: { color: '#fff', fontSize: 13.5, fontFamily: 'Poppins_400Regular', flex: 1 },
+  list: { position: 'absolute', top: 50, left: 0, right: 0, backgroundColor: 'rgba(6,18,52,0.99)', borderRadius: 14, borderWidth: 1, borderColor: 'rgba(100,160,255,0.3)', overflow: 'hidden', zIndex: 100 },
+  option: { paddingHorizontal: 20, paddingVertical: 13, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' },
+  optionActive: { backgroundColor: 'rgba(226,103,27,0.1)' },
+  optTxt: { color: '#fff', fontSize: 13, fontFamily: 'Poppins_400Regular' },
 });
 
 // ── Toggle Card ───────────────────────────────────────────────────────────────
@@ -360,19 +360,19 @@ export default function AutoFinancingScreen() {
   const router = useRouter();
   const aC = useAppColors();
 
-  const [vehicleType,   setVehicleType]   = useState('cars');
-  const [condition,     setCondition]     = useState('new');
-  const [city,          setCity]          = useState('Karachi');
-  const [brand,         setBrand]         = useState('Select Brand');
-  const [carModel,      setCarModel]      = useState('');
-  const [variant,       setVariant]       = useState('');
-  const [color,         setColor]         = useState('Select Color');
-  const [year,          setYear]          = useState('2026');
-  const [price,         setPrice]         = useState('');
-  const [dealership,    setDealership]    = useState(DEALERSHIP[0]);
-  const [showPicker,    setShowPicker]    = useState(false);
+  const [vehicleType, setVehicleType] = useState('cars');
+  const [condition, setCondition] = useState('new');
+  const [city, setCity] = useState('Karachi');
+  const [brand, setBrand] = useState('Select Brand');
+  const [carModel, setCarModel] = useState('');
+  const [variant, setVariant] = useState('');
+  const [color, setColor] = useState('Select Color');
+  const [year, setYear] = useState('2026');
+  const [price, setPrice] = useState('');
+  const [dealership, setDealership] = useState(DEALERSHIP[0]);
+  const [showPicker, setShowPicker] = useState(false);
   const [selectedLabel, setSelectedLabel] = useState('');
-  const [vehicleImage,  setVehicleImage]  = useState('');
+  const [vehicleImage, setVehicleImage] = useState('');
 
   function formatPrice(raw: string) {
     const digits = raw.replace(/\D/g, '');
@@ -441,8 +441,8 @@ export default function AutoFinancingScreen() {
           {/* VEHICLE CONDITION */}
           <Text style={[s.sectionTitle, { color: aC.isDark ? '#F2F1F5' : '#010a1f' }]}>Vehicle Condition</Text>
           <View style={s.row}>
-            <ConditionCard title="New Cars"  subtitle="Brand new Vehicle"  selected={condition === 'new'}  onSelect={() => { setCondition('new');  setSelectedLabel(''); setVehicleImage(''); }} />
-            <ConditionCard title="Used Car"  subtitle="Pre-owned Vehicle"  selected={condition === 'used'} onSelect={() => { setCondition('used'); setSelectedLabel(''); setVehicleImage(''); }} />
+            <ConditionCard title={vehicleType === 'bikes' ? 'New Bikes' : 'New Cars'} subtitle="Brand new Vehicle" selected={condition === 'new'} onSelect={() => { setCondition('new'); setSelectedLabel(''); setVehicleImage(''); }} />
+            <ConditionCard title={vehicleType === 'bikes' ? 'Used Bike' : 'Used Car'} subtitle="Pre-owned Vehicle" selected={condition === 'used'} onSelect={() => { setCondition('used'); setSelectedLabel(''); setVehicleImage(''); }} />
           </View>
 
           {/* BASIC DETAILS */}
@@ -488,7 +488,7 @@ export default function AutoFinancingScreen() {
           <FL>Year / Model</FL>
           <Dropdown value={year} onChange={setYear} options={YEARS} />
 
-          <FL>Price (Without Holding Tax)</FL>
+          <FL>Price (without withholding tax)</FL>
           <InputField
             value={formatPrice(price)}
             onChange={v => setPrice(v.replace(/\D/g, ''))}
@@ -532,29 +532,29 @@ export default function AutoFinancingScreen() {
 }
 
 const s = StyleSheet.create({
-  safe:   { flex: 1, backgroundColor: '#010A1F' },
+  safe: { flex: 1, backgroundColor: '#010A1F' },
   scroll: { paddingHorizontal: 14, paddingBottom: 16 },
 
-  header:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingTop: 6, paddingBottom: 10 },
-  backBtn:     { width: 36, height: 36, alignItems: 'flex-start', justifyContent: 'center' },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingTop: 6, paddingBottom: 10 },
+  backBtn: { width: 36, height: 36, alignItems: 'flex-start', justifyContent: 'center' },
   headerTitle: { fontSize: 20, fontFamily: 'Poppins_700Bold', color: '#fff' },
 
   sectionTitle: { color: '#fff', fontSize: 14, fontFamily: 'Poppins_400Regular', marginBottom: 12, marginTop: 2 },
-  bigTitle:     { color: '#fff', fontSize: 19, fontFamily: 'Poppins_500Medium', marginBottom: 12, marginTop: 4 },
+  bigTitle: { color: '#fff', fontSize: 19, fontFamily: 'Poppins_500Medium', marginBottom: 12, marginTop: 4 },
 
   row: { flexDirection: 'row', gap: 12, marginBottom: 16 },
 
-  toggleCard:         { flex: 1, height: 88, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center', gap: 8, overflow: 'hidden' },
-  toggleCardActive:   { borderColor: ORANGE, backgroundColor: '#16234a' },
+  toggleCard: { flex: 1, height: 88, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center', gap: 8, overflow: 'hidden' },
+  toggleCardActive: { borderColor: ORANGE, backgroundColor: '#16234a' },
   toggleCardInactive: { borderColor: '#1e3a8a', backgroundColor: '#0e1a3d' },
-  toggleTxt:          { color: '#fff', fontSize: 15, fontFamily: 'Poppins_500Medium' },
+  toggleTxt: { color: '#fff', fontSize: 15, fontFamily: 'Poppins_500Medium' },
 
-  condCard:         { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: 14, borderWidth: 1, paddingHorizontal: 10, height: 60, overflow: 'hidden' },
-  condCardActive:   { borderColor: ORANGE, backgroundColor: '#16234a' },
+  condCard: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: 14, borderWidth: 1, paddingHorizontal: 10, height: 60, overflow: 'hidden' },
+  condCardActive: { borderColor: ORANGE, backgroundColor: '#16234a' },
   condCardInactive: { borderColor: '#1e3a8a', backgroundColor: '#0e1a3d' },
-  condIcon:         { width: 32, height: 32, borderRadius: 16, backgroundColor: '#1c2c5c', alignItems: 'center', justifyContent: 'center' },
-  condTitle:        { color: '#fff', fontSize: 13.5, fontFamily: 'Poppins_500Medium' },
-  condSub:          { color: '#94a3b8', fontSize: 10, fontFamily: 'Poppins_400Regular', marginTop: 1 },
+  condIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#1c2c5c', alignItems: 'center', justifyContent: 'center' },
+  condTitle: { color: '#fff', fontSize: 13.5, fontFamily: 'Poppins_500Medium' },
+  condSub: { color: '#94a3b8', fontSize: 10, fontFamily: 'Poppins_400Regular', marginTop: 1 },
 
   fieldLabel: { color: '#cbd5e1', fontSize: 13.5, fontFamily: 'Poppins_400Regular', marginBottom: 8 },
 
@@ -562,10 +562,10 @@ const s = StyleSheet.create({
   pickerTxt: { color: '#fff', fontSize: 13.5, fontFamily: 'Poppins_400Regular', flex: 1 },
 
   inputWrap: { height: 46, borderRadius: 32, borderWidth: 1, borderColor: '#829fd0', backgroundColor: 'rgba(3,12,40,0.6)', overflow: 'hidden', justifyContent: 'center', marginBottom: 12 },
-  input:     { paddingHorizontal: 20, color: '#fff', fontSize: 13.5, fontFamily: 'Poppins_400Regular' },
+  input: { paddingHorizontal: 20, color: '#fff', fontSize: 13.5, fontFamily: 'Poppins_400Regular' },
   inputChevron: { position: 'absolute', right: 20 },
 
-  footer:  { paddingHorizontal: 14, paddingBottom: 36, paddingTop: 10 },
+  footer: { paddingHorizontal: 14, paddingBottom: 36, paddingTop: 10 },
   nextBtn: { height: 46, borderRadius: 24, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
   nextTxt: { color: '#EDEBF0', fontSize: 16, fontFamily: 'Poppins_600SemiBold' },
 });

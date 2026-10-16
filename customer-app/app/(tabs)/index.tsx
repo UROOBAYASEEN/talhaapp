@@ -82,7 +82,7 @@ const ALL_SERVICES = [
   { icon: 'car-outline', label: 'Buy Used\nCar', route: '/buy/used-car', p: {} },
   { icon: 'bicycle-outline', image: require('@/screenshot/bikelogo.png'), label: 'Buy New\nBike', route: '/buy/new-bike', p: null },
   { icon: 'bicycle', image: require('@/screenshot/bikelogo.png'), label: 'Buy Used\nBike', route: '/buy/used-bike', p: null },
-  { icon: 'git-compare-outline', image: require('@/screenshot/compare.png'), label: 'Compare\nVehicle', route: '/compare-vehicle', p: {} },
+  { icon: 'git-compare-outline', image: require('@/screenshot/compare.png'), label: 'Compare\nVehicle', route: '/compare-vehicle', p: { from: 'compareSection' } },
   { icon: 'cash-outline', image: require('@/screenshot/finance.png'), imageSize: 24, imageMarginTop: 6, label: 'Auto\nFinancing', route: '/auto-financing', p: {} },
   { icon: 'shield-checkmark-outline', label: 'Insurance', route: '/insurance-search', p: {} },
   { icon: 'locate-outline', image: require('@/screenshot/location.png'), label: 'Tracker', route: '/tracker-search', p: {} },
@@ -559,7 +559,7 @@ export default function HomeScreen() {
   const aC = useAppColors();
   // Reactive screen width — har phone size + rotation pe grid widths dobara banti hain
   const { width: W } = useWindowDimensions();
-  const servW = (W - 24 - 36) / 4;   // All Services: 4 per row, 12px section padding and gaps
+  const servW = (W - 40 - 36) / 4;   // All Services: 4 per row, 20px section padding (baaki sections jaisa) and gaps
   const findDropW = (W - 56 - 16) / 3;   // 3 columns, 2×gap-8
 
   const [featured, setFeatured] = useState<any[]>([]);
@@ -682,7 +682,7 @@ export default function HomeScreen() {
                 {/* RIGHT: notification + settings — fixed width row */}
                 <View style={styles.topIcons}>
                   <TouchableOpacity
-                    style={[styles.headerIconBtn, aC.isDark ? styles.headerIconBtnDark : styles.headerIconBtnLight]}
+                    style={styles.headerIconBtn}
                     onPress={() => router.push('/alert' as any)}
                     accessibilityRole="button"
                     accessibilityLabel={unread > 0 ? `Notifications, ${unread} unread` : 'Notifications'}
@@ -697,7 +697,7 @@ export default function HomeScreen() {
 
                   <TouchableOpacity
                     ref={settingsBtnRef as any}
-                    style={[styles.headerIconBtn, aC.isDark ? styles.headerIconBtnDark : styles.headerIconBtnLight]}
+                    style={styles.headerIconBtn}
                     accessibilityRole="button"
                     accessibilityLabel="Settings"
                     onPress={() => {
@@ -1118,7 +1118,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: 'rgba(1,10,31,1)' },
   pad: { paddingHorizontal: 20 },
   sec: { marginTop: 20 },
-  servicesSection: { paddingHorizontal: 12, marginTop: 6 },
+  servicesSection: { paddingHorizontal: 20, marginTop: 6 },
 
   /* ── Header ── */
   header: {
@@ -1224,17 +1224,6 @@ const styles = StyleSheet.create({
     borderRadius: 19,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-  },
-
-  headerIconBtnDark: {
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    borderColor: 'rgba(130,165,213,0.35)',
-  },
-  headerIconBtnLight: {
-    backgroundColor: '#ffffff',
-    borderColor: 'rgba(3,42,105,0.08)',
-    boxShadow: '1px 2px 4px rgba(0,0,0,0.12)',
   },
   /* Unread count badge on the bell */
   notifBadge: {

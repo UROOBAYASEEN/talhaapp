@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import ScheduleDateTimeField from '@/components/shared/ScheduleDateTimeField';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   TextInput, Alert, KeyboardAvoidingView, Platform,
@@ -274,11 +275,11 @@ export default function TrackerVideoAdsScreen() {
           <View style={s.dateRow}>
             <View style={{ flex: 1, gap: 6 }}>
               <Text style={s.dateLabel}>Start Date & Time</Text>
-              <DField placeholder="mm/dd/yyyy" value={startDate} onChangeText={setStartDate} />
+              <ScheduleDateTimeField value={startDate} onChange={setStartDate} />
             </View>
             <View style={{ flex: 1, gap: 6 }}>
               <Text style={s.dateLabel}>End Date & Time</Text>
-              <DField placeholder="mm/dd/yyyy" value={endDate} onChangeText={setEndDate} />
+              <ScheduleDateTimeField value={endDate} onChange={setEndDate} minimumDate={startDate ? new Date(startDate) : null} />
             </View>
           </View>
 

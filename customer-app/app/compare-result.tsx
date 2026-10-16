@@ -106,8 +106,10 @@ function SpecHeader() {
 export default function CompareResult() {
   const router = useRouter();
   const aC = useAppColors();
-  const params = useLocalSearchParams<{ aId?: string; bId?: string; aData?: string; bData?: string; from?: string; hideBuy?: string }>();
+  const params = useLocalSearchParams<{ aId?: string; bId?: string; aData?: string; bData?: string; from?: string; hideBuy?: string; hideDealer?: string }>();
   const fromCompareVehicle = params.from === 'compareVehicle';
+  // Compare Vehicle section (Home) se aaye to Call Dealer / Reserve nahi dikhte
+  const hideDealer = params.hideDealer === '1';
   const [a, setA] = useState<any>(null);
   const [b, setB] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -447,6 +449,7 @@ export default function CompareResult() {
           );
         })}
 
+        {!hideDealer && (<>
         {/* Call Dealer */}
         <TouchableOpacity style={s.callBtn} activeOpacity={0.88} onPress={handleCallDealer}>
           <LinearGradient colors={['#0B3585', '#7E4F5C', '#E8702A']} locations={[0, 0.5, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject} />
@@ -463,6 +466,7 @@ export default function CompareResult() {
           {aC.isDark ? <RingGlow radius={28} peak={0.5} rings={14} /> : <GlassInset />}
           <Text style={[s.reserveTxt, { color: aC.isDark ? '#C9C6D0' : '#032a69' }]}>Reserve Selected {selectedIsBike ? 'bike' : 'car'}</Text>
         </TouchableOpacity>
+        </>)}
 
         {/* Compare Variant flow only — WhatsApp */}
         {!fromCompareVehicle && (

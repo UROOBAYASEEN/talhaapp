@@ -11,6 +11,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { InsetGlow, SavedCardEffect, savedCardOuter, ActionPanelGlass, SearchInputEffect } from '@/components/shared/FigmaEffects';
 import { ActionPanelBg } from '@/components/shared/ActionFooterGlow';
 import { API_BASE } from '@/constants/api';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const D = {
   bg:      '#010A1F',
@@ -299,8 +300,12 @@ export function MiniGradBtn({ title, onPress }: { title: string; onPress?: () =>
   );
 }
 
+// Shared panel screens: Non-dealer (individual_seller) aur Become a Seller (customer) ko orange tick,
+// baaki sab (Dealer, Insurance, Tracker…) ko blue tick.
 export function Verified({ size = 18 }: { size?: number }) {
-  return <VerifiedIcon size={size} />;
+  const { user } = useAuth() as any;
+  const orange = user?.role === 'individual_seller' || user?.role === 'customer';
+  return <VerifiedIcon size={size} tone={orange ? 'orange' : 'blue'} />;
 }
 
 // ── Radio (white ring, filled dot when selected) ──

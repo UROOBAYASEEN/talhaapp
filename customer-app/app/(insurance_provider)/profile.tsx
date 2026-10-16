@@ -192,7 +192,6 @@ export default function InsuranceProfileScreen() {
           </TouchableOpacity>
           <Image source={require('@/assets/images/autowizor-logo-text.png')} style={s.logoImg} resizeMode="contain" />
           <View style={s.topActions}>
-            <Ionicons name="eye-outline" size={26} color={ORANGE} />
             <TouchableOpacity>
               <Ionicons name="notifications-outline" size={24} color="#FFFFFF" />
             </TouchableOpacity>

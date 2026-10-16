@@ -189,10 +189,6 @@ export default function DealerHomeScreen() {
                   <Text style={s.dealerName} numberOfLines={1}>{dealerName}</Text>
                   <Verified size={20} />
                 </View>
-                <View style={s.planRow}>
-                  <Ionicons name="ribbon-outline" size={16} color={D.orange} />
-                  <Text style={s.planText}>Premium Plan</Text>
-                </View>
               </View>
             </View>
             <View style={s.headerIcons}>

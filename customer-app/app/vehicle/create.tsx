@@ -1,5 +1,5 @@
 import LightGradientBorder from '@/components/shared/LightGradientBorder';
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -82,6 +82,23 @@ const AD_DURATIONS = ["1 Week","2 Weeks","1 Month","3 Months","6 Months"];
 const TRANSMISSIONS = ["Automatic","Manual","Other"];
 const VARIANTS     = ["1.0 MT","1.0 CVT","1.2 MT","1.2 CVT","1.3 MT","1.3 CVT","1.5 MT","1.5 CVT","1.8 MT","2.0 MT","Standard","GL","GLi","XLi","Grande","Alpha","Sport","AWD","Other"];
 const CONDITIONS   = ["Used","New"];
+
+// Bike select ho to Step 2 mein bike wali lists (car wali nahi)
+const BIKE_BRANDS: Record<string, string[]> = {
+  "Honda":       ["CD 70","CD 70 Dream","Pridor","CG 125","CG 125 Special Edition","CB 125F","CB 150F","Other"],
+  "Yamaha":      ["YB 125Z","YB 125Z-DX","YBR 125","YBR 125G","Other"],
+  "Suzuki":      ["GD 110S","GS 150","GS 150 SE","GR 150","Other"],
+  "United":      ["US 70","US 100","US 125","Other"],
+  "Road Prince": ["RP 70","RP 110","Wego 150","Other"],
+  "Super Power": ["SP 70","SP 100","SP 125","Other"],
+  "Unique":      ["UD 70","UD 100","UD 125","Other"],
+  "Hi Speed":    ["SR 70","Alpha 100","Infinity 150","Other"],
+  "Kawasaki":    ["Ninja 250","Ninja 400","Z650","Other"],
+  "Jolta":       ["JE-70D","JE-70L","Other"],
+  "Other":       ["Other"],
+};
+const BIKE_VARIANTS     = ["Standard","Self Start","Kick Start","Deluxe","Special Edition","Euro II","Other"];
+const BIKE_FUEL_TYPES   = ["Petrol","Electric","Other"];
 
 function Step2FigmaField({ label, value, sample, onPress, onChangeText, numeric = false, dark }: {
   label: string; value: string; sample: string; onPress?: () => void;
@@ -184,6 +201,7 @@ export default function SellMyVehicle() {
   const [color,        setColor]        = useState("");
   const [transmission, setTransmission] = useState("");
   const [condition,    setCondition]    = useState("Used");
+  const [engineCc,     setEngineCc]     = useState("");
 
   // "Other" custom text inputs
   const [otherBrand,   setOtherBrand]   = useState("");
@@ -262,7 +280,16 @@ export default function SellMyVehicle() {
   const effectiveVariant = variant === "Other" ? otherVariant : variant;
   const effectiveFuel  = fuelType === "Other" ? otherFuel : fuelType;
 
-  const modelOptions = brand && brand !== "Any" ? (BRANDS[brand] || ["Other"]) : ["Other"];
+  const isBike = selectedVehicle === "bike";
+  const modelOptions = brand && brand !== "Any" ? ((isBike ? BIKE_BRANDS : BRANDS)[brand] || ["Other"]) : ["Other"];
+
+  // Car ↔ Bike badalne pe purani (dusri type wali) Step 2 selections clear
+  const prevVehicle = useRef(selectedVehicle);
+  useEffect(() => {
+    if (prevVehicle.current === selectedVehicle) return;
+    prevVehicle.current = selectedVehicle;
+    setBrand(""); setCarModel(""); setVariant(""); setFuelType(""); setTransmission(""); setEngineCc("");
+  }, [selectedVehicle]);
 
   function handleBack() {
     if (currentStep > 1) setCurrentStep(s => s - 1);
@@ -313,7 +340,8 @@ export default function SellMyVehicle() {
         condition:        condition.toLowerCase(),
         mileage:          parseInt(km)    || 0,
         fuel_type:        effectiveFuel.toLowerCase() || "petrol",
-        transmission:     transmission.toLowerCase()  || "automatic",
+        transmission:     transmission.toLowerCase()  || (selectedVehicle === "bike" ? "manual" : "automatic"),
+        ...(selectedVehicle === "bike" && parseInt(engineCc) ? { engine_cc: parseInt(engineCc) } : {}),
         color:            effectiveColor  || null,
         description,
         images:           uploadedImages,
@@ -521,11 +549,11 @@ export default function SellMyVehicle() {
             <PickerModal visible={pickerFor === "city"}     title="Select City"         options={SELL_CITIES}   onSelect={setCity}        onClose={() => setPickerFor(null)} />
             <PickerModal visible={pickerFor === "model"}    title="Select Model"        options={modelOptions}  onSelect={setCarModel}    onClose={() => setPickerFor(null)} />
             <PickerModal visible={pickerFor === "year"}     title="Select Year"         options={YEARS}         onSelect={setYear}         onClose={() => setPickerFor(null)} />
-            <PickerModal visible={pickerFor === "fuel"}     title="Select Fuel Type"    options={FUEL_TYPES}    onSelect={setFuelType}     onClose={() => setPickerFor(null)} />
+            <PickerModal visible={pickerFor === "fuel"}     title="Select Fuel Type"    options={isBike ? BIKE_FUEL_TYPES : FUEL_TYPES}    onSelect={setFuelType}     onClose={() => setPickerFor(null)} />
             <PickerModal visible={pickerFor === "color"}    title="Select Color"        options={COLORS}        onSelect={setColor}        onClose={() => setPickerFor(null)} />
             <PickerModal visible={pickerFor === "duration"} title="Select Ad Duration"  options={AD_DURATIONS}  onSelect={setAdDuration}   onClose={() => setPickerFor(null)} />
             <PickerModal visible={pickerFor === "trans"}    title="Transmission"        options={TRANSMISSIONS.filter(o => o !== "Other")} onSelect={setTransmission} onClose={() => setPickerFor(null)} />
-            <PickerModal visible={pickerFor === "variant"}  title="Select Variant"      options={VARIANTS}      onSelect={setVariant}      onClose={() => setPickerFor(null)} />
+            <PickerModal visible={pickerFor === "variant"}  title="Select Variant"      options={isBike ? BIKE_VARIANTS : VARIANTS}      onSelect={setVariant}      onClose={() => setPickerFor(null)} />
             <PickerModal visible={pickerFor === "cond"}     title="Condition"           options={CONDITIONS}    onSelect={setCondition}    onClose={() => setPickerFor(null)} />
 
             <View style={[styles.step2CardBorder, aC.isDark && styles.vehicleCardBorderGlow, { borderColor: aC.isDark ? '#829fd0' : 'transparent' }, !aC.isDark && { borderWidth: 0 }]}>
@@ -541,11 +569,12 @@ export default function SellMyVehicle() {
               <Step2FigmaField label="City" value={city} sample="Karachi" onPress={() => setPickerFor("city")} dark={aC.isDark} />
               <Step2FigmaField label="Brand" value={brand === "Any" ? otherBrand || "Any" : brand} sample="Honda" onPress={() => setPickerFor("brand")} dark={aC.isDark} />
               {brand === "Any" && <TextInput value={otherBrand} onChangeText={setOtherBrand} placeholder="Which brand?" placeholderTextColor="#b8acba" style={[styles.step2OtherInput, { color: aC.textPrimary }, !aC.isDark && { height: 48, borderRadius: 24, paddingHorizontal: 20, backgroundColor: '#E8EAEF', borderWidth: 1, borderColor: 'rgba(0,0,0,0.18)', boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]} />}
-              <Step2FigmaField label="Vehicle" value={carModel} sample="City" onPress={() => setPickerFor("model")} dark={aC.isDark} />
+              <Step2FigmaField label="Vehicle" value={carModel} sample={isBike ? "CD 70" : "City"} onPress={() => setPickerFor("model")} dark={aC.isDark} />
               {carModel === "Other" && <TextInput value={otherModel} onChangeText={setOtherModel} placeholder="Enter vehicle" placeholderTextColor="#b8acba" style={[styles.step2OtherInput, { color: aC.textPrimary }, !aC.isDark && { height: 48, borderRadius: 24, paddingHorizontal: 20, backgroundColor: '#E8EAEF', borderWidth: 1, borderColor: 'rgba(0,0,0,0.18)', boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]} />}
-              <Step2FigmaField label="Variant" value={variant} sample="1.2 Aspire CVT" onPress={() => setPickerFor("variant")} dark={aC.isDark} />
+              <Step2FigmaField label="Variant" value={variant} sample={isBike ? "Self Start" : "1.2 Aspire CVT"} onPress={() => setPickerFor("variant")} dark={aC.isDark} />
               {variant === "Other" && <TextInput value={otherVariant} onChangeText={setOtherVariant} placeholder="Enter variant" placeholderTextColor="#b8acba" style={[styles.step2OtherInput, { color: aC.textPrimary }, !aC.isDark && { height: 48, borderRadius: 24, paddingHorizontal: 20, backgroundColor: '#E8EAEF', borderWidth: 1, borderColor: 'rgba(0,0,0,0.18)', boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]} />}
-              <Step2FigmaField label="Transmission" value={transmission} sample="Automatic" onPress={() => setPickerFor("trans")} dark={aC.isDark} />
+              {isBike && <Step2FigmaField label="Engine (CC)" value={engineCc} sample="70" onChangeText={setEngineCc} numeric dark={aC.isDark} />}
+              <Step2FigmaField label="Transmission" value={transmission} sample={isBike ? "Manual" : "Automatic"} onPress={() => setPickerFor("trans")} dark={aC.isDark} />
               <Step2FigmaField label="Fuel Type" value={fuelType} sample="Petrol" onPress={() => setPickerFor("fuel")} dark={aC.isDark} />
               {fuelType === "Other" && <TextInput value={otherFuel} onChangeText={setOtherFuel} placeholder="Enter fuel type" placeholderTextColor="#b8acba" style={[styles.step2OtherInput, { color: aC.textPrimary }, !aC.isDark && { height: 48, borderRadius: 24, paddingHorizontal: 20, backgroundColor: '#E8EAEF', borderWidth: 1, borderColor: 'rgba(0,0,0,0.18)', boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]} />}
               <Step2FigmaField label="Year" value={year} sample="2024" onPress={() => setPickerFor("year")} dark={aC.isDark} />
@@ -991,6 +1020,7 @@ export default function SellMyVehicle() {
               {/* Details rows */}
               {[
                 { label: "Location",     value: location      || "—" },
+                ...(isBike ? [{ label: "Engine", value: engineCc ? `${engineCc} CC` : "—" }] : []),
                 { label: "Fuel Type",    value: effectiveFuel || "—" },
                 { label: "Transmission", value: transmission  || "—" },
                 { label: "Year",         value: year          || "—" },

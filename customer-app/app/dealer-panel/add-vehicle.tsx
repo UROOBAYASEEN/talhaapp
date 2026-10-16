@@ -461,9 +461,6 @@ export default function AddVehicleScreen() {
           <DSelect label="Variant" placeholder="Select your variant" value={variantOther ? OTHER : variant} onPress={() => setPicker('variant')} />
           {variantOther && <View style={s.otherInput}><InputField label="" placeholder="Enter variant name ex: (1.2 Aspire CVT)" value={variant} onChangeText={setVariant} /></View>}
 
-          <DSelect label="Transmission" placeholder="Select your transmission" value={transmission} onPress={() => setPicker('transmission')} />
-          <DSelect label="Fuel" placeholder="Select your fuel type" value={fuelType} onPress={() => setPicker('fuel')} />
-
           {/* Dosre variants — customer side vehicle detail ke "Compare Variants" me show hote hain */}
           <Text style={s.label}>Other Variants (Optional)</Text>
           <View style={s.chipsWrap}>
@@ -475,6 +472,9 @@ export default function AddVehicleScreen() {
             ))}
             <AddChip onPress={() => setPicker('extraVariant')} />
           </View>
+
+          <DSelect label="Transmission" placeholder="Select your transmission" value={transmission} onPress={() => setPicker('transmission')} />
+          <DSelect label="Fuel Type" placeholder="Select your fuel type" value={fuelType} onPress={() => setPicker('fuel')} />
 
           <DSelect label="Year" placeholder="Select your year" value={modelYear} onPress={() => setPicker('year')} />
           <DSelect label="Body Type" placeholder="Select your body type" value={bodyType} onPress={() => setPicker('body')} />
@@ -557,7 +557,7 @@ export default function AddVehicleScreen() {
       <SelectSheet visible={picker === 'model'} title="Vehicle" options={modelOptions} selected={modelOther ? OTHER : model} onSelect={pickModel} onClose={() => setPicker(null)} />
       <SelectSheet visible={picker === 'variant'} title="Variant" options={variantOptions} selected={variantOther ? OTHER : variant} onSelect={pickVariant} onClose={() => setPicker(null)} />
       <SelectSheet visible={picker === 'transmission'} title="Transmission" options={TRANSMISSIONS} selected={transmission} onSelect={setTransmission} onClose={() => setPicker(null)} />
-      <SelectSheet visible={picker === 'fuel'} title="Fuel" options={FUEL_TYPES} selected={fuelType} onSelect={setFuelType} onClose={() => setPicker(null)} />
+      <SelectSheet visible={picker === 'fuel'} title="Fuel Type" options={FUEL_TYPES} selected={fuelType} onSelect={setFuelType} onClose={() => setPicker(null)} />
       <SelectSheet visible={picker === 'extraVariant'} title="Other Variant" options={extraVariantOptions} selected=""
         onSelect={v => setExtraVariants(prev => (prev.includes(v) ? prev : [...prev, v]))} onClose={() => setPicker(null)} />
       <SelectSheet visible={picker === 'year'} title="Year" options={VEHICLE_YEARS} selected={modelYear} onSelect={setModelYear} onClose={() => setPicker(null)} />
