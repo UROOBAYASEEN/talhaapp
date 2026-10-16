@@ -146,6 +146,14 @@ async def _activate(ad: BannerAd) -> None:
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
 
+@router.get("/", response_model=List[BannerAdResponse])
+async def list_public_banner_ads(limit: int = Query(20, ge=1, le=50)):
+    """Public — active, non-expired banner ads for the home screen."""
+    now = datetime.utcnow()
+    ads = await BannerAd.find({"status": AdStatus.active}).sort("-created_at").limit(limit).to_list()
+    return [_to_resp(a) for a in ads if not (a.expires_at and a.expires_at < now)]
+
+
 @router.post("/create", response_model=BannerAdResponse, status_code=201)
 async def create_banner_ad(
     payload:      BannerAdCreate,

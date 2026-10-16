@@ -571,6 +571,8 @@ export default function HomeScreen() {
   const [activity, setActivity] = useState<Activity[]>([]);
   const [activityLoading, setActivityLoading] = useState(false);
   const [activityError, setActivityError] = useState(false);
+  // Hero banner ke live counters (DB se) — default static values jab tak fetch complete na ho
+  const [miniStats, setMiniStats] = useState(MINI_STATS);
 
   // ── Find Your Perfect Vehicle interactive state ──
   const [payOption, setPayOption] = useState<'Cash' | 'Finance'>('Cash');
@@ -623,13 +625,50 @@ export default function HomeScreen() {
     }
   }
 
+  // Hero banner counters — real numbers DB se (public endpoints)
+  async function loadStats() {
+    const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+    const fmt = (n: number) => Number(n || 0).toLocaleString('en-US');
+    const getJson = async (label: string, path: string) => {
+      const url = `${API_BASE}${path}`;
+      const t0 = Date.now();
+      try {
+        const r = await fetch(url, { headers });
+        const body = await r.json().catch(() => undefined);
+        logApi(label, 'GET', url, r, body, t0);
+        return r.ok ? body : undefined;
+      } catch (e) {
+        logApiError(label, 'GET', url, e, t0);
+        return undefined;
+      }
+    };
+
+    const [veh, dealers, banks, insurance, trackers] = await Promise.all([
+      getJson('Home › Stats vehicles',  '/vehicles/?limit=1'),
+      getJson('Home › Stats dealers',   '/dealers/?limit=100'),
+      getJson('Home › Stats banks',     '/financing/banks'),
+      getJson('Home › Stats insurance', '/insurance/plans'),
+      getJson('Home › Stats trackers',  '/trackers/?limit=100'),
+    ]);
+
+    const len = (v: any) => (Array.isArray(v) ? v.length : undefined);
+    const next = [
+      { value: veh?.total != null ? fmt(veh.total) : MINI_STATS[0].value, label: 'Vehicles' },
+      { value: len(dealers)   != null ? fmt(len(dealers))   : MINI_STATS[1].value, label: 'Dealership' },
+      { value: len(banks)     != null ? fmt(len(banks))     : MINI_STATS[2].value, label: 'Banks' },
+      { value: len(insurance) != null ? fmt(len(insurance)) : MINI_STATS[3].value, label: 'Insurance' },
+      { value: len(trackers)  != null ? fmt(len(trackers))  : MINI_STATS[4].value, label: 'Tracker' },
+    ];
+    setMiniStats(next);
+  }
+
   async function onRefresh() {
     setRefresh(true);
-    await Promise.all([loadFeatured(), loadUnread(), loadActivity()]);
+    await Promise.all([loadFeatured(), loadUnread(), loadActivity(), loadStats()]);
     setRefresh(false);
   }
 
-  useEffect(() => { loadFeatured(); }, [token]);
+  useEffect(() => { loadFeatured(); loadStats(); }, [token]);
 
   // Screen pe wapas aane par (e.g. Alerts parh kar) badge aur activity fresh karo
   useFocusEffect(useCallback(() => {
@@ -659,11 +698,20 @@ export default function HomeScreen() {
             )}
             <View style={[styles.header, { backgroundColor: aC.isDark ? '#071c49' : 'transparent' }]}>
 
-              {/* ── Top row: logo (left) · notification + settings (right) ── */}
-              {/* Home root tab hai — back arrow nahi */}
+              {/* ── Top row: back arrow (left) · logo (center) · notification + settings (right) ── */}
               <View style={[styles.logoRow, !aC.isDark && { marginHorizontal: 0 }]}>
 
-                {/* LEFT: Autowizor logo — Figma node 259:2027 exact image */}
+                {/* LEFT: back arrow */}
+                <TouchableOpacity
+                  style={styles.backArrow}
+                  onPress={() => router.back()}
+                  accessibilityRole="button"
+                  accessibilityLabel="Back"
+                >
+                  <Ionicons name="chevron-back" size={24} color={aC.isDark ? '#e2deea' : aC.textPrimary} />
+                </TouchableOpacity>
+
+                {/* CENTER: Autowizor logo — Figma node 259:2027 exact image */}
                 <View style={styles.brandLogoWrap}>
                   {aC.isDark ? (
                     <Image
@@ -799,13 +847,13 @@ export default function HomeScreen() {
                     )}
                     {/* Stats at the bottom — values #e2671b, labels #d2d2d2 (light: black) */}
                     <View style={styles.heroBannerStats}>
-                      {MINI_STATS.map((s, i) => (
+                      {miniStats.map((s, i) => (
                         <React.Fragment key={s.label}>
                           <View>
                             <Text style={styles.heroBannerVal}>{s.value}</Text>
                             <Text style={[styles.heroBannerLabel, { color: aC.isDark ? '#d2d2d2' : '#000000' }]}>{s.label}</Text>
                           </View>
-                          {i < MINI_STATS.length - 1 && (
+                          {i < miniStats.length - 1 && (
                             <View style={styles.heroStatDiv} />
                           )}
                         </React.Fragment>
@@ -1205,9 +1253,12 @@ const styles = StyleSheet.create({
 
   /* [FRAME] Frame 1686559183 — notification + settings */
   brandLogoWrap: {
-    flex: 1,
-    alignItems: 'flex-start',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    alignItems: 'center',
     justifyContent: 'center',
+    paddingRight: 40,
   },
   topIcons: {
     flexDirection: 'row',
