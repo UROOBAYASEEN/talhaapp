@@ -31,6 +31,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAppColors } from '@/constants/theme';
+import { useAgoraCall } from '@/hooks/useAgoraCall';
 
 const EMOJI_CATEGORIES = [
   { label: '😊 Smileys', emojis: ['😀','😂','😊','😍','🥰','😎','😭','😅','🤣','😇','🥺','😏','😒','😔','😌','🤔','😴','🤗','😤','🤩','😆','😋','😜','🤪','😝','🥳','😱','😳','🤭','🫠'] },
@@ -175,6 +176,8 @@ export default function ChatRoomScreen() {
   const [callId,       setCallId]       = useState<string | null>(null);
   const [callDuration, setCallDuration] = useState(0);
   const [incomingCall, setIncomingCall] = useState<{ id: string; callerName: string } | null>(null);
+  // Agora voice engine — call connect hote hi channel join karta hai (asli awaaz)
+  const agora = useAgoraCall();
 
   const soundRef       = useRef<Audio.Sound | null>(null);
   const pulseAnim      = useRef(new Animated.Value(1)).current;
@@ -330,6 +333,7 @@ export default function ChatRoomScreen() {
           setCallState('connected');
           setCallDuration(0);
           callTimerRef.current = setInterval(() => setCallDuration(s => s + 1), 1000);
+          if (callId) agora.join(callId, token || undefined);
         } else if (d.status === 'declined' || d.status === 'ended' || d.status === 'missed') {
           clearInterval(callPollRef.current);
           setCallState('idle');
@@ -385,6 +389,9 @@ export default function ChatRoomScreen() {
   async function initiateCall() {
     if (!resolvedOtherId || !token) return;
     if (!isOnline) { Alert.alert('User Offline', `${name} is currently offline.`); return; }
+    // Mic permission pehle le lo — warna connect hone par awaaz nahi jayegi
+    const perm = await Audio.requestPermissionsAsync();
+    if (!perm.granted) { Alert.alert('Permission Required', 'Call ke liye microphone access allow karein.'); return; }
     try {
       const res = await fetch(`${API_BASE}/calls/initiate`, {
         method: 'POST',
@@ -400,17 +407,21 @@ export default function ChatRoomScreen() {
 
   async function acceptCall() {
     if (!callId || !token) return;
+    const perm = await Audio.requestPermissionsAsync();
+    if (!perm.granted) { Alert.alert('Permission Required', 'Call ke liye microphone access allow karein.'); return; }
     try {
       await fetch(`${API_BASE}/calls/${callId}/accept`, { method: 'PUT', headers: { Authorization: `Bearer ${token}` } });
       setCallState('connected');
       setCallDuration(0);
       callTimerRef.current = setInterval(() => setCallDuration(s => s + 1), 1000);
+      agora.join(callId, token || undefined);
     } catch { /* offline */ }
   }
 
   async function declineCall() {
     if (!callId || !token) return;
     try { await fetch(`${API_BASE}/calls/${callId}/decline`, { method: 'PUT', headers: { Authorization: `Bearer ${token}` } }); } catch { /* offline */ }
+    agora.leave();
     setCallState('idle');
     setCallId(null);
     setIncomingCall(null);
@@ -418,6 +429,7 @@ export default function ChatRoomScreen() {
 
   async function endCall() {
     clearInterval(callTimerRef.current);
+    agora.leave();
     if (callId && token) {
       try { await fetch(`${API_BASE}/calls/${callId}/end`, { method: 'PUT', headers: { Authorization: `Bearer ${token}` } }); } catch { /* offline */ }
     }
@@ -602,6 +614,21 @@ export default function ChatRoomScreen() {
             <Text style={styles.callStatus}>
               {callState === 'calling' ? 'Calling...' : `Connected  ${fmtDuration(callDuration)}`}
             </Text>
+            {callState === 'connected' && !agora.available && (
+              <Text style={[styles.callStatus, { color: '#e2671b', fontSize: 11, textAlign: 'center', paddingHorizontal: 20 }]}>
+                Voice ke liye development build + Agora App ID zaroori hai.
+              </Text>
+            )}
+            {callState === 'connected' && (
+              <View style={styles.callActions}>
+                <TouchableOpacity style={[styles.acceptBtn, { backgroundColor: agora.muted ? '#e53935' : '#17508A' }]} onPress={agora.toggleMute}>
+                  <Ionicons name={agora.muted ? 'mic-off' : 'mic'} size={26} color="#fff" />
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.acceptBtn, { backgroundColor: agora.speakerOn ? '#17508A' : '#4b5563' }]} onPress={agora.toggleSpeaker}>
+                  <Ionicons name={agora.speakerOn ? 'volume-high' : 'volume-mute'} size={26} color="#fff" />
+                </TouchableOpacity>
+              </View>
+            )}
             <TouchableOpacity style={styles.endCallBtn} onPress={endCall}>
               <Ionicons name="call" size={28} color="#fff" style={{ transform: [{ rotate: '135deg' }] }} />
             </TouchableOpacity>

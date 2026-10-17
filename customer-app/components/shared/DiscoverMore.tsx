@@ -24,7 +24,8 @@ const FALLBACK = [
   { id: '4', media_url: 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=800' },
 ];
 
-const isVideoFile = (u?: string) => !!(u || '').match(/\.(mp4|mov|webm)$/i);
+// Query string (?sig=...) hatao phir extension check karo — warna video ko image samajh leta hai
+const isVideoFile = (u?: string) => /\.(mp4|mov|webm|m3u8|avi|mkv)$/i.test((u || '').split('?')[0].split('#')[0]);
 
 export default function DiscoverMore() {
   const C = useAppColors();
@@ -65,11 +66,13 @@ export default function DiscoverMore() {
         logApi('Discover More', 'GET', url, res, data, t0);
         if (res.ok) {
           const items = Array.isArray(data) ? data : data?.items || [];
-          // Sirf partner ki ads rakho — admin (jo partner list me nahi) nikal jata hai
+          // Partner ki ads pehle rakho; magar agar filter se kuch na bache to
+          // saari uploaded ads dikhao (admin/upload ki hui video gayab na ho — stock images se behtar)
           const partnerOnly = partnerIds
             ? items.filter((v: any) => v?.dealer_id && partnerIds.has(String(v.dealer_id)))
             : items;
-          const sorted = [...partnerOnly].sort((a, b) => {
+          const finalItems = partnerOnly.length > 0 ? partnerOnly : items;
+          const sorted = [...finalItems].sort((a, b) => {
             const da = new Date(a.created_at || 0).getTime();
             const db = new Date(b.created_at || 0).getTime();
             return db - da;
@@ -113,7 +116,8 @@ export default function DiscoverMore() {
               style={[styles.card, { backgroundColor: C.isDark ? '#061b4a' : '#ffffff', borderWidth: C.isDark ? 0 : 1, borderColor: C.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowColor: C.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOffset: { width: 0, height: 4 }, shadowOpacity: C.isDark ? 0 : 0.08, shadowRadius: 10, elevation: C.isDark ? 0 : 3 }]}
             >
               {isVid && full ? (
-                // Asli video ka pehla frame preview ke taur pe (play se pehle) — muted, paused
+                // Asli video ka pehla frame preview ke taur pe (play se pehle) — muted, paused.
+                // pointerEvents="none" zaroori hai warna Video tap khud kha jata hai aur card ka onPress nahi chalta.
                 <Video
                   source={{ uri: full }}
                   style={styles.image}
@@ -121,9 +125,10 @@ export default function DiscoverMore() {
                   shouldPlay={false}
                   isMuted
                   positionMillis={1}
+                  pointerEvents="none"
                 />
               ) : (
-                <Image source={{ uri: full || POSTER }} style={styles.image} resizeMode="cover" />
+                <Image source={{ uri: full || POSTER }} style={styles.image} resizeMode="cover" pointerEvents="none" />
               )}
               {!C.isDark && <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 50, backgroundColor: 'rgba(255,255,255,0.02)' }} pointerEvents="none" />}
               <View style={styles.bottomOverlay} />
@@ -145,7 +150,7 @@ export default function DiscoverMore() {
               <Text style={{ color: '#fff', fontSize: 18 }}>✕</Text>
             </TouchableOpacity>
           </View>
-          {playing && (/\.(mp4|mov|webm)$/i.test(playing.uri) ? (
+          {playing && (isVideoFile(playing.uri) ? (
             <Video
               source={{ uri: playing.uri }}
               style={styles.playerVideo}

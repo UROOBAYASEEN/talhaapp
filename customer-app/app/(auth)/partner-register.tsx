@@ -45,7 +45,7 @@ export default function PartnerRegisterScreen() {
             })}
           </View>
 
-          <GradientButton title="Continue" height={50} fontSize={17} style={{ marginTop: 28 }} onPress={() => router.push({ pathname: '/(auth)/register', params: { from: 'partner' } } as any)} />
+          <GradientButton title="Continue" height={50} fontSize={17} style={{ marginTop: 28 }} onPress={() => router.push({ pathname: '/(auth)/register', params: { from: 'partner', partnerType: selected } } as any)} />
 
           <TouchableOpacity onPress={() => router.push('/(auth)/partner-login' as any)} style={{ marginTop: 22 }} activeOpacity={0.8}>
             <Text style={s.footer}>Already a partner?  <Text style={s.footerLink}>Partner Login</Text></Text>

@@ -29,6 +29,11 @@ class Settings(BaseSettings):
 
     GEMINI_API_KEY: str = ""
 
+    # Agora voice/video calling — App ID zaroori hai; Certificate sirf tab jab
+    # "App Certificate" Agora console me enable ho (secure token mode).
+    AGORA_APP_ID: str = "e969b7311dcf4e389e9dff35917783e5"
+    AGORA_APP_CERTIFICATE: str = ""
+
     class Config:
         env_file = ".env"
 

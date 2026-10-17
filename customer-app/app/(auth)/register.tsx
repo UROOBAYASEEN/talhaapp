@@ -37,10 +37,16 @@ export default function RegisterScreen() {
   const { setAuth, logout } = useAuth();
   const [form, setForm] = useState({ full_name: '', email: '', phone: '', cnic: '', password: '' });
   const [showPass, setShowPass] = useState(false);
-  // Partner Registration screen se aaye to role section hide — account Seller ke taur pe banta hai
-  const { from } = useLocalSearchParams<{ from?: string }>();
+  // Partner Registration screen se aaye to role section hide — account partner type ke mutabiq banta hai
+  const { from, partnerType } = useLocalSearchParams<{ from?: string; partnerType?: string }>();
   const fromPartner = from === 'partner';
-  const [role, setRole] = useState<string>(fromPartner ? 'individual_seller' : 'customer');
+  // Partner type ko backend role se map karo: official dealer → dealership_owner, baaki → individual_seller
+  const PARTNER_ROLE_MAP: Record<string, string> = {
+    new_seller: 'individual_seller',
+    non_dealer: 'individual_seller',
+    official_dealer: 'dealership_owner',
+  };
+  const [role, setRole] = useState<string>(fromPartner ? (PARTNER_ROLE_MAP[partnerType || ''] || 'individual_seller') : 'customer');
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
