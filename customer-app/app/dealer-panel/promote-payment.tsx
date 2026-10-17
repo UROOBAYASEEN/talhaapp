@@ -241,6 +241,8 @@ export default function PromotePaymentScreen() {
           </View>
         )}
 
+        {/* Payment ho jaye to sirf success view — neeche Payment Summary ka content nahi */}
+        {!paid && (
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scrollContent}>
 
           {/* VEHICLE CARD */}
@@ -324,6 +326,7 @@ export default function PromotePaymentScreen() {
           )}
 
         </ScrollView>
+        )}
       </View>
     </SafeAreaView>
   );

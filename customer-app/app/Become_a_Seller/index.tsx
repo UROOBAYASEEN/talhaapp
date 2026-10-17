@@ -33,6 +33,7 @@ const QUICK_ACTIONS = [
   { title: 'Add Video',         icon: DICON.addVideoAdd,    route: '/dealer-panel/video-ads' },
   { title: 'Advertisement',     icon: DICON.advertisement,  route: '/dealer-panel/advertisement' },
   { title: 'Promote Vehicle',   icon: DICON.promoteVehicle, route: '/dealer-panel/promote-vehicle' },
+  { title: 'Drafts',            icon: null,                 ion: 'document-text-outline', route: '/dealer-panel/drafts' },
 ];
 
 // ── Settings menu — same as the customer Home menu (app/(tabs)/index.tsx) ──
@@ -273,10 +274,6 @@ export default function BecomeSellerHomeScreen() {
                   <Text style={s.sellerName} numberOfLines={1}>{sellerName}</Text>
                   <Verified size={20} />
                 </View>
-                <View style={s.planRow}>
-                  <Ionicons name="ribbon-outline" size={16} color={D.orange} />
-                  <Text style={s.planText}>Premium Plan</Text>
-                </View>
               </View>
             </View>
             <View style={s.headerIcons}>
@@ -439,7 +436,9 @@ export default function BecomeSellerHomeScreen() {
                   activeOpacity={0.75}
                   onPress={() => router.push(action.route as any)}
                 >
-                  <DIcon src={action.icon} size={22} />
+                  {(action as any).ion
+                    ? <Ionicons name={(action as any).ion} size={22} color={D.orange} />
+                    : <DIcon src={action.icon} size={22} />}
                   <Text style={s.actionText}>{action.title}</Text>
                 </TouchableOpacity>
               ))}
@@ -465,7 +464,7 @@ export default function BecomeSellerHomeScreen() {
         </ScrollView>
         <BecomeSellerSettingsMenu visible={settingsOpen} anchor={settingsAnchor} onClose={() => setSettingsOpen(false)} />
       </View>
-      <Chatbot />
+      <Chatbot aboveTabBar />
     </SafeAreaView>
   );
 }

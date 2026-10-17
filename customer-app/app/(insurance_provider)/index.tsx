@@ -145,10 +145,6 @@ export default function InsuranceHomeScreen() {
                 <Text style={s.companyName} numberOfLines={1}>{companyName}</Text>
                 <Verified size={20} />
               </View>
-              <View style={s.planRow}>
-                <Ionicons name="ribbon-outline" size={16} color={ORANGE} />
-                <Text style={s.planText}>Premium Plan</Text>
-              </View>
             </View>
           </View>
           <View style={s.headerIcons}>
@@ -299,7 +295,7 @@ export default function InsuranceHomeScreen() {
 
         <View style={{ height: 100 }} />
       </ScrollView>
-      <Chatbot />
+      <Chatbot aboveTabBar />
     </SafeAreaView>
   );
 }

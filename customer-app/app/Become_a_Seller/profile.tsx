@@ -183,7 +183,7 @@ export default function BecomeSellerProfileScreen() {
           </View>
         </View>
 
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 110 }}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 130 }}>
 
           {/* ── COVER IMAGE ── */}
           <TouchableOpacity activeOpacity={0.85} onPress={handleCoverUpdate} style={s.coverContainer}>
@@ -219,7 +219,7 @@ export default function BecomeSellerProfileScreen() {
               <View style={s.dealerDetails}>
                 <View style={s.dealerNameRow}>
                   <Text style={s.dealerName} numberOfLines={1}>{name}</Text>
-                  <VerifiedIcon size={20} />
+                  <VerifiedIcon size={20} tone="orange" />
                 </View>
                 <Text style={s.official}>Individual Seller</Text>
                 <View style={s.ratingRow}>
@@ -312,29 +312,7 @@ export default function BecomeSellerProfileScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* ── PLAN CARD ── */}
-          <GlowCard style={s.premiumCard} radius={24}>
-            <View style={s.planHeader}>
-              <View>
-                <View style={s.currentPlanBadge}>
-                  <Text style={s.currentPlanText}>CURRENT PLAN</Text>
-                </View>
-                <Text style={s.premiumTitle}>Basic Seller</Text>
-              </View>
-              <View style={s.badgeCircle}>
-                <ShieldCheck size={28} color={ORANGE} strokeWidth={2}/>
-              </View>
-            </View>
-
-            {['Verified Seller Status', 'Standard Search Ranking', '5 Active Listing Slots', 'Chat Support'].map(f => (
-              <PlanFeature key={f} text={f}/>
-            ))}
-
-            <TouchableOpacity style={s.manageButton} activeOpacity={0.85} onPress={() => router.push('/Become_a_Seller/plan' as any)}>
-              <LinearGradient colors={['#0B3585', '#7E4F5C', '#E8702A']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={StyleSheet.absoluteFillObject}/>
-              <Text style={s.manageText}>Manage Plan</Text>
-            </TouchableOpacity>
-          </GlowCard>
+          {/* ── PLAN CARD — removed (Current Plan / Manage Plan section profile se hata diya) */}
 
         </ScrollView>
       </View>

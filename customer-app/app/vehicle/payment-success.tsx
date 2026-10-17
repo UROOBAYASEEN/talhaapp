@@ -13,6 +13,7 @@ import {
   ActivityIndicator,
   Linking,
   Platform,
+  BackHandler,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -76,6 +77,15 @@ export default function PaymentSuccessScreen() {
   const isTracker = kind === "tracker";
   const isPromote = kind === "promote";
 
+  // Promote / Dealer extra-ad (panels) — back (header ya phone ka) pe wapas Payment Summary nahi, seedha Home
+  const backHome = isPromote ? (home || "/(dealer)") : isDealerExtra ? "/(dealer)" : null;
+  const goBack = () => (backHome ? router.dismissTo(backHome as any) : router.back());
+  useEffect(() => {
+    if (!backHome) return;
+    const sub = BackHandler.addEventListener("hardwareBackPress", () => { router.dismissTo(backHome as any); return true; });
+    return () => sub.remove();
+  }, [backHome]);
+
   if (isPromote) {
     const homeRoute = (home || "/(dealer)") as any;
     const vehiclePrice = Number(String(price).replace(/,/g, "")) || 0;
@@ -108,7 +118,7 @@ export default function PaymentSuccessScreen() {
         <View style={pst.extraHeader}>
           <TouchableOpacity
             style={pst.extraBackBtn}
-            onPress={() => router.back()}
+            onPress={goBack}
             activeOpacity={0.7}
           >
             <Ionicons name="chevron-back" size={24} color={aC.isDark ? WHITE : '#000000'} />
@@ -271,7 +281,7 @@ export default function PaymentSuccessScreen() {
         <View style={styles.extraHeader}>
           <TouchableOpacity
             style={styles.extraBackBtn}
-            onPress={() => router.back()}
+            onPress={goBack}
             activeOpacity={0.7}
           >
             <Ionicons name="chevron-back" size={26} color="#C9C6D0" />

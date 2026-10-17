@@ -60,7 +60,7 @@ export default function SelectVehicleToPromote() {
   }
 
   return (
-    <SafeAreaView style={s.safeArea} edges={['top', 'bottom']}>
+    <SafeAreaView style={s.safeArea} edges={['top']}>
       <View style={s.mainContainer}>
 
         {/* HEADER */}
@@ -166,7 +166,7 @@ const s = StyleSheet.create({
   radioBtn:    { width: 26, alignItems: 'center', justifyContent: 'center', marginRight: 6 },
 
   /* BOTTOM */
-  bottomContainer: { paddingTop: 10, paddingBottom: 24, alignItems: 'center' },
+  bottomContainer: { paddingTop: 12, paddingBottom: 16, alignItems: 'center' },
   promoteBtn:  { height: 54, width: '86%', borderRadius: 27, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
   promoteText: { color: '#fff', fontSize: 18, fontFamily: 'Poppins_600SemiBold' },
 });

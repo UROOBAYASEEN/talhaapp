@@ -367,9 +367,9 @@ export default function CompareVehicle() {
       }
       // Navigate to detailed compare page (HTML wala design)
       if (from === 'book') router.push({ pathname: '/book/compare' as any, params: { aId: a.id, bId: b.id } });
-      else router.push({ pathname: '/compare-result' as any, params: { aId: a.id, bId: b.id, from: 'compareVehicle', ...(from === 'usedCar' || from === 'newCar' ? { hideBuy: '1' } : {}) } });
-      // keep inline result as fallback if user stays
-      setCompareResult({ a, b });
+      else router.push({ pathname: '/compare-result' as any, params: { aId: a.id, bId: b.id, from: 'compareVehicle', ...(from === 'usedCar' || from === 'newCar' ? { hideBuy: '1' } : {}), ...(from === 'compareSection' ? { hideDealer: '1' } : {}) } });
+      // Inline "Comparison Result" section is screen pr show nahi karna (compare-result screen pe hi result dikhta hai)
+      // setCompareResult({ a, b });
     } catch (e: any) {
       setCompareError('Failed to fetch comparison. Try again.');
     } finally {
@@ -397,14 +397,14 @@ export default function CompareVehicle() {
     setRadioSel([]);
     // Vehicle compare — upar wale "Compare your Vehicle" jaisa hi navigation
     if (from === 'book') router.push({ pathname: '/book/compare' as any, params: { aId: a.id, bId: b.id } });
-    else router.push({ pathname: '/compare-result' as any, params: { aId: a.id, bId: b.id, from: 'compareVehicle', ...(from === 'usedCar' || from === 'newCar' ? { hideBuy: '1' } : {}) } });
+    else router.push({ pathname: '/compare-result' as any, params: { aId: a.id, bId: b.id, from: 'compareVehicle', ...(from === 'usedCar' || from === 'newCar' ? { hideBuy: '1' } : {}), ...(from === 'compareSection' ? { hideDealer: '1' } : {}) } });
   }
 
   // Trending pair (vehicle 1 vs vehicle 2) pe tap — modal nahi, direct comparison screen
   function compareTrendingPair(a: any, b: any) {
     if (!a || !b) return;
     if (from === 'book') router.push({ pathname: '/book/compare' as any, params: { aId: a.id, bId: b.id } });
-    else router.push({ pathname: '/compare-result' as any, params: { aId: a.id, bId: b.id, from: 'compareVehicle', ...(from === 'usedCar' || from === 'newCar' ? { hideBuy: '1' } : {}) } });
+    else router.push({ pathname: '/compare-result' as any, params: { aId: a.id, bId: b.id, from: 'compareVehicle', ...(from === 'usedCar' || from === 'newCar' ? { hideBuy: '1' } : {}), ...(from === 'compareSection' ? { hideDealer: '1' } : {}) } });
   }
 
   function fillTrendingPair(idx: number) {
