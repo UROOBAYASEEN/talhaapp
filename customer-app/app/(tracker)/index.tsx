@@ -36,6 +36,7 @@ const QUICK_ACTIONS = [
   { title: 'Add Video',          icon: <Ionicons name="add" size={30} color={ORANGE} />,     route: '/(tracker)/video-ads' },
   { title: 'Advertisement',      icon: <DIcon src={DICON.advertisement} size={26} />,        route: '/(tracker)/advertisement' },
   { title: 'Clients',            icon: <DIcon src={DICON.customers} size={24} />,            route: '/(tracker)/clients' },
+  { title: 'Drafts',             icon: <Ionicons name="document-text-outline" size={26} color={ORANGE} />, route: '/dealer-panel/drafts' },
 ];
 
 const TILE_W = (Dimensions.get('window').width - 32 - 24) / 4;

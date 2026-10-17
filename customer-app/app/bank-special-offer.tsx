@@ -7,7 +7,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { saveDraft, getDraft } from '@/constants/draftApi';
 import * as ImagePicker from 'expo-image-picker';
 import * as Linking from 'expo-linking';
 import {
@@ -199,6 +200,8 @@ const pm = StyleSheet.create({
 export default function BankSpecialOfferScreen() {
   const router    = useRouter();
   const { token } = useAuth();
+  const { draftId } = useLocalSearchParams<{ draftId?: string }>();
+  const [savingDraft, setSavingDraft] = useState(false);
 
   const [bannerTitle,      setBannerTitle]      = useState('');
   const [description,      setDescription]      = useState('');
@@ -216,6 +219,28 @@ export default function BankSpecialOfferScreen() {
   const [publishing,       setPublishing]       = useState(false);
   const [showPromote,      setShowPromote]      = useState(false);
   const [createdAdId,      setCreatedAdId]      = useState<string>('');
+
+  // Drafts "Continue" se prefill
+  useEffect(() => {
+    if (!draftId || !token) return;
+    (async () => {
+      const d = await getDraft(token, draftId);
+      if (!d) return;
+      const x = d.data || {};
+      if (x.bannerTitle) setBannerTitle(x.bannerTitle);
+      if (x.description) setDescription(x.description);
+      if (x.campaignName) setCampaignName(x.campaignName);
+      if (x.displayLocation) setDisplayLocation(x.displayLocation);
+      if (x.partner) setPartner(x.partner);
+      if (x.page) setPage(x.page);
+      if (x.userType) setUserType(x.userType);
+      if (x.city) setCity(x.city);
+      if (x.boostWeeks) setBoostWeeks(x.boostWeeks);
+      if (x.startDate) setStartDate(x.startDate);
+      if (x.endDate) setEndDate(x.endDate);
+      if (d.media_url) setUploadedFile(d.media_url);
+    })();
+  }, [draftId, token]);
 
   async function pickImage() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -279,8 +304,28 @@ export default function BankSpecialOfferScreen() {
     router.back();
   }
 
-  function handleDraft() {
-    Alert.alert('Saved', 'Special Offer saved as draft.');
+  async function handleDraft() {
+    if (savingDraft) return;
+    setSavingDraft(true);
+    try {
+      let media = uploadedFile;
+      if (uploadedFile && !/^https?:\/\//.test(uploadedFile)) media = await uploadImage();
+      await saveDraft(token!, {
+        id:        draftId,
+        kind:      'special_offer',
+        title:     bannerTitle.trim() || 'Untitled Special Offer',
+        subtitle:  'Special Offer',
+        media_url: media || undefined,
+        data:      { bannerTitle, description, campaignName, displayLocation, partner, page, userType, city, boostWeeks, startDate, endDate, route: '/bank-special-offer' },
+      });
+      Alert.alert('Saved', 'Special Offer saved as draft.', [
+        { text: 'OK', onPress: () => router.replace('/dealer-panel/drafts' as any) },
+      ]);
+    } catch (e: any) {
+      Alert.alert('Error', e.message || 'Could not save draft.');
+    } finally {
+      setSavingDraft(false);
+    }
   }
 
   return (

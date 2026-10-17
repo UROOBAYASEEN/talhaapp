@@ -16,14 +16,6 @@ import {
 // Poster — jab media aik video file ho (video se thumbnail nahi banti)
 const POSTER = 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=800';
 
-// Fallback — jab tak/agar koi advertisement video load na ho to UI blank na lage
-const FALLBACK = [
-  { id: '1', media_url: 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=800' },
-  { id: '2', media_url: 'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=800' },
-  { id: '3', media_url: 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=800' },
-  { id: '4', media_url: 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=800' },
-];
-
 // Query string (?sig=...) hatao phir extension check karo — warna video ko image samajh leta hai
 const isVideoFile = (u?: string) => /\.(mp4|mov|webm|m3u8|avi|mkv)$/i.test((u || '').split('?')[0].split('#')[0]);
 
@@ -85,14 +77,23 @@ export default function DiscoverMore() {
     })();
   }, []);
 
-  // media_url ko full URL me resolve karo
+  // media_url ko full URL me resolve karo.
+  // Uploaded files aksar purani IP ke saath poore URL me store hote hain — host ko
+  // current SERVER se replace karo warna IP badalne par video load/play nahi hoti.
   const resolve = (u?: string): string | null => {
     if (!u) return null;
-    if (u.startsWith('http')) return u;
+    if (/^https?:\/\//.test(u)) {
+      // Uploaded file ka host hamesha api.ts wali API (SERVER) se lo — DB me purana
+      // (render.com) URL store ho to bhi current backend se serve ho. External URLs (unsplash) chhod do.
+      if (u.includes('/uploads/')) return u.replace(/^https?:\/\/[^/]+/, SERVER);
+      return u;
+    }
     return `${SERVER}${u.startsWith('/') ? u : `/${u}`}`;
   };
 
-  const list = videos.length > 0 ? videos : FALLBACK;
+  // Sirf real ads (API). Koi ad na ho to section hide — koi dummy/stock image nahi.
+  const list = videos;
+  if (list.length === 0) return null;
 
   return (
     <View style={styles.container}>
@@ -106,25 +107,20 @@ export default function DiscoverMore() {
           const full = resolve(video.media_url);
           const isVid = isVideoFile(video.media_url);
           return (
-            <TouchableOpacity
+            <View
               key={video.id || video._id}
-              activeOpacity={0.85}
-              onPress={() => {
-                const uri = resolve(video.media_url);
-                if (uri) setPlaying({ uri, title: video.title || '' });
-              }}
               style={[styles.card, { backgroundColor: C.isDark ? '#061b4a' : '#ffffff', borderWidth: C.isDark ? 0 : 1, borderColor: C.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowColor: C.isDark ? 'transparent' : 'rgba(3,42,105,0.12)', shadowOffset: { width: 0, height: 4 }, shadowOpacity: C.isDark ? 0 : 0.08, shadowRadius: 10, elevation: C.isDark ? 0 : 3 }]}
             >
               {isVid && full ? (
-                // Asli video ka pehla frame preview ke taur pe (play se pehle) — muted, paused.
+                // Card me video nazar aaye — muted + looping autoplay (preview).
                 // pointerEvents="none" zaroori hai warna Video tap khud kha jata hai aur card ka onPress nahi chalta.
                 <Video
                   source={{ uri: full }}
                   style={styles.image}
                   resizeMode={ResizeMode.COVER}
-                  shouldPlay={false}
+                  shouldPlay
                   isMuted
-                  positionMillis={1}
+                  isLooping
                   pointerEvents="none"
                 />
               ) : (
@@ -136,7 +132,16 @@ export default function DiscoverMore() {
                 <Text style={styles.playIcon}>▶</Text>
                 {!!video.duration && <Text style={styles.duration}>{video.duration}</Text>}
               </View>
-            </TouchableOpacity>
+              {/* Transparent tap layer (sab ke upar) — pakka tap pakde aur video play kare */}
+              <TouchableOpacity
+                style={StyleSheet.absoluteFill}
+                activeOpacity={0.85}
+                onPress={() => {
+                  const uri = resolve(video.media_url);
+                  if (uri) setPlaying({ uri, title: video.title || '' });
+                }}
+              />
+            </View>
           );
         })}
       </ScrollView>

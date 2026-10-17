@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -12,8 +12,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
+import { saveDraft, getDraft } from '@/constants/draftApi';
 import {
   ChevronLeft,
   Save,
@@ -66,6 +67,7 @@ export default function NewTrackerScreen() {
   const router = useRouter();
   const aC = useAppColors();
   const { token } = useAuth();
+  const { draftId } = useLocalSearchParams<{ draftId?: string }>();
 
   const [features, setFeatures]           = useState(INITIAL_FEATURES);
   const [activeCities, setActiveCities]   = useState<string[]>(['All Cities']);
@@ -80,6 +82,57 @@ export default function NewTrackerScreen() {
   const [images, setImages]               = useState<string[]>([]);
   const [errors, setErrors]               = useState<Record<string, string>>({});
   const [loading, setLoading]             = useState(false);
+  const [savingDraft, setSavingDraft]     = useState(false);
+
+  // Drafts "Continue" se aaya to draft prefill karo
+  useEffect(() => {
+    if (!draftId || !token) return;
+    (async () => {
+      const d = await getDraft(token, draftId);
+      if (!d) return;
+      const x = d.data || {};
+      if (x.trackerName) setTrackerName(x.trackerName);
+      if (x.serialNo) setSerialNo(x.serialNo);
+      if (Array.isArray(x.features)) setFeatures(x.features);
+      if (x.price != null) setPrice(String(x.price));
+      if (x.installFee != null) setInstallFee(String(x.installFee));
+      if (x.monthlyFee != null) setMonthlyFee(String(x.monthlyFee));
+      if (typeof x.installationOn === 'boolean') setInstallationOn(x.installationOn);
+      if (Array.isArray(x.activeCities)) setActiveCities(x.activeCities);
+      if (x.description) setDescription(x.description);
+      if (Array.isArray(x.images)) setImages(x.images);
+    })();
+  }, [draftId, token]);
+
+  // Save as Draft — unified Drafts page me (kind=tracker). Publish alag (submitTracker).
+  async function handleDraft() {
+    if (loading || savingDraft) return;
+    setSavingDraft(true);
+    try {
+      const BASE = API_BASE.replace('/api/v1', '');
+      const uploaded = images.length ? await uploadImages() : [];
+      const imageUrls = uploaded.map(u => (/^https?:\/\//.test(u) ? u : `${BASE}${u}`));
+      await saveDraft(token!, {
+        id:        draftId,
+        kind:      'tracker',
+        title:     trackerName.trim() || 'Untitled Tracker',
+        subtitle:  'Tracker',
+        media_url: imageUrls[0] || undefined,
+        data: {
+          trackerName, serialNo, features, price, installFee, monthlyFee,
+          installationOn, activeCities, description, images: imageUrls,
+          route: '/(tracker)/new-tracker',
+        },
+      });
+      Alert.alert('Draft Saved', 'Your tracker has been saved as a draft.', [
+        { text: 'OK', onPress: () => router.replace('/dealer-panel/drafts' as any) },
+      ]);
+    } catch (e: any) {
+      Alert.alert('Error', e.message || 'Could not save draft.');
+    } finally {
+      setSavingDraft(false);
+    }
+  }
 
   function validate(isPublish: boolean): boolean {
     const e: Record<string, string> = {};
@@ -240,7 +293,7 @@ export default function NewTrackerScreen() {
   return (
     <View style={s.root}>
       <SafeAreaView edges={['top']}>
-        <DHeader title="New Tracker Details" center right={<SaveDraftAction onPress={() => !loading && submitTracker(false)} />} />
+        <DHeader title="New Tracker Details" center right={<SaveDraftAction onPress={handleDraft} />} />
       </SafeAreaView>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
@@ -401,7 +454,7 @@ export default function NewTrackerScreen() {
           <Text style={s.infoText}>Tracker listings are reviewed before being published.</Text>
         </View>
         <GlowPublishButton title="Publish Tracker" loadingTitle="Publishing..." loading={loading} onPress={() => submitTracker(true)} />
-        <GlowDraftButton title="Save as Draft" onPress={() => !loading && submitTracker(false)} />
+        <GlowDraftButton title="Save as Draft" onPress={handleDraft} />
       </BottomActions>
     </View>
   );

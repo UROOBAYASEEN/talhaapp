@@ -36,6 +36,7 @@ const QUICK_ACTIONS = [
   { title: 'New Special\nOffer', icon: <DIcon src={DICON.addVideoAdd} size={20} />,   route: '/(insurance_provider)/special-offer' },
   { title: 'Add Video',          icon: <DIcon src={DICON.addVideoAdd} size={20} />,   route: '/(insurance_provider)/video-ads' },
   { title: 'Advertisement',      icon: <DIcon src={DICON.advertisement} size={24} />, route: '/(insurance_provider)/advertisement' },
+  { title: 'Drafts',             icon: <Ionicons name="document-text-outline" size={24} color="#E2671B" />, route: '/dealer-panel/drafts' },
 ];
 
 const TILE_W = (Dimensions.get('window').width - 32 - 30) / 4;

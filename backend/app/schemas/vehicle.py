@@ -33,6 +33,37 @@ class VehicleCreate(BaseModel):
     registered_city:  Optional[str]            = None
 
 
+class VehicleDraftCreate(BaseModel):
+    # Draft adhoora ho sakta hai — is liye sab fields optional hain.
+    title:            Optional[str]             = None
+    make:             Optional[str]             = None
+    model:            Optional[str]             = None
+    variant:          Optional[str]             = None
+    variants:         Optional[List[dict]]      = None
+    chassis_no:       Optional[str]             = None
+    year:             Optional[int]             = None
+    price:            Optional[float]           = None
+    negotiable:       Optional[bool]            = None
+    category:         Optional[VehicleCategory] = None
+    condition:        Optional[VehicleCondition]= None
+    mileage:          Optional[int]             = None
+    fuel_type:        Optional[FuelType]        = None
+    transmission:     Optional[Transmission]    = None
+    engine_cc:        Optional[int]             = None
+    color:            Optional[str]             = None
+    description:      Optional[str]             = None
+    images:           Optional[List[str]]       = None
+    city:             Optional[str]             = None
+    province:         Optional[str]             = None
+    features:         Optional[List[str]]       = None
+    ad_duration:      Optional[str]             = None
+    contact_phone:    Optional[str]             = None
+    contact_whatsapp: Optional[str]             = None
+    body_type:        Optional[str]             = None
+    assembly:         Optional[str]             = None
+    registered_city:  Optional[str]             = None
+
+
 class VehicleUpdate(BaseModel):
     title:            Optional[str]            = None
     make:             Optional[str]            = None

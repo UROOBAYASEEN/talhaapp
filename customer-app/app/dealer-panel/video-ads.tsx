@@ -6,9 +6,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import * as Linking from 'expo-linking';
+import { saveDraft, getDraft } from '@/constants/draftApi';
 import {
   ChevronLeft, Bookmark, Lightbulb, Upload,
   ChevronDown, Flame, Plus, Circle, CheckCircle2,
@@ -268,6 +269,7 @@ const pm = StyleSheet.create({
 export default function VideoAdsScreen() {
   const router     = useRouter();
   const { token }  = useAuth();
+  const { draftId } = useLocalSearchParams<{ draftId?: string }>();
 
   const [videoTitle,    setVideoTitle]    = useState('');
   const [userType,      setUserType]      = useState('All Users');
@@ -275,9 +277,25 @@ export default function VideoAdsScreen() {
   const [agreed,        setAgreed]        = useState(false);
   const [uploadedFile,  setUploadedFile]  = useState<string | null>(null);
   const [publishing,    setPublishing]    = useState(false);
+  const [savingDraft,   setSavingDraft]   = useState(false);
   const [showPromote,   setShowPromote]   = useState(false);
   const [createdAdId,   setCreatedAdId]   = useState<string>('');
   const [formBoost,     setFormBoost]     = useState('6w');
+
+  // Drafts screen "Continue" se aaya to draft prefill karo
+  useEffect(() => {
+    if (!draftId || !token) return;
+    (async () => {
+      const d = await getDraft(token, draftId);
+      if (!d) return;
+      const data = d.data || {};
+      if (data.videoTitle) setVideoTitle(data.videoTitle);
+      if (data.userType) setUserType(data.userType);
+      if (data.city) setCity(data.city);
+      if (data.formBoost) setFormBoost(data.formBoost);
+      if (d.media_url) setUploadedFile(d.media_url);
+    })();
+  }, [draftId, token]);
 
   async function pickMedia() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -348,8 +366,29 @@ export default function VideoAdsScreen() {
     router.back();
   }
 
-  function handleDraft() {
-    Alert.alert('Saved', 'Video Ad saved as draft.');
+  async function handleDraft() {
+    if (savingDraft) return;
+    setSavingDraft(true);
+    try {
+      // Local file ho to upload; already-http ho to waise hi rakho
+      let media = uploadedFile;
+      if (uploadedFile && !/^https?:\/\//.test(uploadedFile)) media = await uploadMedia();
+      await saveDraft(token!, {
+        id:        draftId,
+        kind:      'video_ad',
+        title:     videoTitle.trim() || 'Untitled Video Ad',
+        subtitle:  'Video Ad',
+        media_url: media || undefined,
+        data:      { videoTitle, userType, city, formBoost, route: '/dealer-panel/video-ads' },
+      });
+      Alert.alert('Saved', 'Video Ad saved as draft.', [
+        { text: 'OK', onPress: () => router.replace('/dealer-panel/drafts' as any) },
+      ]);
+    } catch (e: any) {
+      Alert.alert('Error', e.message || 'Could not save draft.');
+    } finally {
+      setSavingDraft(false);
+    }
   }
 
   return (

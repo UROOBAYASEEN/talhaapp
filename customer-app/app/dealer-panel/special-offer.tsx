@@ -7,9 +7,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import * as Linking from 'expo-linking';
+import { saveDraft, getDraft } from '@/constants/draftApi';
 import { CheckCircle2, X, Zap } from 'lucide-react-native';
 import { AppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
@@ -46,6 +47,7 @@ function GlassInset() {
 export default function SpecialOfferScreen() {
   const router    = useRouter();
   const { token } = useAuth();
+  const { draftId } = useLocalSearchParams<{ draftId?: string }>();
 
   const [page,         setPage]         = useState('Insurance page');
   const [userType,     setUserType]     = useState('All Users');
@@ -58,6 +60,26 @@ export default function SpecialOfferScreen() {
   const [endDate,      setEndDate]      = useState('');
   const [uploadedFile, setUploadedFile] = useState<string | null>(null);
   const [submitting,   setSubmitting]   = useState(false);
+  const [savingDraft,  setSavingDraft]  = useState(false);
+
+  // Drafts screen "Continue" se aaya to prefill
+  useEffect(() => {
+    if (!draftId || !token) return;
+    (async () => {
+      const d = await getDraft(token, draftId);
+      if (!d) return;
+      const x = d.data || {};
+      if (x.page) setPage(x.page);
+      if (x.userType) setUserType(x.userType);
+      if (x.city) setCity(x.city);
+      if (x.bannerTitle) setBannerTitle(x.bannerTitle);
+      if (x.description) setDescription(x.description);
+      if (x.campaignName) setCampaignName(x.campaignName);
+      if (x.startDate) setStartDate(x.startDate);
+      if (x.endDate) setEndDate(x.endDate);
+      if (d.media_url) setUploadedFile(d.media_url);
+    })();
+  }, [draftId, token]);
   const [showPromote,  setShowPromote]  = useState(false);
   const [promoteBoost, setPromoteBoost] = useState('6w');
   const [paying,       setPaying]       = useState(false);
@@ -185,8 +207,28 @@ export default function SpecialOfferScreen() {
     } catch {}
   }
 
-  function handleDraft() {
-    Alert.alert('Saved', 'Special Offer saved as draft.');
+  async function handleDraft() {
+    if (savingDraft) return;
+    setSavingDraft(true);
+    try {
+      let media = uploadedFile;
+      if (uploadedFile && !/^https?:\/\//.test(uploadedFile)) media = await uploadImage();
+      await saveDraft(token!, {
+        id:        draftId,
+        kind:      'special_offer',
+        title:     bannerTitle.trim() || 'Untitled Special Offer',
+        subtitle:  'Special Offer',
+        media_url: media || undefined,
+        data:      { page, userType, city, bannerTitle, description, campaignName, startDate, endDate, route: '/dealer-panel/special-offer' },
+      });
+      Alert.alert('Saved', 'Special Offer saved as draft.', [
+        { text: 'OK', onPress: () => router.replace('/dealer-panel/drafts' as any) },
+      ]);
+    } catch (e: any) {
+      Alert.alert('Error', e.message || 'Could not save draft.');
+    } finally {
+      setSavingDraft(false);
+    }
   }
 
   return (

@@ -63,6 +63,7 @@ const quickActions = [
   { Icon: Plus,      label: 'Add special offer', route: '/bank-special-offer', icon: <Ionicons name="add" size={24} color="#E2671B" /> },
   { Icon: Plus,      label: 'Add Video',         route: '/bank-video-ads',     icon: <Ionicons name="add" size={24} color="#E2671B" /> },
   { Icon: Megaphone, label: 'Advertisement',     route: '/bank-advertisement', icon: <DIcon src={DICON.advertisement} size={28} /> },
+  { Icon: Megaphone, label: 'Drafts',            route: '/dealer-panel/drafts', icon: <Ionicons name="document-text-outline" size={26} color="#E2671B" /> },
 ];
 
 

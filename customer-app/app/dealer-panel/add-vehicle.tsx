@@ -13,7 +13,7 @@ import {
   FlatList,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { Plus, X } from 'lucide-react-native';
 import {
@@ -107,6 +107,8 @@ function ChipInput({ value, onChange, onDone, onCancel, placeholder }: { value: 
 export default function AddVehicleScreen() {
   const router = useRouter();
   const { token, user } = useAuth();
+  // Drafts screen "Continue" se aata hai — is draft ko prefill + update/publish karte hain
+  const { draftId } = useLocalSearchParams<{ draftId?: string }>();
 
   // Pricing breakdown (WHT / Estimated Total) sirf Dealer ke liye — Seller / Become_a_Seller me sirf Vehicle Price
   const isDealer = (user as any)?.role === 'dealership_owner';
@@ -139,6 +141,7 @@ export default function AddVehicleScreen() {
   const [showModal, setShowModal] = useState(false);
   const [images, setImages] = useState<string[]>([]);
   const [publishing, setPublishing] = useState(false);
+  const [savingDraft, setSavingDraft] = useState(false);
   const [createdVehicleId, setCreatedVehicleId] = useState<string | null>(null);
 
   const [colors, setColors] = useState(['Wine Red', 'Black', 'White', 'Silver', 'Blue', 'Grey']);
@@ -170,6 +173,36 @@ export default function AddVehicleScreen() {
     })();
     return () => { alive = false; };
   }, [vehicleType]);
+
+  // Continue flow — draft ka data laa kar form prefill karo
+  useEffect(() => {
+    if (!draftId) return;
+    (async () => {
+      try {
+        const res = await fetch(`${API_BASE}/vehicles/${draftId}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+        if (!res.ok) return;
+        const v = await res.json();
+        setVehicleType(v.category === 'bike' ? 'bike' : 'car');
+        if (v.city) setCity(v.city);
+        if (v.make) setBrand(v.make);
+        if (v.model) setModel(v.model);
+        if (v.variant) setVariant(v.variant);
+        const mt = TRANSMISSIONS.find(t => t.toLowerCase() === String(v.transmission || '').toLowerCase());
+        if (mt) setTransmission(mt);
+        const mf = FUEL_TYPES.find(f => f.toLowerCase() === String(v.fuel_type || '').toLowerCase());
+        if (mf) setFuelType(mf);
+        if (v.year) setModelYear(String(v.year));
+        if (v.body_type) setBodyType(v.body_type);
+        if (v.price) setVehiclePrice(String(v.price));
+        if (v.color) { setColors(prev => prev.includes(v.color) ? prev : [...prev, v.color]); setSelectedColor(v.color); }
+        if (Array.isArray(v.features) && v.features.length) {
+          setFeatures(prev => Array.from(new Set([...prev, ...v.features])));
+          setSelectedFeatures(v.features);
+        }
+        if (Array.isArray(v.images)) setImages(v.images);
+      } catch { /* offline */ }
+    })();
+  }, [draftId, token]);
 
   const modelMap = vehicleType === 'car' ? CAR_MODELS : BIKE_MODELS;
   const brandOptions = [...(apiBrands.length ? apiBrands : Object.keys(modelMap)), OTHER];
@@ -247,6 +280,8 @@ export default function AddVehicleScreen() {
     const BASE = API_BASE.replace('/api/v1', '');
     const urls: string[] = [];
     for (const uri of images) {
+      // Draft se aayi images pehle se server pe hain — dobara upload mat karo
+      if (/^https?:\/\//.test(uri)) { urls.push(uri); continue; }
       const form = new FormData();
       form.append('file', {
         uri,
@@ -358,6 +393,10 @@ export default function AddVehicleScreen() {
       if (res.ok) {
         const data = await res.json();
         setCreatedVehicleId(data.id);
+        // Draft se publish hua to purana draft hata do
+        if (draftId) {
+          try { await fetch(`${API_BASE}/vehicles/${draftId}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } }); } catch { }
+        }
         if (promote) {
           // Pehle wala promote flow
           router.replace({ pathname: '/dealer-panel/promote-new' } as any);
@@ -389,8 +428,51 @@ export default function AddVehicleScreen() {
     }
   }
 
-  function handleDraft() {
-    Alert.alert('Saved', 'Vehicle saved as draft.');
+  // Save as Draft — jitna bhara hai utna DB me mehfooz (partial chalega). draftId ho to update.
+  async function handleDraft() {
+    if (savingDraft || publishing) return;
+    setSavingDraft(true);
+    try {
+      const uploadedUrls = images.length ? await uploadImages() : [];
+      const price = toNum(vehiclePrice);
+      const isIndividual = (user as any)?.role === 'individual_seller';
+      const payload: Record<string, any> = {
+        title: (brand || model) ? `${brand} ${model}${variant ? ' ' + variant : ''}`.trim() : undefined,
+        make: brand || undefined,
+        model: model || undefined,
+        variant: variant || undefined,
+        year: modelYear ? parseInt(modelYear) : undefined,
+        price: price || undefined,
+        city: city || undefined,
+        transmission: transmission ? transmission.toLowerCase() : undefined,
+        fuel_type: fuelType ? fuelType.toLowerCase() : undefined,
+        category: vehicleType,
+        condition: isIndividual ? 'used' : 'new',
+        color: selectedColor || undefined,
+        body_type: bodyType || undefined,
+        features: selectedFeatures,
+        images: uploadedUrls,
+      };
+      const url    = draftId ? `${API_BASE}/vehicles/draft/${draftId}` : `${API_BASE}/vehicles/draft`;
+      const method = draftId ? 'PUT' : 'POST';
+      const res = await fetch(url, {
+        method,
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        Alert.alert('Saved', 'Vehicle saved as draft.', [
+          { text: 'OK', onPress: () => router.replace('/dealer-panel/drafts' as any) },
+        ]);
+      } else {
+        const e = await res.json().catch(() => ({}));
+        Alert.alert('Error', typeof e.detail === 'string' ? e.detail : 'Could not save draft.');
+      }
+    } catch {
+      Alert.alert('Error', 'Network error. Please try again.');
+    } finally {
+      setSavingDraft(false);
+    }
   }
 
   const PLANS = [

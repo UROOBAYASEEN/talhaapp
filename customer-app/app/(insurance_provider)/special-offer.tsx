@@ -7,7 +7,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { saveDraft, getDraft } from '@/constants/draftApi';
 import * as ImagePicker from 'expo-image-picker';
 import * as Linking from 'expo-linking';
 import {
@@ -204,6 +205,8 @@ const pm = StyleSheet.create({
 export default function InsuranceSpecialOfferScreen() {
   const router    = useRouter();
   const { token } = useAuth();
+  const { draftId } = useLocalSearchParams<{ draftId?: string }>();
+  const [savingDraft, setSavingDraft] = useState(false);
 
   const [title,       setTitle]       = useState('');
   const [desc,        setDesc]        = useState('');
@@ -223,6 +226,44 @@ export default function InsuranceSpecialOfferScreen() {
   const [locOpen,     setLocOpen]     = useState(false);
   const [partnerOpen, setPartnerOpen] = useState(false);
   const [boostPick,   setBoostPick]   = useState('6w');
+
+  useEffect(() => {
+    if (!draftId || !token) return;
+    (async () => {
+      const d = await getDraft(token, draftId);
+      if (!d) return;
+      const x = d.data || {};
+      if (x.title) setTitle(x.title);
+      if (x.desc) setDesc(x.desc);
+      if (x.campaign) setCampaign(x.campaign);
+      if (x.userType) setUserType(x.userType);
+      if (x.city) setCity(x.city);
+      if (x.page) setPage(x.page);
+      if (x.location) setLocation(x.location);
+      if (x.partner) setPartner(x.partner);
+      if (x.startDate) setStartDate(x.startDate);
+      if (x.endDate) setEndDate(x.endDate);
+      if (x.boostPick) setBoostPick(x.boostPick);
+      if (d.media_url) setUploadedFile(d.media_url);
+    })();
+  }, [draftId, token]);
+
+  async function handleDraft() {
+    if (savingDraft) return;
+    setSavingDraft(true);
+    try {
+      let media = uploadedFile;
+      if (uploadedFile && !/^https?:\/\//.test(uploadedFile)) media = await uploadImage();
+      await saveDraft(token!, {
+        id: draftId, kind: 'special_offer',
+        title: title.trim() || 'Untitled Special Offer', subtitle: 'Special Offer',
+        media_url: media || undefined,
+        data: { title, desc, campaign, userType, city, page, location, partner, startDate, endDate, boostPick, route: '/(insurance_provider)/special-offer' },
+      });
+      Alert.alert('Saved', 'Special Offer saved as draft.', [{ text: 'OK', onPress: () => router.replace('/dealer-panel/drafts' as any) }]);
+    } catch (e: any) { Alert.alert('Error', e.message || 'Could not save draft.'); }
+    finally { setSavingDraft(false); }
+  }
 
   async function pickImage() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -295,7 +336,7 @@ export default function InsuranceSpecialOfferScreen() {
 
           {/* HEADER */}
           <View style={{ marginHorizontal: -16 }}>
-            <DHeader title="Special Offer Details" center right={<SaveDraftAction />} />
+            <DHeader title="Special Offer Details" center right={<SaveDraftAction onPress={handleDraft} />} />
           </View>
 
           {/* RECOMMENDATION */}
@@ -392,7 +433,7 @@ export default function InsuranceSpecialOfferScreen() {
         <BottomActions fx compact>
           <GlowPublishButton title="Publish Banner" loadingTitle="Publishing..." loading={publishing}
             style={!agreed ? { opacity: 0.6 } : undefined} onPress={handlePublish} />
-          <GlowDraftButton title="Save as Draft" />
+          <GlowDraftButton title="Save as Draft" onPress={handleDraft} />
         </BottomActions>
       </KeyboardAvoidingView>
 

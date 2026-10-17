@@ -11,6 +11,7 @@ import {
   View,
   ActivityIndicator,
   RefreshControl,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -66,7 +67,7 @@ function applySortKey(list: any[], key: string) {
   }
 }
 
-function RequestCard({ item, onDetails }: { item: any; onDetails: () => void }) {
+function RequestCard({ item, onDetails, onApprove, approving }: { item: any; onDetails: () => void; onApprove: () => void; approving: boolean }) {
   const st = STATUS_STYLES[item.status] || STATUS_STYLES['Pending'];
   return (
     <GlowCard style={s.card} radius={20}>
@@ -129,7 +130,7 @@ function RequestCard({ item, onDetails }: { item: any; onDetails: () => void }) 
           <Eye size={16} color="#C9C6D0" />
           <Text style={s.detailsTxt}>DETAILS</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={s.approveBtn} activeOpacity={0.85}>
+        <TouchableOpacity style={s.approveBtn} activeOpacity={0.85} onPress={onApprove} disabled={approving}>
           <LinearGradient colors={['#082C66', '#DF6728']} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFillObject} />
           <CheckCircle size={16} color="#fff" />
           <Text style={s.approveTxt}>APPROVE</Text>
@@ -149,6 +150,30 @@ export default function TrackerRequestsScreen() {
   const [requests,     setRequests]   = useState<any[]>([]);
   const [loading,      setLoading]    = useState(true);
   const [refreshing,   setRefreshing] = useState(false);
+  const [approvingId,  setApprovingId] = useState<string | null>(null);
+
+  // Approve button → status 'approved' (backend: PATCH /insurance/provider/claims/{id})
+  async function approveRequest(id: string) {
+    if (!token || approvingId) return;
+    setApprovingId(id);
+    try {
+      const res = await fetch(`${API_BASE}/insurance/provider/claims/${id}`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'approved' }),
+      });
+      if (res.ok) {
+        setRequests(prev => prev.map(r => (r.id === id ? { ...r, status: 'Approved' } : r)));
+      } else {
+        const e = await res.json().catch(() => ({}));
+        Alert.alert('Error', typeof e.detail === 'string' ? e.detail : 'Could not approve request.');
+      }
+    } catch {
+      Alert.alert('Error', 'Network error. Please try again.');
+    } finally {
+      setApprovingId(null);
+    }
+  }
 
   const fetchRequests = useCallback(async () => {
     if (!token || !user?.id) return;
@@ -234,6 +259,8 @@ export default function TrackerRequestsScreen() {
               <RequestCard
                 item={item}
                 onDetails={() => router.push({ pathname: '/insurance-application-detail' as any, params: { id: item.id } })}
+                onApprove={() => approveRequest(item.id)}
+                approving={approvingId === item.id}
               />
             )}
         ListEmptyComponent={<View style={s.empty}><Text style={s.emptyTxt}>No requests found</Text></View>}

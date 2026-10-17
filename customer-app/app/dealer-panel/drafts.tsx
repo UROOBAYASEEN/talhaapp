@@ -1,13 +1,16 @@
 // Drafts — vehicles saved with "Save Draft" on Vehicle Details (dealer-panel/add-vehicle).
 // Shared by the Dealer and Become_a_Seller panels (Quick Actions → Drafts).
-// UI only: sample drafts below, no API yet.
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, FlatList, Modal, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+// Real data: GET /vehicles/my?status=draft  •  delete: DELETE /vehicles/{id}
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ActivityIndicator, Animated, FlatList, Modal, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { D, DHeader, FilterPills, GlowCard, MiniGradBtn, SearchBar, StatusPill, TipBanner } from '@/components/dealer/DealerUI';
+import { API_BASE } from '@/constants/api';
+import { useAuth } from '@/contexts/AuthContext';
+import { fetchMyDrafts, deleteDraft } from '@/constants/draftApi';
 
 const TABS = ['All', 'Cars', 'Bikes'] as const;
 type Tab = typeof TABS[number];
@@ -26,21 +29,115 @@ type Draft = {
   photos: number;
   done: Step[];
   savedAgo: string;
+  // Ad-type drafts (video_ad / special_offer waghaira) — vehicle ke ilawa
+  kind?: string;        // undefined/'vehicle' = gaari; warna ad draft
+  subtitle?: string;
+  route?: string;       // Continue par kaun si editor screen khule
 };
 
-// Sample drafts (UI only)
-const SAMPLE_DRAFTS: Draft[] = [
-  { id: 'd1', type: 'car',  title: 'Honda Civic Oriel 1.8',  city: 'Karachi',   year: '2022', price: 7250000, photos: 6, done: ['Images', 'Details', 'Specs', 'Price'], savedAgo: '2 hours ago' },
-  { id: 'd2', type: 'car',  title: 'Toyota Corolla Altis',   city: 'Lahore',    year: '2021',                   photos: 3, done: ['Images', 'Details', 'Specs'],          savedAgo: 'Yesterday' },
-  { id: 'd3', type: 'bike', title: 'Honda CG 125',           city: 'Islamabad',                                  photos: 0, done: ['Details'],                             savedAgo: '3 days ago' },
-  { id: 'd4', type: 'car',  title: 'Suzuki Alto VXL AGS',                                                       photos: 0, done: [],                                      savedAgo: '6 days ago' },
-];
+// "2026-10-17T..." → "2 hours ago"
+function timeAgo(iso?: string): string {
+  if (!iso) return 'recently';
+  let s = iso;
+  if (!/[Z+-]/.test(s.slice(-6)) && !s.endsWith('Z')) s = s.replace(' ', 'T') + 'Z';
+  const t = new Date(s).getTime();
+  if (!isFinite(t)) return 'recently';
+  const mins = Math.max(0, Math.floor((Date.now() - t) / 60000));
+  if (mins < 1) return 'Just now';
+  if (mins < 60) return `${mins} min ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs} hour${hrs > 1 ? 's' : ''} ago`;
+  const days = Math.floor(hrs / 24);
+  if (days === 1) return 'Yesterday';
+  return `${days} days ago`;
+}
+
+// Backend vehicle (status=draft) → Draft card. "done" steps bhari hui fields se bante hain.
+function mapToDraft(v: any): Draft {
+  const done: Step[] = [];
+  if (v.images?.length) done.push('Images');
+  if (v.make && v.model && v.city) done.push('Details');
+  if (v.transmission && v.fuel_type && v.year && v.body_type) done.push('Specs');
+  if (v.price > 0) done.push('Price');
+  if (v.features?.length) done.push('Features');
+  return {
+    id:       String(v.id),
+    type:     v.category === 'bike' ? 'bike' : 'car',
+    title:    v.title || `${v.make || ''} ${v.model || ''}`.trim(),
+    city:     v.city || undefined,
+    year:     v.year ? String(v.year) : undefined,
+    price:    v.price || undefined,
+    photos:   v.images?.length || 0,
+    done,
+    savedAgo: timeAgo(v.created_at),
+    kind:     'vehicle',
+  };
+}
 
 function fmtPrice(p?: number) {
   if (!p) return null;
   if (p >= 10000000) return `PKR ${(p / 10000000).toFixed(2)} Crore`;
   if (p >= 100000) return `PKR ${(p / 100000).toFixed(2)} Lacs`;
   return `PKR ${p.toLocaleString()}`;
+}
+
+const KIND_LABEL: Record<string, string> = {
+  video_ad:      'Video Ad',
+  special_offer: 'Special Offer',
+  advertisement: 'Advertisement',
+  tracker:       'Tracker',
+};
+
+// Generic draft (video ad / special offer waghaira) → Draft card
+function mapGenericToDraft(d: any): Draft {
+  return {
+    id:       String(d.id),
+    type:     'car',   // ad drafts Cars/Bikes tab me count nahi hote (kind se filter)
+    title:    d.title || KIND_LABEL[d.kind] || 'Untitled draft',
+    subtitle: d.subtitle || KIND_LABEL[d.kind] || 'Draft',
+    photos:   d.media_url ? 1 : 0,
+    done:     [],
+    savedAgo: timeAgo(d.updated_at || d.created_at),
+    kind:     d.kind || 'draft',
+    route:    d.data?.route,
+  };
+}
+
+// Ad-type draft ke liye compact card (vehicle steps/progress ke bagair)
+function AdDraftCard({ d, onContinue, onDelete }: { d: Draft; onContinue: () => void; onDelete: () => void }) {
+  const icon = d.kind === 'special_offer' ? 'pricetag-outline'
+    : d.kind === 'video_ad' ? 'videocam-outline'
+    : d.kind === 'tracker' ? 'locate-outline'
+    : 'megaphone-outline';
+  return (
+    <GlowCard style={s.card} onPress={onContinue}>
+      <View style={s.topRow}>
+        <View style={s.thumb}>
+          <Ionicons name={icon as any} size={28} color={D.muted} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <View style={s.titleRow}>
+            <StatusPill label="Draft" tone="orange" style={s.draftPill} />
+            <TouchableOpacity onPress={onDelete} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+              <Ionicons name="trash-outline" size={20} color={D.muted} />
+            </TouchableOpacity>
+          </View>
+          <Text style={s.title} numberOfLines={1}>{d.title || 'Untitled draft'}</Text>
+          <Text style={s.meta} numberOfLines={1}>{d.subtitle || 'Draft'}</Text>
+        </View>
+      </View>
+      <View style={s.divider} />
+      <View style={s.footer}>
+        <View style={{ flex: 1 }}>
+          <View style={s.savedRow}>
+            <Ionicons name="time-outline" size={13} color={D.muted} />
+            <Text style={s.savedTxt}>Saved {d.savedAgo}</Text>
+          </View>
+        </View>
+        <MiniGradBtn title="Continue" onPress={onContinue} />
+      </View>
+    </GlowCard>
+  );
 }
 
 function DraftCard({ d, onContinue, onDelete }: { d: Draft; onContinue: () => void; onDelete: () => void }) {
@@ -119,25 +216,60 @@ function DraftCard({ d, onContinue, onDelete }: { d: Draft; onContinue: () => vo
 
 export default function DraftsScreen() {
   const router = useRouter();
-  const [drafts, setDrafts] = useState<Draft[]>(SAMPLE_DRAFTS);
+  const { token } = useAuth();
+  const [drafts, setDrafts] = useState<Draft[]>([]);
+  const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<Tab>('All');
   const [search, setSearch] = useState('');
 
+  // DB se apne drafts (status=draft) — dealer aur non-dealer dono
+  const load = useCallback(async () => {
+    if (!token) { setDrafts([]); setLoading(false); return; }
+    try {
+      // 1) Vehicle drafts  2) Generic ad drafts (video ad / special offer) — dono mila do
+      const [vehRes, gen] = await Promise.all([
+        fetch(`${API_BASE}/vehicles/my?status=draft&limit=100`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetchMyDrafts(token),
+      ]);
+      const vehicleDrafts = vehRes.ok ? ((await vehRes.json()).items || []).map(mapToDraft) : [];
+      const adDrafts = (gen || []).map(mapGenericToDraft);
+      setDrafts([...vehicleDrafts, ...adDrafts]);
+    } catch { /* offline */ }
+    finally { setLoading(false); }
+  }, [token]);
+
+  // Screen pe aate hi (aur draft save/publish ke baad wapas aane pe) fresh karo
+  useFocusEffect(useCallback(() => { load(); }, [load]));
+
+  const isVehicle = (d: Draft) => !d.kind || d.kind === 'vehicle';
+
   const counts = useMemo(() => ({
     All: drafts.length,
-    Cars: drafts.filter(d => d.type === 'car').length,
-    Bikes: drafts.filter(d => d.type === 'bike').length,
+    Cars: drafts.filter(d => isVehicle(d) && d.type === 'car').length,
+    Bikes: drafts.filter(d => isVehicle(d) && d.type === 'bike').length,
   }), [drafts]);
 
   const list = useMemo(() => {
     const q = search.trim().toLowerCase();
     return drafts.filter(d =>
-      (tab === 'All' || (tab === 'Cars' ? d.type === 'car' : d.type === 'bike')) &&
+      // Cars/Bikes tabs sirf vehicle drafts; ad drafts sirf "All" me
+      (tab === 'All' || (isVehicle(d) && (tab === 'Cars' ? d.type === 'car' : d.type === 'bike'))) &&
       (!q || d.title.toLowerCase().includes(q) || (d.city || '').toLowerCase().includes(q)),
     );
   }, [drafts, tab, search]);
 
-  const openEditor = () => router.push('/dealer-panel/add-vehicle' as any);
+  // Vehicle → add-vehicle; ad draft → uski apni editor screen (draft.data.route)
+  const openEditor = (id?: string) =>
+    router.push({ pathname: '/dealer-panel/add-vehicle', params: id ? { draftId: id } : {} } as any);
+
+  const continueDraft = (d: Draft) => {
+    if (isVehicle(d)) { openEditor(d.id); return; }
+    const route = d.route
+      || (d.kind === 'special_offer' ? '/dealer-panel/special-offer'
+        : d.kind === 'tracker' ? '/(tracker)/new-tracker'
+        : '/dealer-panel/video-ads');
+    router.push({ pathname: route, params: { draftId: d.id } } as any);
+  };
 
   // Delete confirm modal — `target` stays set while the close animation runs
   const [target, setTarget] = useState<Draft | null>(null);
@@ -148,8 +280,15 @@ export default function DraftsScreen() {
     setDelOpen(true);
   }
 
-  function doDelete() {
-    if (target) setDrafts(prev => prev.filter(x => x.id !== target.id));
+  async function doDelete() {
+    if (target) {
+      if (isVehicle(target)) {
+        try { await fetch(`${API_BASE}/vehicles/${target.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } }); } catch { /* offline */ }
+      } else if (token) {
+        await deleteDraft(token, target.id);
+      }
+      setDrafts(prev => prev.filter(x => x.id !== target.id));
+    }
     setDelOpen(false);
   }
 
@@ -160,7 +299,7 @@ export default function DraftsScreen() {
           title="Drafts"
           center
           right={
-            <TouchableOpacity onPress={openEditor} style={s.newBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+            <TouchableOpacity onPress={() => openEditor()} style={s.newBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
               <Ionicons name="add-circle-outline" size={24} color={D.orange} />
             </TouchableOpacity>
           }
@@ -197,10 +336,17 @@ export default function DraftsScreen() {
           ) : null
         }
         renderItem={({ item }) => (
-          <DraftCard d={item} onContinue={openEditor} onDelete={() => confirmDelete(item)} />
+          isVehicle(item)
+            ? <DraftCard d={item} onContinue={() => continueDraft(item)} onDelete={() => confirmDelete(item)} />
+            : <AdDraftCard d={item} onContinue={() => continueDraft(item)} onDelete={() => confirmDelete(item)} />
         )}
         ItemSeparatorComponent={() => <View style={{ height: 14 }} />}
         ListEmptyComponent={
+          loading ? (
+            <View style={s.empty}>
+              <ActivityIndicator color={D.orange} />
+            </View>
+          ) : (
           <View style={s.empty}>
             <View style={s.emptyIcon}>
               <Ionicons name="document-text-outline" size={38} color={D.orange} />
@@ -212,13 +358,14 @@ export default function DraftsScreen() {
                 : 'Try a different search or filter.'}
             </Text>
             {drafts.length === 0 && (
-              <TouchableOpacity activeOpacity={0.85} onPress={openEditor} style={s.emptyBtnWrap}>
+              <TouchableOpacity activeOpacity={0.85} onPress={() => openEditor()} style={s.emptyBtnWrap}>
                 <LinearGradient colors={['#032a69', D.orange]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.emptyBtn}>
                   <Text style={s.emptyBtnTxt}>Add Vehicle</Text>
                 </LinearGradient>
               </TouchableOpacity>
             )}
           </View>
+          )
         }
       />
 

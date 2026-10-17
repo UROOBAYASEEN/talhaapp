@@ -6,9 +6,11 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status, Request
 from app.models.user import User
 from app.models.vehicle import VehicleListing, ListingStatus, Reservation, TestDrive
 from app.models.save import SavedVehicle
+from app.models.document import UserDocument
 from app.routers.auth import get_current_user
 from app.schemas.vehicle import (
     VehicleCreate,
+    VehicleDraftCreate,
     VehicleListResponse,
     VehicleResponse,
     VehicleUpdate,
@@ -20,6 +22,60 @@ from app.schemas.vehicle import (
 router = APIRouter(prefix="/vehicles", tags=["Vehicles"])
 
 AD_DURATION_DAYS = {"1 week": 7, "2 weeks": 14, "4 weeks": 28, "6 weeks": 42}
+
+
+async def _require_seller_profile_complete(user: User):
+    """Become-a-Seller (customer / individual_seller) ko vehicle publish karne se pehle
+    apne verification documents dena zaroori hai. Na hon to 403 (safety net; asal gate frontend par)."""
+    if user.role.value not in ("individual_seller", "customer"):
+        return
+    doc_count = await UserDocument.find({"user_id": str(user.id)}).count()
+    if doc_count == 0:
+        raise HTTPException(
+            status_code=403,
+            detail="Please upload your verification documents before listing a vehicle.",
+        )
+
+
+async def _enforce_ad_limit(current_user: User, request: Request):
+    """Dealer / individual seller ka active+pending ad limit check. Draft is count me nahi aate."""
+    from app.models.dealer_subscription import DealerSubscription, PLAN_LIMITS, DealerPlan
+
+    if current_user.role.value not in ("dealership_owner", "individual_seller"):
+        return
+    sub   = await DealerSubscription.find_one({"dealer_id": str(current_user.id), "status": "active"})
+    plan  = sub.plan if sub else DealerPlan.basic
+    limit = PLAN_LIMITS.get(plan, 5)
+    # Admin-set per-user limit overrides the plan (None = plan default)
+    if current_user.inventory_limit is not None:
+        limit = current_user.inventory_limit
+    if limit == -1:   # -1 = unlimited
+        return
+
+    active_count = await VehicleListing.find(
+        {"seller_id": str(current_user.id), "status": {"$in": ["active", "pending"]}}
+    ).count()
+    if active_count < limit:
+        return
+
+    extra_paid = False
+    try:
+        if hasattr(request, "headers"):
+            extra_paid = request.headers.get("x-extra-paid") == "true" or request.headers.get("X-Extra-Paid") == "true"
+    except Exception:
+        pass
+    if not extra_paid:
+        raise HTTPException(
+            status_code=402,
+            detail={
+                "code":      "AD_LIMIT_REACHED",
+                "plan":      plan.value,
+                "limit":     limit,
+                "used":      active_count,
+                "extra_fee": 500,
+                "message":   f"You have reached your {limit}-ad limit on the {plan.value} plan.",
+            },
+        )
 
 
 def _to_response(v: VehicleListing, seller: Optional[User] = None) -> VehicleResponse:
@@ -83,42 +139,11 @@ async def create_listing(
     request: Request,
     current_user: User = Depends(get_current_user),
 ):
-    from fastapi import Request as FastAPIRequest
-    from app.models.dealer_subscription import DealerSubscription, PLAN_LIMITS, DealerPlan
+    # ── Seller verification (profile photo + CNIC + document) zaroori ──
+    await _require_seller_profile_complete(current_user)
 
     # ── Check plan ad limit for dealership & non-dealership (individual) ──
-    if current_user.role.value in ("dealership_owner", "individual_seller"):
-        sub = await DealerSubscription.find_one({"dealer_id": str(current_user.id), "status": "active"})
-        plan     = sub.plan if sub else DealerPlan.basic
-        limit    = PLAN_LIMITS.get(plan, 5)
-        # Admin-set per-user limit overrides the plan (None = plan default)
-        if current_user.inventory_limit is not None:
-            limit = current_user.inventory_limit
-
-        if limit != -1:   # -1 = unlimited
-            active_count = await VehicleListing.find(
-                {"seller_id": str(current_user.id), "status": {"$in": ["active", "pending"]}}
-            ).count()
-            if active_count >= limit:
-                extra_paid = False
-                try:
-                    # FastAPI Request injected as second arg (could be Request instance)
-                    if hasattr(request, 'headers'):
-                        extra_paid = request.headers.get('x-extra-paid') == 'true' or request.headers.get('X-Extra-Paid') == 'true'
-                except Exception:
-                    pass
-                if not extra_paid:
-                    raise HTTPException(
-                        status_code=402,
-                        detail={
-                            "code":        "AD_LIMIT_REACHED",
-                            "plan":        plan.value,
-                            "limit":       limit,
-                            "used":        active_count,
-                            "extra_fee":   500,
-                            "message":     f"You have reached your {limit}-ad limit on the {plan.value} plan.",
-                        }
-                    )
+    await _enforce_ad_limit(current_user, request)
 
     data = payload.model_dump()
     expires_at = None
@@ -135,6 +160,88 @@ async def create_listing(
     )
     await listing.insert()
     return _to_response(listing, current_user)
+
+
+# ── Drafts ──────────────────────────────────────────────────────────────────
+# "Save as Draft" se adhoori listing DB me mehfooz hoti hai (status=draft).
+# Draft ad-limit me count nahi hote aur public listing me show nahi hote.
+# List karne ke liye: GET /vehicles/my?status=draft  •  Delete: DELETE /vehicles/{id}
+
+@router.post("/draft", response_model=VehicleResponse, status_code=status.HTTP_201_CREATED)
+async def create_draft(
+    payload: VehicleDraftCreate,
+    current_user: User = Depends(get_current_user),
+):
+    data = payload.model_dump(exclude_none=True)
+    # Required model fields ke safe defaults (draft adhoora ho sakta hai)
+    data.setdefault("title", "")
+    data.setdefault("make", "")
+    data.setdefault("model", "")
+    data.setdefault("year", 0)
+    data.setdefault("price", 0)
+    data["status"] = ListingStatus.draft
+    listing = VehicleListing(seller_id=str(current_user.id), **data)
+    await listing.insert()
+    return _to_response(listing, current_user)
+
+
+@router.put("/draft/{vehicle_id}", response_model=VehicleResponse)
+async def update_draft(
+    vehicle_id: str,
+    payload:    VehicleUpdate,
+    current_user: User = Depends(get_current_user),
+):
+    v = await VehicleListing.get(vehicle_id)
+    if not v:
+        raise HTTPException(status_code=404, detail="Draft not found")
+    if v.seller_id != str(current_user.id):
+        raise HTTPException(status_code=403, detail="Not your draft")
+    if v.status != ListingStatus.draft:
+        raise HTTPException(status_code=400, detail="This listing is not a draft")
+
+    update_data = payload.model_dump(exclude_none=True)
+    update_data.pop("status", None)   # draft hi rahe — publish alag endpoint se hota hai
+    update_data["updated_at"] = datetime.utcnow()
+    for key, val in update_data.items():
+        setattr(v, key, val)
+    await v.save()
+    return _to_response(v, current_user)
+
+
+@router.post("/draft/{vehicle_id}/publish", response_model=VehicleResponse)
+async def publish_draft(
+    vehicle_id: str,
+    request: Request,
+    current_user: User = Depends(get_current_user),
+):
+    v = await VehicleListing.get(vehicle_id)
+    if not v:
+        raise HTTPException(status_code=404, detail="Draft not found")
+    if v.seller_id != str(current_user.id):
+        raise HTTPException(status_code=403, detail="Not your draft")
+    if v.status != ListingStatus.draft:
+        raise HTTPException(status_code=400, detail="This listing is not a draft")
+
+    # Publish se pehle zaroori fields complete hon
+    missing = [f for f in ("title", "make", "model") if not str(getattr(v, f, "")).strip()]
+    if not v.price or v.price <= 0:
+        missing.append("price")
+    if not v.year:
+        missing.append("year")
+    if not v.images:
+        missing.append("images")
+    if missing:
+        raise HTTPException(status_code=400, detail=f"Complete these before publishing: {', '.join(missing)}")
+
+    # Seller verification + ad-limit (draft tak nahi lagta tha)
+    await _require_seller_profile_complete(current_user)
+    await _enforce_ad_limit(current_user, request)
+
+    # Sell flow: admin approval ke liye pending
+    v.status     = ListingStatus.pending
+    v.updated_at = datetime.utcnow()
+    await v.save()
+    return _to_response(v, current_user)
 
 
 # ── List all active vehicles (public) ─────────────────────────────────────

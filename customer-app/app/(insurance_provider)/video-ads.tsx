@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView,
   TouchableOpacity, TextInput, Alert, ActivityIndicator, Image, Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { saveDraft, getDraft } from '@/constants/draftApi';
 import {
   ChevronLeft, Bookmark, Lightbulb, Upload,
   ChevronDown, Flame, CheckCircle2, Circle, X, Zap,
@@ -54,6 +55,8 @@ function Chip({ label, active, onPress }: { label: string; active: boolean; onPr
 export default function InsuranceVideoAdsScreen() {
   const router = useRouter();
   const { token } = useAuth();
+  const { draftId } = useLocalSearchParams<{ draftId?: string }>();
+  const [savingDraft, setSavingDraft] = useState(false);
 
   const [videoTitle,   setVideoTitle]   = useState('');
   const [userType,     setUserType]     = useState('All Users');
@@ -69,6 +72,39 @@ export default function InsuranceVideoAdsScreen() {
   const [partnerOpen,  setPartnerOpen]  = useState(false);
   const [showPay,      setShowPay]      = useState(false);
   const [paying,       setPaying]       = useState(false);
+
+  useEffect(() => {
+    if (!draftId || !token) return;
+    (async () => {
+      const d = await getDraft(token, draftId);
+      if (!d) return;
+      const x = d.data || {};
+      if (x.videoTitle) setVideoTitle(x.videoTitle);
+      if (x.userType) setUserType(x.userType);
+      if (x.city) setCity(x.city);
+      if (x.location) setLocation(x.location);
+      if (x.partner) setPartner(x.partner);
+      if (x.duration) setDuration(x.duration);
+      if (d.media_url) { setUploadedFile(d.media_url); setFileName(String(d.media_url).split('/').pop() || 'media'); }
+    })();
+  }, [draftId, token]);
+
+  async function handleDraft() {
+    if (savingDraft) return;
+    setSavingDraft(true);
+    try {
+      let media = uploadedFile;
+      if (uploadedFile && !/^https?:\/\//.test(uploadedFile)) media = await uploadMedia();
+      await saveDraft(token!, {
+        id: draftId, kind: 'video_ad',
+        title: videoTitle.trim() || 'Untitled Video Ad', subtitle: 'Video Ad',
+        media_url: media || undefined,
+        data: { videoTitle, userType, city, location, partner, duration, route: '/(insurance_provider)/video-ads' },
+      });
+      Alert.alert('Saved', 'Video Ad saved as draft.', [{ text: 'OK', onPress: () => router.replace('/dealer-panel/drafts' as any) }]);
+    } catch (e: any) { Alert.alert('Error', e.message || 'Could not save draft.'); }
+    finally { setSavingDraft(false); }
+  }
 
   async function pickMedia() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -180,7 +216,7 @@ export default function InsuranceVideoAdsScreen() {
 
         {/* HEADER */}
         <View style={{ marginHorizontal: -16 }}>
-          <DHeader title="Video Ads" center right={<SaveDraftAction />} />
+          <DHeader title="Video Ads" center right={<SaveDraftAction onPress={handleDraft} />} />
         </View>
 
         {/* RECOMMENDATION */}
@@ -259,7 +295,7 @@ export default function InsuranceVideoAdsScreen() {
       <BottomActions fx compact>
         <GlowPublishButton title="Publish  Reel" loadingTitle={uploadedFile ? 'Uploading...' : 'Publishing...'}
           loading={publishing} style={!agreed ? { opacity: 0.6 } : undefined} onPress={handlePublish} />
-        <GlowDraftButton title="Save as Draft" />
+        <GlowDraftButton title="Save as Draft" onPress={handleDraft} />
       </BottomActions>
 
       {/* Pay Now modal — paid-first, no free publish */}

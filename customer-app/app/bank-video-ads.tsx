@@ -7,7 +7,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { saveDraft, getDraft } from '@/constants/draftApi';
 import * as ImagePicker from 'expo-image-picker';
 import * as Linking from 'expo-linking';
 import {
@@ -278,6 +279,7 @@ const pm = StyleSheet.create({
 export default function VideoAdsScreen() {
   const router     = useRouter();
   const { token }  = useAuth();
+  const { draftId } = useLocalSearchParams<{ draftId?: string }>();
 
   const [videoTitle,    setVideoTitle]    = useState('');
   const [startDate,     setStartDate]     = useState('');
@@ -287,9 +289,26 @@ export default function VideoAdsScreen() {
   const [agreed,        setAgreed]        = useState(false);
   const [uploadedFile,  setUploadedFile]  = useState<string | null>(null);
   const [publishing,    setPublishing]    = useState(false);
+  const [savingDraft,   setSavingDraft]   = useState(false);
   const [showPromote,   setShowPromote]   = useState(false);
   const [createdAdId,   setCreatedAdId]   = useState<string>('');
   const [boostSel,      setBoostSel]      = useState('6w');
+
+  useEffect(() => {
+    if (!draftId || !token) return;
+    (async () => {
+      const d = await getDraft(token, draftId);
+      if (!d) return;
+      const x = d.data || {};
+      if (x.videoTitle) setVideoTitle(x.videoTitle);
+      if (x.userType) setUserType(x.userType);
+      if (x.city) setCity(x.city);
+      if (x.startDate) setStartDate(x.startDate);
+      if (x.endDate) setEndDate(x.endDate);
+      if (x.boostSel) setBoostSel(x.boostSel);
+      if (d.media_url) setUploadedFile(d.media_url);
+    })();
+  }, [draftId, token]);
 
   async function pickMedia() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -360,8 +379,28 @@ export default function VideoAdsScreen() {
     router.back();
   }
 
-  function handleDraft() {
-    Alert.alert('Saved', 'Video Ad saved as draft.');
+  async function handleDraft() {
+    if (savingDraft) return;
+    setSavingDraft(true);
+    try {
+      let media = uploadedFile;
+      if (uploadedFile && !/^https?:\/\//.test(uploadedFile)) media = await uploadMedia();
+      await saveDraft(token!, {
+        id:        draftId,
+        kind:      'video_ad',
+        title:     videoTitle.trim() || 'Untitled Video Ad',
+        subtitle:  'Video Ad',
+        media_url: media || undefined,
+        data:      { videoTitle, userType, city, startDate, endDate, boostSel, route: '/bank-video-ads' },
+      });
+      Alert.alert('Saved', 'Video Ad saved as draft.', [
+        { text: 'OK', onPress: () => router.replace('/dealer-panel/drafts' as any) },
+      ]);
+    } catch (e: any) {
+      Alert.alert('Error', e.message || 'Could not save draft.');
+    } finally {
+      setSavingDraft(false);
+    }
   }
 
   return (

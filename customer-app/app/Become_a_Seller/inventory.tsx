@@ -13,6 +13,7 @@ import {
 import { AppColors } from '@/constants/theme';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { hasSellerDocuments } from '@/constants/sellerGate';
 import { D, GlowCard, PillGlow } from '@/components/dealer/DealerUI';
 import { SavedCardEffect, savedCardOuter } from '@/components/shared/FigmaEffects';
 import { useTabBarSpace } from '@/components/shared/PillTabBar';
@@ -117,6 +118,23 @@ const vc = StyleSheet.create({
 export default function BecomeSellerInventoryScreen() {
   const { user, token } = useAuth();
   const router = useRouter();
+
+  // Vehicle add karne se pehle documents check — na hon to alert + documents route
+  async function openAddVehicle() {
+    const ok = await hasSellerDocuments(token);
+    if (!ok) {
+      Alert.alert(
+        'Documents Required',
+        'Please provide your verification documents before adding a vehicle.',
+        [
+          { text: 'Provide Documents', onPress: () => router.push('/profile/documents' as any) },
+          { text: 'Cancel', style: 'cancel' },
+        ],
+      );
+      return;
+    }
+    router.push('/dealer-panel/add-vehicle' as any);
+  }
   // FAB floating tab bar ke thora uper (same as Dealer inventory)
   const fabBottom = useTabBarSpace(100, 16);
 
@@ -268,7 +286,7 @@ export default function BecomeSellerInventoryScreen() {
             <View style={s.empty}>
               <Car size={48} color={C.textSecondary} />
               <Text style={s.emptyTxt}>No vehicles found</Text>
-              <TouchableOpacity style={s.emptyBtn} onPress={() => router.push('/dealer-panel/add-vehicle' as any)}>
+              <TouchableOpacity style={s.emptyBtn} onPress={openAddVehicle}>
                 <Text style={s.emptyBtnTxt}>Add Your First Vehicle</Text>
               </TouchableOpacity>
             </View>
@@ -276,7 +294,7 @@ export default function BecomeSellerInventoryScreen() {
         />
       )}
 
-      <TouchableOpacity style={[s.fab, { bottom: fabBottom }]} onPress={() => router.push('/dealer-panel/add-vehicle' as any)}>
+      <TouchableOpacity style={[s.fab, { bottom: fabBottom }]} onPress={openAddVehicle}>
         <Plus size={28} color="#fff" strokeWidth={2.5} />
       </TouchableOpacity>
 

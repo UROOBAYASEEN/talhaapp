@@ -11,6 +11,7 @@ import {
   Switch,
   Appearance,
   useColorScheme,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -21,6 +22,7 @@ import { AppColors, useAppColors } from '@/constants/theme';
 import { D, DICON, DIcon, GlowCard, TipBanner, Verified } from '@/components/dealer/DealerUI';
 import { API_BASE } from '@/constants/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { hasSellerDocuments } from '@/constants/sellerGate';
 import Chatbot from '@/components/shared/Chatbot';
 
 const GREEN   = '#2ECC71';
@@ -39,7 +41,26 @@ const QUICK_ACTIONS = [
 // ── Settings menu — same as the customer Home menu (app/(tabs)/index.tsx) ──
 function BecomeSellerSettingsMenu({ visible, onClose, anchor }: { visible: boolean; onClose: () => void; anchor: { x: number; y: number; w: number; h: number } | null }) {
   const router = useRouter();
+  const { token } = useAuth();
   const aC = useAppColors();
+
+  // Vehicle create karne se pehle documents check (same gate as home/inventory)
+  async function openCreateVehicle() {
+    onClose();
+    const ok = await hasSellerDocuments(token);
+    if (!ok) {
+      Alert.alert(
+        'Documents Required',
+        'Please provide your verification documents before adding a vehicle.',
+        [
+          { text: 'Provide Documents', onPress: () => router.push('/profile/documents' as any) },
+          { text: 'Cancel', style: 'cancel' },
+        ],
+      );
+      return;
+    }
+    router.push('/vehicle/create' as any);
+  }
   const scheme = useColorScheme();
   const lightOn = scheme === 'light';
   const [sellerOn, setSellerOn] = useState(true);
@@ -73,7 +94,7 @@ function BecomeSellerSettingsMenu({ visible, onClose, anchor }: { visible: boole
             <Text style={[sm.label, { color: txt, flex: 1 }]}>Profile</Text>
           </TouchableOpacity>
           <View style={[sm.divider, { backgroundColor: line }]} />
-          <TouchableOpacity style={sm.row} activeOpacity={0.8} onPress={() => { onClose(); router.push('/vehicle/create' as any); }}>
+          <TouchableOpacity style={sm.row} activeOpacity={0.8} onPress={openCreateVehicle}>
             <View style={sm.iconBox}>
               <MaterialCommunityIcons name="car-outline" size={19} color="#E2671B" />
               <MaterialCommunityIcons name="tag-outline" size={10} color="#E2671B" style={sm.tag} />
@@ -114,6 +135,23 @@ const sm = StyleSheet.create({
 export default function BecomeSellerHomeScreen() {
   const { user, token } = useAuth();
   const router = useRouter();
+
+  // Vehicle add karne se pehle documents check — na hon to alert + documents route
+  async function openAddVehicle() {
+    const ok = await hasSellerDocuments(token);
+    if (!ok) {
+      Alert.alert(
+        'Documents Required',
+        'Please provide your verification documents before adding a vehicle.',
+        [
+          { text: 'Provide Documents', onPress: () => router.push('/profile/documents' as any) },
+          { text: 'Cancel', style: 'cancel' },
+        ],
+      );
+      return;
+    }
+    router.push('/dealer-panel/add-vehicle' as any);
+  }
 
   const [stats, setStats]       = useState<any>(null);
   const [activity, setActivity] = useState<any[]>([]);
@@ -434,7 +472,9 @@ export default function BecomeSellerHomeScreen() {
                   key={i}
                   style={[s.actionCard, i % 4 !== 3 && { marginRight: '2.66%' }]}
                   activeOpacity={0.75}
-                  onPress={() => router.push(action.route as any)}
+                  onPress={() => action.route === '/dealer-panel/add-vehicle'
+                    ? openAddVehicle()
+                    : router.push(action.route as any)}
                 >
                   {(action as any).ion
                     ? <Ionicons name={(action as any).ion} size={22} color={D.orange} />

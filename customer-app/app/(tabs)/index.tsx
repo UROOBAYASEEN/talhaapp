@@ -16,12 +16,14 @@ import { API_BASE } from '@/constants/api';
 import { logApi, logApiError } from '@/constants/apiLog';
 import { useAppColors } from '@/constants/theme';
 import { useAuth } from '@/contexts/AuthContext';
+import { hasSellerDocuments } from '@/constants/sellerGate';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Animated,
   Dimensions,
   FlatList,
@@ -481,7 +483,26 @@ function DropField({
 // ── Settings menu (Figma) — opens from the header settings icon ──────────────
 function SettingsMenu({ visible, onClose, anchor }: { visible: boolean; onClose: () => void; anchor: { x: number; y: number; w: number; h: number } | null }) {
   const router = useRouter();
+  const { token } = useAuth();
   const aC = useAppColors();
+
+  // Vehicle create karne se pehle documents check — na hon to alert + documents route
+  async function openCreateVehicle() {
+    onClose();
+    const ok = await hasSellerDocuments(token);
+    if (!ok) {
+      Alert.alert(
+        'Documents Required',
+        'Please provide your verification documents before adding a vehicle.',
+        [
+          { text: 'Provide Documents', onPress: () => router.push('/profile/documents' as any) },
+          { text: 'Cancel', style: 'cancel' },
+        ],
+      );
+      return;
+    }
+    router.push('/vehicle/create' as any);
+  }
   const scheme = useColorScheme();
   const lightOn = scheme === 'light';
   const [sellerOn, setSellerOn] = useState(false);
@@ -515,7 +536,7 @@ function SettingsMenu({ visible, onClose, anchor }: { visible: boolean; onClose:
               <Text style={[sm.label, { color: txt, flex: 1 }]}>Profile</Text>
             </TouchableOpacity>
             <View style={[sm.divider, { backgroundColor: line }]} />
-            <TouchableOpacity style={sm.row} activeOpacity={0.8} onPress={() => { onClose(); router.push('/vehicle/create' as any); }}>
+            <TouchableOpacity style={sm.row} activeOpacity={0.8} onPress={openCreateVehicle}>
               <View style={sm.iconBox}>
                 <MaterialCommunityIcons name="car-outline" size={19} color="#E2671B" />
                 <MaterialCommunityIcons name="tag-outline" size={10} color="#E2671B" style={sm.tag} />

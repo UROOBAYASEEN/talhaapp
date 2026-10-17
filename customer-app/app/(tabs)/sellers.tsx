@@ -33,14 +33,6 @@ const ADD_MORE_ADS = require('@/assets/images/addmoreAds.png');
 const SPEED_ICON = require('@/assets/Icons/speedIcon.png');
 const PETROL_ICON = require('@/assets/Icons/petrolIcon.png');
 
-// Dummy ads — shown only when the API returns no vehicles
-const DUMMY_ADS = [
-  { id: 'dummy-ad-1', isDummy: true, category: 'car', make: 'Honda', model: 'Civic', variant: 'Oriel 1.8 i-VTEC CVT', transmission: 'Automatic', title: 'Honda Civic Oriel 1.8 i-VTEC CVT', price: 6850000, year: 2021, mileage: 42000, fuel_type: 'Petrol', city: 'Karachi' },
-  { id: 'dummy-ad-2', isDummy: true, category: 'car', make: 'Toyota', model: 'Corolla', variant: 'Altis Grande 1.8', transmission: 'Automatic', title: 'Toyota Corolla Altis Grande 1.8', price: 5975000, year: 2020, mileage: 58000, fuel_type: 'Petrol', city: 'Karachi' },
-  { id: 'dummy-ad-3', isDummy: true, category: 'car', make: 'Suzuki', model: 'Alto', variant: 'VXL AGS', transmission: 'Automatic', title: 'Suzuki Alto VXL AGS', price: 2850000, year: 2022, mileage: 21000, fuel_type: 'Petrol', city: 'Lahore' },
-  { id: 'dummy-ad-4', isDummy: true, category: 'car', make: 'Kia', model: 'Sportage', variant: 'AWD', transmission: 'Automatic', title: 'Kia Sportage AWD', price: 8450000, year: 2021, mileage: 35000, fuel_type: 'Petrol', city: 'Islamabad' },
-];
-
 function formatPrice(p: number) {
   if (p >= 10000000) return `PKR ${(p / 10000000).toFixed(2)} Crore`;
   if (p >= 100000) return `PKR ${(p / 100000).toFixed(2)} Lacs`;
@@ -75,8 +67,7 @@ export default function AdsScreen() {
   const fetchVehicles = useCallback(async (p = 1, replace = true, filters = activeFilters, q_search = search) => {
     try {
       const q = new URLSearchParams({ page: String(p), limit: '10' });
-      // Ads page: only non-dealership (individual seller) vehicles — no official dealership ads
-      q.set('seller_type', 'individual');
+      // Ads page: SAARI ads dikhao (har seller ki) — koi seller_type filter nahi
       if (q_search) q.set('search', q_search);
       if (filters.cities?.length) q.set('city', filters.cities[0]);
       if (filters.models?.length) q.set('search', filters.models[0]);
@@ -108,8 +99,6 @@ export default function AdsScreen() {
     setLoadingMore(true);
     fetchVehicles(page + 1, false);
   }
-
-  const showDummy = !loading && vehicles.length === 0;
 
   const VehicleCard = ({ item }: { item: any }) => {
     const mileage = item.mileage ?? item.mileage_km ?? item.km_driven ?? item.distance_km ?? item.kilometers;
@@ -181,7 +170,7 @@ export default function AdsScreen() {
           <TouchableOpacity
             style={[styles.viewBtn, !aC.isDark && { boxShadow: '2px 4px 5px rgba(0,0,0,0.24)' }]}
             activeOpacity={0.85}
-            onPress={() => router.push({ pathname: '/buy/car-detail', params: { id: item.id, from: 'usedCar', ...(item.isDummy ? { dummy: JSON.stringify(item) } : {}) } } as any)}
+            onPress={() => router.push({ pathname: '/buy/car-detail', params: { id: item.id, from: 'usedCar' } } as any)}
           >
             <LinearGradient
               colors={aC.isDark ? [NAVY, ORANGE] : ['#27467F', '#FF9654']}
@@ -227,7 +216,7 @@ export default function AdsScreen() {
       </View>
 
       <FlatList
-        data={showDummy ? DUMMY_ADS : vehicles}
+        data={vehicles}
         keyExtractor={i => i.id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.list}
@@ -241,7 +230,7 @@ export default function AdsScreen() {
             {/* Title */}
             <View style={styles.titleBox}>
               <Text style={[styles.pageTitle, { color: aC.textPrimary }]}>Car For Sale</Text>
-              <Text style={[styles.resultSub, { color: aC.isDark ? aC.textSecondary : '#000000' }]}>{(showDummy ? DUMMY_ADS.length : total).toLocaleString()} Results Found in karachi</Text>
+              <Text style={[styles.resultSub, { color: aC.isDark ? aC.textSecondary : '#000000' }]}>{total.toLocaleString()} Results Found in karachi</Text>
             </View>
 
 
